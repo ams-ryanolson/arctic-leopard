@@ -1,0 +1,20 @@
+{
+    "mcpServers": {
+        "laravel-boost": {
+            "command": "/Users/ryanolson/Library/Application Support/Herd/bin/php83",
+            "args": [
+                "/Users/ryanolson/Herd/real-kink-men-new/realkinkmen/artisan",
+                "boost:mcp"
+            ]
+        },
+        "herd": {
+            "command": "/Users/ryanolson/Library/Application Support/Herd/bin/php83",
+            "args": [
+                "/Applications/Herd.app/Contents/Resources/herd-mcp.phar"
+            ],
+            "env": {
+                "SITE_PATH": "/Users/ryanolson/Herd/real-kink-men-new/realkinkmen"
+            }
+        }
+    }
+}

@@ -1,0 +1,34 @@
+<?php
+
+namespace Database\Factories;
+
+use App\Models\Message;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+/**
+ * @extends Factory<\App\Models\MessageReaction>
+ */
+class MessageReactionFactory extends Factory
+{
+    /**
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        return [
+            'message_id' => Message::factory(),
+            'user_id' => User::factory(),
+            'emoji' => $this->faker->randomElement(['👍', '🔥', '😍', '👏', '😂', '😮']),
+            'variant' => null,
+            'metadata' => [],
+        ];
+    }
+
+    public function variant(string $variant): static
+    {
+        return $this->state(fn () => [
+            'variant' => $variant,
+        ]);
+    }
+}

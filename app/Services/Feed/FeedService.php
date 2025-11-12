@@ -1,0 +1,160 @@
+<?php
+
+namespace App\Services\Feed;
+
+use App\Http\Resources\PostResource;
+use App\Http\Resources\TimelineEntryResource;
+use App\Models\Circle;
+use App\Models\Post;
+use App\Models\Timeline;
+use App\Models\User;
+use App\Services\Cache\TimelineCacheService;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\Request;
+
+class FeedService
+{
+    public function getFollowingFeed(
+        User $viewer,
+        int $page,
+        int $perPage,
+        Request $request,
+        string $pageName = 'page',
+    ): array {
+        $entries = Timeline::query()
+            ->forViewer($viewer)
+            ->visible()
+            ->with([
+                'post' => static function ($query) use ($viewer): void {
+                    $query->with([
+                        'author',
+                        'media',
+                        'poll.options',
+                        'hashtags',
+                    ])
+                        ->withCount(['bookmarks as bookmarks_count'])
+                        ->withBookmarkStateFor($viewer);
+                },
+            ])
+            ->latest('created_at')
+            ->paginate(perPage: $perPage, page: $page, pageName: $pageName);
+
+        $this->hydrateTimelineEntries($entries, $viewer);
+
+        $payload = TimelineEntryResource::collection($entries)
+            ->toResponse($request)
+            ->getData(true);
+
+        if (isset($payload['meta'])) {
+            $payload['meta']['has_more_pages'] = $entries->hasMorePages();
+        }
+
+        return $payload;
+    }
+
+    public function getUserFeed(
+        User $profile,
+        ?User $viewer,
+        int $page,
+        int $perPage,
+        Request $request,
+        string $pageName = 'page',
+    ): array {
+        $posts = Post::query()
+            ->forAuthor($profile)
+            ->visibleTo($viewer)
+            ->with([
+                'author',
+                'media',
+                'poll.options',
+                'hashtags',
+            ])
+            ->withCount(['bookmarks as bookmarks_count'])
+            ->withBookmarkStateFor($viewer)
+            ->latest('published_at')
+            ->paginate(perPage: $perPage, page: $page, pageName: $pageName);
+
+        $this->attachViewerState($viewer, $posts->getCollection());
+
+        $payload = PostResource::collection($posts)
+            ->toResponse($request)
+            ->getData(true);
+
+        if (isset($payload['meta'])) {
+            $payload['meta']['has_more_pages'] = $posts->hasMorePages();
+        }
+
+        return $payload;
+    }
+
+    public function getCircleFeed(
+        Circle $circle,
+        ?User $viewer,
+        int $page,
+        int $perPage,
+        Request $request,
+        string $pageName = 'page',
+    ): array {
+        return app(TimelineCacheService::class)->rememberCircleFeed(
+            $circle,
+            $viewer,
+            $page,
+            $perPage,
+            function () use ($circle, $viewer, $page, $perPage, $pageName, $request) {
+                $posts = $circle->posts()
+                    ->with([
+                        'author' => static fn ($author) => $author->select('id', 'name', 'username', 'display_name', 'avatar_path'),
+                        'media',
+                        'poll.options',
+                        'hashtags',
+                    ])
+                    ->withCount(['bookmarks as bookmark_count'])
+                    ->visibleTo($viewer)
+                    ->latest('published_at')
+                    ->paginate(perPage: $perPage, page: $page, pageName: $pageName)
+                    ->withQueryString();
+
+                $this->attachViewerState($viewer, $posts->getCollection());
+
+                $payload = PostResource::collection($posts)
+                    ->toResponse($request)
+                    ->getData(true);
+
+                if (isset($payload['meta'])) {
+                    $payload['meta']['has_more_pages'] = $posts->hasMorePages();
+                }
+
+                return $payload;
+            },
+            $pageName,
+        );
+    }
+
+    private function hydrateTimelineEntries(LengthAwarePaginator $entries, ?User $viewer): void
+    {
+        $posts = $entries->getCollection()
+            ->filter(static fn ($entry) => $entry instanceof Timeline && $entry->post instanceof Post)
+            ->map(static function (Timeline $timeline): Post {
+                /** @var Post $post */
+                $post = $timeline->post;
+                $post->setRelation('timelineEntry', $timeline);
+
+                return $post;
+            })
+            ->values();
+
+        $this->attachViewerState($viewer, $posts);
+    }
+
+    private function attachViewerState(?User $viewer, iterable $posts): void
+    {
+        if ($viewer === null) {
+            return;
+        }
+
+        $viewer->attachLikeStatus($posts);
+        $viewer->attachBookmarkStatus($posts);
+    }
+}
+
+

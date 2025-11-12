@@ -1,0 +1,18 @@
+{
+    "id": "evt_fake_subscription_renewed",
+    "type": "subscription.renewed",
+    "created": 1700003600,
+    "data": {
+        "object": {
+            "id": "sub_fake_123",
+            "status": "active",
+            "interval": "monthly",
+            "interval_count": 1,
+            "current_period_end": 1702592000,
+            "metadata": {
+                "note": "renewal"
+            }
+        }
+    }
+}
+

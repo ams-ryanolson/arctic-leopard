@@ -1,0 +1,17 @@
+{
+    "id": "evt_fake_payment_succeeded",
+    "type": "payment.succeeded",
+    "created": 1700000000,
+    "data": {
+        "object": {
+            "id": "pay_fake_123",
+            "amount": 5000,
+            "currency": "USD",
+            "status": "captured",
+            "metadata": {
+                "reference": "integration-test"
+            }
+        }
+    }
+}
+

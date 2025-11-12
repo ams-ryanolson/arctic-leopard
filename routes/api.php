@@ -1,0 +1,91 @@
+<?php
+
+use App\Http\Controllers\Comments\CommentController;
+use App\Http\Controllers\Comments\CommentLikeController;
+use App\Http\Controllers\Feed\CircleFeedController;
+use App\Http\Controllers\Feed\FollowingFeedController;
+use App\Http\Controllers\Feed\UserFeedController;
+use App\Http\Controllers\Messaging\ConversationController;
+use App\Http\Controllers\Messaging\ConversationMessageController;
+use App\Http\Controllers\Messaging\ConversationParticipantController;
+use App\Http\Controllers\Messaging\ConversationReadController;
+use App\Http\Controllers\Messaging\ConversationPresenceController;
+use App\Http\Controllers\Messaging\MessageController as MessagingMessageController;
+use App\Http\Controllers\Messaging\TipRequestController;
+use App\Http\Controllers\Messaging\MessageReactionController;
+use App\Http\Controllers\Posts\MediaController;
+use App\Http\Controllers\Posts\PollVoteController;
+use App\Http\Controllers\Posts\PostController;
+use App\Http\Controllers\Posts\PostViewController;
+use App\Http\Controllers\Posts\PurchaseController;
+use App\Http\Controllers\Posts\PostLikeController;
+use App\Http\Controllers\Subscriptions\SubscriptionPlanController;
+use App\Http\Controllers\Subscriptions\SubscriptionController;
+use App\Http\Controllers\Webhooks\PaymentWebhookController;
+use App\Models\Conversation;
+use App\Models\Message;
+use App\Models\Payments\PaymentSubscription;
+use App\Models\Payments\SubscriptionPlan;
+use Illuminate\Support\Facades\Route;
+
+Route::model('subscription', PaymentSubscription::class);
+Route::model('subscriptionPlan', SubscriptionPlan::class);
+Route::model('conversation', Conversation::class);
+Route::bind('message', static fn ($value) => Message::withTrashed()->findOrFail($value));
+
+Route::post('webhooks/payments/{provider}', [PaymentWebhookController::class, 'store'])->name('webhooks.payments.store');
+
+Route::apiResource('posts', PostController::class)->only(['index', 'show']);
+Route::apiResource('posts.comments', CommentController::class)->only(['index']);
+Route::post('posts/{post}/views', [PostViewController::class, 'store'])->name('posts.views.store');
+
+Route::get('feed/users/{user}', [UserFeedController::class, 'index'])->name('feed.user');
+
+Route::middleware('auth:sanctum')->group(function (): void {
+    Route::apiResource('posts', PostController::class)->only(['store', 'update', 'destroy']);
+
+    Route::get('feed/following', [FollowingFeedController::class, 'index'])->name('feed.following');
+    Route::get('feed/circles/{circle:slug}', [CircleFeedController::class, 'show'])->name('feed.circle');
+
+    Route::apiResource('posts.comments', CommentController::class)->only(['store', 'destroy']);
+    Route::post('posts/{post}/comments/{comment}/like', [CommentLikeController::class, 'store'])->name('posts.comments.like.store');
+    Route::delete('posts/{post}/comments/{comment}/like', [CommentLikeController::class, 'destroy'])->name('posts.comments.like.destroy');
+
+    Route::post('posts/{post}/purchase', [PurchaseController::class, 'store'])->name('posts.purchase.store');
+    Route::post('posts/{post}/like', [PostLikeController::class, 'store'])->name('posts.like.store');
+    Route::delete('posts/{post}/like', [PostLikeController::class, 'destroy'])->name('posts.like.destroy');
+
+    Route::post('polls/{poll}/vote', [PollVoteController::class, 'store'])->name('polls.vote.store');
+    Route::delete('polls/{poll}/vote/{vote}', [PollVoteController::class, 'destroy'])->name('polls.vote.destroy');
+
+    Route::delete('posts/{post}/media/{media}', [MediaController::class, 'destroy'])->name('posts.media.destroy');
+
+    Route::apiResource('subscription-plans', SubscriptionPlanController::class)->except(['show'])->parameters([
+        'subscription-plans' => 'subscriptionPlan',
+    ]);
+
+    Route::post('subscriptions', [SubscriptionController::class, 'store'])->name('subscriptions.store');
+    Route::delete('subscriptions/{subscription}', [SubscriptionController::class, 'destroy'])->name('subscriptions.destroy');
+    Route::post('subscriptions/{subscription}/resume', [SubscriptionController::class, 'resume'])->name('subscriptions.resume');
+
+    Route::get('conversations', [ConversationController::class, 'index'])->name('conversations.index');
+    Route::post('conversations', [ConversationController::class, 'store'])->name('conversations.store');
+    Route::get('conversations/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
+
+    Route::post('conversations/{conversation}/participants', [ConversationParticipantController::class, 'store'])->name('conversations.participants.store');
+    Route::delete('conversations/{conversation}/participants/{user}', [ConversationParticipantController::class, 'destroy'])->name('conversations.participants.destroy');
+
+    Route::get('conversations/{conversation}/messages', [ConversationMessageController::class, 'index'])->name('conversations.messages.index');
+    Route::post('conversations/{conversation}/messages', [ConversationMessageController::class, 'store'])->name('conversations.messages.store');
+
+    Route::post('conversations/{conversation}/presence/heartbeat', [ConversationPresenceController::class, 'heartbeat'])->name('conversations.presence.heartbeat');
+    Route::post('conversations/{conversation}/presence/typing', [ConversationPresenceController::class, 'typing'])->name('conversations.presence.typing');
+    Route::post('conversations/{conversation}/read', ConversationReadController::class)->name('conversations.read');
+
+    Route::delete('messages/{message}', [MessagingMessageController::class, 'destroy'])->name('messages.destroy');
+    Route::post('messages/{message}/undo', [MessagingMessageController::class, 'undo'])->name('messages.undo');
+    Route::get('messages/{message}/thread', [MessagingMessageController::class, 'thread'])->name('messages.thread');
+    Route::post('messages/{message}/reactions', [MessageReactionController::class, 'store'])->name('messages.reactions.store');
+    Route::post('messages/{message}/tip-request/accept', [TipRequestController::class, 'accept'])->name('messages.tip-request.accept');
+    Route::post('messages/{message}/tip-request/decline', [TipRequestController::class, 'decline'])->name('messages.tip-request.decline');
+});

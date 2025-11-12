@@ -1,0 +1,39 @@
+<?php
+
+namespace Database\Factories;
+
+use App\Models\Hashtag;
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
+
+/**
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Hashtag>
+ */
+class HashtagFactory extends Factory
+{
+    protected $model = Hashtag::class;
+
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        $word = Str::of(fake()->unique()->words(asText: true))
+            ->replace(' ', '')
+            ->lower();
+
+        $name = (string) $word;
+
+        return [
+            'name' => $name,
+            'slug' => Str::slug($name),
+            'usage_count' => fake()->numberBetween(0, 500),
+        ];
+    }
+}
+
+
+
+

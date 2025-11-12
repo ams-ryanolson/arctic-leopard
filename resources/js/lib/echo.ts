@@ -75,7 +75,6 @@ export function ensureEcho(): Echo {
         authorizer: (channel) => ({
             authorize: (socketId, callback) => {
                 if (import.meta.env.DEV && typeof document !== 'undefined') {
-                    // eslint-disable-next-line no-console
                     console.debug('[broadcasting] authorizing channel', {
                         channel: channel.name,
                         socketId,

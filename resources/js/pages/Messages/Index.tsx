@@ -243,7 +243,7 @@ export default function MessagesIndex() {
         );
     }, []);
 
-    const setThreads = useCallback(
+    const updateThreads = useCallback(
         (updater: Thread[] | ((previous: Thread[]) => Thread[])) => {
             setThreadsState((previous) => {
                 const next =
@@ -293,8 +293,8 @@ export default function MessagesIndex() {
             unread_count: thread.unread_count ?? 0,
             last_message: thread.last_message ? normalizeMessage(thread.last_message) : null,
         }));
-        setThreads(initialThreads as Thread[]);
-    }, [setThreads, threadsProp]);
+        updateThreads(initialThreads as Thread[]);
+    }, [threadsProp, updateThreads]);
 
     useEffect(() => {
         const initialMessages = (messagesProp ?? []).map((message) => normalizeMessage(message));
@@ -308,11 +308,16 @@ export default function MessagesIndex() {
     }, [messagesMeta?.has_more, messagesMeta?.oldest_id, messagesProp]);
 
     useEffect(() => {
+        const typingStore = typingUsersRef.current;
+        const timeoutStore = typingTimeoutsRef.current;
+
         setReplyTo(null);
         setExpandedReactionsMessageId(null);
-        typingUsersRef.current.clear();
-        Object.values(typingTimeoutsRef.current).forEach((timeout) => window.clearTimeout(timeout));
-        typingTimeoutsRef.current = {};
+        typingStore.clear();
+        Object.values(timeoutStore).forEach((timeout) => window.clearTimeout(timeout));
+        Object.keys(timeoutStore).forEach((key) => {
+            delete timeoutStore[Number(key)];
+        });
         setTypingUsers([]);
         setShouldStickToBottom(true);
     }, [selectedConversationId]);
@@ -363,7 +368,7 @@ export default function MessagesIndex() {
                     message_id: messageId ?? null,
                 });
 
-                setThreads((previous) =>
+                updateThreads((previous) =>
                     previous.map((thread) =>
                         thread.id === selectedConversationId
                             ? {
@@ -377,7 +382,7 @@ export default function MessagesIndex() {
                 console.error('Unable to mark conversation read', error);
             }
         },
-        [selectedConversationId],
+        [selectedConversationId, updateThreads],
     );
 
     useEffect(() => {
@@ -447,7 +452,7 @@ export default function MessagesIndex() {
                 return;
             }
 
-            setThreads((previous) => {
+            updateThreads((previous) => {
                 let found = false;
 
                 const next = previous.map((thread) => {
@@ -518,6 +523,13 @@ export default function MessagesIndex() {
             );
         });
 
+        const timeoutStore = typingTimeoutsRef.current;
+        const typingStore = typingUsersRef.current;
+
+        const refreshTypingUsers = () => {
+            setTypingUsers(Array.from(typingStore.values()));
+        };
+
         const handleTypingWhisper = (payload: { user_id?: number | string; name?: string }) => {
             const rawUserId = payload.user_id;
             const userId =
@@ -532,17 +544,17 @@ export default function MessagesIndex() {
             }
 
             const name = payload.name ?? 'Someone';
-            typingUsersRef.current.set(userId, name);
-            setTypingUsers(Array.from(typingUsersRef.current.values()));
+            typingStore.set(userId, name);
+            refreshTypingUsers();
 
-            if (typingTimeoutsRef.current[userId]) {
-                window.clearTimeout(typingTimeoutsRef.current[userId]);
+            if (timeoutStore[userId]) {
+                window.clearTimeout(timeoutStore[userId]);
             }
 
-            typingTimeoutsRef.current[userId] = window.setTimeout(() => {
-                typingUsersRef.current.delete(userId);
-                setTypingUsers(Array.from(typingUsersRef.current.values()));
-                delete typingTimeoutsRef.current[userId];
+            timeoutStore[userId] = window.setTimeout(() => {
+                typingStore.delete(userId);
+                refreshTypingUsers();
+                delete timeoutStore[userId];
             }, 2800);
         };
 
@@ -556,12 +568,14 @@ export default function MessagesIndex() {
             if (conversationChannelRef.current === channel) {
                 conversationChannelRef.current = null;
             }
-            Object.values(typingTimeoutsRef.current).forEach((timeout) => window.clearTimeout(timeout));
-            typingTimeoutsRef.current = {};
-            typingUsersRef.current.clear();
+            Object.values(timeoutStore).forEach((timeout) => window.clearTimeout(timeout));
+            Object.keys(timeoutStore).forEach((key) => {
+                delete timeoutStore[Number(key)];
+            });
+            typingStore.clear();
             setTypingUsers([]);
         };
-    }, [markConversationRead, selectedConversationId, viewer.id]);
+    }, [markConversationRead, selectedConversationId, updateThreads, viewer.id]);
 
     useEffect(() => {
         if (!selectedConversationId || messages.length === 0) {
@@ -619,7 +633,7 @@ export default function MessagesIndex() {
                 );
             });
 
-            setThreads((previous) => {
+            updateThreads((previous) => {
                 const filtered = previous.filter((thread) => Number(thread.id) !== conversationId);
                 const currentThread = previous.find(
                     (thread) => Number(thread.id) === conversationId,
@@ -647,7 +661,7 @@ export default function MessagesIndex() {
             setShouldStickToBottom(true);
             void markConversationRead(messageId);
         },
-        [markConversationRead],
+        [updateThreads, markConversationRead],
     );
 
     const handleReactionChange = useCallback((messageId: number, summary: ReactionSummary[]) => {
@@ -711,7 +725,6 @@ export default function MessagesIndex() {
                 target.scrollTop = target.scrollHeight - previousOffsetFromBottom;
             });
         } catch (error) {
-            // eslint-disable-next-line no-console
             console.error(error);
         } finally {
             setIsLoadingOlder(false);
@@ -752,7 +765,7 @@ export default function MessagesIndex() {
                         ),
                     );
 
-                    setThreads((previous) =>
+                    updateThreads((previous) =>
                         previous.map((thread) =>
                             Number(thread.id) === Number(updated.conversation_id)
                                 ? {
@@ -771,13 +784,12 @@ export default function MessagesIndex() {
                     handleMessageSent(tipPayload);
                 }
             } catch (error) {
-                // eslint-disable-next-line no-console
                 console.error('Unable to update tip request', error);
             } finally {
                 setTipRequestActionMessageId(null);
             }
         },
-        [handleMessageSent, setThreads, viewer?.id],
+        [handleMessageSent, updateThreads, viewer?.id],
     );
 
     return (

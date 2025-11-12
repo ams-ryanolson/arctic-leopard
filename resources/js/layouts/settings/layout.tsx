@@ -39,14 +39,7 @@ const sidebarNavItems: NavItem[] = [
 ];
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
-    // When server-side rendering, we only render the layout on the client...
-    if (typeof window === 'undefined') {
-        return null;
-    }
-
-    const currentPath = window.location.pathname;
     const { features } = usePage<SharedData>().props;
-
     const navItems = useMemo(() => {
         return sidebarNavItems.filter((item) => {
             if (item.href === '/settings/blocked-users' && features?.blocking !== true) {
@@ -56,6 +49,13 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
             return true;
         });
     }, [features?.blocking]);
+
+    // When server-side rendering, we only render the layout on the client...
+    if (typeof window === 'undefined') {
+        return null;
+    }
+
+    const currentPath = window.location.pathname;
 
     return (
         <div className="px-4 py-6">

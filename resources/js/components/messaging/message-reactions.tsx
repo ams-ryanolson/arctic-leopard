@@ -65,7 +65,6 @@ export default function MessageReactions({ messageId, reactions, onChange }: Mes
 
                 onChange?.(summary);
             } catch (error) {
-                // eslint-disable-next-line no-console
                 console.error('Unable to toggle reaction', error);
             } finally {
                 setIsSubmitting(false);

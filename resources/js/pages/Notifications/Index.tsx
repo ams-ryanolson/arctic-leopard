@@ -399,7 +399,7 @@ export default function NotificationsIndex() {
                 );
             }
         },
-        [authUserId, emitUnreadCount],
+        [authUserId],
     );
 
     const handleMarkAllRead = useCallback(async () => {

@@ -23,3 +23,4 @@ class UpdateCoordinatesRequest extends FormRequest
     }
 }
 
+

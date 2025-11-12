@@ -36,7 +36,6 @@ type TemplateProps = {
     reference: string;
     timestampLabel: string;
     copyPayload: string;
-    isAuthenticated: boolean;
     primaryHref: string;
     primaryLabel: string;
     secondaryHref: string;
@@ -240,7 +239,6 @@ function UnexpectedTemplate({
     reference,
     timestampLabel,
     copyPayload,
-    isAuthenticated,
     primaryHref,
     primaryLabel,
     secondaryHref,
@@ -542,7 +540,6 @@ export default function Unexpected({
             reference={reference}
             timestampLabel={`Captured at ${new Date(capturedAt).toLocaleString()}`}
             copyPayload={payload}
-            isAuthenticated={isAuthenticated}
             primaryHref={isAuthenticated ? dashboard() : '/'}
             primaryLabel={isAuthenticated ? 'Return to dashboard' : 'Go home'}
             secondaryHref={isAuthenticated ? '/signals' : login()}
@@ -625,7 +622,6 @@ export function AppErrorBoundaryFallback({
             reference={reference}
             timestampLabel={`Captured at ${new Date(context.timestamp).toLocaleString()}`}
             copyPayload={payload}
-            isAuthenticated={isAuthenticated}
             primaryHref={isAuthenticated ? dashboard() : '/'}
             primaryLabel={isAuthenticated ? 'Return to dashboard' : 'Go home'}
             secondaryHref={isAuthenticated ? '/signals' : login()}

@@ -217,7 +217,6 @@ export default function MessageComposer({
 
             handleTipDialogOpenChange(false);
         } catch (error) {
-            // eslint-disable-next-line no-console
             console.error('Unable to create tip message', error);
             setTipError('We could not process this tip right now. Please try again.');
         } finally {

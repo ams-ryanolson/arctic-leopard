@@ -13,6 +13,13 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 5s --health-retries 20
 
     steps:
       - name: Checkout
@@ -43,8 +50,16 @@ jobs:
       - name: Copy Environment File
         run: cp .env.example .env
 
+      - name: Configure Testing Environment
+        run: |
+          php -r "file_put_contents('.env', preg_replace('/^REDIS_HOST=.*/m', 'REDIS_HOST=127.0.0.1', file_get_contents('.env')));"
+          php -r "file_put_contents('.env', preg_replace('/^QUEUE_CONNECTION=.*/m', 'QUEUE_CONNECTION=sync', file_get_contents('.env')));"
+
       - name: Generate Application Key
         run: php artisan key:generate
 
       - name: Tests
         run: ./vendor/bin/pest
+        env:
+          REDIS_HOST: 127.0.0.1
+          QUEUE_CONNECTION: sync

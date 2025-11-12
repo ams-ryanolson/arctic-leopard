@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { getPresenceChannel, leaveEchoChannel } from '@/lib/echo';
 
@@ -59,16 +59,13 @@ export function useCirclePresence(
     const { enabled = true } = options;
     const [members, setMembers] = useState<PresenceMember[]>([]);
     const [isSubscribed, setIsSubscribed] = useState(false);
-    const identifierRef = useRef(circleIdentifier);
-
-    identifierRef.current = circleIdentifier;
 
     useEffect(() => {
         if (!enabled || typeof window === 'undefined') {
             return undefined;
         }
 
-        const identifier = identifierRef.current;
+        const identifier = circleIdentifier;
 
         if (identifier === null || identifier === undefined || identifier === '') {
             return undefined;
@@ -105,7 +102,7 @@ export function useCirclePresence(
             setIsSubscribed(false);
             setMembers([]);
         };
-    }, [enabled]);
+    }, [circleIdentifier, enabled]);
 
     const count = useMemo(() => members.length, [members]);
 

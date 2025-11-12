@@ -272,6 +272,7 @@ export default function ToastViewport(): JSX.Element | null {
             return;
         }
 
+         
         setMounted(true);
 
         return () => {

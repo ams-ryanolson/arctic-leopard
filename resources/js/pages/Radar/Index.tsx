@@ -143,10 +143,12 @@ export default function RadarIndex() {
     const sentinelRef = useRef<HTMLDivElement | null>(null);
     const appendRef = useRef(false);
 
+     
     useEffect(() => {
         setTravelBeaconActive(viewer.travelBeacon);
     }, [viewer.travelBeacon]);
 
+     
     useEffect(() => {
         if (typeof document === 'undefined') {
             return;
@@ -162,6 +164,7 @@ export default function RadarIndex() {
         }
     }, []);
 
+     
     useEffect(() => {
         if (appendRef.current) {
             appendRef.current = false;

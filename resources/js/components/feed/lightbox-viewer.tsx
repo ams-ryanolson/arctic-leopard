@@ -44,17 +44,20 @@ export default function LightboxViewer({
     const [commentCount, setCommentCount] = useState(post?.comments_count ?? 0);
 
     useEffect(() => {
+         
         setCurrentIndex(startIndex);
     }, [startIndex, open]);
 
     useEffect(() => {
         if (post?.comments_count !== undefined) {
+             
             setCommentCount(post.comments_count);
         }
     }, [post?.comments_count]);
 
     useEffect(() => {
         if (!open) {
+             
             setIsCommentsOpen(false);
         }
     }, [open]);

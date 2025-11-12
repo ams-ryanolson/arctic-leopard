@@ -1,10 +1,8 @@
 import { PreferenceToggle } from '@/components/signals/preference-toggle';
 import { StatusBadge } from '@/components/signals/status-badge';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import { cn } from '@/lib/utils';
 import { type HeaderAction, type HeaderFilter, type HeaderQuickAction } from '@/types';
 import { Head } from '@inertiajs/react';
 import { CheckCircle2, ClipboardCheck, ShieldAlert, ShieldCheck } from 'lucide-react';

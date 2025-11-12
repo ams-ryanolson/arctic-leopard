@@ -22,3 +22,4 @@ class UpdateTravelBeaconRequest extends FormRequest
     }
 }
 
+

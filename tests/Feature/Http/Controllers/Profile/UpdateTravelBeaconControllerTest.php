@@ -52,3 +52,4 @@ it('validates traveler beacon payload', function (): void {
         ->assertSessionHasErrors(['traveling']);
 });
 
+

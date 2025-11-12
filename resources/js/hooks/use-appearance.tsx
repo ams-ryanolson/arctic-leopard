@@ -33,7 +33,6 @@ export function useAppearance() {
     }, []);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         updateAppearance();
 
         return () => undefined;

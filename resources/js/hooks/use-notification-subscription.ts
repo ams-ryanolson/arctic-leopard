@@ -24,7 +24,9 @@ export function useNotificationSubscription(
     const { enabled = true, onNotification } = options;
     const handlerRef = useRef(onNotification);
 
-    handlerRef.current = onNotification;
+    useEffect(() => {
+        handlerRef.current = onNotification;
+    }, [onNotification]);
 
     useEffect(() => {
         if (!enabled || typeof window === 'undefined') {

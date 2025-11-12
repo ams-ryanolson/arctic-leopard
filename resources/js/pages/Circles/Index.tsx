@@ -23,7 +23,7 @@ import { Toggle } from '@/components/ui/toggle';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Pagination } from '@/components/ui/pagination';
 import { cn } from '@/lib/utils';
-import type { Circle, CircleCollection, CircleFilterState } from '@/types/circles';
+import type { Circle, CircleCollection, CircleFacet, CircleFilterState } from '@/types/circles';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { index as circlesIndex, join as circleJoin, leave as circleLeave, show as circlesShow } from '@/routes/circles';
 import { Compass, Sparkles, Users } from 'lucide-react';
@@ -47,11 +47,24 @@ type CircleCardProps = {
     circle: Circle;
 };
 
+type CircleFacetRelationship = {
+    data?: CircleFacet[] | null;
+};
+
+const extractFacets = (facets: CircleFacet[] | CircleFacetRelationship): CircleFacet[] => {
+    if (Array.isArray(facets)) {
+        return facets;
+    }
+
+    if (facets?.data && Array.isArray(facets.data)) {
+        return facets.data;
+    }
+
+    return [];
+};
+
 const CircleCard = ({ circle }: CircleCardProps) => {
-    const facetCollection = Array.isArray((circle as any).facets?.data)
-        ? (circle as any).facets.data
-        : circle.facets;
-    const facets = Array.isArray(facetCollection) ? facetCollection : [];
+    const facets = extractFacets(circle.facets as CircleFacet[] | CircleFacetRelationship);
     const memberCount = Number.isFinite(circle.membersCount)
         ? circle.membersCount
         : 0;
@@ -650,12 +663,7 @@ export default function CirclesIndex({
                                             </Badge>
                                         </div>
                                         <p>
-                                            Curated segments:{' '}
-                                            {Array.isArray((circle as any).facets?.data)
-                                                ? (circle as any).facets.data.length
-                                                : Array.isArray(circle.facets)
-                                                    ? circle.facets.length
-                                                    : 0}
+                                            Curated segments: {extractFacets(circle.facets as CircleFacet[] | CircleFacetRelationship).length}
                                         </p>
                                     </CardContent>
                                     <CardFooter className="relative flex items-center justify-between border-t border-white/10 px-6 py-4 text-xs text-white/75">

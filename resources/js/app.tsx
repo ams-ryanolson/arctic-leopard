@@ -2,19 +2,22 @@ import '../css/app.css';
 
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-import { StrictMode } from 'react';
+import { StrictMode, Suspense, lazy } from 'react';
 import { createRoot } from 'react-dom/client';
 import AppErrorBoundary from '@/components/errors/AppErrorBoundary';
 import { LightboxProvider } from '@/components/feed/lightbox-context';
 import ToastProvider from '@/components/toasts/toast-provider';
 import ToastViewport from '@/components/toasts/toast-viewport';
-import { AppErrorBoundaryFallback } from '@/pages/Errors/Unexpected';
 import type { ToastPayload } from '@/types/toasts';
-import type { SharedData } from '@/types';
 
 import { initializeTheme } from './hooks/use-appearance';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const LazyAppErrorBoundaryFallback = lazy(async () => {
+    const module = await import('./pages/Errors/Unexpected.tsx');
+
+    return { default: module.AppErrorBoundaryFallback };
+});
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
@@ -41,10 +44,12 @@ createInertiaApp({
             <StrictMode>
                 <AppErrorBoundary
                     fallback={(context) => (
-                        <AppErrorBoundaryFallback
-                            context={context}
-                            initialPage={props.initialPage}
-                        />
+                        <Suspense fallback={null}>
+                            <LazyAppErrorBoundaryFallback
+                                context={context}
+                                initialPage={props.initialPage}
+                            />
+                        </Suspense>
                     )}
                 >
                     <ToastProvider

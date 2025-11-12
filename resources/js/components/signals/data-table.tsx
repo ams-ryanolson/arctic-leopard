@@ -28,7 +28,7 @@ export function DataTable<T>({
                     <tr>
                         {columns.map((column, index) => (
                             <th
-                                key={String(column.key) ?? index}
+                                key={column.key ? String(column.key) : String(index)}
                                 className={cn('px-4 py-3 text-left', {
                                     'text-right': column.align === 'right',
                                     'text-center': column.align === 'center',

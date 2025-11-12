@@ -73,69 +73,11 @@ export default function TimelineEntryCard({
     const dwellTimerRef = useRef<number | null>(null);
     const recordedViewRef = useRef(false);
 
+    const postId = post?.id ?? null;
     const commentsCount =
-        post && post.id in pendingCounts
-            ? pendingCounts[post.id]
+        postId !== null && postId in pendingCounts
+            ? pendingCounts[postId]
             : post?.comments_count ?? 0;
-
-    if (!post) {
-        return (
-            <Card className="border border-dashed border-white/15 bg-white/5 p-6 text-sm text-white/70">
-                This timeline entry has been removed.
-            </Card>
-        );
-    }
-
-    const publishedAt = post.published_at ?? post.created_at ?? entry.visible_at;
-    const displayName = post.author?.display_name ?? post.author?.username ?? 'Unknown creator';
-    const authorUsername = post.author?.username ?? null;
-    const authorProfileHref = authorUsername ? profileRoutes.show.url(authorUsername) : null;
-    const tipGoal =
-        post.extra_attributes &&
-        !Array.isArray(post.extra_attributes) &&
-        typeof post.extra_attributes === 'object' &&
-        'tip_goal' in post.extra_attributes
-            ? (post.extra_attributes as {
-                  tip_goal?: {
-                      amount?: number;
-                      currency?: string;
-                      label?: string | null;
-                      deadline?: string | null;
-                  };
-              }).tip_goal ?? null
-            : null;
-
-    const formatCurrency = (amount: number, currency: string): string =>
-        new Intl.NumberFormat(undefined, {
-            style: 'currency',
-            currency,
-            minimumFractionDigits: 2,
-        }).format(amount / 100);
-
-    const hasLiked = Boolean(post.has_liked);
-    const isBookmarked = Boolean(post.is_bookmarked);
-    const bookmarkCount = post.bookmark_count ?? 0;
-    const canBookmark = post.can?.bookmark ?? false;
-    const viewsCount = post.views_count + (optimisticView ? 1 : 0);
-    const initials = displayName
-        .split(' ')
-        .map((segment) => segment.charAt(0))
-        .join('')
-        .slice(0, 2)
-        .toUpperCase();
-
-    const handleMediaClick = (index: number) => {
-        openLightbox(post.media, {
-            startIndex: index,
-            post,
-            onCommentCountChange: (total) => {
-                setPendingCounts((previous) => ({
-                    ...previous,
-                    [post.id]: total,
-                }));
-            },
-        });
-    };
 
     const ensureViewSessionUuid = useCallback((): string | undefined => {
         if (typeof window === 'undefined') {
@@ -165,14 +107,19 @@ export default function TimelineEntryCard({
     const contextualLocation =
         typeof entry.context?.location === 'string' ? entry.context.location : undefined;
     const visibilitySource = entry.visibility_source;
-    const postId = post.id;
 
     const sendViewEvent = useCallback(() => {
-        if (recordedViewRef.current) {
+        if (postId === null) {
             return;
         }
 
-        const cacheKey = `rk:view:${postId}`;
+        const id = postId;
+
+        if (id === null || recordedViewRef.current) {
+            return;
+        }
+
+        const cacheKey = `rk:view:${id}`;
         let alreadyTracked = false;
 
         if (typeof window !== 'undefined') {
@@ -198,7 +145,7 @@ export default function TimelineEntryCard({
 
         const sessionUuid = ensureViewSessionUuid();
 
-        recordPostView(postId, {
+        recordPostView(id, {
             sessionUuid,
             context: {
                 source: visibilitySource,
@@ -225,6 +172,7 @@ export default function TimelineEntryCard({
 
     useEffect(() => {
         recordedViewRef.current = false;
+         
         setOptimisticView(false);
     }, [postId]);
 
@@ -284,6 +232,65 @@ export default function TimelineEntryCard({
             observerRef.current = null;
         };
     }, [sendViewEvent]);
+
+    if (!post) {
+        return (
+            <Card className="border border-dashed border-white/15 bg-white/5 p-6 text-sm text-white/70">
+                This timeline entry has been removed.
+            </Card>
+        );
+    }
+
+    const publishedAt = post.published_at ?? post.created_at ?? entry.visible_at;
+    const displayName = post.author?.display_name ?? post.author?.username ?? 'Unknown creator';
+    const authorUsername = post.author?.username ?? null;
+    const authorProfileHref = authorUsername ? profileRoutes.show.url(authorUsername) : null;
+    const tipGoal =
+        post.extra_attributes &&
+        !Array.isArray(post.extra_attributes) &&
+        typeof post.extra_attributes === 'object' &&
+        'tip_goal' in post.extra_attributes
+            ? (post.extra_attributes as {
+                  tip_goal?: {
+                      amount?: number;
+                      currency?: string;
+                      label?: string | null;
+                      deadline?: string | null;
+                  };
+              }).tip_goal ?? null
+            : null;
+
+    const formatCurrency = (amount: number, currency: string): string =>
+        new Intl.NumberFormat(undefined, {
+            style: 'currency',
+            currency,
+            minimumFractionDigits: 2,
+        }).format(amount / 100);
+
+    const hasLiked = Boolean(post.has_liked);
+    const isBookmarked = Boolean(post.is_bookmarked);
+    const bookmarkCount = post.bookmark_count ?? 0;
+    const canBookmark = post.can?.bookmark ?? false;
+    const viewsCount = post.views_count + (optimisticView ? 1 : 0);
+    const initials = displayName
+        .split(' ')
+        .map((segment) => segment.charAt(0))
+        .join('')
+        .slice(0, 2)
+        .toUpperCase();
+
+    const handleMediaClick = (index: number) => {
+        openLightbox(post.media, {
+            startIndex: index,
+            post,
+            onCommentCountChange: (total) => {
+                setPendingCounts((previous) => ({
+                    ...previous,
+                    [post.id]: total,
+                }));
+            },
+        });
+    };
 
     return (
         <div ref={cardWrapperRef}>

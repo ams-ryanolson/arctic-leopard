@@ -23,3 +23,4 @@ class UpdateTravelBeaconController extends Controller
     }
 }
 
+

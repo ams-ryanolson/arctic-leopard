@@ -1,0 +1,294 @@
+name: rkm-beta
+region: tor
+
+alerts:
+  - rule: DEPLOYMENT_FAILED
+  - rule: DOMAIN_FAILED
+
+features:
+  - buildpack-stack=ubuntu-22
+
+databases:
+  - name: mysql_db
+    engine: MYSQL
+    version: "8"
+    cluster_name: raf-mysql-tor-01
+    db_name: raf_beta
+    db_user: raf_beta_admin
+    production: true
+  - name: redis_cache
+    engine: REDIS
+    cluster_name: rkm-beta-redis
+    production: true
+
+envs:
+  - key: APP_NAME
+    scope: RUN_AND_BUILD
+    value: Laravel
+  - key: APP_ENV
+    scope: RUN_AND_BUILD
+    value: production
+  - key: APP_KEY
+    scope: RUN_AND_BUILD
+    type: SECRET
+    value: base64:XSLJNUI1cfTzF0AKsPha14HxPKuGb1Khx6vgxxyE844=
+  - key: APP_DEBUG
+    scope: RUN_AND_BUILD
+    value: "false"
+  - key: APP_URL
+    scope: RUN_AND_BUILD
+    value: https://rkm-beta.ondigitalocean.app
+  - key: APP_LOCALE
+    scope: RUN_AND_BUILD
+    value: en
+  - key: APP_FALLBACK_LOCALE
+    scope: RUN_AND_BUILD
+    value: en
+  - key: APP_FAKER_LOCALE
+    scope: RUN_AND_BUILD
+    value: en_US
+  - key: APP_MAINTENANCE_DRIVER
+    scope: RUN_TIME
+    value: file
+  - key: BCRYPT_ROUNDS
+    scope: RUN_TIME
+    value: "12"
+  - key: LOG_CHANNEL
+    scope: RUN_TIME
+    value: nightwatch
+  - key: LOG_STACK
+    scope: RUN_TIME
+    value: single
+  - key: LOG_DEPRECATIONS_CHANNEL
+    scope: RUN_TIME
+    value: null
+  - key: LOG_LEVEL
+    scope: RUN_TIME
+    value: info
+  - key: DB_CONNECTION
+    scope: RUN_AND_BUILD
+    value: mysql
+  - key: DATABASE_URL
+    scope: RUN_TIME
+    value: ${mysql_db.DATABASE_URL}
+  - key: DB_HOST
+    scope: RUN_TIME
+    value: ${mysql_db.HOST}
+  - key: DB_PORT
+    scope: RUN_TIME
+    value: ${mysql_db.PORT}
+  - key: DB_DATABASE
+    scope: RUN_TIME
+    value: ${mysql_db.DATABASE}
+  - key: DB_USERNAME
+    scope: RUN_TIME
+    value: ${mysql_db.USER}
+  - key: DB_PASSWORD
+    scope: RUN_TIME
+    type: SECRET
+    value: ${mysql_db.PASSWORD}
+  - key: SESSION_DRIVER
+    scope: RUN_TIME
+    value: redis
+  - key: SESSION_LIFETIME
+    scope: RUN_TIME
+    value: "120"
+  - key: SESSION_ENCRYPT
+    scope: RUN_TIME
+    value: "false"
+  - key: SESSION_PATH
+    scope: RUN_TIME
+    value: /
+  - key: SESSION_DOMAIN
+    scope: RUN_TIME
+    value: ""
+  - key: BROADCAST_CONNECTION
+    scope: RUN_TIME
+    value: pusher
+  - key: FILESYSTEM_DISK
+    scope: RUN_TIME
+    value: s3
+  - key: QUEUE_CONNECTION
+    scope: RUN_TIME
+    value: redis
+  - key: PUSHER_APP_ID
+    scope: RUN_AND_BUILD
+    type: SECRET
+    value: "2076309"
+  - key: PUSHER_APP_KEY
+    scope: RUN_AND_BUILD
+    type: SECRET
+    value: 538c56f5622842d8cdbb
+  - key: PUSHER_APP_SECRET
+    scope: RUN_AND_BUILD
+    type: SECRET
+    value: 0be04b035e48a91ce684
+  - key: PUSHER_APP_CLUSTER
+    scope: RUN_AND_BUILD
+    value: us2
+  - key: VITE_PUSHER_SCHEME
+    scope: RUN_AND_BUILD
+    value: https
+  - key: VITE_PUSHER_HOST
+    scope: RUN_AND_BUILD
+    value: ws-us2.pusher.com
+  - key: VITE_PUSHER_PORT
+    scope: RUN_AND_BUILD
+    value: "443"
+  - key: VITE_PUSHER_APP_KEY
+    scope: RUN_AND_BUILD
+    value: 538c56f5622842d8cdbb
+  - key: VITE_PUSHER_APP_CLUSTER
+    scope: RUN_AND_BUILD
+    value: us2
+  - key: VITE_APP_NAME
+    scope: RUN_AND_BUILD
+    value: Laravel
+  - key: CACHE_STORE
+    scope: RUN_TIME
+    value: redis
+  - key: MEMCACHED_HOST
+    scope: RUN_TIME
+    value: 127.0.0.1
+  - key: REDIS_CLIENT
+    scope: RUN_TIME
+    value: phpredis
+  - key: REDIS_HOST
+    scope: RUN_TIME
+    value: ${redis_cache.HOST}
+  - key: REDIS_PASSWORD
+    scope: RUN_TIME
+    type: SECRET
+    value: ${redis_cache.PASSWORD}
+  - key: REDIS_PORT
+    scope: RUN_TIME
+    value: ${redis_cache.PORT}
+  - key: MAIL_MAILER
+    scope: RUN_TIME
+    value: smtp
+  - key: MAIL_SCHEME
+    scope: RUN_TIME
+    value: null
+  - key: MAIL_HOST
+    scope: RUN_TIME
+    value: 127.0.0.1
+  - key: MAIL_PORT
+    scope: RUN_TIME
+    value: "2525"
+  - key: MAIL_USERNAME
+    scope: RUN_TIME
+    value: Realkinkmen
+  - key: MAIL_PASSWORD
+    scope: RUN_TIME
+    type: SECRET
+    value: ""
+  - key: MAIL_FROM_ADDRESS
+    scope: RUN_TIME
+    value: hello@example.com
+  - key: MAIL_FROM_NAME
+    scope: RUN_TIME
+    value: Laravel
+  - key: AWS_ACCESS_KEY_ID
+    scope: RUN_TIME
+    type: SECRET
+    value: herd
+  - key: AWS_SECRET_ACCESS_KEY
+    scope: RUN_TIME
+    type: SECRET
+    value: secretkey
+  - key: AWS_DEFAULT_REGION
+    scope: RUN_TIME
+    value: us-east-1
+  - key: AWS_BUCKET
+    scope: RUN_TIME
+    value: herd-bucket
+  - key: AWS_USE_PATH_STYLE_ENDPOINT
+    scope: RUN_TIME
+    value: "true"
+  - key: AWS_URL
+    scope: RUN_TIME
+    value: http://localhost:9090/herd-bucket
+  - key: AWS_ENDPOINT
+    scope: RUN_TIME
+    value: http://localhost:9090
+  - key: SCOUT_DRIVER
+    scope: RUN_TIME
+    value: meilisearch
+  - key: MEILISEARCH_HOST
+    scope: RUN_TIME
+    value: http://127.0.0.1:7700
+  - key: MEILISEARCH_KEY
+    scope: RUN_TIME
+    type: SECRET
+    value: LARAVEL-HERD
+  - key: NIGHTWATCH_TOKEN
+    scope: RUN_TIME
+    type: SECRET
+    value: ZwbqVwGyXLk7Vs7DzbL4og3iZoyaSGPHA1CpIPEa77ZU
+
+ingress:
+  rules:
+    - component:
+        name: arctic-leopard
+      match:
+        authority:
+          exact: ""
+        path:
+          prefix: /
+
+services:
+  - name: arctic-leopard
+    environment_slug: php
+    source_dir: /
+    github:
+      repo: ams-ryanolson/arctic-leopard
+      branch: main
+      deploy_on_push: true
+    build_command: npm ci && npm run build:ssr
+    run_command: >
+      bash -lc "php artisan inertia:start-ssr --port=13714 --host=127.0.0.1 &
+      exec heroku-php-apache2 public/"
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+
+workers:
+  - name: worker
+    environment_slug: php
+    source_dir: /
+    github:
+      repo: ams-ryanolson/arctic-leopard
+      branch: main
+      deploy_on_push: true
+    build_command: npm ci && npm run build:ssr
+    run_command: php artisan queue:work --queue=default,timelines,notifications,events --sleep=3 --tries=3
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-0.5gb
+
+jobs:
+  - name: run-migrations
+    kind: POST_DEPLOY
+    environment_slug: php
+    source_dir: /
+    github:
+      repo: ams-ryanolson/arctic-leopard
+      branch: main
+      deploy_on_push: true
+    build_command: npm ci && npm run build:ssr
+    run_command: php artisan migrate --force --no-interaction
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+  - name: schedule-runner
+    kind: RUN
+    schedule: "*/5 * * * *"
+    environment_slug: php
+    source_dir: /
+    github:
+      repo: ams-ryanolson/arctic-leopard
+      branch: main
+      deploy_on_push: true
+    build_command: npm ci && npm run build:ssr
+    run_command: php artisan schedule:run --no-interaction
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+

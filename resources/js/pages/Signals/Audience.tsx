@@ -4,7 +4,7 @@ import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 import { type HeaderAction, type HeaderFilter, type HeaderQuickAction } from '@/types';
 import { Head } from '@inertiajs/react';
-import { Fragment, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Globe, Group, Radar, Users } from 'lucide-react';
 
 type GrowthSeries = {

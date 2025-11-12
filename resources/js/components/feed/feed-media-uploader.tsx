@@ -51,6 +51,19 @@ export type FeedMediaUploaderProps = {
     className?: string;
 };
 
+type UploadResponsePayload = Partial<{
+    id: string | number | null;
+    disk: string | null;
+    path: string | null;
+    url: string | null;
+    thumbnail_url: string | null;
+    mime_type: string | null;
+    size: number | null;
+    width: number | null;
+    height: number | null;
+    duration: number | null;
+}>;
+
 export default function FeedMediaUploader({
     maxFiles = 6,
     acceptedMimeTypes,
@@ -75,10 +88,12 @@ export default function FeedMediaUploader({
 
     useEffect(() => {
         if (!value || value.length === 0) {
+             
             setItems([]);
             return;
         }
 
+         
         setItems(
             value.map((uploaded, index) => ({
                 clientId: uploaded.clientId ?? `${uploaded.identifier ?? `uploaded-${index}`}`,
@@ -138,7 +153,7 @@ export default function FeedMediaUploader({
     );
 
     const finalizeSuccess = useCallback(
-        (clientId: string, payload: any) => {
+        (clientId: string, payload: UploadResponsePayload | null | undefined) => {
             const response: FeedUploadedMedia = {
                 clientId,
                 identifier: payload?.id ?? null,

@@ -23,3 +23,4 @@ class UpdateCoordinatesController extends Controller
     }
 }
 
+

@@ -26,7 +26,6 @@ import type {
     FeedComposerConfig,
     FeedFiltersGroup,
     FeedPulseMetric,
-    FeedPost,
     PostCollectionPayload,
     TimelinePayload,
     TrendingTag,

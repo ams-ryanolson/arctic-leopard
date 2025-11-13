@@ -16,6 +16,11 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 import { radar } from '@/routes';
 import profileRoutes from '@/routes/profile';
@@ -32,6 +37,8 @@ import {
     Waves,
     Zap,
     Loader2,
+    ChevronDown,
+    ChevronUp,
 } from 'lucide-react';
 import {
     useCallback,
@@ -133,6 +140,7 @@ export default function RadarIndex() {
     const [travelBeaconActive, setTravelBeaconActive] = useState(viewer.travelBeacon);
     const [isTravelBeaconLoading, setIsTravelBeaconLoading] = useState(false);
     const [travelBeaconError, setTravelBeaconError] = useState<string | null>(null);
+    const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
 
     const [pages, setPages] = useState<RadarScrollPayload[]>([initialRadar]);
     const [hasMore, setHasMore] = useState(
@@ -393,114 +401,146 @@ export default function RadarIndex() {
 
             <div className="space-y-8">
                 <section className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-                    <Card className="border-white/10 bg-white/5 text-white shadow-[0_32px_85px_-40px_rgba(249,115,22,0.55)]">
-                        <CardHeader className="gap-4 sm:flex sm:flex-row sm:items-center sm:justify-between">
-                            <div className="space-y-2">
-                                <CardTitle className="inline-flex items-center gap-2 text-2xl font-semibold tracking-tight">
-                                    <span className="flex size-9 items-center justify-center rounded-full bg-gradient-to-br from-amber-400/30 via-rose-500/35 to-violet-600/30 text-amber-200">
-                                        <RadarIcon className="size-5" />
-                                    </span>
-                                    Radar is live
-                                    {travelBeaconActive ? (
-                                        <Badge className="ml-1 flex items-center gap-1 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.3em] text-white/75">
-                                            <Plane className="size-3" />
-                                            Visiting
-                                        </Badge>
-                                    ) : null}
-                                </CardTitle>
-                                <CardDescription className="max-w-2xl text-white/65">
-                                    Calibrated to {locationLabel}.{' '}
-                                    {travelBeaconActive
-                                        ? 'Your traveler beacon is broadcasting so locals know you are visiting.'
-                                        : 'Tune into who is pulsing within walking distance right now and queue a scene before midnight.'}
-                                </CardDescription>
-                            </div>
-                            <Button
-                                size="lg"
-                                className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-6 text-sm font-semibold text-white shadow-[0_18px_40px_-12px_rgba(249,115,22,0.55)] transition hover:scale-[1.02]"
-                            >
-                                Boost me for 1 hour
-                            </Button>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="grid gap-4 sm:grid-cols-3">
-                                <StatTile
-                                    icon={Activity}
-                                    label="Online nearby"
-                                    value={stats.online_now}
-                                />
-                                <StatTile
-                                    icon={Sparkles}
-                                    label="Active boosts"
-                                    value={stats.signal_boosts}
-                                />
-                                <StatTile
-                                    icon={Waves}
-                                    label="Live scenes"
-                                    value={stats.meetups_happening}
-                                />
-                            </div>
-                        </CardContent>
-                        <CardContent className="grid gap-4 lg:grid-cols-2">
-                            <div className="rounded-3xl border border-white/10 bg-black/35 p-4">
-                                <h3 className="text-xs uppercase tracking-[0.3em] text-white/55">
-                                    Quick prompts
-                                </h3>
-                                <div className="mt-3 space-y-2 text-xs text-white/70">
-                                    {quickPrompts.map((prompt) => (
-                                        <div
-                                            key={prompt}
-                                            className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2"
+                    <Collapsible open={isDetailsExpanded} onOpenChange={setIsDetailsExpanded}>
+                        <Card className="border-white/10 bg-white/5 text-white shadow-[0_32px_85px_-40px_rgba(249,115,22,0.55)]">
+                            <CardHeader className="gap-4">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div className="min-w-0 flex-1 space-y-2">
+                                        <CardTitle className="inline-flex items-center gap-2 text-2xl font-semibold tracking-tight">
+                                            <span className="flex size-9 items-center justify-center rounded-full bg-gradient-to-br from-amber-400/30 via-rose-500/35 to-violet-600/30 text-amber-200">
+                                                <RadarIcon className="size-5" />
+                                            </span>
+                                            Radar is live
+                                            {travelBeaconActive ? (
+                                                <Badge className="ml-1 flex items-center gap-1 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.3em] text-white/75">
+                                                    <Plane className="size-3" />
+                                                    Visiting
+                                                </Badge>
+                                            ) : null}
+                                        </CardTitle>
+                                        <CardDescription className="text-white/65">
+                                            Calibrated to {locationLabel}.{' '}
+                                            {isDetailsExpanded ? (
+                                                <>
+                                                    {travelBeaconActive
+                                                        ? 'Your traveler beacon is broadcasting so locals know you are visiting.'
+                                                        : 'Tune into who is pulsing within walking distance right now and queue a scene before midnight.'}
+                                                </>
+                                            ) : (
+                                                <span className="text-white/50">
+                                                    Expand for stats, prompts, and traveler controls
+                                                </span>
+                                            )}
+                                        </CardDescription>
+                                    </div>
+                                    <div className="flex shrink-0 items-center gap-2">
+                                        <Button
+                                            size="lg"
+                                            className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-6 text-sm font-semibold text-white shadow-[0_18px_40px_-12px_rgba(249,115,22,0.55)] transition hover:scale-[1.02]"
                                         >
-                                            {prompt}
+                                            Boost me for 1 hour
+                                        </Button>
+                                        <CollapsibleTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="shrink-0 rounded-full border border-white/10 bg-white/5 text-white/70 hover:border-white/30 hover:bg-white/10 hover:text-white"
+                                                aria-label={isDetailsExpanded ? 'Collapse details' : 'Expand details'}
+                                            >
+                                                {isDetailsExpanded ? (
+                                                    <ChevronUp className="size-5" />
+                                                ) : (
+                                                    <ChevronDown className="size-5" />
+                                                )}
+                                            </Button>
+                                        </CollapsibleTrigger>
+                                    </div>
+                                </div>
+                            </CardHeader>
+
+                            <CollapsibleContent>
+                                <CardContent className="space-y-6 border-t border-white/10 pt-6">
+                                    <div className="grid gap-4 sm:grid-cols-3">
+                                        <StatTile
+                                            icon={Activity}
+                                            label="Online nearby"
+                                            value={stats.online_now}
+                                        />
+                                        <StatTile
+                                            icon={Sparkles}
+                                            label="Active boosts"
+                                            value={stats.signal_boosts}
+                                        />
+                                        <StatTile
+                                            icon={Waves}
+                                            label="Live scenes"
+                                            value={stats.meetups_happening}
+                                        />
+                                    </div>
+
+                                    <div className="grid gap-4 lg:grid-cols-2">
+                                        <div className="rounded-3xl border border-white/10 bg-black/35 p-4">
+                                            <h3 className="text-xs uppercase tracking-[0.3em] text-white/55">
+                                                Quick prompts
+                                            </h3>
+                                            <div className="mt-3 space-y-2 text-xs text-white/70">
+                                                {quickPrompts.map((prompt) => (
+                                                    <div
+                                                        key={prompt}
+                                                        className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2"
+                                                    >
+                                                        {prompt}
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="rounded-3xl border border-white/10 bg-black/35 p-4">
-                                <h3 className="text-xs uppercase tracking-[0.3em] text-white/55">
-                                    Traveler mode
-                                </h3>
-                                <p className="mt-3 text-xs text-white/65">
-                                    {travelBeaconActive
-                                        ? 'Your beacon is live. Locals will spot the airplane on your profile while you are in town.'
-                                        : 'Let nearby players know you are dropping in. Toggle the beacon when you arrive and switch it off when you head home.'}
-                                </p>
-                                <div className="mt-4 space-y-2">
-                                    <Button
-                                        variant="ghost"
-                                        className="w-full rounded-full border border-white/10 bg-white/5 text-white/80 hover:border-white/30 hover:bg-white/10 hover:text-white"
-                                    >
-                                        <Waves className="mr-2 size-4" />
-                                        Schedule a beacon
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        onClick={handleToggleTravelBeacon}
-                                        disabled={isTravelBeaconLoading}
-                                        className="w-full rounded-full border border-white/10 bg-white/5 text-white/80 hover:border-white/30 hover:bg-white/10 hover:text-white"
-                                    >
-                                        {isTravelBeaconLoading ? (
-                                            <Loader2 className="mr-2 size-4 animate-spin" />
-                                        ) : (
-                                            <Plane className="mr-2 size-4" />
-                                        )}
-                                        {travelBeaconActive ? 'Disable traveler beacon' : 'Set a traveler beacon'}
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        className="w-full rounded-full border border-white/10 bg-white/5 text-white/80 hover:border-white/30 hover:bg-white/10 hover:text-white"
-                                    >
-                                        <MapPin className="mr-2 size-4" />
-                                        Share a meet-up window
-                                    </Button>
-                                </div>
-                                {travelBeaconError ? (
-                                    <p className="mt-3 text-xs text-rose-200/80">{travelBeaconError}</p>
-                                ) : null}
-                            </div>
-                        </CardContent>
-                    </Card>
+                                        <div className="rounded-3xl border border-white/10 bg-black/35 p-4">
+                                            <h3 className="text-xs uppercase tracking-[0.3em] text-white/55">
+                                                Traveler mode
+                                            </h3>
+                                            <p className="mt-3 text-xs text-white/65">
+                                                {travelBeaconActive
+                                                    ? 'Your beacon is live. Locals will spot the airplane on your profile while you are in town.'
+                                                    : 'Let nearby players know you are dropping in. Toggle the beacon when you arrive and switch it off when you head home.'}
+                                            </p>
+                                            <div className="mt-4 space-y-2">
+                                                <Button
+                                                    variant="ghost"
+                                                    className="w-full rounded-full border border-white/10 bg-white/5 text-white/80 hover:border-white/30 hover:bg-white/10 hover:text-white"
+                                                >
+                                                    <Waves className="mr-2 size-4" />
+                                                    Schedule a beacon
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    onClick={handleToggleTravelBeacon}
+                                                    disabled={isTravelBeaconLoading}
+                                                    className="w-full rounded-full border border-white/10 bg-white/5 text-white/80 hover:border-white/30 hover:bg-white/10 hover:text-white"
+                                                >
+                                                    {isTravelBeaconLoading ? (
+                                                        <Loader2 className="mr-2 size-4 animate-spin" />
+                                                    ) : (
+                                                        <Plane className="mr-2 size-4" />
+                                                    )}
+                                                    {travelBeaconActive ? 'Disable traveler beacon' : 'Set a traveler beacon'}
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    className="w-full rounded-full border border-white/10 bg-white/5 text-white/80 hover:border-white/30 hover:bg-white/10 hover:text-white"
+                                                >
+                                                    <MapPin className="mr-2 size-4" />
+                                                    Share a meet-up window
+                                                </Button>
+                                            </div>
+                                            {travelBeaconError ? (
+                                                <p className="mt-3 text-xs text-rose-200/80">{travelBeaconError}</p>
+                                            ) : null}
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </CollapsibleContent>
+                        </Card>
+                    </Collapsible>
 
                     <div className="grid gap-4">
                         {spotlights.map((spotlight) => (

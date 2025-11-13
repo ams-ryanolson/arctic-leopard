@@ -18,8 +18,3 @@ class SignalsSettingsController extends Controller
         return Inertia::render('Signals/Settings', SettingsMock::data());
     }
 }
-
-
-
-
-

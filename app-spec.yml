@@ -23,29 +23,29 @@ databases:
 
 envs:
   - key: APP_NAME
-    scope: RUN_AND_BUILD
+    scope: RUN_AND_BUILD_TIME
     value: Laravel
   - key: APP_ENV
-    scope: RUN_AND_BUILD
+    scope: RUN_AND_BUILD_TIME
     value: production
   - key: APP_KEY
-    scope: RUN_AND_BUILD
+    scope: RUN_AND_BUILD_TIME
     type: SECRET
     value: base64:XSLJNUI1cfTzF0AKsPha14HxPKuGb1Khx6vgxxyE844=
   - key: APP_DEBUG
-    scope: RUN_AND_BUILD
+    scope: RUN_AND_BUILD_TIME
     value: "false"
   - key: APP_URL
-    scope: RUN_AND_BUILD
+    scope: RUN_AND_BUILD_TIME
     value: https://rkm-beta.ondigitalocean.app
   - key: APP_LOCALE
-    scope: RUN_AND_BUILD
+    scope: RUN_AND_BUILD_TIME
     value: en
   - key: APP_FALLBACK_LOCALE
-    scope: RUN_AND_BUILD
+    scope: RUN_AND_BUILD_TIME
     value: en
   - key: APP_FAKER_LOCALE
-    scope: RUN_AND_BUILD
+    scope: RUN_AND_BUILD_TIME
     value: en_US
   - key: APP_MAINTENANCE_DRIVER
     scope: RUN_TIME
@@ -66,7 +66,7 @@ envs:
     scope: RUN_TIME
     value: info
   - key: DB_CONNECTION
-    scope: RUN_AND_BUILD
+    scope: RUN_AND_BUILD_TIME
     value: mysql
   - key: DATABASE_URL
     scope: RUN_TIME
@@ -112,37 +112,37 @@ envs:
     scope: RUN_TIME
     value: redis
   - key: PUSHER_APP_ID
-    scope: RUN_AND_BUILD
+    scope: RUN_AND_BUILD_TIME
     type: SECRET
     value: "2076309"
   - key: PUSHER_APP_KEY
-    scope: RUN_AND_BUILD
+    scope: RUN_AND_BUILD_TIME
     type: SECRET
     value: 538c56f5622842d8cdbb
   - key: PUSHER_APP_SECRET
-    scope: RUN_AND_BUILD
+    scope: RUN_AND_BUILD_TIME
     type: SECRET
     value: 0be04b035e48a91ce684
   - key: PUSHER_APP_CLUSTER
-    scope: RUN_AND_BUILD
+    scope: RUN_AND_BUILD_TIME
     value: us2
   - key: VITE_PUSHER_SCHEME
-    scope: RUN_AND_BUILD
+    scope: RUN_AND_BUILD_TIME
     value: https
   - key: VITE_PUSHER_HOST
-    scope: RUN_AND_BUILD
+    scope: RUN_AND_BUILD_TIME
     value: ws-us2.pusher.com
   - key: VITE_PUSHER_PORT
-    scope: RUN_AND_BUILD
+    scope: RUN_AND_BUILD_TIME
     value: "443"
   - key: VITE_PUSHER_APP_KEY
-    scope: RUN_AND_BUILD
+    scope: RUN_AND_BUILD_TIME
     value: 538c56f5622842d8cdbb
   - key: VITE_PUSHER_APP_CLUSTER
-    scope: RUN_AND_BUILD
+    scope: RUN_AND_BUILD_TIME
     value: us2
   - key: VITE_APP_NAME
-    scope: RUN_AND_BUILD
+    scope: RUN_AND_BUILD_TIME
     value: Laravel
   - key: CACHE_STORE
     scope: RUN_TIME
@@ -264,6 +264,17 @@ workers:
     run_command: php artisan queue:work --queue=default,timelines,notifications,events --sleep=3 --tries=3
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-0.5gb
+  - name: scheduler
+    environment_slug: php
+    source_dir: /
+    github:
+      repo: ams-ryanolson/arctic-leopard
+      branch: main
+      deploy_on_push: true
+    build_command: npm ci && npm run build:ssr
+    run_command: php artisan schedule:work --no-interaction
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-0.5gb
 
 jobs:
   - name: run-migrations
@@ -276,19 +287,6 @@ jobs:
       deploy_on_push: true
     build_command: npm ci && npm run build:ssr
     run_command: php artisan migrate --force --no-interaction
-    instance_count: 1
-    instance_size_slug: apps-s-1vcpu-1gb
-  - name: schedule-runner
-    kind: RUN
-    schedule: "*/5 * * * *"
-    environment_slug: php
-    source_dir: /
-    github:
-      repo: ams-ryanolson/arctic-leopard
-      branch: main
-      deploy_on_push: true
-    build_command: npm ci && npm run build:ssr
-    run_command: php artisan schedule:run --no-interaction
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-1gb
 

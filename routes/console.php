@@ -1,7 +1,9 @@
 <?php
 
+use App\Jobs\Ads\GenerateAdReport;
 use App\Jobs\PostMetricsAggregatorJob;
 use Illuminate\Foundation\Inspiring;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 
@@ -13,4 +15,8 @@ Schedule::command('uploads:clean-temp')->hourly();
 Schedule::command('payments:expire-pending')->everyFifteenMinutes();
 Schedule::command('subscriptions:expire')->hourly();
 Schedule::command('subscriptions:send-renewal-reminders')->twiceDaily(9, 21);
-Schedule::job(new PostMetricsAggregatorJob())->dailyAt('01:30');
+Schedule::job(new PostMetricsAggregatorJob)->dailyAt('01:30');
+Schedule::job(new GenerateAdReport(Carbon::yesterday()))
+    ->daily()
+    ->at('02:00')
+    ->onOneServer();

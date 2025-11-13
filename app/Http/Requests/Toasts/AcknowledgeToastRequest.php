@@ -19,7 +19,3 @@ class AcknowledgeToastRequest extends FormRequest
         return [];
     }
 }
-
-
-
-

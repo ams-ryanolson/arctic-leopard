@@ -92,15 +92,61 @@ export function NavMain({ items = [], label = 'Platform' }: { items: NavItem[]; 
         }));
     }, []);
 
+    const normalizePath = (value: string): string => {
+        if (!value) {
+            return '/';
+        }
+
+        const [path] = value.split('?');
+        if (!path || path === '') {
+            return '/';
+        }
+
+        if (path !== '/' && path.endsWith('/')) {
+            return path.slice(0, -1);
+        }
+
+        return path;
+    };
+
+    const currentPath = normalizePath(page.url);
+
+    const pathDepth = (value: string): number =>
+        normalizePath(value)
+            .split('/')
+            .filter(Boolean).length;
+
+    const matchesTarget = (target: string, allowNested = false): boolean => {
+        const normalizedTarget = normalizePath(target);
+
+        if (currentPath === normalizedTarget) {
+            return true;
+        }
+
+        if (allowNested && currentPath.startsWith(`${normalizedTarget}/`)) {
+            return true;
+        }
+
+        if (page.url.startsWith(`${normalizedTarget}?`)) {
+            return true;
+        }
+
+        return false;
+    };
+
     return (
         <SidebarGroup className="px-2 py-0">
             <SidebarGroupLabel>{label}</SidebarGroupLabel>
             <SidebarMenu>
                 {items.map((item) => {
                     const resolvedHref = resolveUrl(item.href);
+                    const allowNestedForItem = item.items?.length ? false : pathDepth(resolvedHref) >= 1;
                     const childMatch =
-                        item.items?.some((child) => page.url.startsWith(resolveUrl(child.href))) ?? false;
-                    const isActive = page.url.startsWith(resolvedHref) || childMatch;
+                        item.items?.some((child) => {
+                            const childHref = resolveUrl(child.href);
+                            return matchesTarget(childHref, pathDepth(childHref) > 1);
+                        }) ?? false;
+                    const isActive = matchesTarget(resolvedHref, allowNestedForItem) || childMatch;
                     const isExpanded = expanded[item.title] === true;
                     const dynamicBadge =
                         item.title === 'Messages'
@@ -109,43 +155,34 @@ export function NavMain({ items = [], label = 'Platform' }: { items: NavItem[]; 
 
                     return (
                         <SidebarMenuItem key={item.title}>
-                            <SidebarMenuButton
-                                asChild
-                                isActive={isActive}
-                                tooltip={{ children: item.title }}
-                            >
-                                <Link href={item.href} prefetch>
-                                    {item.icon && <item.icon />}
-                                    <span>{item.title}</span>
-                                </Link>
-                            </SidebarMenuButton>
-                            {dynamicBadge ? (
-                                <SidebarMenuBadge className="bg-white/10 text-white/70">
-                                    {dynamicBadge}
-                                </SidebarMenuBadge>
-                            ) : null}
                             {item.items?.length ? (
                                 <>
-                                    <SidebarMenuAction
-                                        onClick={(event) => {
-                                            event.preventDefault();
-                                            event.stopPropagation();
-                                            toggleItem(item.title);
-                                        }}
-                                        aria-label={`Toggle ${item.title}`}
-                                        aria-expanded={isExpanded}
+                                    <SidebarMenuButton
+                                        isActive={isActive}
+                                        tooltip={{ children: item.title }}
+                                        onClick={() => toggleItem(item.title)}
                                     >
+                                        {item.icon && <item.icon />}
+                                        <span>{item.title}</span>
                                         <ChevronDown
-                                            className={`transition-transform ${isExpanded ? '' : '-rotate-90'}`}
+                                            className={`ml-auto transition-transform ${isExpanded ? '' : '-rotate-90'}`}
                                         />
-                                    </SidebarMenuAction>
+                                    </SidebarMenuButton>
+                                    {dynamicBadge ? (
+                                        <SidebarMenuBadge className="bg-white/10 text-white/70">
+                                            {dynamicBadge}
+                                        </SidebarMenuBadge>
+                                    ) : null}
                                     {isExpanded ? (
                                         <SidebarMenuSub>
                                             {item.items.map((child) => (
                                                 <SidebarMenuSubItem key={child.title}>
                                                     <SidebarMenuSubButton
                                                         asChild
-                                                        isActive={page.url.startsWith(resolveUrl(child.href))}
+                                                        isActive={matchesTarget(
+                                                            resolveUrl(child.href),
+                                                            pathDepth(child.href) > 1,
+                                                        )}
                                                     >
                                                         <Link href={child.href} prefetch>
                                                             {child.icon && <child.icon />}
@@ -157,7 +194,25 @@ export function NavMain({ items = [], label = 'Platform' }: { items: NavItem[]; 
                                         </SidebarMenuSub>
                                     ) : null}
                                 </>
-                            ) : null}
+                            ) : (
+                                <>
+                                    <SidebarMenuButton
+                                        asChild
+                                        isActive={isActive}
+                                        tooltip={{ children: item.title }}
+                                    >
+                                        <Link href={item.href} prefetch>
+                                            {item.icon && <item.icon />}
+                                            <span>{item.title}</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                    {dynamicBadge ? (
+                                        <SidebarMenuBadge className="bg-white/10 text-white/70">
+                                            {dynamicBadge}
+                                        </SidebarMenuBadge>
+                                    ) : null}
+                                </>
+                            )}
                         </SidebarMenuItem>
                     );
                 })}

@@ -58,13 +58,24 @@ type UseFeedResult = {
 const DEFAULT_ERROR_MESSAGE = 'We could not load the feed. Please try again.';
 
 const sanitizeTimelinePayload = (payload: NormalizePayload): NormalizePayload => {
-    const filtered = payload.data.filter((entry) => entry.post !== null);
+    // Ensure data is an array
+    const data = Array.isArray(payload.data) ? payload.data : [];
+    
+    // Filter out entries that are neither posts nor ads
+    const filtered = data.filter((entry) => {
+        // Ad entries have type === 'ad'
+        if (entry.type === 'ad') {
+            return true;
+        }
+        // Regular timeline entries have a post
+        return entry.post !== null;
+    });
 
-    if (filtered.length === payload.data.length) {
+    if (filtered.length === data.length) {
         return payload;
     }
 
-    const removed = payload.data.length - filtered.length;
+    const removed = data.length - filtered.length;
     const total = typeof payload.meta.total === 'number'
         ? Math.max(0, payload.meta.total - removed)
         : payload.meta.total;
@@ -73,7 +84,7 @@ const sanitizeTimelinePayload = (payload: NormalizePayload): NormalizePayload =>
         ...payload,
         data: filtered,
         meta: {
-            ...payload.meta,
+            ...(payload.meta || {}),
             total,
         },
     };
@@ -98,7 +109,43 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
     } = options;
 
     const normalize = useCallback(
-        (payload: FeedPayload): NormalizePayload => sanitizeTimelinePayload(transformPayload(payload)),
+        (payload: FeedPayload): NormalizePayload => {
+            const normalized = sanitizeTimelinePayload(transformPayload(payload));
+            
+            // Normalize post structure - handle cases where post is wrapped in 'data'
+            normalized.data = normalized.data.map((entry) => {
+                if (entry.post && typeof entry.post === 'object' && 'data' in entry.post) {
+                    const post = entry.post.data;
+                    // Ensure media is always an array
+                    if (post && typeof post === 'object') {
+                        return {
+                            ...entry,
+                            post: {
+                                ...post,
+                                media: Array.isArray(post.media) ? post.media : [],
+                            },
+                        };
+                    }
+                    return {
+                        ...entry,
+                        post,
+                    };
+                }
+                // Ensure media is always an array for non-wrapped posts
+                if (entry.post && typeof entry.post === 'object') {
+                    return {
+                        ...entry,
+                        post: {
+                            ...entry.post,
+                            media: Array.isArray(entry.post.media) ? entry.post.media : [],
+                        },
+                    };
+                }
+                return entry;
+            });
+            
+            return normalized;
+        },
         [transformPayload],
     );
 
@@ -127,7 +174,14 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
     const entries = useMemo(
         () =>
             pages.flatMap((page) =>
-                page.data.filter((entry): entry is TimelineEntry & { post: FeedPost } => entry.post !== null),
+                page.data.filter((entry) => {
+                    // Include ad entries
+                    if (entry.type === 'ad') {
+                        return true;
+                    }
+                    // Include regular timeline entries with posts
+                    return entry.post !== null;
+                }),
             ),
         [pages],
     );
@@ -162,7 +216,14 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
                 ...page,
                 data: page.data.map((entry) =>
                     entry.post && entry.post.id === nextPost.id
-                        ? { ...entry, post: { ...entry.post, ...nextPost } }
+                        ? {
+                              ...entry,
+                              post: {
+                                  ...entry.post,
+                                  ...nextPost,
+                                  media: Array.isArray(nextPost.media) ? nextPost.media : (Array.isArray(entry.post.media) ? entry.post.media : []),
+                              },
+                          }
                         : entry,
                 ),
             })),

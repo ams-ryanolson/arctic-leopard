@@ -26,10 +26,12 @@ class ProfileBasicsRequest extends FormRequest
         return [
             'display_name' => ['required', 'string', 'max:150'],
             'pronouns' => ['nullable', 'string', 'max:100'],
+            'gender' => ['nullable', 'string', 'max:50', 'in:man,woman,non-binary,genderfluid,agender,prefer-not-to-say,other'],
+            'role' => ['nullable', 'integer', 'min:0', 'max:100'],
             'bio' => ['nullable', 'string'],
             'interests' => ['nullable', 'array', 'max:5'],
             'interests.*' => ['integer', 'exists:interests,id'],
-            'hashtags' => ['nullable', 'array', 'max:20'],
+            'hashtags' => ['nullable', 'array', 'max:5'],
             'hashtags.*' => ['string', 'max:120'],
         ];
     }
@@ -42,6 +44,8 @@ class ProfileBasicsRequest extends FormRequest
         $this->merge([
             'display_name' => $this->input('display_name'),
             'pronouns' => $this->input('pronouns'),
+            'gender' => $this->input('gender'),
+            'role' => $this->input('role'),
             'bio' => $this->input('bio'),
             'interests' => $this->input('interests') ?? [],
             'hashtags' => $this->input('hashtags') ?? [],
@@ -75,4 +79,3 @@ class ProfileBasicsRequest extends FormRequest
         });
     }
 }
-

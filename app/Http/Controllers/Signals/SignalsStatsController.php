@@ -18,8 +18,3 @@ class SignalsStatsController extends Controller
         return Inertia::render('Signals/Stats', StatsMock::data());
     }
 }
-
-
-
-
-

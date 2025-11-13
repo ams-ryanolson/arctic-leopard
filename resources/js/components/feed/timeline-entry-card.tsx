@@ -361,7 +361,11 @@ export default function TimelineEntryCard({
                     </div>
                 )}
 
-                <FeedMediaGallery media={post.media} post={post} onMediaClick={handleMediaClick} />
+                <FeedMediaGallery
+                    media={Array.isArray(post.media) ? post.media : []}
+                    post={post}
+                    onMediaClick={handleMediaClick}
+                />
 
                 {post.poll && (
                     <PollVotePanel poll={post.poll} onVote={onPollVote} disabled={disabled} />

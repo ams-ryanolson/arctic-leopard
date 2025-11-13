@@ -35,7 +35,3 @@ return new class extends Migration
         Schema::dropIfExists('post_view_events');
     }
 };
-
-
-
-

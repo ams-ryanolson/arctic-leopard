@@ -22,5 +22,3 @@ class UpdateTravelBeaconController extends Controller
             ->with('location.travel_beacon.updated', $isTraveling);
     }
 }
-
-

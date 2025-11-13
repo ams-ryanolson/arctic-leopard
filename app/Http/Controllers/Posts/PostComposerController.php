@@ -12,8 +12,7 @@ class PostComposerController extends Controller
 {
     public function __construct(
         private readonly PostCreationService $postCreationService,
-    ) {
-    }
+    ) {}
 
     public function __invoke(StorePostRequest $request): RedirectResponse
     {
@@ -32,8 +31,3 @@ class PostComposerController extends Controller
         return redirect()->route('dashboard');
     }
 }
-
-
-
-
-

@@ -22,5 +22,3 @@ class UpdateCoordinatesRequest extends FormRequest
         ];
     }
 }
-
-

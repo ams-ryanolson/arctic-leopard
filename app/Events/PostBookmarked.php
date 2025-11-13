@@ -15,10 +15,5 @@ class PostBookmarked
     public function __construct(
         public User $actor,
         public Post $post,
-    ) {
-    }
+    ) {}
 }
-
-
-
-

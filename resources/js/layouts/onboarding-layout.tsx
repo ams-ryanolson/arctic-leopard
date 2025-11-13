@@ -63,7 +63,7 @@ export default function OnboardingLayout({
     eyebrow = 'Onboarding',
     title,
     description,
-    skipHref = '/dashboard',
+    skipHref,
     skipLabel = 'Skip for now',
     skipHelper = 'You can finish setup later from your creator menu.',
 }: PropsWithChildren<OnboardingLayoutProps>) {
@@ -116,39 +116,46 @@ export default function OnboardingLayout({
                         </div>
 
                         <div className="mt-6 space-y-4">
-                            <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-white/50">
+                            <div className="flex items-center justify-between text-sm font-medium text-white/90 sm:text-base">
                                 <span>Setup progress</span>
-                                <span>
+                                <span className="text-white">
                                     Step {Math.min(currentIndex + 1, STEPS.length)} of {STEPS.length}
                                 </span>
                             </div>
-                            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                            <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-5">
                                 {STEPS.map((step, index) => {
                                     const isActive = index === currentIndex;
                                     const isComplete = index < currentIndex;
+                                    const isIncomplete = !isActive && !isComplete;
 
                                     return (
-                                        <div key={step.id} className="space-y-3">
+                                        <div key={step.id} className="space-y-2.5">
                                             <div
                                                 className={cn(
-                                                    'rounded-2xl border px-4 py-3 text-left transition md:text-center',
+                                                    'group rounded-2xl border px-4 py-3.5 text-left transition-all md:text-center',
                                                     isActive
                                                         ? 'border-white/40 bg-white/15 text-white shadow-[0_24px_65px_-40px_rgba(249,115,22,0.55)]'
-                                                        : 'border-white/15 bg-black/25 text-white/60',
+                                                        : isComplete
+                                                          ? 'border-white/20 bg-white/8 text-white/80 hover:border-white/30 hover:bg-white/10'
+                                                          : 'border-white/15 bg-black/25 text-white/60',
                                                 )}
                                             >
-                                                <p className="text-xs uppercase tracking-[0.3em] text-white/50">
+                                                <p className="text-xs uppercase tracking-[0.3em] text-white/60 sm:text-xs">
                                                     {step.optional ? 'Optional' : step.description}
                                                 </p>
-                                                <p className="mt-2 text-sm font-semibold">{step.label}</p>
+                                                <p className="mt-1.5 text-sm font-semibold sm:text-base">{step.label}</p>
                                             </div>
                                             <div className="relative h-2 w-full overflow-hidden rounded-full bg-white/12">
-                                                <div
-                                                    className={cn(
-                                                        'absolute inset-0 rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-500 transition-opacity',
-                                                        isActive || isComplete ? 'opacity-100' : 'opacity-30',
-                                                    )}
-                                                />
+                                                {isIncomplete ? (
+                                                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-neutral-600 via-neutral-500 to-neutral-600" />
+                                                ) : (
+                                                    <div
+                                                        className={cn(
+                                                            'absolute inset-0 rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-500 transition-opacity',
+                                                            isActive || isComplete ? 'opacity-100' : 'opacity-30',
+                                                        )}
+                                                    />
+                                                )}
                                             </div>
                                         </div>
                                     );
@@ -166,10 +173,10 @@ export default function OnboardingLayout({
                     <div>
                         <span className="text-white/65">Need support?</span>{' '}
                         <Link href={onboardingRoutes.start.url()} className="text-white hover:text-white/80">
-                            Message the concierge after launch
+                            Message our concierge
                         </Link>
                     </div>
-                    <span>Safe · Verified · Fetish Sovereign</span>
+                    <span>Safe · Verified · For Adults Only</span>
                 </footer>
             </main>
         </div>

@@ -31,8 +31,3 @@ class PurgeNotificationsForBlockedUsers implements ShouldQueue
             ->delete();
     }
 }
-
-
-
-
-

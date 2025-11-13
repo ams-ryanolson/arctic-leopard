@@ -147,26 +147,9 @@ export default function RichTextEditor({ value, onChange, maxLength, placeholder
                     'relative rounded-2xl border border-white/10 bg-white/5 text-sm text-white transition focus-within:border-white/30 focus-within:ring-4 focus-within:ring-amber-500/20',
                 )}
             >
-                <div className="flex items-center gap-2 border-b border-white/10 px-3 py-2">
-                    {formatActions.map(({ label, command, icon: Icon }) => (
-                        <Button
-                            key={command}
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 rounded-full border border-white/10 bg-white/5 text-white/75 transition hover:border-white/25 hover:bg-white/10 hover:text-white"
-                            onClick={() => runCommand(command)}
-                            aria-label={label}
-                            tabIndex={-1}
-                        >
-                            <Icon className="size-4" />
-                        </Button>
-                    ))}
-                </div>
-
                 <div
                     ref={editorRef}
-                    className="min-h-[220px] whitespace-pre-wrap break-words px-4 py-3 outline-none"
+                    className="min-h-[220px] whitespace-pre-wrap break-words px-4 py-3 pb-8 outline-none"
                     contentEditable
                     suppressContentEditableWarning
                     onInput={handleInput}
@@ -174,13 +157,14 @@ export default function RichTextEditor({ value, onChange, maxLength, placeholder
                     onFocus={() => setIsFocused(true)}
                 />
                 {!isFocused && !value && placeholder && (
-                    <span className="pointer-events-none absolute left-4 top-[58px] text-sm text-white/40">{placeholder}</span>
+                    <span className="pointer-events-none absolute left-4 top-3 text-sm text-white/40">{placeholder}</span>
                 )}
+                <div className="pointer-events-none absolute bottom-3 right-4">
+                    <p className="text-[0.65rem] uppercase tracking-[0.3em] text-white/50">
+                        {plainTextLength(value)}/{maxLength}
+                    </p>
+                </div>
             </div>
-
-            <p className="text-[0.65rem] uppercase tracking-[0.3em] text-white/45">
-                {plainTextLength(value)}/{maxLength}
-            </p>
         </div>
     );
 }

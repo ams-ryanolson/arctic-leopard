@@ -22,5 +22,3 @@ class UpdateCoordinatesController extends Controller
             ->with('location.coordinates.updated', true);
     }
 }
-
-

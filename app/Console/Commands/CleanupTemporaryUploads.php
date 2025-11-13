@@ -40,6 +40,7 @@ class CleanupTemporaryUploads extends Command
 
             if ($dryRun) {
                 $this->line("[DRY] Would delete {$file} (last modified {$lastModified->toDateTimeString()})");
+
                 continue;
             }
 
@@ -58,9 +59,3 @@ class CleanupTemporaryUploads extends Command
         return self::SUCCESS;
     }
 }
-
-
-
-
-
-

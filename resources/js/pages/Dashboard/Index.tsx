@@ -2,6 +2,8 @@ import AppLayout from '@/layouts/app-layout';
 import FeedPostComposer from '@/components/feed/feed-post-composer';
 import CommentThreadSheet from '@/components/feed/comment-thread-sheet';
 import TimelineEntryCard from '@/components/feed/timeline-entry-card';
+import TimelineAd from '@/components/ads/timeline-ad';
+import SidebarAd from '@/components/ads/sidebar-ad';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -31,7 +33,7 @@ import type {
     TrendingTag,
     ViewerContext,
 } from '@/types/feed';
-import { Head, usePage } from '@inertiajs/react';
+import { Deferred, Head, usePage } from '@inertiajs/react';
 import { AlertCircle, Clock3, Flame, Sparkles, Users } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -112,6 +114,21 @@ type DashboardProps = SharedData & {
     filters: FeedFiltersGroup;
     pulse: FeedPulseMetric[];
     trending: TrendingTag[];
+    sidebarAds: Array<{
+        id: number;
+        ad_id: number;
+        placement: string;
+        size: string;
+        asset_type: string;
+        asset_path: string | null;
+        asset_url: string | null;
+        headline: string | null;
+        body_text: string | null;
+        cta_text: string | null;
+        cta_url: string;
+        display_order: number;
+        is_active: boolean;
+    }>;
     viewer: ViewerContext & { avatar?: string | null };
 };
 
@@ -121,6 +138,7 @@ export default function Dashboard() {
         composer,
         pulse,
         trending,
+        sidebarAds,
         viewer,
     } = usePage<DashboardProps>().props;
 
@@ -318,6 +336,17 @@ export default function Dashboard() {
                                         </Card>
                                     ) : (
                                         entries.map((entry) => {
+                                            // Render ad entries differently
+                                            if (entry.type === 'ad' && entry.ad) {
+                                                return (
+                                                    <TimelineAd
+                                                        key={`ad-${entry.ad.id}`}
+                                                        ad={entry.ad}
+                                                    />
+                                                );
+                                            }
+
+                                            // Render regular timeline entries
                                             const postId = entry.post?.id ?? null;
                                             const isPostPending =
                                                 postId !== null &&
@@ -413,6 +442,21 @@ export default function Dashboard() {
 
                             {pulse.length > 0 && <ScenePulseCard items={pulse} />}
 
+                            <Deferred data="sidebarAds" fallback={null}>
+                                {sidebarAds && sidebarAds.length > 0 && sidebarAds[0] && (
+                                    <SidebarAd
+                                        ad={sidebarAds[0]}
+                                        size={
+                                            sidebarAds[0].placement === 'dashboard_sidebar_small'
+                                                ? 'small'
+                                                : sidebarAds[0].placement === 'dashboard_sidebar_medium'
+                                                  ? 'medium'
+                                                  : 'large'
+                                        }
+                                    />
+                                )}
+                            </Deferred>
+
                             <Card className="border-white/10 bg-white/5 text-white">
                                 <CardHeader>
                                     <CardTitle className="text-base font-semibold">Circle spotlights</CardTitle>
@@ -466,6 +510,21 @@ export default function Dashboard() {
                                     </ul>
                                 </CardContent>
                             </Card>
+
+                            <Deferred data="sidebarAds" fallback={null}>
+                                {sidebarAds && sidebarAds.length > 1 && sidebarAds[1] && (
+                                    <SidebarAd
+                                        ad={sidebarAds[1]}
+                                        size={
+                                            sidebarAds[1].placement === 'dashboard_sidebar_small'
+                                                ? 'small'
+                                                : sidebarAds[1].placement === 'dashboard_sidebar_medium'
+                                                  ? 'medium'
+                                                  : 'large'
+                                        }
+                                    />
+                                )}
+                            </Deferred>
                         </aside>
                     </div>
                 </div>

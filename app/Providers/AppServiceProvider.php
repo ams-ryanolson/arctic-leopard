@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Circle;
 use App\Models\Comment;
 use App\Models\Conversation;
+use App\Models\Event;
 use App\Models\Message;
 use App\Models\Post;
 use App\Models\PostPoll;
@@ -13,9 +14,10 @@ use App\Models\User;
 use App\Policies\CirclePolicy;
 use App\Policies\CommentPolicy;
 use App\Policies\ConversationPolicy;
+use App\Policies\EventPolicy;
 use App\Policies\MessagePolicy;
-use App\Policies\PostPolicy;
 use App\Policies\PollVotePolicy;
+use App\Policies\PostPolicy;
 use App\Policies\ProfilePolicy;
 use App\Services\Payments\EntitlementService;
 use Illuminate\Support\Facades\Gate;
@@ -44,6 +46,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Circle::class, CirclePolicy::class);
         Gate::policy(Conversation::class, ConversationPolicy::class);
         Gate::policy(Message::class, MessagePolicy::class);
+        Gate::policy(Event::class, EventPolicy::class);
 
         Gate::define('access-creator-content', function (User $viewer, User $creator): bool {
             if ($viewer->is($creator)) {

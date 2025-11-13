@@ -18,8 +18,3 @@ class SignalsOverviewController extends Controller
         return Inertia::render('Signals/Overview', OverviewMock::data());
     }
 }
-
-
-
-
-

@@ -23,7 +23,3 @@ class AcknowledgeToastController extends Controller
         return response()->noContent();
     }
 }
-
-
-
-

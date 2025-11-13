@@ -1,25 +1,34 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Admin\Ads\AdAdminController;
+use App\Http\Controllers\Admin\Ads\CampaignAdminController;
+use App\Http\Controllers\Admin\Ads\ReportAdminController;
+use App\Http\Controllers\Advertiser\AdvertiserController;
+use App\Http\Controllers\Auth\EmailAvailabilityController;
+use App\Http\Controllers\Auth\UsernameAvailabilityController;
+use App\Http\Controllers\Bookmarks\BookmarkController;
 use App\Http\Controllers\Circles\CircleController;
 use App\Http\Controllers\Circles\CircleMembershipController;
-use App\Http\Controllers\Bookmarks\BookmarkController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Events\EventAdminController;
+use App\Http\Controllers\Events\EventController;
+use App\Http\Controllers\Events\EventRsvpController;
+use App\Http\Controllers\Notifications\NotificationController;
+use App\Http\Controllers\Onboarding\CreatorSetupController;
+use App\Http\Controllers\Onboarding\FinishOnboardingController;
+use App\Http\Controllers\Onboarding\FollowSuggestionsController;
 use App\Http\Controllers\Onboarding\MediaController;
 use App\Http\Controllers\Onboarding\OnboardingController;
 use App\Http\Controllers\Onboarding\ProfileBasicsController;
-use App\Http\Controllers\Onboarding\FollowSuggestionsController;
-use App\Http\Controllers\Onboarding\CreatorSetupController;
-use App\Http\Controllers\Notifications\NotificationController;
-use App\Http\Controllers\Auth\UsernameAvailabilityController;
-use App\Http\Controllers\Auth\EmailAvailabilityController;
-use App\Http\Controllers\Uploads\TemporaryUploadController;
 use App\Http\Controllers\Posts\PostAnalyticsController;
-use App\Http\Controllers\Posts\PostComposerController;
 use App\Http\Controllers\Posts\PostBookmarkController;
-use App\Http\Controllers\Posts\PostController;
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Posts\PostComposerController;
 use App\Http\Controllers\Profile\UpdateCoordinatesController;
 use App\Http\Controllers\Profile\UpdateTravelBeaconController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RadarController;
 use App\Http\Controllers\Signals\SignalsAudienceController;
 use App\Http\Controllers\Signals\SignalsComplianceController;
 use App\Http\Controllers\Signals\SignalsMonetizationController;
@@ -30,10 +39,12 @@ use App\Http\Controllers\Signals\SignalsStatsController;
 use App\Http\Controllers\Signals\SignalsSubscriptionsController;
 use App\Http\Controllers\Toasts\AcknowledgeToastController;
 use App\Http\Controllers\Toasts\ResolveToastActionController;
+use App\Http\Controllers\Uploads\TemporaryUploadController;
 use App\Http\Controllers\UserBlockController;
 use App\Http\Controllers\UserFollowController;
 use App\Http\Controllers\UserFollowRequestController;
-use App\Http\Controllers\RadarController;
+use App\Models\Event;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -63,6 +74,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('onboarding/media', [MediaController::class, 'update'])->name('onboarding.media.update');
     Route::get('onboarding/follow-suggestions', FollowSuggestionsController::class)->name('onboarding.follow');
     Route::get('onboarding/creator-tools', CreatorSetupController::class)->name('onboarding.creator');
+    Route::post('onboarding/finish', FinishOnboardingController::class)->name('onboarding.finish');
 
     Route::middleware('profile.completed')->group(function () {
         $profileDemoData = static fn (): array => [
@@ -197,6 +209,32 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('audience', SignalsAudienceController::class)->name('audience');
             Route::get('compliance', SignalsComplianceController::class)->name('compliance');
             Route::get('settings', SignalsSettingsController::class)->name('settings');
+
+            Route::prefix('ads')->as('ads.')->group(function () {
+                Route::get('/', [AdvertiserController::class, 'index'])
+                    ->name('index');
+                Route::get('create', [AdvertiserController::class, 'create'])
+                    ->name('create');
+                Route::post('/', [AdvertiserController::class, 'store'])
+                    ->name('store');
+                Route::get('{ad}', [AdvertiserController::class, 'show'])
+                    ->name('show')
+                    ->can('view', 'ad');
+                Route::get('{ad}/edit', [AdvertiserController::class, 'edit'])
+                    ->name('edit')
+                    ->can('update', 'ad');
+                Route::put('{ad}', [AdvertiserController::class, 'update'])
+                    ->name('update')
+                    ->can('update', 'ad');
+                Route::get('{ad}/report', [AdvertiserController::class, 'report'])
+                    ->name('report')
+                    ->can('view', 'ad');
+            });
+
+            Route::get('ads/campaigns', [AdvertiserController::class, 'campaigns'])
+                ->name('ads.campaigns.index');
+            Route::post('ads/checkout', [AdvertiserController::class, 'checkout'])
+                ->name('ads.checkout');
         });
 
         Route::get('upgrade', function () {
@@ -250,66 +288,133 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ]);
         })->name('upgrade');
 
-        Route::get('events', function () {
-            return Inertia::render('Events/Index', [
-                'upcoming' => [
-                    [
-                        'title' => 'Rope Burn Revival · Session 09',
-                        'when' => 'Jun 12 · 8 PM PST',
-                        'venue' => 'Silver Collar Studio · Stream + IRL',
-                        'location' => 'Los Angeles, CA',
-                        'spots' => '23 VIP spots left',
-                        'format' => 'Suspension ritual',
-                        'mode' => 'Hybrid',
-                        'image' => 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=1500&q=80',
-                        'host' => [
-                            'name' => 'Dante Knox',
-                            'avatar' => 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80',
-                        ],
-                    ],
-                    [
-                        'title' => 'Leather Atlas · Field Trip',
-                        'when' => 'Jun 15 · 7 PM CET',
-                        'venue' => 'Warehouse District Pop-up',
-                        'location' => 'Berlin, Germany',
-                        'spots' => 'Waitlist open',
-                        'format' => 'Social + scouting',
-                        'mode' => 'IRL',
-                        'image' => 'https://images.unsplash.com/photo-1487412912498-0447578fcca8?auto=format&fit=crop&w=1500&q=80',
-                        'host' => [
-                            'name' => 'Father Torin',
-                            'avatar' => 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
-                        ],
-                    ],
-                    [
-                        'title' => 'Consent Lab Intensive',
-                        'when' => 'Jun 18 · 4 PM EST',
-                        'venue' => 'Encrypted cohort · Live translation',
-                        'location' => 'Digital',
-                        'spots' => '12 seats remaining',
-                        'format' => 'Workshop',
-                        'mode' => 'Digital',
-                        'image' => 'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1500&q=80',
-                        'host' => [
-                            'name' => 'Mara Stone',
-                            'avatar' => 'https://images.unsplash.com/photo-1520975916090-3105956dac38?auto=format&fit=crop&w=200&q=80',
-                        ],
-                    ],
-                ],
-                'past' => [
-                    [
-                        'title' => 'Midnight Pups Summit',
-                        'summary' => 'Four-track evening with live pup moshes, raffles, and mentorship signups.',
-                        'image' => 'https://images.unsplash.com/photo-1515165562835-c4c2b9755f67?auto=format&fit=crop&w=1200&q=80',
-                    ],
-                    [
-                        'title' => 'Wax Alchemy Residency',
-                        'summary' => 'Three-day residency covering pigment, scent blending, and burn pattern staging.',
-                        'image' => 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=1200&q=80',
-                    ],
-                ],
-            ]);
-        })->name('events.index');
+        Route::prefix('events')->as('events.')->group(function () {
+            Route::get('/', [EventController::class, 'index'])->name('index');
+            Route::post('/', [EventController::class, 'store'])->name('store');
+            Route::get('{event:slug}', [EventController::class, 'show'])->name('show');
+            Route::post('{event:slug}/rsvp', [EventRsvpController::class, 'store'])->name('rsvps.store');
+            Route::delete('{event:slug}/rsvp', [EventRsvpController::class, 'destroy'])->name('rsvps.destroy');
+        });
+
+        Route::prefix('admin')
+            ->as('admin.')
+            ->middleware('role_or_permission:Admin|Super Admin')
+            ->group(function () {
+                Route::get('/', AdminDashboardController::class)
+                    ->name('dashboard')
+                    ->can('accessAdmin', User::class);
+
+                Route::prefix('users')->as('users.')->group(function () {
+                    Route::get('/', [AdminUserController::class, 'index'])
+                        ->name('index')
+                        ->can('viewAny', User::class);
+                    Route::patch('{user}/roles', [AdminUserController::class, 'update'])
+                        ->name('roles.update')
+                        ->can('updateRoles', 'user');
+                });
+
+                Route::prefix('events')->as('events.')->group(function () {
+                    Route::get('/', [EventAdminController::class, 'index'])
+                        ->name('index')
+                        ->can('viewAny', Event::class);
+                    Route::post('/', [EventAdminController::class, 'store'])
+                        ->name('store')
+                        ->can('create', Event::class);
+                    Route::get('{event}', [EventAdminController::class, 'show'])
+                        ->name('show')
+                        ->can('view', 'event');
+                    Route::put('{event}', [EventAdminController::class, 'update'])
+                        ->name('update')
+                        ->can('update', 'event');
+                    Route::delete('{event}', [EventAdminController::class, 'destroy'])
+                        ->name('destroy')
+                        ->can('delete', 'event');
+                    Route::post('{event}/approve', [EventAdminController::class, 'approve'])
+                        ->name('approve')
+                        ->can('approve', 'event');
+                    Route::post('{event}/publish', [EventAdminController::class, 'publish'])
+                        ->name('publish')
+                        ->can('publish', 'event');
+                    Route::post('{event}/cancel', [EventAdminController::class, 'cancel'])
+                        ->name('cancel')
+                        ->can('cancel', 'event');
+                });
+
+                Route::prefix('ads')->as('ads.')->group(function () {
+                    Route::get('/', [AdAdminController::class, 'index'])
+                        ->name('index')
+                        ->can('viewAny', \App\Models\Ads\Ad::class);
+                    Route::get('create', [AdAdminController::class, 'create'])
+                        ->name('create')
+                        ->can('create', \App\Models\Ads\Ad::class);
+                    Route::post('/', [AdAdminController::class, 'store'])
+                        ->name('store')
+                        ->can('create', \App\Models\Ads\Ad::class);
+                    Route::get('{ad}', [AdAdminController::class, 'show'])
+                        ->name('show')
+                        ->can('view', 'ad');
+                    Route::get('{ad}/edit', [AdAdminController::class, 'edit'])
+                        ->name('edit')
+                        ->can('update', 'ad');
+                    Route::put('{ad}', [AdAdminController::class, 'update'])
+                        ->name('update')
+                        ->can('update', 'ad');
+                    Route::delete('{ad}', [AdAdminController::class, 'destroy'])
+                        ->name('destroy')
+                        ->can('delete', 'ad');
+                    Route::post('{ad}/approve', [AdAdminController::class, 'approve'])
+                        ->name('approve')
+                        ->can('approve', 'ad');
+                    Route::post('{ad}/reject', [AdAdminController::class, 'reject'])
+                        ->name('reject')
+                        ->can('reject', 'ad');
+                    Route::post('{ad}/pause', [AdAdminController::class, 'pause'])
+                        ->name('pause')
+                        ->can('pause', 'ad');
+                    Route::post('{ad}/resume', [AdAdminController::class, 'resume'])
+                        ->name('resume')
+                        ->can('resume', 'ad');
+                });
+
+                Route::prefix('campaigns')->as('campaigns.')->group(function () {
+                    Route::get('/', [CampaignAdminController::class, 'index'])
+                        ->name('index')
+                        ->can('viewAny', \App\Models\Ads\AdCampaign::class);
+                    Route::get('create', [CampaignAdminController::class, 'create'])
+                        ->name('create')
+                        ->can('create', \App\Models\Ads\AdCampaign::class);
+                    Route::post('/', [CampaignAdminController::class, 'store'])
+                        ->name('store')
+                        ->can('create', \App\Models\Ads\AdCampaign::class);
+                    Route::get('{campaign}', [CampaignAdminController::class, 'show'])
+                        ->name('show')
+                        ->can('view', 'campaign');
+                    Route::get('{campaign}/edit', [CampaignAdminController::class, 'edit'])
+                        ->name('edit')
+                        ->can('update', 'campaign');
+                    Route::put('{campaign}', [CampaignAdminController::class, 'update'])
+                        ->name('update')
+                        ->can('update', 'campaign');
+                    Route::delete('{campaign}', [CampaignAdminController::class, 'destroy'])
+                        ->name('destroy')
+                        ->can('delete', 'campaign');
+                });
+
+                Route::prefix('reports')->as('reports.')->group(function () {
+                    Route::get('/', [ReportAdminController::class, 'index'])
+                        ->name('index')
+                        ->can('viewAny', \App\Models\Ads\Ad::class);
+                    Route::get('{ad}', [ReportAdminController::class, 'show'])
+                        ->name('show')
+                        ->can('view', 'ad');
+                    Route::get('campaign/{campaign}', [ReportAdminController::class, 'campaignReport'])
+                        ->name('campaign')
+                        ->can('view', 'campaign');
+                    Route::get('export', [ReportAdminController::class, 'export'])
+                        ->name('export')
+                        ->can('viewAny', \App\Models\Ads\Ad::class);
+                });
+            });
 
         Route::get('radar', RadarController::class)->name('radar');
         Route::patch('profile/location', UpdateCoordinatesController::class)->name('profile.location.update');
@@ -351,6 +456,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('users.follow-requests.accept');
         Route::delete('users/{user}/follow-requests/{follower}', [UserFollowRequestController::class, 'destroy'])
             ->name('users.follow-requests.destroy');
+
     });
 });
 

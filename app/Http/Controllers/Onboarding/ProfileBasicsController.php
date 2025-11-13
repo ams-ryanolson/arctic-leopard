@@ -19,8 +19,7 @@ class ProfileBasicsController extends Controller
 {
     public function __construct(
         private readonly CircleMembershipService $circleMemberships,
-    ) {
-    }
+    ) {}
 
     /**
      * Display the profile basics onboarding step.
@@ -43,6 +42,8 @@ class ProfileBasicsController extends Controller
             'profile' => [
                 'display_name' => $user->display_name,
                 'pronouns' => $user->pronouns,
+                'gender' => $user->gender,
+                'role' => $user->role,
                 'bio' => $user->bio,
                 'interest_ids' => $user->interests()->pluck('interests.id'),
                 'hashtags' => $user->hashtags()->pluck('name'),
@@ -63,6 +64,8 @@ class ProfileBasicsController extends Controller
         $user->forceFill([
             'display_name' => $validated['display_name'],
             'pronouns' => $validated['pronouns'] ?? null,
+            'gender' => $validated['gender'] ?? null,
+            'role' => $validated['role'] ?? null,
             'bio' => $this->sanitizeBio($validated['bio'] ?? null),
         ])->save();
 
@@ -139,7 +142,7 @@ class ProfileBasicsController extends Controller
             ->map(fn (string $tag) => Str::replaceMatches('/[^a-z0-9._-]/', '', $tag))
             ->filter()
             ->unique()
-            ->take(20)
+            ->take(5)
             ->values();
     }
 
@@ -166,4 +169,3 @@ class ProfileBasicsController extends Controller
         return trim($clean) !== '' ? trim($clean) : null;
     }
 }
-

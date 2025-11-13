@@ -77,7 +77,7 @@ export default function FeedMediaGallery({
     post,
     onMediaClick,
 }: FeedMediaGalleryProps) {
-    if (!media.length) {
+    if (!media || !Array.isArray(media) || media.length === 0) {
         return null;
     }
 

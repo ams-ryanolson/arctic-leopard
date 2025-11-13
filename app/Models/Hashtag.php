@@ -86,8 +86,3 @@ class Hashtag extends Model
         return $slug;
     }
 }
-
-
-
-
-

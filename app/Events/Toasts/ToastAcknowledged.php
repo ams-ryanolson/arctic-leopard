@@ -15,10 +15,5 @@ class ToastAcknowledged
     public function __construct(
         public User $user,
         public ToastPayload $payload,
-    ) {
-    }
+    ) {}
 }
-
-
-
-

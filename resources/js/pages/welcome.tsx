@@ -15,48 +15,48 @@ import {
 
 const featureHighlights = [
     {
-        title: 'Always-On Kink Feed',
+        title: 'Your Scene Feed',
         description:
-            'Drop thirst traps, scene recaps, voice notes, and live check-ins into a timeline built for fetish-first conversation and playful debate.',
+            'A personalized timeline of posts from people you follow. Share scenes, updates, and moments with public, followers-only, or subscriber audiences. Like, comment, bookmark, and unlock pay-to-view content.',
         icon: Flame,
     },
     {
-        title: 'Creator-Friendly, Not Required',
+        title: 'Radar Discovery',
         description:
-            'Flip on tips, subscriptions, and store fronts only when you want. Keep it social, go full pro, or move between both without losing momentum.',
-        icon: HeartHandshake,
+            "Find nearby members based on location, compatibility, and shared interests. See mutual connections, circle memberships, and compatibility scores. Turn on traveler mode when you're on the move.",
+        icon: Sparkles,
     },
     {
-        title: 'Circles, Dungeons, & DMs',
+        title: 'Circles & Community',
         description:
-            'Spin up kink houses, coordinate IRL meetups, and stay in sync with discreet messaging, aftercare threads, and traveler modes.',
-        icon: MessageCircle,
+            'Join circles organized around interests, locations, or identities. Each circle has multiple facets for different conversations. Share posts to specific circles and discover new communities.',
+        icon: Users,
     },
 ];
 
 const trustPoints = [
     {
-        title: 'Verified Consent Controls',
+        title: 'Verified & Safe',
         description:
-            'Robust onboarding, ID verification, and consent flags woven into every post, scene, and connection request.',
+            'ID verification for creators, consent-first design, and robust moderation keep the community authentic and safe for everyone.',
         icon: ShieldCheck,
     },
     {
-        title: 'Privacy Built for Play',
+        title: 'Privacy Controls',
         description:
-            'Scene-safe aliases, vaulted media, and traveler modes keep your identity fluid while your boundaries stay locked.',
+            'Control who sees your posts with audience settings—public, followers-only, subscribers, or pay-to-view. Manage your profile visibility and traveler mode for location privacy.',
         icon: Lock,
     },
     {
-        title: 'Signal-Boosted Discovery',
+        title: 'Creator Tools',
         description:
-            'Advanced search and tag stacks surface the rigs, roles, kinks, and friend groups that fit your vibe in minutes.',
+            'Monetize your content with tips, subscriptions, and pay-to-view posts. Track earnings, manage payouts, and grow your audience with Signals—our creator dashboard.',
         icon: Sparkles,
     },
     {
-        title: 'Community Circles',
+        title: 'Real Connections',
         description:
-            'Invite-only houses, regional crews, and identity-based circles give you space to organize meetups and share wisdom without noise.',
+            'Follow people, join circles, and discover nearby members through Radar. Build your network with compatibility matching and mutual connections.',
         icon: HeartHandshake,
     },
 ];
@@ -89,7 +89,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
 
                 <div className="relative z-10 flex min-h-screen flex-col">
                     <header className="px-5 py-6 sm:px-6 md:px-12">
-                        <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 rounded-3xl border border-white/10 bg-white/5 px-5 py-4 backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:rounded-full sm:px-6 sm:py-3">
+                        <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 rounded-3xl border border-white/10 bg-white/5 px-5 py-4 backdrop-blur transition hover:border-white/15 sm:flex-row sm:items-center sm:justify-between sm:rounded-full sm:px-6 sm:py-3">
                             <Link
                                 href={isAuthenticated ? dashboard() : '/'}
                                 className="flex items-center justify-center gap-3 sm:justify-start"
@@ -110,25 +110,25 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                             <nav className="hidden items-center gap-6 text-sm md:flex">
                                 <a
                                     href="#vision"
-                                    className="text-white/70 transition hover:text-white"
+                                    className="text-white/70 transition-colors hover:text-white"
                                 >
                                     Vision
                                 </a>
                                 <a
                                     href="#features"
-                                    className="text-white/70 transition hover:text-white"
+                                    className="text-white/70 transition-colors hover:text-white"
                                 >
                                     Features
                                 </a>
                                 <a
                                     href="#trust"
-                                    className="text-white/70 transition hover:text-white"
+                                    className="text-white/70 transition-colors hover:text-white"
                                 >
                                     Trust & Safety
                                 </a>
                                 <a
                                     href="#join"
-                                    className="text-white/70 transition hover:text-white"
+                                    className="text-white/70 transition-colors hover:text-white"
                                 >
                                     Join The Scene
                                 </a>
@@ -170,10 +170,6 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                         <section className="px-5 pb-16 pt-10 sm:px-6 md:px-12 md:pb-24 md:pt-6">
                             <div className="mx-auto grid w-full max-w-6xl gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
                                 <div className="space-y-10">
-                                    <div className="mx-auto inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1 text-[0.65rem] uppercase tracking-[0.4em] text-white/70 sm:text-xs md:mx-0">
-                                        <span className="size-2 rounded-full bg-amber-400" />
-                                        Invitation-Only Beta
-                                    </div>
                                     <div className="space-y-5 text-center md:text-left">
                                         <h1 className="text-balance text-4xl font-semibold leading-tight tracking-tight sm:text-5xl md:text-6xl">
                                             The underground home for{' '}
@@ -183,10 +179,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                                             .
                                         </h1>
                                         <p className="text-balance text-base leading-relaxed text-white/70 sm:text-lg">
-                                            Real Kink Men is the social hub where pups, doms, switches, voyeurs, and
-                                            curious newcomers trade stories, set scenes, and keep the energy flowing.
-                                            Monetize when you want with tips, drops, and subscriptions—stay social when
-                                            you don’t. Either way, your kink stays uncensored.
+                                            Real Kink Men is the social network built for gay kink and fetish men. Share posts on your feed, discover nearby members with Radar, join circles, and connect with your community. Turn on creator tools when you're ready to monetize with tips, subscriptions, and pay-to-view content.
                                         </p>
                                     </div>
 
@@ -200,29 +193,16 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                                                 {isAuthenticated ? 'Enter The Scene' : 'Claim Your Profile'}
                                             </Link>
                                         </Button>
-                                        {!isAuthenticated && (
-                                            <Button
-                                                asChild
-                                                variant="ghost"
-                                                size="lg"
-                                                className="w-full rounded-full border border-white/10 bg-white/5 px-7 py-3 text-base text-white/80 transition hover:border-white/30 hover:bg-white/10 hover:text-white sm:w-auto"
-                                            >
-                                                <Link href={login()}>
-                                                    Explore The Feed
-                                                    <ArrowRight className="size-4" />
-                                                </Link>
-                                            </Button>
-                                        )}
                                     </div>
 
                                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
                                         {communityStats.map((stat) => (
                                             <div
                                                 key={stat.label}
-                                                className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-center backdrop-blur sm:text-left"
+                                                className="group rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-center backdrop-blur transition hover:border-white/20 hover:bg-white/10 sm:text-left"
                                             >
-                                                <p className="text-2xl font-semibold">{stat.value}</p>
-                                                <p className="text-xs font-medium uppercase tracking-[0.2em] text-white/60">
+                                                <p className="text-2xl font-semibold text-white transition group-hover:scale-105">{stat.value}</p>
+                                                <p className="mt-1.5 text-xs font-medium uppercase tracking-[0.2em] text-white/60">
                                                     {stat.label}
                                                 </p>
                                             </div>
@@ -241,27 +221,27 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                                                 <span>Creator Spotlight</span>
                                                 <span>Live Now</span>
                                             </div>
-                                            <div className="rounded-2xl border border-white/10 bg-black/50 p-5 backdrop-blur sm:p-6">
+                                            <div className="rounded-2xl border border-white/10 bg-black/50 p-5 backdrop-blur transition hover:border-white/20 sm:p-6">
                                                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                                                    <div className="flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 via-rose-500 to-violet-600 shadow-[0_15px_30px_-15px_rgba(249,115,22,0.45)]">
+                                                    <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 via-rose-500 to-violet-600 shadow-[0_15px_30px_-15px_rgba(249,115,22,0.45)]">
                                                         <Flame className="size-7" />
                                                     </div>
-                                                    <div>
+                                                    <div className="min-w-0 flex-1">
                                                         <p className="text-sm uppercase tracking-[0.25em] text-white/50">
                                                             Bound Series · Episode 07
                                                         </p>
-                                                        <p className="text-lg font-semibold tracking-tight">
+                                                        <p className="mt-1 text-lg font-semibold tracking-tight text-white">
                                                             Iron & Rope Ritual with Dante Knox
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <p className="mt-4 text-sm leading-relaxed text-white/65">
+                                                <p className="mt-4 text-sm leading-relaxed text-white/70">
                                                     A 45-minute multi-camera experience featuring breath play,
                                                     suspension, and partner control. Shot in 4K. Includes backstage
                                                     scenes, rigging notes, and safeword check-ins.
                                                 </p>
                                                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                                                    <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70">
+                                                    <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm transition hover:border-white/20 hover:bg-white/10">
                                                         <p className="text-xs uppercase tracking-[0.3em] text-white/60">
                                                             Tip Train Active
                                                         </p>
@@ -269,7 +249,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                                                             162 patrons · 18 min left
                                                         </p>
                                                     </div>
-                                                    <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70">
+                                                    <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm transition hover:border-white/20 hover:bg-white/10">
                                                         <p className="text-xs uppercase tracking-[0.3em] text-white/60">
                                                             Unlockable Scenes
                                                         </p>
@@ -279,13 +259,13 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="grid grid-cols-1 gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-white/70 backdrop-blur sm:grid-cols-2">
+                                            <div className="grid grid-cols-1 gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur sm:grid-cols-2">
                                                 <div>
-                                                    <p className="uppercase tracking-[0.3em] text-white/60">Creators</p>
+                                                    <p className="text-xs uppercase tracking-[0.3em] text-white/60">Creators</p>
                                                     <p className="mt-2 text-base font-semibold text-white">Verified pros</p>
                                                 </div>
                                                 <div>
-                                                    <p className="uppercase tracking-[0.3em] text-white/60">
+                                                    <p className="text-xs uppercase tracking-[0.3em] text-white/60">
                                                         Experiences
                                                     </p>
                                                     <p className="mt-2 text-base font-semibold text-white">
@@ -311,15 +291,12 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                                     </h2>
                                     <p className="text-base leading-relaxed text-white/70">
                                         Real Kink Men grew out of late-night debriefs, dungeon deconstructions, and
-                                        friendships that kept getting throttled elsewhere. We wanted a feed where
+                                        friendships that kept getting throttled elsewhere. We wanted a social network where
                                         fetish talk comes first, where handles feel safe, and where underground
                                         communities can breathe in public.
                                     </p>
                                     <p className="text-base leading-relaxed text-white/70">
-                                        We listened to riggers, subs, pups, leather boys, switches, voyeurs, and curious
-                                        newcomers. We crafted social rituals for daily connection, added optional cash
-                                        tools for when you feel like earning, and layered in consent tech that respects
-                                        every boundary. This isn’t a sanitized clone—it’s our fetish metropolis.
+                                        We built a feed where you control your audience—share publicly, with followers, subscribers, or behind a paywall. We added Radar to help you discover nearby members based on compatibility and location. We created Circles for community organization. And we built Signals—creator tools for monetization—that you can turn on whenever you're ready. This isn't a sanitized clone—it's our fetish metropolis.
                                     </p>
                                 </div>
 
@@ -327,10 +304,10 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                                     {trustPoints.map(({ title, description, icon: Icon }) => (
                                         <div
                                             key={title}
-                                            className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-white/5 p-6 text-left"
+                                            className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-white/5 p-6 text-left transition hover:border-white/20 hover:bg-white/15"
                                         >
-                                            <div className="absolute -left-8 top-1/2 size-24 -translate-y-1/2 rounded-full bg-amber-400/15 blur-2xl" />
-                                            <div className="relative flex size-10 items-center justify-center rounded-xl bg-white/10 text-white">
+                                            <div className="absolute -left-8 top-1/2 size-24 -translate-y-1/2 rounded-full bg-amber-400/15 blur-2xl transition group-hover:bg-amber-400/25" />
+                                            <div className="relative flex size-10 items-center justify-center rounded-xl bg-white/10 text-white transition group-hover:bg-white/15">
                                                 <Icon className="size-5" />
                                             </div>
                                             <h3 className="relative mt-4 text-base font-semibold text-white">
@@ -357,9 +334,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                                         </h2>
                                     </div>
                                     <p className="max-w-xl text-sm leading-relaxed text-white/65">
-                                        From the feed to the DM stack, every touchpoint is tuned for real kink
-                                        connection first. Build rituals, host dungeons, drop recaps, sell mentorship,
-                                        or simply flirt across time zones—this is your arena.
+                                        From your personalized feed to location-based discovery, every feature is designed for authentic kink connection. Share posts, discover nearby members, join circles, and monetize your content when you're ready.
                                     </p>
                                 </div>
 
@@ -369,11 +344,11 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                                             key={title}
                                             className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-6 transition hover:border-amber-400/40 hover:bg-white/10 sm:p-8"
                                         >
-                                            <div className="absolute inset-0 bg-gradient-to-br from-amber-400/0 via-transparent to-violet-600/0 opacity-0 transition group-hover:opacity-70" />
-                                            <div className="relative flex size-11 items-center justify-center rounded-xl bg-white/10 text-white shadow-[0_20px_40px_-24px_rgba(249,115,22,0.6)]">
+                                            <div className="absolute inset-0 bg-gradient-to-br from-amber-400/0 via-transparent to-violet-600/0 opacity-0 transition-opacity group-hover:opacity-70" />
+                                            <div className="relative flex size-11 items-center justify-center rounded-xl bg-white/10 text-white shadow-[0_20px_40px_-24px_rgba(249,115,22,0.6)] transition group-hover:scale-110 group-hover:bg-white/15">
                                                 <Icon className="size-5" />
                                             </div>
-                                            <h3 className="relative mt-6 text-xl font-semibold">{title}</h3>
+                                            <h3 className="relative mt-6 text-xl font-semibold text-white">{title}</h3>
                                             <p className="relative mt-4 text-sm leading-relaxed text-white/70">
                                                 {description}
                                             </p>
@@ -392,23 +367,20 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                                             Consent Is King
                                         </p>
                                         <h2 className="mt-4 text-3xl font-semibold leading-tight tracking-tight">
-                                            We’re rewriting safety, verification, and aftercare for the kink internet.
+                                            Safety, verification, and privacy built for the kink community.
                                         </h2>
                                         <ul className="mt-6 space-y-4 text-sm leading-relaxed text-white/70">
                                             <li className="flex items-start gap-3">
-                                                <span className="mt-1 size-2 rounded-full bg-amber-400" />
-                                                Dual-factor scene check-ins, safeword logging, and post-session surveys
-                                                keep partners accountable.
+                                                <span className="mt-1.5 size-2 shrink-0 rounded-full bg-amber-400" />
+                                                <span>ID verification for creators ensures authentic profiles. Consent-first design and robust moderation keep the community safe.</span>
                                             </li>
                                             <li className="flex items-start gap-3">
-                                                <span className="mt-1 size-2 rounded-full bg-amber-400" />
-                                                Dedicated moderators with lived kink experience patrol feeds and
-                                                handle disputes with nuance.
+                                                <span className="mt-1.5 size-2 shrink-0 rounded-full bg-amber-400" />
+                                                <span>Control your audience with post settings—public, followers-only, subscribers, or pay-to-view. Your content, your rules.</span>
                                             </li>
                                             <li className="flex items-start gap-3">
-                                                <span className="mt-1 size-2 rounded-full bg-amber-400" />
-                                                Privacy tooling that respects aliases, cleans metadata, and supports
-                                                burner modes for IRL events.
+                                                <span className="mt-1.5 size-2 shrink-0 rounded-full bg-amber-400" />
+                                                <span>Privacy controls let you manage location sharing, profile visibility, and traveler mode for when you're on the move.</span>
                                             </li>
                                         </ul>
                                     </div>
@@ -430,9 +402,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                                                 </div>
                                             </div>
                                             <p className="text-sm leading-relaxed text-white/75">
-                                                “Real Kink Men gave us tools we didn’t know we needed. Verified consent
-                                                logs, private circle modes, and session analytics let our members feel
-                                                safe while chasing boundary-pushing play.”
+                                                "Real Kink Men gave us the community tools we needed. The feed keeps us connected, Radar helps us find nearby members, and Circles let us organize around shared interests. The creator tools are optional but powerful when you're ready to monetize."
                                             </p>
                                             <div className="flex items-center gap-3">
                                                 <div className="h-10 w-10 overflow-hidden rounded-full border border-amber-400/60">
@@ -460,8 +430,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                                     Join the doms, subs, pups, voyeurs, and creators building the next era of kink culture.
                                 </h2>
                                 <p className="max-w-2xl text-sm leading-relaxed text-white/70">
-                                    Applications are reviewed daily. Turn on creator tools whenever you want, unlock
-                                    early payout boosts when you do, and meet members ready to play regardless.
+                                    Join the community and start connecting. Follow people, join circles, discover nearby members with Radar, and share your scenes. Turn on creator tools in Signals whenever you're ready to monetize your content.
                                 </p>
                                 <div className="flex flex-wrap items-center justify-center gap-4">
                                     <Button
@@ -492,13 +461,13 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                                 © {new Date().getFullYear()} Real Kink Men. Fetish-forward. Consent-centered.
                             </p>
                             <div className="flex items-center justify-center gap-6 text-[0.7rem] uppercase tracking-[0.3em] text-white/50 sm:text-xs">
-                                <a href="#trust" className="transition hover:text-white">
+                                <a href="#trust" className="transition-colors hover:text-white">
                                     Safety
                                 </a>
-                                <a href="#features" className="transition hover:text-white">
+                                <a href="#features" className="transition-colors hover:text-white">
                                     Features
                                 </a>
-                                <a href="#join" className="transition hover:text-white">
+                                <a href="#join" className="transition-colors hover:text-white">
                                     Join
                                 </a>
                             </div>

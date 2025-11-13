@@ -33,8 +33,3 @@ class HashtagFactory extends Factory
         ];
     }
 }
-
-
-
-
-

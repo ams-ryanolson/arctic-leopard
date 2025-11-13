@@ -20,10 +20,5 @@ class ToastActionResolved
         public ToastPayload $payload,
         public string $actionKey,
         public array $input = [],
-    ) {
-    }
+    ) {}
 }
-
-
-
-

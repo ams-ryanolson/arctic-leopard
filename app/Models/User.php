@@ -3,33 +3,31 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Enums\Payments\PaymentSubscriptionStatus;
+use App\Models\Payments\PaymentSubscription;
+use App\Models\Payments\SubscriptionPlan;
+use App\Models\Payments\Tip;
+use App\Models\Wishlists\WishlistItem;
+use App\Models\Wishlists\WishlistPurchase;
+use App\Services\Payments\EntitlementService;
+use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use Illuminate\Support\Carbon;
-use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Pagination\AbstractCursorPaginator;
 use Illuminate\Pagination\AbstractPaginator;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\LazyCollection;
+use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
-use App\Models\Conversation;
-use App\Models\ConversationParticipant;
-use App\Models\Payments\Tip;
-use App\Models\Payments\PaymentSubscription;
-use App\Models\Payments\SubscriptionPlan;
-use App\Models\Wishlists\WishlistItem;
-use App\Models\Wishlists\WishlistPurchase;
-use App\Services\Payments\EntitlementService;
-use App\Enums\Payments\PaymentSubscriptionStatus;
 use Overtrue\LaravelFavorite\Traits\Favoriter;
 use Overtrue\LaravelFollow\Traits\Followable;
 use Overtrue\LaravelFollow\Traits\Follower;
@@ -38,16 +36,18 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens;
-    use HasFactory;
-    use Notifiable;
-    use TwoFactorAuthenticatable;
+    use Favoriter;
     use Followable;
     use Follower;
-    use Liker;
-    use Favoriter;
+
+    /** @use HasFactory<\Database\Factories\UserFactory> */
+    use HasApiTokens;
+
+    use HasFactory;
     use HasRoles;
+    use Liker;
+    use Notifiable;
+    use TwoFactorAuthenticatable;
 
     /**
      * The attributes that are mass assignable.
@@ -62,6 +62,8 @@ class User extends Authenticatable
         'name',
         'display_name',
         'pronouns',
+        'gender',
+        'role',
         'bio',
         'birthdate',
         'location_city',
@@ -206,6 +208,36 @@ class User extends Authenticatable
     }
 
     /**
+     * Events created by this user in an administrative capacity.
+     *
+     * @return HasMany<Event>
+     */
+    public function eventsCreated(): HasMany
+    {
+        return $this->hasMany(Event::class, 'created_by_id');
+    }
+
+    /**
+     * Events submitted by this user for approval.
+     *
+     * @return HasMany<Event>
+     */
+    public function eventsSubmitted(): HasMany
+    {
+        return $this->hasMany(Event::class, 'submitted_by_id');
+    }
+
+    /**
+     * Events this user manages.
+     *
+     * @return HasMany<Event>
+     */
+    public function eventsManaged(): HasMany
+    {
+        return $this->hasMany(Event::class, 'manager_id');
+    }
+
+    /**
      * Determine if the user is currently part of the provided circle.
      */
     public function isCircleMember(Circle $circle): bool
@@ -261,7 +293,6 @@ class User extends Authenticatable
      * Attach bookmark status information to the provided bookmarkable models.
      *
      * @param  iterable<Post>|Post|\Illuminate\Contracts\Pagination\Paginator|Collection<int, Post>|array<int, Post>  $bookmarkables
-     * @param  callable|null  $resolver
      */
     public function attachBookmarkStatus(
         mixed &$bookmarkables,
@@ -577,6 +608,7 @@ class User extends Authenticatable
             ->wherePivotNull('left_at')
             ->where('conversations.type', 'direct');
     }
+
     protected function avatarUrl(): Attribute
     {
         return Attribute::make(

@@ -2,18 +2,25 @@
 
 namespace App\Services\Feed;
 
+use App\Enums\Ads\AdPlacement;
+use App\Http\Resources\Ads\AdCreativeResource;
 use App\Http\Resources\PostResource;
 use App\Http\Resources\TimelineEntryResource;
 use App\Models\Circle;
 use App\Models\Post;
 use App\Models\Timeline;
 use App\Models\User;
+use App\Services\Ads\AdServingService;
 use App\Services\Cache\TimelineCacheService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 
 class FeedService
 {
+    public function __construct(
+        private AdServingService $adServingService,
+    ) {}
+
     public function getFollowingFeed(
         User $viewer,
         int $page,
@@ -41,13 +48,81 @@ class FeedService
 
         $this->hydrateTimelineEntries($entries, $viewer);
 
-        $payload = TimelineEntryResource::collection($entries)
-            ->toResponse($request)
-            ->getData(true);
+        // Inject ads every 6 posts
+        $injectionInterval = config('ads.placements.'.AdPlacement::TimelineInline->value.'.injection_interval', 6);
+        $data = $entries->items();
+        $injectedData = [];
+        $postCount = 0;
 
-        if (isset($payload['meta'])) {
-            $payload['meta']['has_more_pages'] = $entries->hasMorePages();
+        foreach ($data as $entry) {
+            $injectedData[] = $entry;
+            $postCount++;
+
+            // Inject ad every N posts
+            if ($postCount % $injectionInterval === 0) {
+                $adCreative = $this->adServingService->serve(
+                    AdPlacement::TimelineInline,
+                    $viewer,
+                    [
+                        'session_id' => $request->session()->getId(),
+                        'ip_address' => $request->ip(),
+                        'user_agent' => $request->userAgent(),
+                    ]
+                );
+
+                if ($adCreative !== null) {
+                    // Record impression
+                    $this->adServingService->recordImpression(
+                        $adCreative,
+                        AdPlacement::TimelineInline,
+                        $viewer,
+                        [
+                            'session_id' => $request->session()->getId(),
+                            'ip_address' => $request->ip(),
+                            'user_agent' => $request->userAgent(),
+                        ]
+                    );
+
+                    // Add ad as a special entry
+                    $injectedData[] = [
+                        'type' => 'ad',
+                        'ad' => (new AdCreativeResource($adCreative))->toArray($request),
+                    ];
+                }
+            }
         }
+
+        // Create a new paginator with injected ads
+        $injectedEntries = new \Illuminate\Pagination\LengthAwarePaginator(
+            $injectedData,
+            $entries->total(),
+            $entries->perPage(),
+            $entries->currentPage(),
+            [
+                'path' => $entries->path(),
+                'pageName' => $pageName,
+            ]
+        );
+
+        // Convert to array format
+        $payload = ['data' => []];
+        foreach ($injectedEntries->items() as $item) {
+            if (isset($item['type']) && $item['type'] === 'ad') {
+                $payload['data'][] = $item;
+            } else {
+                $payload['data'][] = (new TimelineEntryResource($item))->toArray($request);
+            }
+        }
+
+        $payload['meta'] = [
+            'current_page' => $injectedEntries->currentPage(),
+            'from' => $injectedEntries->firstItem(),
+            'last_page' => $injectedEntries->lastPage(),
+            'per_page' => $injectedEntries->perPage(),
+            'to' => $injectedEntries->lastItem(),
+            'total' => $injectedEntries->total(),
+            'has_more_pages' => $injectedEntries->hasMorePages(),
+        ];
 
         return $payload;
     }
@@ -156,5 +231,3 @@ class FeedService
         $viewer->attachBookmarkStatus($posts);
     }
 }
-
-

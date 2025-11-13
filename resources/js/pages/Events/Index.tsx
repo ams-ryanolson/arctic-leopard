@@ -1,59 +1,78 @@
-import AppLayout from '@/layouts/app-layout';
+import { EventCard } from '@/components/events/event-card';
+import { EventFilterBar } from '@/components/events/event-filter-bar';
+import { EventSubmissionDialog } from '@/components/events/event-submission-dialog';
+import { EventStatusBadge } from '@/components/events/event-status-badge';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Pagination } from '@/components/ui/pagination';
+import { cn } from '@/lib/utils';
+import eventsRoutes from '@/routes/events';
+import AppLayout from '@/layouts/app-layout';
+import { router, Head } from '@inertiajs/react';
+import { useState } from 'react';
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import {
-    Avatar,
-    AvatarFallback,
-    AvatarImage,
-} from '@/components/ui/avatar';
-import { useInitials } from '@/hooks/use-initials';
-import { Head } from '@inertiajs/react';
+    type Event,
+    type EventCollection,
+    type EventFilters,
+    type EventMeta,
+    formatEventDateRange,
+    formatEventLocation,
+} from '@/types/events';
 
-type UpcomingEvent = {
-    title: string;
-    when: string;
-    venue: string;
-    location: string;
-    spots: string;
-    format: string;
-    mode: string;
-    image: string;
-    host: {
-        name: string;
-        avatar: string;
-    };
+type EventsIndexProps = {
+    events: EventCollection;
+    pastEvents: Event[];
+    filters: EventFilters;
+    meta: EventMeta;
 };
 
-type PastEvent = {
-    title: string;
-    summary: string;
-    image: string;
-};
+export default function EventsIndex({
+    events,
+    pastEvents,
+    filters,
+    meta,
+}: EventsIndexProps) {
+    const [submissionOpen, setSubmissionOpen] = useState(false);
 
-interface EventsPageProps {
-    upcoming: UpcomingEvent[];
-    past: PastEvent[];
-}
+    const highlightEvent = events.data[0] ?? null;
+    const remainingEvents = highlightEvent
+        ? events.data.slice(1)
+        : events.data;
 
-export default function EventsIndex({ upcoming, past }: EventsPageProps) {
-    const [headline, ...rest] = upcoming;
-    const timelineEvents = [headline, ...rest].filter(
-        Boolean,
-    ) as UpcomingEvent[];
-    const getInitials = useInitials();
+    const emptyState = events.meta.total === 0;
 
-    const activeFilters = {
-        location: 'Global',
-        format: 'Ritual',
-        mode: 'Hybrid',
+    const paginationMeta = {
+        currentPage: events.meta.current_page,
+        perPage: events.meta.per_page,
+        total: events.meta.total,
+        hasMorePages: events.meta.current_page < events.meta.last_page,
     };
+
+    const handleRsvpRefresh = () =>
+        router.reload({
+            only: ['events', 'pastEvents'],
+            preserveScroll: true,
+        });
+
+    const handlePageChange = (page: number) => {
+        const query: Record<string, string> = {};
+
+        if (filters.search) query.search = filters.search;
+        if (filters.status) query.status = filters.status;
+        if (filters.modality) query.modality = filters.modality;
+        if (filters.type) query.type = filters.type;
+        if (filters.tag) query.tag = String(filters.tag);
+        if (filters.city) query.city = filters.city;
+
+        query.page = page.toString();
+
+        router.visit(eventsRoutes.index({ query }).url, {
+            preserveScroll: true,
+            only: ['events'],
+        });
+    };
+
+    const hasPastHighlights = pastEvents.length > 0;
 
     return (
         <AppLayout
@@ -64,275 +83,167 @@ export default function EventsIndex({ upcoming, past }: EventsPageProps) {
         >
             <Head title="Events · Real Kink Men" />
 
-            <div className="space-y-8">
-                <section className="space-y-6 text-white">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                        <div>
-                            <h1 className="text-3xl font-semibold tracking-tight">
-                                Rituals & experiences on deck
-                            </h1>
+            <div className="space-y-10 text-white">
+                <header className="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-3xl font-semibold tracking-tight">
+                            Official events & immersive rituals
+                        </h1>
+                        <p className="text-sm text-white/65">
+                            Curated happenings that honor consent, craft, and
+                            community care. Submit yours and we’ll help bring it
+                            to life.
+                        </p>
+                    </div>
+                    <div className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.4em] text-white/70">
+                        {events.meta.total} scheduled
+                    </div>
+                </header>
+
+                <EventFilterBar
+                    filters={filters}
+                    meta={{
+                        modalities: meta.modalities ?? [],
+                        types: meta.types ?? [],
+                        tags: meta.tags ?? [],
+                    }}
+                    statuses={meta.statuses ?? undefined}
+                    onOpenSubmission={() => setSubmissionOpen(true)}
+                />
+
+                {emptyState ? (
+                    <Card className="border-white/10 bg-white/5 text-white shadow-[0_40px_100px_-70px_rgba(59,130,246,0.45)]">
+                        <CardContent className="flex flex-col gap-4 p-8 text-center">
+                            <div className="mx-auto flex size-14 items-center justify-center rounded-full border border-white/15 bg-white/10 text-lg font-semibold text-white/70">
+                                RK
+                            </div>
+                            <h2 className="text-xl font-semibold">
+                                Nothing is scheduled… yet.
+                            </h2>
                             <p className="text-sm text-white/65">
-                                Coordinate hybrid productions, private dungeon nights, and travel pop-ups without losing the vibe.
+                                Coordinate a scene, host a workshop, or rally a
+                                pop-up. Submit the concept and we’ll help craft
+                                the official experience.
                             </p>
-                        </div>
-                        <Badge className="rounded-full border-white/15 bg-white/10 text-xs text-white/70">
-                            {upcoming.length} scheduled
-                        </Badge>
-                    </div>
-
-                    {headline && (
-                        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-amber-500/25 via-rose-500/10 to-violet-600/25 p-6 shadow-[0_45px_95px_-55px_rgba(249,115,22,0.6)] sm:p-8">
-                            <div
-                                className="absolute inset-0 -z-10 bg-cover bg-center opacity-60"
-                                style={{
-                                    backgroundImage: `url(${headline.image})`,
-                                }}
+                            <div>
+                                <Badge className="rounded-full border-white/20 bg-white/15 px-3 py-1 text-xs text-white/75">
+                                    Official events are curated by admins and
+                                    run hosts
+                                </Badge>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ) : (
+                    <section className="space-y-8">
+                        {highlightEvent && (
+                            <EventCard
+                                event={highlightEvent}
+                                highlight
+                                onRsvpUpdated={handleRsvpRefresh}
                             />
-                            <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(249,115,22,0.35),_transparent_65%)]" />
-                            <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-                                <div className="space-y-3">
-                                    <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1 text-xs uppercase tracking-[0.4em] text-white/70">
-                                        Spotlight
-                                    </div>
-                                    <h2 className="text-2xl font-semibold sm:text-3xl">
-                                        {headline.title}
-                                    </h2>
-                                    <div className="space-y-1 text-sm text-white/75">
-                                        <p>{headline.when}</p>
-                                        <p>{headline.venue}</p>
-                                        <p>{headline.location}</p>
-                                    </div>
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        <Badge className="rounded-full border-white/15 bg-white/10 text-xs text-white/70">
-                                            {headline.format}
-                                        </Badge>
-                                        <Badge className="rounded-full border-white/15 bg-white/10 text-xs text-white/70">
-                                            {headline.mode}
-                                        </Badge>
-                                    </div>
-                                    <p className="text-xs font-semibold uppercase tracking-[0.35em] text-amber-200">
-                                        {headline.spots}
-                                    </p>
-                                    <div className="flex items-center gap-3">
-                                        <Avatar className="size-10 border border-white/20">
-                                            <AvatarImage
-                                                src={headline.host.avatar}
-                                                alt={headline.host.name}
-                                            />
-                                            <AvatarFallback className="bg-white/20 text-white">
-                                                {getInitials(headline.host.name)}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                        <div className="text-sm text-white/75">
-                                            <p className="font-semibold text-white">
-                                                Hosted by {headline.host.name}
-                                            </p>
-                                            <p>Scene concierge on standby</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="sm:w-80">
-                                    <div className="rounded-2xl border border-white/15 bg-black/30 p-5">
-                                        <p className="text-xs uppercase tracking-[0.4em] text-white/60">
-                                            Production checklist
-                                        </p>
-                                        <ul className="mt-3 space-y-2 text-sm text-white/75">
-                                            <li>• Confirm rig team call at 6:30 PM</li>
-                                            <li>• DM Edge Guardians with RSVP code</li>
-                                            <li>• Drop aftercare script to backstage chat</li>
-                                        </ul>
-                                        <Button className="mt-4 w-full rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 text-sm font-semibold text-white shadow-[0_25px_65px_-35px_rgba(249,115,22,0.55)] hover:scale-[1.02]">
-                                            Build run of show
-                                        </Button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                        )}
 
-                    <div className="rounded-3xl border border-white/10 bg-white/5 px-5 py-4 text-white">
-                        <div className="flex flex-wrap items-center justify-between gap-4">
-                            <div className="flex flex-wrap gap-6">
-                                <div>
-                                    <p className="text-xs uppercase tracking-[0.35em] text-white/50">
-                                        Location
-                                    </p>
-                                    <div className="mt-2 flex flex-wrap gap-2">
-                                        {['Global', 'Los Angeles, CA', 'Berlin, Germany', 'Digital'].map(
-                                            (location) => {
-                                                const active =
-                                                    location === activeFilters.location;
-                                                return (
-                                                    <Button
-                                                        key={location}
-                                                        variant="outline"
-                                                        className={`rounded-full border-white/20 bg-white/10 text-xs font-medium text-white/70 hover:border-white/40 hover:bg-white/20 ${
-                                                            active
-                                                                ? 'border-white/60 bg-white/25 text-white'
-                                                                : ''
-                                                        }`}
-                                                    >
-                                                        {location}
-                                                    </Button>
-                                                );
-                                            },
-                                        )}
-                                    </div>
-                                </div>
-                                <div>
-                                    <p className="text-xs uppercase tracking-[0.35em] text-white/50">
-                                        Format
-                                    </p>
-                                    <div className="mt-2 flex flex-wrap gap-2">
-                                        {['Ritual', 'Workshop', 'Social', 'Mentorship'].map(
-                                            (format) => {
-                                                const active =
-                                                    format === activeFilters.format;
-                                                return (
-                                                    <Button
-                                                        key={format}
-                                                        variant="outline"
-                                                        className={`rounded-full border-white/20 bg-white/10 text-xs font-medium text-white/70 hover:border-white/40 hover:bg-white/20 ${
-                                                            active
-                                                                ? 'border-white/60 bg-white/25 text-white'
-                                                                : ''
-                                                        }`}
-                                                    >
-                                                        {format}
-                                                    </Button>
-                                                );
-                                            },
-                                        )}
-                                    </div>
-                                </div>
-                                <div>
-                                    <p className="text-xs uppercase tracking-[0.35em] text-white/50">
-                                        Mode
-                                    </p>
-                                    <div className="mt-2 flex flex-wrap gap-2">
-                                        {['Hybrid', 'IRL', 'Digital'].map(
-                                            (mode) => {
-                                                const active =
-                                                    mode === activeFilters.mode;
-                                                return (
-                                                    <Button
-                                                        key={mode}
-                                                        variant="outline"
-                                                        className={`rounded-full border-white/20 bg-white/10 text-xs font-medium text-white/70 hover:border-white/40 hover:bg-white/20 ${
-                                                            active
-                                                                ? 'border-white/60 bg-white/25 text-white'
-                                                                : ''
-                                                        }`}
-                                                    >
-                                                        {mode}
-                                                    </Button>
-                                                );
-                                            },
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                            <Button className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-6 text-sm font-semibold text-white shadow-[0_25px_65px_-35px_rgba(249,115,22,0.55)] hover:scale-[1.02]">
-                                Create event
-                            </Button>
-                        </div>
-                    </div>
-
-                    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-                        <Card className="border-white/10 bg-white/5 text-white">
-                            <CardHeader>
-                                <CardTitle className="text-lg font-semibold">
-                                    Upcoming timeline
-                                </CardTitle>
-                                <CardDescription className="text-white/60">
-                                    Scene-ready schedule built from your circles and co-hosts.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-5">
-                                {timelineEvents.map((event) => (
-                                    <div
-                                        key={event.title}
-                                        className="grid gap-2 rounded-2xl border border-white/10 bg-black/35 px-5 py-4 sm:grid-cols-[180px_minmax(0,1fr)]"
-                                    >
-                                        <div className="flex flex-col gap-1 text-xs uppercase tracking-[0.3em] text-white/50">
-                                            <span>{event.when}</span>
-                                            <span>{event.spots}</span>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <p className="text-sm font-semibold text-white">
-                                                {event.title}
-                                            </p>
-                                            <p className="text-xs text-white/70">
-                                                {event.venue}
-                                            </p>
-                                            <div className="flex flex-wrap gap-2">
-                                                <Badge className="rounded-full border-white/15 bg-white/10 text-[0.65rem] text-white/70">
-                                                    {event.mode}
-                                                </Badge>
-                                                <Badge className="rounded-full border-white/15 bg-white/10 text-[0.65rem] text-white/70">
-                                                    {event.format}
-                                                </Badge>
-                                            </div>
-                                        </div>
-                                    </div>
+                        {remainingEvents.length > 0 && (
+                            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                                {remainingEvents.map((event) => (
+                                    <EventCard
+                                        key={event.id}
+                                        event={event}
+                                        onRsvpUpdated={handleRsvpRefresh}
+                                    />
                                 ))}
-                            </CardContent>
-                        </Card>
+                            </div>
+                        )}
 
-                        <Card className="border-white/10 bg-white/5 text-white">
-                            <CardHeader>
-                                <CardTitle className="text-lg font-semibold">
-                                    Filters
-                                </CardTitle>
-                                <CardDescription className="text-white/60">
-                                    Slice events by format, monetization, or travel radius.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="flex flex-wrap gap-2">
-                                {['Hybrid', 'IRL', 'Circle-only', 'Public RSVP', 'Recorded', 'Consent Lab'].map(
-                                    (label) => (
-                                        <Badge
-                                            key={label}
-                                            variant="secondary"
-                                            className="rounded-full border-white/15 bg-white/10 text-xs text-white/70"
-                                        >
-                                            {label}
-                                        </Badge>
-                                    ),
-                                )}
-                            </CardContent>
-                        </Card>
-                    </div>
-                </section>
+                        <Pagination
+                            meta={paginationMeta}
+                            onPageChange={handlePageChange}
+                            className="border-white/10 bg-white/5"
+                        />
+                    </section>
+                )}
 
-                <section className="space-y-4">
-                    <h2 className="text-lg font-semibold text-white">
-                        Past highlights
-                    </h2>
-                    <div className="grid gap-4 md:grid-cols-2">
-                        {past.map((event) => (
-                            <Card
-                                key={event.title}
-                                className="border-white/10 bg-white/5 text-white"
-                            >
-                                <div
-                                    className="h-40 w-full bg-cover bg-center"
-                                    style={{ backgroundImage: `url(${event.image})` }}
-                                />
-                                <CardHeader>
-                                    <CardTitle className="text-base font-semibold">
-                                        {event.title}
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-sm text-white/70">{event.summary}</p>
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
-                </section>
+                {hasPastHighlights && (
+                    <section className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-lg font-semibold">
+                                Past highlights
+                            </h2>
+                            <span className="text-xs uppercase tracking-[0.35em] text-white/60">
+                                {pastEvents.length} archived
+                            </span>
+                        </div>
+
+                        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                            {pastEvents.map((event) => (
+                                <PastEventCard key={event.id} event={event} />
+                            ))}
+                        </div>
+                    </section>
+                )}
             </div>
+
+            <EventSubmissionDialog
+                open={submissionOpen}
+                onOpenChange={setSubmissionOpen}
+                tags={meta.tags ?? []}
+                modalities={meta.modalities ?? []}
+                types={meta.types ?? []}
+            />
         </AppLayout>
     );
 }
 
+type PastEventCardProps = {
+    event: Event;
+};
+
+function PastEventCard({ event }: PastEventCardProps) {
+    const cover = event.cover_path;
+
+    return (
+        <Card className="overflow-hidden border-white/10 bg-white/5 text-white transition hover:border-white/20 hover:shadow-[0_35px_95px_-65px_rgba(147,197,253,0.4)]">
+            <div className="relative h-36 overflow-hidden">
+                <div
+                    className={cn(
+                        'absolute inset-0 bg-cover bg-center',
+                        !cover &&
+                            'bg-[radial-gradient(circle_at_top,_rgba(203,213,225,0.3),_transparent_70%)]',
+                    )}
+                    style={
+                        cover ? { backgroundImage: `url(${cover})` } : undefined
+                    }
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
+                <div className="absolute bottom-3 left-3 space-y-1 text-xs uppercase tracking-[0.3em] text-white/65">
+                    <span>{formatEventDateRange(event)}</span>
+                    <span>{formatEventLocation(event.location)}</span>
+                </div>
+            </div>
+
+            <CardContent className="space-y-3 p-4 text-sm text-white/75">
+                <div className="flex items-center justify-between">
+                    <h3 className="text-base font-semibold text-white">
+                        {event.title}
+                    </h3>
+                    <EventStatusBadge status={event.status} />
+                </div>
+
+                <p className="text-white/65">
+                    {event.description.slice(0, 160)}
+                    {event.description.length > 160 && '…'}
+                </p>
+
+                <div className="flex flex-wrap gap-2 text-[0.7rem] uppercase tracking-[0.3em] text-white/60">
+                    <Badge className="rounded-full border-white/15 bg-white/10 text-[0.65rem]">
+                        Archive
+                    </Badge>
+                    <Badge className="rounded-full border-white/15 bg-white/10 text-[0.65rem]">
+                        {event.tags[0]?.name ?? 'Community'}
+                    </Badge>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+ 

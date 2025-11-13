@@ -55,13 +55,12 @@ export default function MediaSetup({ profile }: MediaSetupProps) {
 
     const preferredLocation = useMemo(() => {
         const parts = [
-            profile.location_city,
             profile.location_region,
             profile.location_country,
         ].filter(Boolean);
 
         return parts.join(', ');
-    }, [profile.location_city, profile.location_region, profile.location_country]);
+    }, [profile.location_region, profile.location_country]);
 
     const updatePreviewFromFile = (file: File, type: 'cover' | 'avatar') => {
         const objectUrl = URL.createObjectURL(file);
@@ -287,10 +286,10 @@ export default function MediaSetup({ profile }: MediaSetupProps) {
                                         </Button>
                                     </div>
                                     <div className="space-y-1 pt-4 text-white">
-                                        <h1 className="text-3xl font-semibold leading-tight sm:text-4xl">
+                                        <h1 className="text-2xl font-semibold leading-tight">
                                             {profile.display_name ?? 'Your display name'}
                                         </h1>
-                                        <p className="text-sm uppercase tracking-[0.4em] text-white/50">
+                                        <p className="text-xs uppercase tracking-[0.2em] text-white/50">
                                             @{profile.username ?? 'username'}
                                         </p>
                                     </div>
@@ -348,27 +347,45 @@ export default function MediaSetup({ profile }: MediaSetupProps) {
                         )}
                     </div>
 
-                    <div className="rounded-2xl border border-white/15 bg-white/5 px-5 py-5 text-xs text-white/65 backdrop-blur">
-                        <p className="text-sm font-semibold text-white">Cover & avatar checklist</p>
-                        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                            <div>
-                                <p className="text-xs uppercase tracking-[0.35em] text-white/45">Cover image</p>
-                                <ul className="mt-2 space-y-1.5">
-                                    <li>• 1600×900 works best for large screens.</li>
-                                    <li>• Keep the focal point centered — we crop for mobile automatically.</li>
-                                    <li>• Avoid heavy compression so gradients and shadows stay crisp.</li>
+                    <div className="rounded-2xl border border-white/20 bg-gradient-to-br from-white/[0.08] to-white/[0.03] px-5 py-5 backdrop-blur sm:px-6 sm:py-6">
+                        <p className="text-sm font-semibold text-white sm:text-base">Cover & avatar checklist</p>
+                        <div className="mt-4 grid gap-5 sm:grid-cols-2 sm:gap-6">
+                            <div className="space-y-3">
+                                <p className="text-xs uppercase tracking-[0.35em] text-white/70 font-medium">Cover image</p>
+                                <ul className="space-y-2 text-sm leading-relaxed text-white/75">
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-amber-400 mt-0.5 flex-shrink-0">•</span>
+                                        <span>1600×900 works best for large screens.</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-amber-400 mt-0.5 flex-shrink-0">•</span>
+                                        <span>Keep the focal point centered — we crop for mobile automatically.</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-amber-400 mt-0.5 flex-shrink-0">•</span>
+                                        <span>Avoid heavy compression so gradients and shadows stay crisp.</span>
+                                    </li>
                                 </ul>
                             </div>
-                            <div>
-                                <p className="text-xs uppercase tracking-[0.35em] text-white/45">Profile photo</p>
-                                <ul className="mt-2 space-y-1.5">
-                                    <li>• Use a square crop; we’ll round the edges with a frame.</li>
-                                    <li>• High-contrast lighting keeps you recognisable in small thumbnails.</li>
-                                    <li>• You can swap this anytime from your dashboard.</li>
+                            <div className="space-y-3">
+                                <p className="text-xs uppercase tracking-[0.35em] text-white/70 font-medium">Profile photo</p>
+                                <ul className="space-y-2 text-sm leading-relaxed text-white/75">
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-amber-400 mt-0.5 flex-shrink-0">•</span>
+                                        <span>Use a square crop; we'll round the edges with a frame.</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-amber-400 mt-0.5 flex-shrink-0">•</span>
+                                        <span>High-contrast lighting keeps you recognisable in small thumbnails.</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-amber-400 mt-0.5 flex-shrink-0">•</span>
+                                        <span>You can swap this anytime from your dashboard.</span>
+                                    </li>
                                 </ul>
                             </div>
                         </div>
-                        <p className="mt-4 text-xs text-white/55">
+                        <p className="mt-5 text-sm leading-relaxed text-white/70 sm:text-base">
                             We store originals privately and optimise copies for feed, preview cards, and live sessions. You always control who sees what.
                         </p>
                     </div>

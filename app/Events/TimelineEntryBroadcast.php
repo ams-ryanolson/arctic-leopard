@@ -19,8 +19,7 @@ class TimelineEntryBroadcast implements ShouldBroadcast
         public int $userId,
         public Post $post,
         public string $visibilitySource,
-    ) {
-    }
+    ) {}
 
     public function broadcastOn(): Channel
     {
@@ -60,6 +59,3 @@ class TimelineEntryBroadcast implements ShouldBroadcast
         ];
     }
 }
-
-
-

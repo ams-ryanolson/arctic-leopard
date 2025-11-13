@@ -8,19 +8,19 @@ use App\Http\Controllers\Feed\UserFeedController;
 use App\Http\Controllers\Messaging\ConversationController;
 use App\Http\Controllers\Messaging\ConversationMessageController;
 use App\Http\Controllers\Messaging\ConversationParticipantController;
-use App\Http\Controllers\Messaging\ConversationReadController;
 use App\Http\Controllers\Messaging\ConversationPresenceController;
+use App\Http\Controllers\Messaging\ConversationReadController;
 use App\Http\Controllers\Messaging\MessageController as MessagingMessageController;
-use App\Http\Controllers\Messaging\TipRequestController;
 use App\Http\Controllers\Messaging\MessageReactionController;
+use App\Http\Controllers\Messaging\TipRequestController;
 use App\Http\Controllers\Posts\MediaController;
 use App\Http\Controllers\Posts\PollVoteController;
 use App\Http\Controllers\Posts\PostController;
+use App\Http\Controllers\Posts\PostLikeController;
 use App\Http\Controllers\Posts\PostViewController;
 use App\Http\Controllers\Posts\PurchaseController;
-use App\Http\Controllers\Posts\PostLikeController;
-use App\Http\Controllers\Subscriptions\SubscriptionPlanController;
 use App\Http\Controllers\Subscriptions\SubscriptionController;
+use App\Http\Controllers\Subscriptions\SubscriptionPlanController;
 use App\Http\Controllers\Webhooks\PaymentWebhookController;
 use App\Models\Conversation;
 use App\Models\Message;
@@ -88,4 +88,11 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::post('messages/{message}/reactions', [MessageReactionController::class, 'store'])->name('messages.reactions.store');
     Route::post('messages/{message}/tip-request/accept', [TipRequestController::class, 'accept'])->name('messages.tip-request.accept');
     Route::post('messages/{message}/tip-request/decline', [TipRequestController::class, 'decline'])->name('messages.tip-request.decline');
+
+    Route::prefix('ads')->as('ads.')->group(function () {
+        Route::get('{placement}', [\App\Http\Controllers\Ads\AdController::class, 'serve'])->name('serve');
+        Route::post('{ad}/impressions', [\App\Http\Controllers\Ads\AdController::class, 'recordImpression'])->name('impressions.store');
+        Route::post('{ad}/clicks', [\App\Http\Controllers\Ads\AdController::class, 'recordClick'])->name('clicks.store');
+        Route::get('{ad}/track', [\App\Http\Controllers\Ads\AdController::class, 'trackClick'])->name('track');
+    });
 });

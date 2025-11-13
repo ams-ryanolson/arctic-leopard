@@ -20,9 +20,3 @@ class LoginResponse implements LoginResponseContract
         return redirect()->intended(route('dashboard', absolute: false));
     }
 }
-
-
-
-
-
-

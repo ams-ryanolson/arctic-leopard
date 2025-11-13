@@ -2,7 +2,7 @@ import { index as followingFeedIndex } from '@/actions/App/Http/Controllers/Feed
 import { show as circleFeedShow } from '@/actions/App/Http/Controllers/Feed/CircleFeedController';
 import { index as userFeedIndex } from '@/actions/App/Http/Controllers/Feed/UserFeedController';
 import { index as bookmarkIndex } from '@/actions/App/Http/Controllers/Bookmarks/BookmarkController';
-import { store as likeStore, destroy as unlikeRoute } from '@/actions/App/Http/Controllers/Posts/PostLikeController';
+import { store as likeStore, destroy as unlikeRoute } from '@/routes/posts/like';
 import {
     store as bookmarkStore,
     destroy as bookmarkDestroyRoute,

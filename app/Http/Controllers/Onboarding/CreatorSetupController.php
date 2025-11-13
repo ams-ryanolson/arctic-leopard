@@ -16,8 +16,3 @@ class CreatorSetupController
         return Inertia::render('Onboarding/CreatorSetup');
     }
 }
-
-
-
-
-

@@ -29,8 +29,3 @@ class InterestFactory extends Factory
         ];
     }
 }
-
-
-
-
-

@@ -14,11 +14,5 @@ class UserUnfollowed
     public function __construct(
         public User $follower,
         public User $unfollowed,
-    ) {
-    }
+    ) {}
 }
-
-
-
-
-

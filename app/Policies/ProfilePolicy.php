@@ -62,7 +62,100 @@ class ProfilePolicy
     {
         return $user->profile_completed_at !== null;
     }
+
+    /**
+     * Determine if the user can view any users (admin list).
+     */
+    public function viewAny(User $user): bool
+    {
+        return $user->hasRole(['Admin', 'Super Admin']);
+    }
+
+    /**
+     * Determine if the user can update user roles (admin operation).
+     */
+    public function updateRoles(User $user, User $model): bool
+    {
+        // Super Admin can update anyone's roles
+        if ($user->hasRole('Super Admin')) {
+            return true;
+        }
+
+        // Admin can update roles but not their own or other admins/super admins
+        if ($user->hasRole('Admin')) {
+            // Admins cannot modify their own roles
+            if ($user->is($model)) {
+                return false;
+            }
+
+            // Admins cannot modify other admins or super admins
+            if ($model->hasRole(['Admin', 'Super Admin'])) {
+                return false;
+            }
+
+            return $user->can('manage roles');
+        }
+
+        return false;
+    }
+
+    /**
+     * Determine if the user can ban other users (admin operation).
+     */
+    public function ban(User $user, User $model): bool
+    {
+        // Super Admin can ban anyone except themselves
+        if ($user->hasRole('Super Admin')) {
+            return ! $user->is($model);
+        }
+
+        // Admin can ban users but not themselves, other admins, or super admins
+        if ($user->hasRole('Admin')) {
+            if ($user->is($model)) {
+                return false;
+            }
+
+            if ($model->hasRole(['Admin', 'Super Admin'])) {
+                return false;
+            }
+
+            return $user->can('ban users');
+        }
+
+        return false;
+    }
+
+    /**
+     * Determine if the user can impersonate other users (admin operation).
+     */
+    public function impersonate(User $user, User $model): bool
+    {
+        // Super Admin can impersonate anyone except themselves
+        if ($user->hasRole('Super Admin')) {
+            return ! $user->is($model);
+        }
+
+        // Admin can impersonate users but not themselves, other admins, or super admins
+        if ($user->hasRole('Admin')) {
+            if ($user->is($model)) {
+                return false;
+            }
+
+            if ($model->hasRole(['Admin', 'Super Admin'])) {
+                return false;
+            }
+
+            return $user->can('impersonate users');
+        }
+
+        return false;
+    }
+
+    /**
+     * Determine if the user can access the admin dashboard.
+     */
+    public function accessAdmin(User $user): bool
+    {
+        return $user->hasRole(['Admin', 'Super Admin']);
+    }
 }
-
-
-

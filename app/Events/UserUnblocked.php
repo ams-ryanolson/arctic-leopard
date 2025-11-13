@@ -15,8 +15,3 @@ class UserUnblocked
         public UserBlock $block,
     ) {}
 }
-
-
-
-
-

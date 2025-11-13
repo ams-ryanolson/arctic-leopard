@@ -14,11 +14,5 @@ class UserFollowRequested
     public function __construct(
         public User $follower,
         public User $followed,
-    ) {
-    }
+    ) {}
 }
-
-
-
-
-

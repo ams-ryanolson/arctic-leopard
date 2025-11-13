@@ -2,8 +2,8 @@
 
 namespace App\Providers;
 
-use App\Events\Payments\PaymentCaptured;
 use App\Events\Payments\PaymentCancelled;
+use App\Events\Payments\PaymentCaptured;
 use App\Events\Payments\PaymentFailed;
 use App\Events\Payments\PaymentInitiated;
 use App\Events\Payments\PaymentIntentCancelled;
@@ -22,37 +22,38 @@ use App\Events\PostDeleted;
 use App\Events\PostLiked;
 use App\Events\PostPublished;
 use App\Events\UserBlocked;
-use App\Events\UserUnblocked;
 use App\Events\UserFollowAccepted;
 use App\Events\UserFollowRequested;
+use App\Events\UserUnblocked;
+use App\Listeners\Ads\ActivateAdOnPaymentCaptured;
+use App\Listeners\DispatchUserFollowedEvent;
+use App\Listeners\FlushTimelinesOnBlock;
+use App\Listeners\LogUserBlockLifecycle;
+use App\Listeners\Payments\CompletePostPurchaseOnPaymentCaptured;
+use App\Listeners\Payments\CompleteTipOnPaymentCaptured;
+use App\Listeners\Payments\FailPostPurchaseOnPaymentFailed;
+use App\Listeners\Payments\FailTipOnPaymentFailed;
+use App\Listeners\Payments\FailWishlistPurchaseOnPaymentFailed;
+use App\Listeners\Payments\FulfillWishlistPurchaseOnPaymentCaptured;
 use App\Listeners\Payments\LogPaymentIntentLifecycle;
 use App\Listeners\Payments\LogPaymentLifecycle;
 use App\Listeners\Payments\LogSubscriptionLifecycle;
+use App\Listeners\Payments\RefundPostPurchaseOnPaymentRefunded;
+use App\Listeners\Payments\RefundTipOnPaymentRefunded;
+use App\Listeners\Payments\RefundWishlistPurchaseOnPaymentRefunded;
 use App\Listeners\Payments\TouchPaymentMethodOnUse;
 use App\Listeners\Payments\UpdateLedgerOnPaymentCaptured;
 use App\Listeners\Payments\UpdateLedgerOnPaymentRefunded;
-use App\Listeners\Payments\CompleteTipOnPaymentCaptured;
-use App\Listeners\Payments\CompletePostPurchaseOnPaymentCaptured;
-use App\Listeners\Payments\FailTipOnPaymentFailed;
-use App\Listeners\Payments\FailPostPurchaseOnPaymentFailed;
-use App\Listeners\Payments\RefundTipOnPaymentRefunded;
-use App\Listeners\Payments\RefundPostPurchaseOnPaymentRefunded;
-use App\Listeners\Payments\FulfillWishlistPurchaseOnPaymentCaptured;
-use App\Listeners\Payments\FailWishlistPurchaseOnPaymentFailed;
-use App\Listeners\Payments\RefundWishlistPurchaseOnPaymentRefunded;
-use App\Listeners\SendPostBookmarkedNotification;
-use App\Listeners\SendPostLikedNotification;
-use App\Listeners\DispatchUserFollowedEvent;
-use App\Listeners\SendFollowRequestApprovedNotification;
-use App\Listeners\SendUserFollowedNotification;
-use App\Listeners\SendUserFollowRequestedNotification;
-use App\Listeners\RefreshFollowerTimeline;
-use App\Listeners\FlushTimelinesOnBlock;
 use App\Listeners\PurgeNotificationsForBlockedUsers;
-use App\Listeners\LogUserBlockLifecycle;
 use App\Listeners\QueueTimelineFanOut;
+use App\Listeners\RefreshFollowerTimeline;
 use App\Listeners\RefreshTimelineForAudienceChange;
 use App\Listeners\RemovePostFromTimelines;
+use App\Listeners\SendFollowRequestApprovedNotification;
+use App\Listeners\SendPostBookmarkedNotification;
+use App\Listeners\SendPostLikedNotification;
+use App\Listeners\SendUserFollowedNotification;
+use App\Listeners\SendUserFollowRequestedNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Event;
 use Overtrue\LaravelFollow\Events\Followed as FollowedEvent;
@@ -121,6 +122,7 @@ class EventServiceProvider extends ServiceProvider
             CompleteTipOnPaymentCaptured::class,
             FulfillWishlistPurchaseOnPaymentCaptured::class,
             CompletePostPurchaseOnPaymentCaptured::class,
+            ActivateAdOnPaymentCaptured::class,
         ],
         PaymentFailed::class => [
             LogPaymentLifecycle::class,

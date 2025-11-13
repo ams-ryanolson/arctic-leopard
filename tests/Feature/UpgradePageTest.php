@@ -20,7 +20,3 @@ test('authenticated users can view upgrade page', function () {
             ->where('plans.2.id', 'unlimited')
         );
 });
-
-
-
-

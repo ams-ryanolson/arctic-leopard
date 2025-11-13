@@ -13,7 +13,9 @@ export default defineConfig({
         }),
         react({
             babel: {
-                plugins: ['babel-plugin-react-compiler'],
+                plugins: process.env.NODE_ENV === 'production' 
+                    ? ['babel-plugin-react-compiler'] 
+                    : [],
             },
         }),
         tailwindcss(),
@@ -23,5 +25,49 @@ export default defineConfig({
     ],
     esbuild: {
         jsx: 'automatic',
+        // Drop console and debugger in production only
+        drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
+    },
+    // Add these optimizations:
+    optimizeDeps: {
+        include: [
+            'react',
+            'react-dom',
+            '@inertiajs/react',
+            'lucide-react',
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-select',
+            'date-fns',
+            'clsx',
+            'tailwind-merge',
+        ],
+        exclude: ['@tailwindcss/vite'],
+        // Force re-optimization only when needed
+        force: false,
+    },
+    server: {
+        watch: {
+            // Reduce file watching overhead
+            ignored: [
+                '**/node_modules/**',
+                '**/.git/**',
+                '**/storage/**',
+                '**/vendor/**',
+                '**/public/build/**',
+            ],
+        },
+        // Increase HMR timeout for large projects
+        hmr: {
+            overlay: true,
+        },
+    },
+    build: {
+        // Only apply minification in production
+        minify: false,
+        // Disable sourcemaps in dev for faster builds
+        sourcemap: false,
+        // Increase chunk size warning limit
+        chunkSizeWarningLimit: 1000,
     },
 });

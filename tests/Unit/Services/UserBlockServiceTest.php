@@ -74,8 +74,3 @@ it('unblocks a user by removing the persisted record', function (): void {
     expect(UserBlock::query()->where('blocker_id', $blocker->getKey())->where('blocked_id', $blocked->getKey())->exists())
         ->toBeFalse();
 });
-
-
-
-
-

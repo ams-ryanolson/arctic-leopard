@@ -66,13 +66,31 @@ export type FeedPost = {
     };
 };
 
-export type TimelineEntry = {
+export type AdCreative = {
     id: number;
-    visibility_source: string;
-    context: Record<string, unknown>;
-    visible_at: string | null;
-    created_at: string | null;
+    ad_id: number;
+    placement: string;
+    size: string;
+    asset_type: string;
+    asset_path: string | null;
+    asset_url: string | null;
+    headline: string | null;
+    body_text: string | null;
+    cta_text: string | null;
+    cta_url: string;
+    display_order: number;
+    is_active: boolean;
+};
+
+export type TimelineEntry = {
+    id?: number;
+    type?: 'ad';
+    visibility_source?: string;
+    context?: Record<string, unknown>;
+    visible_at?: string | null;
+    created_at?: string | null;
     post: FeedPost | null;
+    ad?: AdCreative;
 };
 
 export type PaginationLinks = {

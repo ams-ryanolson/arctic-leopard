@@ -22,7 +22,3 @@ class ResolveToastActionRequest extends FormRequest
         ];
     }
 }
-
-
-
-

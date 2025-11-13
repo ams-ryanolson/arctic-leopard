@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/sidebar';
 import { fetchUnreadNotificationCount } from '@/lib/notifications-client';
 import { dashboard, radar } from '@/routes';
+import admin from '@/routes/admin';
 import { index as bookmarksIndex } from '@/routes/bookmarks';
 import { index as notificationsIndex } from '@/routes/notifications';
 import { type NavItem, type SharedData } from '@/types';
@@ -29,15 +30,22 @@ import {
     MessageCircle,
     Radar,
     ShieldAlert,
+    Shield,
+    LayoutDashboard,
     Sparkles,
     Users,
     Video,
+    Megaphone,
 } from 'lucide-react';
 
 export function AppSidebar() {
     const {
-        props: { notifications, messaging },
+        props: { notifications, messaging, auth },
     } = usePage<SharedData>();
+
+    const user = auth?.user;
+    const userRoles = user?.roles?.map((role) => role.name) ?? [];
+    const isAdmin = userRoles.includes('Admin') || userRoles.includes('Super Admin');
 
     const unreadNotifications =
         (typeof notifications === 'object' && notifications !== null && 'unread_count' in notifications
@@ -173,6 +181,11 @@ export function AppSidebar() {
                     href: '/signals/settings',
                     icon: Cog,
                 },
+                {
+                    title: 'Ads',
+                    href: '/signals/ads',
+                    icon: Megaphone,
+                },
             ],
         },
         {
@@ -202,6 +215,37 @@ export function AppSidebar() {
             href: dashboard({ query: { view: 'video-chat' } }),
             icon: Video,
         },
+        ...(isAdmin
+            ? [
+                  {
+                      title: 'Admin',
+                      href: admin.dashboard().url,
+                      icon: Shield,
+                      items: [
+                          {
+                              title: 'Dashboard',
+                              href: admin.dashboard().url,
+                              icon: LayoutDashboard,
+                          },
+                          {
+                              title: 'Users',
+                              href: admin.users.index().url,
+                              icon: Users,
+                          },
+                          {
+                              title: 'Events',
+                              href: admin.events.index().url,
+                              icon: CalendarRange,
+                          },
+                          {
+                              title: 'Ads',
+                              href: '/admin/ads',
+                              icon: Megaphone,
+                          },
+                      ],
+                  },
+              ]
+            : []),
     ];
 
     return (

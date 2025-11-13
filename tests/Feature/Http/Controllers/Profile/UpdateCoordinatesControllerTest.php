@@ -45,5 +45,3 @@ it('requires valid coordinate data', function (): void {
             'location_longitude',
         ]);
 });
-
-

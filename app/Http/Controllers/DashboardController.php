@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Ads\AdPlacement;
 use App\Enums\PostAudience;
 use App\Enums\PostType;
+use App\Http\Resources\Ads\AdCreativeResource;
+use App\Models\Ads\Ad;
 use App\Models\Comment;
 use App\Models\Hashtag;
 use App\Models\Post;
 use App\Models\PostPurchase;
+use App\Services\Ads\AdServingService;
 use App\Services\Cache\TimelineCacheService;
 use App\Services\Feed\FeedService;
 use App\Support\Feed\FeedFilters;
@@ -26,9 +30,8 @@ class DashboardController extends Controller
     public function __construct(
         private readonly TimelineCacheService $timelineCache,
         private readonly FeedService $feedService,
-    )
-    {
-    }
+        private readonly AdServingService $adServingService,
+    ) {}
 
     public function __invoke(Request $request): Response
     {
@@ -81,6 +84,7 @@ class DashboardController extends Controller
             'filters' => FeedFilters::defaults(),
             'pulse' => $user ? $this->buildScenePulse($user) : [],
             'trending' => $this->trendingTags(),
+            'sidebarAds' => Inertia::defer(fn () => $this->getSidebarAds($user, $request)),
             'viewer' => [
                 'id' => $user?->getKey(),
                 'name' => $user?->display_name ?? $user?->username,
@@ -182,5 +186,87 @@ class DashboardController extends Controller
                 'usage_count' => $hashtag->usage_count,
             ])
             ->all();
+    }
+
+    /**
+     * Get sidebar ads for dashboard from all sidebar placements in equal rotation.
+     * Returns 1-2 ads, positioned away from each other.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function getSidebarAds(?\App\Models\User $user, Request $request): array
+    {
+        $context = [
+            'session_id' => $request->session()->getId(),
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ];
+
+        // Get all eligible ads from all sidebar placements
+        $allPlacements = [
+            AdPlacement::DashboardSidebarSmall,
+            AdPlacement::DashboardSidebarMedium,
+            AdPlacement::DashboardSidebarLarge,
+        ];
+
+        $allEligibleCreatives = collect();
+
+        // Collect all eligible creatives from all placements
+        foreach ($allPlacements as $placement) {
+            $ads = Ad::query()
+                ->eligible()
+                ->forPlacement($placement)
+                ->forViewer($user)
+                ->with(['creatives' => function ($query) use ($placement): void {
+                    $query->where('placement', $placement->value)
+                        ->where('is_active', true)
+                        ->where('review_status', 'approved')
+                        ->orderBy('display_order');
+                }])
+                ->get();
+
+            foreach ($ads as $ad) {
+                if ($this->adServingService->isEligible($ad, $user, $context)) {
+                    $creative = $ad->creatives
+                        ->where('placement', $placement->value)
+                        ->where('is_active', true)
+                        ->where('review_status', 'approved')
+                        ->first();
+
+                    if ($creative !== null) {
+                        $allEligibleCreatives->push([
+                            'creative' => $creative,
+                            'placement' => $placement,
+                        ]);
+                    }
+                }
+            }
+        }
+
+        if ($allEligibleCreatives->isEmpty()) {
+            return [];
+        }
+
+        // Randomly select 1-2 ads from the combined pool (equal rotation across all sizes)
+        $count = min($allEligibleCreatives->count(), mt_rand(1, 2));
+        $selected = $allEligibleCreatives->shuffle()->take($count);
+
+        $result = [];
+        foreach ($selected as $item) {
+            $creative = $item['creative'];
+            $placement = $item['placement'];
+
+            // Record impression
+            $this->adServingService->recordImpression(
+                $creative,
+                $placement,
+                $user,
+                $context
+            );
+
+            $result[] = (new AdCreativeResource($creative))->toArray($request);
+        }
+
+        return $result;
     }
 }

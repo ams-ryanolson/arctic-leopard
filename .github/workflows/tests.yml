@@ -28,9 +28,10 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.4
+          php-version: 8.3
           tools: composer:v2
           coverage: xdebug
+          ini-values: memory_limit=512M
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -59,7 +60,7 @@ jobs:
         run: php artisan key:generate
 
       - name: Tests
-        run: ./vendor/bin/pest
+        run: php -d memory_limit=512M ./vendor/bin/pest
         env:
           REDIS_HOST: 127.0.0.1
           QUEUE_CONNECTION: sync

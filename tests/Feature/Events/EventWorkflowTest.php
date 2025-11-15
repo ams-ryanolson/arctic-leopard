@@ -57,10 +57,18 @@ it('renders the events index via inertia with upcoming and past events', functio
         'profile_completed_at' => Carbon::now(),
     ]);
 
-    Event::factory()->create([
+    $futureEvent = Event::factory()->create([
         'title' => 'Future Hybrid Ritual',
         'starts_at' => Carbon::now()->addDays(3),
         'ends_at' => Carbon::now()->addDays(3)->addHours(2),
+        'status' => EventStatus::Published->value,
+    ]);
+
+    // Create another upcoming event so one can be featured and one in the list
+    Event::factory()->create([
+        'title' => 'Another Future Event',
+        'starts_at' => Carbon::now()->addDays(5),
+        'ends_at' => Carbon::now()->addDays(5)->addHours(2),
         'status' => EventStatus::Published->value,
     ]);
 
@@ -76,9 +84,10 @@ it('renders the events index via inertia with upcoming and past events', functio
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Events/Index')
-            ->has('events.data', 1)
+            ->has('events.data', 1) // Should have 1 event (the other is featured)
             ->has('pastEvents', 1)
-            ->where('events.data.0.title', 'Future Hybrid Ritual'));
+            ->has('featuredEvent') // Should have a featured event
+        );
 });
 
 it('allows admins to create, update, and transition events', function (): void {

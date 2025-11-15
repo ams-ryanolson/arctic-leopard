@@ -37,8 +37,8 @@ use App\Http\Controllers\Signals\SignalsMonetizationController;
 use App\Http\Controllers\Signals\SignalsOverviewController;
 use App\Http\Controllers\Signals\SignalsPayoutsController;
 use App\Http\Controllers\Signals\SignalsPlaybooksController;
-use App\Http\Controllers\Signals\SignalsSetupController;
 use App\Http\Controllers\Signals\SignalsSettingsController;
+use App\Http\Controllers\Signals\SignalsSetupController;
 use App\Http\Controllers\Signals\SignalsStatsController;
 use App\Http\Controllers\Signals\SignalsSubscriptionsController;
 use App\Http\Controllers\Toasts\AcknowledgeToastController;
@@ -245,56 +245,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->name('ads.checkout');
         });
 
-        Route::get('upgrade', function () {
-            return Inertia::render('Subscriptions/Upgrade', [
-                'plans' => [
-                    [
-                        'id' => 'premium',
-                        'name' => 'Premium',
-                        'monthly' => 10,
-                        'yearly' => 100,
-                        'tagline' => 'Boost your feed with exclusive drops and scene recaps.',
-                        'description' => 'Perfect for members who want full-resolution galleries, story unlocks, and weekly studio updates.',
-                        'highlights' => [
-                            '3 premium content drops every week',
-                            'Priority access to live event replays',
-                            'Unlocks backstage polls & feedback loops',
-                            'Invite-only chat threads with creators',
-                        ],
-                    ],
-                    [
-                        'id' => 'elite',
-                        'name' => 'Elite',
-                        'monthly' => 20,
-                        'yearly' => 200,
-                        'tagline' => 'Edge deeper with live intensives, vault archives, and crew access.',
-                        'description' => 'Go beyond standard drops with advanced workshops, circle rooms, and hands-on mentorship touchpoints.',
-                        'highlights' => [
-                            'Unlimited archive + premium vault unlocks',
-                            'Monthly live intensives with Q&A',
-                            'Circle-only rooms & ritual planning boards',
-                            'Quarterly merch & kink kit drops',
-                        ],
-                        'badge' => 'Most popular',
-                    ],
-                    [
-                        'id' => 'unlimited',
-                        'name' => 'Unlimited',
-                        'monthly' => 30,
-                        'yearly' => 300,
-                        'tagline' => 'Total access, concierge scheduling, and IRL priority lanes.',
-                        'description' => 'Designed for producers, collectors, and power supporters who want concierge access, travel support, and direct collaboration.',
-                        'highlights' => [
-                            'Dedicated concierge with 24-hour response window',
-                            'Priority booking for private and travel sessions',
-                            'Custom content briefs & quarterly collaborations',
-                            'Annual invite to in-person mastermind',
-                        ],
-                        'badge' => 'Founders circle',
-                    ],
-                ],
-            ]);
-        })->name('upgrade');
+        Route::get('upgrade', [\App\Http\Controllers\Memberships\MembershipController::class, 'index'])
+            ->name('upgrade');
+        Route::get('memberships/checkout/{plan}', [\App\Http\Controllers\Memberships\MembershipController::class, 'checkout'])
+            ->name('memberships.checkout');
+
+        Route::prefix('memberships')->as('memberships.')->group(function () {
+            Route::post('purchase', [\App\Http\Controllers\Memberships\MembershipController::class, 'purchase'])
+                ->name('purchase');
+            Route::post('{membership}/upgrade', [\App\Http\Controllers\Memberships\MembershipController::class, 'upgrade'])
+                ->name('upgrade');
+            Route::post('{membership}/cancel', [\App\Http\Controllers\Memberships\MembershipController::class, 'cancel'])
+                ->name('cancel');
+            Route::post('apply-discount', [\App\Http\Controllers\Memberships\MembershipController::class, 'applyDiscount'])
+                ->name('apply-discount');
+        });
 
         Route::prefix('events')->as('events.')->group(function () {
             Route::get('/', [EventController::class, 'index'])->name('index');
@@ -330,6 +295,71 @@ Route::middleware(['auth', 'verified'])->group(function () {
                         ->name('index');
                     Route::patch('{key}', [\App\Http\Controllers\Admin\AdminSettingsController::class, 'update'])
                         ->name('update');
+                });
+
+                Route::prefix('roles')->as('roles.')->group(function () {
+                    Route::get('/', [\App\Http\Controllers\Admin\AdminRolesController::class, 'index'])
+                        ->name('index')
+                        ->can('manage roles');
+                    Route::patch('{role}', [\App\Http\Controllers\Admin\AdminRolesController::class, 'update'])
+                        ->name('update')
+                        ->can('manage roles');
+                });
+
+                Route::prefix('activity-log')->as('activity-log.')->group(function () {
+                    Route::get('/', [\App\Http\Controllers\Admin\AdminActivityLogController::class, 'index'])
+                        ->name('index')
+                        ->can('accessAdmin', User::class);
+                });
+
+                Route::prefix('memberships')->as('memberships.')->group(function () {
+                    Route::get('/', [\App\Http\Controllers\Admin\AdminMembershipController::class, 'index'])
+                        ->name('index')
+                        ->can('manage settings');
+                    Route::get('create', [\App\Http\Controllers\Admin\AdminMembershipController::class, 'create'])
+                        ->name('create')
+                        ->can('manage settings');
+                    Route::post('/', [\App\Http\Controllers\Admin\AdminMembershipController::class, 'store'])
+                        ->name('store')
+                        ->can('manage settings');
+                    Route::get('{plan}/edit', [\App\Http\Controllers\Admin\AdminMembershipController::class, 'edit'])
+                        ->name('edit')
+                        ->can('manage settings');
+                    Route::patch('{plan}', [\App\Http\Controllers\Admin\AdminMembershipController::class, 'update'])
+                        ->name('update')
+                        ->can('manage settings');
+                    Route::delete('{plan}', [\App\Http\Controllers\Admin\AdminMembershipController::class, 'destroy'])
+                        ->name('destroy')
+                        ->can('manage settings');
+                    Route::get('users', [\App\Http\Controllers\Admin\AdminMembershipController::class, 'userMemberships'])
+                        ->name('users.index')
+                        ->can('manage settings');
+                    Route::get('users/{user}', [\App\Http\Controllers\Admin\AdminMembershipController::class, 'showUserMembership'])
+                        ->name('users.show')
+                        ->can('manage settings');
+                    Route::post('users/{user}/assign', [\App\Http\Controllers\Admin\AdminMembershipController::class, 'assignMembership'])
+                        ->name('users.assign')
+                        ->can('manage settings');
+                    Route::prefix('discounts')->as('discounts.')->group(function () {
+                        Route::get('/', [\App\Http\Controllers\Admin\AdminDiscountController::class, 'index'])
+                            ->name('index')
+                            ->can('manage settings');
+                        Route::get('create', [\App\Http\Controllers\Admin\AdminDiscountController::class, 'create'])
+                            ->name('create')
+                            ->can('manage settings');
+                        Route::post('/', [\App\Http\Controllers\Admin\AdminDiscountController::class, 'store'])
+                            ->name('store')
+                            ->can('manage settings');
+                        Route::get('{discount}/edit', [\App\Http\Controllers\Admin\AdminDiscountController::class, 'edit'])
+                            ->name('edit')
+                            ->can('manage settings');
+                        Route::patch('{discount}', [\App\Http\Controllers\Admin\AdminDiscountController::class, 'update'])
+                            ->name('update')
+                            ->can('manage settings');
+                        Route::delete('{discount}', [\App\Http\Controllers\Admin\AdminDiscountController::class, 'destroy'])
+                            ->name('destroy')
+                            ->can('manage settings');
+                    });
                 });
 
                 Route::prefix('events')->as('events.')->group(function () {

@@ -6,6 +6,7 @@ use App\Models\Circle;
 use App\Models\Comment;
 use App\Models\Conversation;
 use App\Models\Event;
+use App\Models\Memberships\UserMembership;
 use App\Models\Message;
 use App\Models\Post;
 use App\Models\PostPoll;
@@ -20,6 +21,7 @@ use App\Policies\MessagePolicy;
 use App\Policies\PollVotePolicy;
 use App\Policies\PostPolicy;
 use App\Policies\ProfilePolicy;
+use App\Policies\UserMembershipPolicy;
 use App\Policies\VerificationPolicy;
 use App\Services\Payments\EntitlementService;
 use Illuminate\Support\Facades\Gate;
@@ -50,6 +52,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Message::class, MessagePolicy::class);
         Gate::policy(Event::class, EventPolicy::class);
         Gate::policy(Verification::class, VerificationPolicy::class);
+        Gate::policy(UserMembership::class, UserMembershipPolicy::class);
 
         Gate::define('be-creator', function (User $user): bool {
             return $user->canBecomeCreator();

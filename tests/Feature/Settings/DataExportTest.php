@@ -17,6 +17,6 @@ test('data export can be requested', function () {
         ->assertRedirect();
 
     Queue::assertPushed(\App\Jobs\ExportUserData::class, function ($job) use ($user) {
-        return $job->user->id === $user->id;
+        return $job->userId === $user->id;
     });
 });

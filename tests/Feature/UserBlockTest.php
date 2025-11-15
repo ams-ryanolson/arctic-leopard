@@ -8,6 +8,7 @@ use App\Notifications\UserFollowedNotification;
 use App\Services\UserBlockService;
 use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia;
+
 use function Pest\Laravel\actingAs;
 
 it('blocks a user via the http endpoint and prunes interactions', function (): void {
@@ -120,7 +121,7 @@ it('lists blocked users on the settings page', function (): void {
     $service->block($user, $blocked);
 
     actingAs($user)
-        ->get('/settings/blocked-users')
+        ->get(route('settings.privacy.blocked-users'))
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->component('settings/blocked-users')
             ->has('blocked', fn (AssertableInertia $blockedList) => $blockedList
@@ -133,5 +134,3 @@ it('lists blocked users on the settings page', function (): void {
             ),
         );
 });
-
-

@@ -12,7 +12,7 @@ test('users without admin permissions cannot view the admin dashboard', function
 
     $this->actingAs($user)
         ->get(route('admin.dashboard'))
-        ->assertForbidden();
+        ->assertRedirect(route('dashboard'));
 });
 
 test('admin role can view the admin dashboard', function () {

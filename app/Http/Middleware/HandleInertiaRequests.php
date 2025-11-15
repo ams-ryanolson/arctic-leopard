@@ -31,6 +31,19 @@ class HandleInertiaRequests extends Middleware
     }
 
     /**
+     * Handle Inertia requests and disable SSR during tests.
+     */
+    public function rootView(Request $request): string
+    {
+        // Force disable SSR in testing environment to prevent hangs
+        if (app()->environment('testing')) {
+            config(['inertia.ssr.enabled' => false]);
+        }
+
+        return parent::rootView($request);
+    }
+
+    /**
      * Define the props that are shared by default.
      *
      * @see https://inertiajs.com/shared-data

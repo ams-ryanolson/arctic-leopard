@@ -7,7 +7,10 @@ use App\Http\Requests\Settings\ProfileUpdateRequest;
 use App\Http\Resources\CircleResource;
 use App\Models\Hashtag;
 use App\Models\Interest;
+use App\Models\User;
 use App\Services\Circles\CircleMembershipService;
+use App\Services\UserFollowService;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -80,26 +83,58 @@ class ProfileController extends Controller
         $user = $request->user();
         $validated = $request->validated();
 
-        // Update basic profile fields
-        $user->forceFill([
+        // Update basic profile fields - only update fields that are provided
+        $updateData = [
             'username' => $validated['username'],
             'email' => $validated['email'],
-            'display_name' => $validated['display_name'] ?? null,
-            'pronouns' => $validated['pronouns'] ?? null,
-            'gender' => $validated['gender'] ?? null,
-            'role' => $validated['role'] ?? null,
-            'bio' => $this->sanitizeBio($validated['bio'] ?? null),
-            'birthdate' => $validated['birthdate'] ?? null,
-            'location_city' => $validated['location_city'] ?? null,
-            'location_region' => $validated['location_region'] ?? null,
-            'location_country' => $validated['location_country'] ?? null,
-        ]);
+        ];
+
+        // Only update optional fields if they are provided
+        if (isset($validated['display_name'])) {
+            $updateData['display_name'] = $validated['display_name'];
+        }
+        if (isset($validated['pronouns'])) {
+            $updateData['pronouns'] = $validated['pronouns'];
+        }
+        if (isset($validated['gender'])) {
+            $updateData['gender'] = $validated['gender'];
+        }
+        if (isset($validated['role'])) {
+            $updateData['role'] = $validated['role'];
+        }
+        if (isset($validated['bio'])) {
+            $updateData['bio'] = $this->sanitizeBio($validated['bio']);
+        }
+        if (isset($validated['birthdate'])) {
+            $updateData['birthdate'] = $validated['birthdate'];
+        }
+        if (isset($validated['location_city'])) {
+            $updateData['location_city'] = $validated['location_city'];
+        }
+        if (isset($validated['location_region'])) {
+            $updateData['location_region'] = $validated['location_region'];
+        }
+        if (isset($validated['location_country'])) {
+            $updateData['location_country'] = $validated['location_country'];
+        }
+        $originalRequiresApproval = (bool) $user->getOriginal('requires_follow_approval');
+
+        if (isset($validated['requires_follow_approval'])) {
+            $updateData['requires_follow_approval'] = (bool) $validated['requires_follow_approval'];
+        }
+
+        $user->forceFill($updateData);
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
         }
 
         $user->save();
+
+        // If requires_follow_approval was disabled, approve pending followers
+        if ($originalRequiresApproval && ! $user->requires_follow_approval) {
+            $this->approvePendingFollowers($user);
+        }
 
         // Update interests
         if (isset($validated['interests'])) {
@@ -152,5 +187,23 @@ class ProfileController extends Controller
             })
             ->filter()
             ->unique();
+    }
+
+    private function approvePendingFollowers(User $user): void
+    {
+        $pendingFollowers = $user->pendingFollowers()->get();
+        $followService = app(UserFollowService::class);
+
+        foreach ($pendingFollowers as $pendingFollower) {
+            if ($user->hasBlockRelationshipWith($pendingFollower)) {
+                continue;
+            }
+
+            try {
+                $followService->accept($user, $pendingFollower);
+            } catch (AuthorizationException) {
+                continue;
+            }
+        }
     }
 }

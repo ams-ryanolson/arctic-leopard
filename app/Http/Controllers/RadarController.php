@@ -447,6 +447,11 @@ class RadarController extends Controller
         return [
             'hashtags' => $hashtags,
             'circles' => $circles,
+            'positions' => [
+                ['label' => 'Dominant', 'value' => 0],
+                ['label' => 'Switch', 'value' => 50],
+                ['label' => 'Submissive', 'value' => 100],
+            ],
             'lastActiveOptions' => [
                 ['label' => 'Last 5 minutes', 'value' => '5m'],
                 ['label' => 'Last hour', 'value' => '1h'],

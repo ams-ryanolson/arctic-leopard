@@ -1,13 +1,12 @@
 <?php
 
-use App\Models\User;
-use App\Models\Payments\PaymentSubscription;
 use App\Enums\Payments\PaymentSubscriptionStatus;
+use App\Models\Payments\PaymentSubscription;
+use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Support\Facades\Gate;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use Spatie\Permission\PermissionRegistrar;
 
 beforeEach(function (): void {
     app(RolesAndPermissionsSeeder::class)->run();
@@ -18,7 +17,7 @@ it('seeds baseline roles with expected permissions', function (): void {
     $userRole = Role::findByName('User');
     $premiumRole = Role::findByName('Premium');
 
-    expect($superAdmin->permissions)->toHaveCount(39);
+    expect($superAdmin->permissions)->toHaveCount(41);
 
     expect($userRole->permissions->pluck('name')->all())->toEqualCanonicalizing([
         'create posts',

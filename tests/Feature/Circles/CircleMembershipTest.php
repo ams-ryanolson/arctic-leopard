@@ -26,15 +26,13 @@ test('circles index renders for authenticated users', function (): void {
     $response->assertOk()->assertInertia(
         fn (Assert $page) => $page
             ->component('Circles/Index')
-            ->has('featured', fn (Assert $collection) => $collection
-                ->where('0.id', $featured->id)
-                ->etc()
-            )
             ->has('circles.data')
             ->has('filters', fn (Assert $props) => $props
                 ->where('joined', false)
                 ->etc()
             )
+            ->has('joinedCircles')
+            ->has('interests')
     );
 });
 
@@ -82,4 +80,3 @@ test('circle detail page includes circle payload', function (): void {
             ->has('posts.data')
     );
 });
-

@@ -2,6 +2,11 @@
 
 namespace App\Providers;
 
+use App\Events\Memberships\MembershipCancelled;
+use App\Events\Memberships\MembershipExpired;
+use App\Events\Memberships\MembershipPurchased;
+use App\Events\Memberships\MembershipRenewed;
+use App\Events\Memberships\MembershipUpgraded;
 use App\Events\Payments\PaymentCancelled;
 use App\Events\Payments\PaymentCaptured;
 use App\Events\Payments\PaymentFailed;
@@ -28,13 +33,24 @@ use App\Events\UserUnblocked;
 use App\Listeners\Ads\ActivateAdOnPaymentCaptured;
 use App\Listeners\DispatchUserFollowedEvent;
 use App\Listeners\FlushTimelinesOnBlock;
+use App\Listeners\LogTwoFactorDisabled;
+use App\Listeners\LogTwoFactorEnabled;
 use App\Listeners\LogUserBlockLifecycle;
+use App\Listeners\LogUserLogin;
+use App\Listeners\LogUserLogout;
+use App\Listeners\Memberships\AssignRoleOnMembershipPurchased;
+use App\Listeners\Memberships\LogMembershipUpgrade;
+use App\Listeners\Memberships\ProcessRecurringRenewal;
+use App\Listeners\Memberships\RemoveRoleOnMembershipExpired;
+use App\Listeners\Memberships\UpdateRoleOnMembershipUpgraded;
 use App\Listeners\Payments\CompletePostPurchaseOnPaymentCaptured;
 use App\Listeners\Payments\CompleteTipOnPaymentCaptured;
+use App\Listeners\Payments\CreateMembershipOnPaymentCaptured;
 use App\Listeners\Payments\FailPostPurchaseOnPaymentFailed;
 use App\Listeners\Payments\FailTipOnPaymentFailed;
 use App\Listeners\Payments\FailWishlistPurchaseOnPaymentFailed;
 use App\Listeners\Payments\FulfillWishlistPurchaseOnPaymentCaptured;
+use App\Listeners\Payments\LogPaymentActivity;
 use App\Listeners\Payments\LogPaymentIntentLifecycle;
 use App\Listeners\Payments\LogPaymentLifecycle;
 use App\Listeners\Payments\LogSubscriptionLifecycle;
@@ -54,8 +70,12 @@ use App\Listeners\SendPostBookmarkedNotification;
 use App\Listeners\SendPostLikedNotification;
 use App\Listeners\SendUserFollowedNotification;
 use App\Listeners\SendUserFollowRequestedNotification;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Event;
+use Laravel\Fortify\Events\TwoFactorAuthenticationDisabled;
+use Laravel\Fortify\Events\TwoFactorAuthenticationEnabled;
 use Overtrue\LaravelFollow\Events\Followed as FollowedEvent;
 
 class EventServiceProvider extends ServiceProvider
@@ -112,6 +132,18 @@ class EventServiceProvider extends ServiceProvider
         UserFollowAccepted::class => [
             RefreshFollowerTimeline::class,
         ],
+        Login::class => [
+            LogUserLogin::class,
+        ],
+        Logout::class => [
+            LogUserLogout::class,
+        ],
+        TwoFactorAuthenticationEnabled::class => [
+            LogTwoFactorEnabled::class,
+        ],
+        TwoFactorAuthenticationDisabled::class => [
+            LogTwoFactorDisabled::class,
+        ],
         PaymentInitiated::class => [
             LogPaymentLifecycle::class,
         ],
@@ -123,6 +155,8 @@ class EventServiceProvider extends ServiceProvider
             FulfillWishlistPurchaseOnPaymentCaptured::class,
             CompletePostPurchaseOnPaymentCaptured::class,
             ActivateAdOnPaymentCaptured::class,
+            CreateMembershipOnPaymentCaptured::class,
+            LogPaymentActivity::class.'@handlePaymentCaptured',
         ],
         PaymentFailed::class => [
             LogPaymentLifecycle::class,
@@ -136,6 +170,7 @@ class EventServiceProvider extends ServiceProvider
             RefundTipOnPaymentRefunded::class,
             RefundWishlistPurchaseOnPaymentRefunded::class,
             RefundPostPurchaseOnPaymentRefunded::class,
+            LogPaymentActivity::class.'@handlePaymentRefunded',
         ],
         PaymentCancelled::class => [
             LogPaymentLifecycle::class,
@@ -166,6 +201,22 @@ class EventServiceProvider extends ServiceProvider
         ],
         SubscriptionPaymentFailed::class => [
             LogSubscriptionLifecycle::class,
+        ],
+        MembershipPurchased::class => [
+            AssignRoleOnMembershipPurchased::class,
+        ],
+        MembershipUpgraded::class => [
+            UpdateRoleOnMembershipUpgraded::class,
+            LogMembershipUpgrade::class,
+        ],
+        MembershipRenewed::class => [
+            ProcessRecurringRenewal::class,
+        ],
+        MembershipExpired::class => [
+            RemoveRoleOnMembershipExpired::class,
+        ],
+        MembershipCancelled::class => [
+            // Can add listeners here if needed
         ],
     ];
 }

@@ -61,6 +61,7 @@ class ProfileUpdateRequest extends FormRequest
             'interests.*' => ['integer', 'exists:interests,id'],
             'hashtags' => ['nullable', 'array', 'max:5'],
             'hashtags.*' => ['string', 'max:120'],
+            'requires_follow_approval' => ['nullable', 'boolean'],
         ];
     }
 }

@@ -115,7 +115,7 @@ class VerificationService
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            
+
             throw $e;
         }
     }
@@ -202,16 +202,26 @@ class VerificationService
             ->get();
 
         foreach ($expiredVerifications as $verification) {
-            if ($verification->user->isCreatorStatusDisabled()) {
+            // Get fresh user instance to avoid relationship caching issues
+            $user = User::find($verification->user_id);
+
+            if ($user === null || $user->isCreatorStatusDisabled()) {
                 continue;
             }
 
-            DB::transaction(function () use ($verification): void {
-                $verification->user->disableCreatorStatus();
+            DB::transaction(function () use ($verification, $user): void {
+                // Update user's creator_status_disabled_at (not in fillable, so use forceFill)
+                $user->forceFill(['creator_status_disabled_at' => now()])->save();
+
+                // Update this specific verification's creator_status_disabled_at
                 $verification->update(['creator_status_disabled_at' => now()]);
             });
 
-            $verification->user->notify(new CreatorStatusDisabledNotification($verification));
+            // Refresh to ensure we have the updated data
+            $user->refresh();
+            $verification->refresh();
+
+            $user->notify(new CreatorStatusDisabledNotification($verification));
         }
     }
 
@@ -220,7 +230,11 @@ class VerificationService
      */
     public function requireRenewal(User $user, ?User $admin = null, ?string $note = null): void
     {
-        $latest = $user->latestVerification;
+        // Query for the latest verification directly to avoid relationship caching issues
+        $latest = Verification::query()
+            ->where('user_id', $user->getKey())
+            ->latest('id')
+            ->first();
 
         if ($latest === null) {
             return;
@@ -234,6 +248,8 @@ class VerificationService
             ]);
         });
 
+        // Refresh the latest verification to ensure we have the updated instance
+        $latest->refresh();
         $latest->user->notify(new IdVerificationRenewalRequiredNotification($latest));
     }
 

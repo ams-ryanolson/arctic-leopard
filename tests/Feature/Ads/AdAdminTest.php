@@ -88,6 +88,8 @@ it('allows admins to reject ads', function (): void {
 it('allows admins to pause and resume ads', function (): void {
     $admin = User::factory()->create();
     $admin->assignRole('Admin');
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+    $admin = $admin->fresh();
 
     $ad = Ad::factory()->active()->create([
         'approved_at' => Carbon::now(),

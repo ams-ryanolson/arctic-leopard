@@ -24,7 +24,7 @@ class StoreVerificationRenewalRequest extends FormRequest
             return false;
         }
 
-        return $user->can('manageUsers', User::class) || $user->can('manageCompliance');
+        return $user->hasRole(['Admin', 'Super Admin']) || $user->can('manage users') || $user->can('manageCompliance');
     }
 
     /**

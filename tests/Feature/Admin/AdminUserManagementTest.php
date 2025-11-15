@@ -114,7 +114,7 @@ test('admin cannot update their own roles', function () {
         'roles' => ['Creator', 'Moderator'],
     ]);
 
-    $response->assertForbidden();
+    $response->assertRedirect(route('dashboard'));
 });
 
 test('admin cannot update other admin roles', function () {
@@ -128,7 +128,7 @@ test('admin cannot update other admin roles', function () {
         'roles' => ['Creator'],
     ]);
 
-    $response->assertForbidden();
+    $response->assertRedirect(route('dashboard'));
 });
 
 test('admin cannot update super admin roles', function () {
@@ -142,7 +142,7 @@ test('admin cannot update super admin roles', function () {
         'roles' => ['Creator'],
     ]);
 
-    $response->assertForbidden();
+    $response->assertRedirect(route('dashboard'));
 });
 
 test('super admin can update admin roles', function () {
@@ -169,7 +169,7 @@ test('non-admin users cannot access admin user management', function () {
 
     $this->actingAs($user)
         ->get(route('admin.users.index'))
-        ->assertForbidden();
+        ->assertRedirect(route('dashboard'));
 });
 
 test('non-admin users cannot update user roles', function () {
@@ -183,5 +183,5 @@ test('non-admin users cannot update user roles', function () {
         ->patch(route('admin.users.roles.update', $targetUser), [
             'roles' => ['Creator'],
         ])
-        ->assertForbidden();
+        ->assertRedirect(route('dashboard'));
 });

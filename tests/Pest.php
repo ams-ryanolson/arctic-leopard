@@ -1,5 +1,8 @@
 <?php
 
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Http;
+
 /*
 |--------------------------------------------------------------------------
 | Test Case
@@ -14,6 +17,28 @@
 pest()->extend(Tests\TestCase::class)
     ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
     ->in('Feature', 'Unit', 'Browser');
+
+/*
+|--------------------------------------------------------------------------
+| Global Test Setup
+|--------------------------------------------------------------------------
+|
+| Fake broadcasting and HTTP requests globally to prevent hangs during tests.
+| Individual tests can override these if needed.
+|
+*/
+
+beforeEach(function (): void {
+    // Fake only the broadcasting events that implement ShouldBroadcast to prevent hangs
+    // Note: We use Event::fake() with specific events to avoid interfering with test assertions
+    Event::fake([
+        \App\Events\TimelineEntryBroadcast::class,
+    ]);
+
+    // Fake HTTP requests globally to prevent hangs from external API calls (e.g., CountryResolver)
+    // Tests can override this by calling Http::fake() again with specific configurations
+    Http::fake();
+});
 
 /*
 |--------------------------------------------------------------------------

@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\Payments\PaymentSubscriptionStatus;
+use App\Models\Memberships\UserMembership;
 use App\Models\Payments\PaymentSubscription;
 use App\Models\Payments\SubscriptionPlan;
 use App\Models\Payments\Tip;
@@ -385,6 +386,23 @@ class User extends Authenticatable
     public function creatorSubscriptions(): HasMany
     {
         return $this->hasMany(PaymentSubscription::class, 'creator_id');
+    }
+
+    public function memberships(): HasMany
+    {
+        return $this->hasMany(UserMembership::class);
+    }
+
+    public function activeMembership(): ?UserMembership
+    {
+        return $this->memberships()
+            ->where('status', 'active')
+            ->where(function ($query): void {
+                $query->whereNull('ends_at')
+                    ->orWhere('ends_at', '>', now());
+            })
+            ->latest('starts_at')
+            ->first();
     }
 
     public function subscribers(): BelongsToMany

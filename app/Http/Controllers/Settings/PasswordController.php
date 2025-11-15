@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Settings;
 
+use App\Enums\ActivityType;
 use App\Http\Controllers\Controller;
+use App\Services\ActivityLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Password;
@@ -29,9 +31,19 @@ class PasswordController extends Controller
             'password' => ['required', Password::defaults(), 'confirmed'],
         ]);
 
-        $request->user()->update([
+        $user = $request->user();
+        $user->update([
             'password' => $validated['password'],
         ]);
+
+        app(ActivityLogService::class)->log(
+            ActivityType::PasswordChanged,
+            "User {$user->name} changed their password",
+            $user,
+            $user,
+            ['timestamp' => now()->toIso8601String()],
+            $request
+        );
 
         return back();
     }

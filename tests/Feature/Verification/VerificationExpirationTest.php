@@ -50,7 +50,9 @@ it('marks verifications expiring soon as requiring renewal', function (): void {
 });
 
 it('disables creator status after grace period expires', function (): void {
-    $user = User::factory()->create();
+    $user = User::factory()->create([
+        'creator_status_disabled_at' => null,
+    ]);
     $user->assignRole('Creator');
 
     $verification = Verification::factory()->create([

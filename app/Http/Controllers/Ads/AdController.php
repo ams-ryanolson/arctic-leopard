@@ -34,7 +34,7 @@ class AdController extends Controller
 
         $viewer = $request->user();
         $context = [
-            'session_id' => $request->session()->getId(),
+            'session_id' => $request->hasSession() ? $request->session()->getId() : null,
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
             'referrer' => $request->header('referer'),
@@ -76,7 +76,7 @@ class AdController extends Controller
 
         $viewer = $request->user();
         $context = [
-            'session_id' => $request->session()->getId(),
+            'session_id' => $request->hasSession() ? $request->session()->getId() : null,
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
             'referrer' => $request->header('referer'),
@@ -116,7 +116,7 @@ class AdController extends Controller
             : null;
 
         $context = [
-            'session_id' => $request->session()->getId(),
+            'session_id' => $request->hasSession() ? $request->session()->getId() : null,
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
         ];
@@ -155,7 +155,7 @@ class AdController extends Controller
             : null;
 
         $context = [
-            'session_id' => $request->session()->getId(),
+            'session_id' => $request->hasSession() ? $request->session()->getId() : null,
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
         ];

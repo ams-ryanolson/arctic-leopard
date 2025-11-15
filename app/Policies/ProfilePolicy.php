@@ -72,6 +72,14 @@ class ProfilePolicy
     }
 
     /**
+     * Determine if the user can manage users (admin operation).
+     */
+    public function manageUsers(User $user, ?User $model = null): bool
+    {
+        return $user->hasRole(['Admin', 'Super Admin']);
+    }
+
+    /**
      * Determine if the user can update user roles (admin operation).
      */
     public function updateRoles(User $user, User $model): bool

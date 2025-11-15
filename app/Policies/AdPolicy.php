@@ -10,7 +10,7 @@ class AdPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->can('manage ads');
+        return $user->can('manage ad inventory');
     }
 
     public function view(User $user, Ad $ad): bool
@@ -59,17 +59,17 @@ class AdPolicy
 
     public function approve(User $user, Ad $ad): bool
     {
-        return $user->can('manage ads');
+        return $user->can('manage ad inventory');
     }
 
     public function reject(User $user, Ad $ad): bool
     {
-        return $user->can('manage ads');
+        return $user->can('manage ad inventory');
     }
 
     public function pause(User $user, Ad $ad): bool
     {
-        if ($user->can('manage ads')) {
+        if ($user->can('manage ad inventory')) {
             return true;
         }
 
@@ -79,7 +79,7 @@ class AdPolicy
 
     public function resume(User $user, Ad $ad): bool
     {
-        if ($user->can('manage ads')) {
+        if ($user->can('manage ad inventory')) {
             return true;
         }
 

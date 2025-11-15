@@ -2,9 +2,10 @@
 
 namespace App\Services\Ads;
 
+use App\Enums\Ads\AdPlacement;
+use App\Enums\Ads\CampaignStatus;
 use App\Models\Ads\Ad;
 use App\Models\Ads\AdCampaign;
-use App\Models\Ads\AdPlacement;
 use App\Models\Ads\AdReport;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +22,7 @@ class AdReportingService
 
         // Get all active ads
         $ads = Ad::query()
-            ->where('status', 'active')
+            ->active()
             ->get();
 
         foreach ($ads as $ad) {
@@ -30,7 +31,7 @@ class AdReportingService
 
         // Generate campaign reports
         $campaigns = AdCampaign::query()
-            ->where('status', 'active')
+            ->where('status', CampaignStatus::Active->value)
             ->get();
 
         foreach ($campaigns as $campaign) {
@@ -92,8 +93,8 @@ class AdReportingService
             ->sum('spend');
 
         $ctr = $impressions > 0 ? round($clicks / $impressions, 4) : 0;
-        $cpm = $impressions > 0 ? round(($spend / $impressions) * 1000) : null;
-        $cpc = $clicks > 0 ? round($spend / $clicks) : null;
+        $cpm = ($impressions > 0 && $spend > 0) ? round(($spend / $impressions) * 1000) : null;
+        $cpc = ($clicks > 0 && $spend > 0) ? round($spend / $clicks) : null;
 
         return [
             'campaign_id' => $campaign->getKey(),
@@ -114,26 +115,26 @@ class AdReportingService
     public function getPlacementReport(AdPlacement $placement, Carbon $startDate, Carbon $endDate): array
     {
         $impressions = DB::table('ad_impressions')
-            ->where('placement', $placement->key)
+            ->where('placement', $placement->value)
             ->whereBetween('viewed_at', [$startDate, $endDate])
             ->count();
 
         $clicks = DB::table('ad_clicks')
-            ->where('placement', $placement->key)
+            ->where('placement', $placement->value)
             ->whereBetween('clicked_at', [$startDate, $endDate])
             ->count();
 
         $spend = DB::table('ad_reports')
-            ->where('placement', $placement->key)
+            ->where('placement', $placement->value)
             ->whereBetween('report_date', [$startDate->toDateString(), $endDate->toDateString()])
             ->sum('spend');
 
         $ctr = $impressions > 0 ? round($clicks / $impressions, 4) : 0;
-        $cpm = $impressions > 0 ? round(($spend / $impressions) * 1000) : null;
-        $cpc = $clicks > 0 ? round($spend / $clicks) : null;
+        $cpm = ($impressions > 0 && $spend > 0) ? round(($spend / $impressions) * 1000) : null;
+        $cpc = ($clicks > 0 && $spend > 0) ? round($spend / $clicks) : null;
 
         return [
-            'placement' => $placement->key,
+            'placement' => $placement->value,
             'impressions' => $impressions,
             'clicks' => $clicks,
             'spend' => $spend,
@@ -163,8 +164,8 @@ class AdReportingService
             ->sum('spend');
 
         $ctr = $impressions > 0 ? round($clicks / $impressions, 4) : 0;
-        $cpm = $impressions > 0 ? round(($spend / $impressions) * 1000) : null;
-        $cpc = $clicks > 0 ? round($spend / $clicks) : null;
+        $cpm = ($impressions > 0 && $spend > 0) ? round(($spend / $impressions) * 1000) : null;
+        $cpc = ($clicks > 0 && $spend > 0) ? round($spend / $clicks) : null;
 
         return [
             'ctr' => $ctr,

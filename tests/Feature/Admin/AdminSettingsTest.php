@@ -2,6 +2,7 @@
 
 use App\Models\AdminSetting;
 use App\Models\User;
+use Inertia\Testing\AssertableInertia as Assert;
 
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\assertDatabaseHas;
@@ -25,21 +26,21 @@ beforeEach(function (): void {
 it('allows admin to view settings', function (): void {
     $admin = User::factory()->create();
     $admin->assignRole('Admin');
-    $admin->givePermissionTo('manage users');
+    $admin->givePermissionTo('manage settings');
 
     actingAs($admin)
-        ->getJson('/admin/settings')
+        ->get('/admin/settings')
         ->assertSuccessful()
-        ->assertJsonStructure([
-            'settings',
-            'categories',
-        ]);
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('settings')
+            ->has('categories')
+        );
 });
 
 it('allows admin to update setting', function (): void {
     $admin = User::factory()->create();
     $admin->assignRole('Admin');
-    $admin->givePermissionTo('manage users');
+    $admin->givePermissionTo('manage settings');
 
     actingAs($admin)
         ->patchJson('/admin/settings/id_verification_expires_after_years', [

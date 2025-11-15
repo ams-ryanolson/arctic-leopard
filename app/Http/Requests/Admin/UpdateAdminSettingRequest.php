@@ -19,7 +19,7 @@ class UpdateAdminSettingRequest extends FormRequest
             return false;
         }
 
-        return $user->can('manageUsers', User::class) || $user->can('manageSettings');
+        return $user->can('manageUsers', User::class) || $user->can('manage settings');
     }
 
     /**

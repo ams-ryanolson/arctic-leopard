@@ -23,14 +23,10 @@ class AdClickFactory extends Factory
      */
     public function definition(): array
     {
-        $ad = Ad::factory()->create();
-        $creative = AdCreative::factory()->for($ad)->create();
-        $impression = AdImpression::factory()->for($ad)->for($creative)->create();
-
         return [
-            'ad_id' => $ad->getKey(),
-            'ad_creative_id' => $creative->getKey(),
-            'impression_id' => $impression->getKey(),
+            'ad_id' => Ad::factory(),
+            'ad_creative_id' => AdCreative::factory(),
+            'impression_id' => AdImpression::factory(),
             'placement' => Arr::random(AdPlacement::values()),
             'user_id' => $this->faker->boolean(70) ? User::factory() : null,
             'session_id' => $this->faker->uuid(),

@@ -4,10 +4,12 @@ use App\Enums\Ads\PricingModel;
 use App\Models\Ads\Ad;
 use App\Services\Ads\AdPricingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
+    Queue::fake(); // Prevent any jobs from actually running
     $this->service = app(AdPricingService::class);
 });
 

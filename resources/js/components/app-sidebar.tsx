@@ -37,6 +37,8 @@ import {
     Users,
     Video,
     Megaphone,
+    Crown,
+    FileText,
 } from 'lucide-react';
 
 export function AppSidebar() {
@@ -252,6 +254,26 @@ export function AppSidebar() {
                               title: 'Ads',
                               href: '/admin/ads',
                               icon: Megaphone,
+                          },
+                          {
+                              title: 'Settings',
+                              href: admin.settings.index().url,
+                              icon: Cog,
+                          },
+                          {
+                              title: 'Roles',
+                              href: admin.roles.index().url,
+                              icon: ShieldAlert,
+                          },
+                          {
+                              title: 'Memberships',
+                              href: admin.memberships.index().url,
+                              icon: Crown,
+                          },
+                          {
+                              title: 'Activity Log',
+                              href: admin.activityLog.index().url,
+                              icon: FileText,
                           },
                       ],
                   },

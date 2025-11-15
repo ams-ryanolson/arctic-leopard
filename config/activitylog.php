@@ -10,8 +10,9 @@ return [
     /*
      * When the clean-command is executed, all recording activities older than
      * the number of days specified here will be deleted.
+     * Set to 2555 days (7 years) for SOC2, PCI DSS, and ISO 27001 compliance.
      */
-    'delete_records_older_than_days' => 365,
+    'delete_records_older_than_days' => 2555,
 
     /*
      * If no log name is passed to the activity() helper

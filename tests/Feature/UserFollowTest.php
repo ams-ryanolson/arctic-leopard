@@ -1,11 +1,12 @@
 <?php
 
 use App\Models\User;
+use App\Notifications\UserFollowedNotification;
 use App\Notifications\UserFollowRequestApprovedNotification;
 use App\Notifications\UserFollowRequestedNotification;
-use App\Notifications\UserFollowedNotification;
 use App\Services\Toasts\ToastBus;
 use Illuminate\Support\Facades\Cache;
+
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\withoutMiddleware;
 
@@ -207,13 +208,13 @@ it('accepts pending requests when follow approvals are disabled', function (): v
     expect($creator->notifications()->where('type', UserFollowRequestedNotification::TYPE)->count())->toBe(2);
 
     actingAs($creator, 'web')
-        ->from(route('profile.edit'))
-        ->patch(route('profile.update'), [
-            'name' => $creator->name,
+        ->from(route('settings.profile.edit'))
+        ->patch(route('settings.profile.update'), [
+            'username' => $creator->username,
             'email' => $email,
             'requires_follow_approval' => '0',
         ])
-        ->assertRedirect(route('profile.edit'));
+        ->assertRedirect(route('settings.profile.edit'));
 
     $creator->refresh();
 
@@ -255,5 +256,3 @@ it('removes follow request notifications when the follower withdraws', function 
 
     expect($creator->fresh()->notifications()->where('type', UserFollowRequestedNotification::TYPE)->count())->toBe(0);
 });
-
-

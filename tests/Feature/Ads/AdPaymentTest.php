@@ -6,12 +6,12 @@ use App\Models\Ads\Ad;
 use App\Models\Payments\Payment;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Queue;
 
 uses(RefreshDatabase::class);
 
 it('activates ad when payment is captured', function (): void {
-    Event::fake([PaymentCaptured::class]);
+    Queue::fake();
 
     $advertiser = User::factory()->create();
     $ad = Ad::factory()->create([
@@ -26,7 +26,12 @@ it('activates ad when payment is captured', function (): void {
         'status' => 'captured',
     ]);
 
-    Event::dispatch(new PaymentCaptured($payment));
+    $event = new PaymentCaptured($payment);
+    Event::dispatch($event);
+
+    // Manually run the listener since it's queued and won't run automatically in tests
+    $listener = new \App\Listeners\Ads\ActivateAdOnPaymentCaptured;
+    $listener->handle($event);
 
     $ad->refresh();
 

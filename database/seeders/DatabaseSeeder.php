@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             CircleSeeder::class,
             HashtagSeeder::class,
             SampleContentSeeder::class,
+            PlaybookArticleSeeder::class,
         ]);
 
         // BusySiteSeeder intentionally disabled for now; run manually if needed.

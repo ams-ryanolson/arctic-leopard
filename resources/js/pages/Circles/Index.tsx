@@ -1,5 +1,3 @@
-import { useMemo, useState } from 'react';
-
 import AppLayout from '@/layouts/app-layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,22 +9,12 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { Toggle } from '@/components/ui/toggle';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Pagination } from '@/components/ui/pagination';
-import { cn } from '@/lib/utils';
 import type { Circle, CircleCollection, CircleFacet, CircleFilterState } from '@/types/circles';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { index as circlesIndex, join as circleJoin, leave as circleLeave, show as circlesShow } from '@/routes/circles';
-import { Compass, Sparkles, Users } from 'lucide-react';
+import { Compass, Users, CheckCircle2, Layers, Lightbulb } from 'lucide-react';
+import { SuggestCircleDialog } from '@/components/circles/suggest-circle-dialog';
 
 type InterestOption = {
     id: number;
@@ -36,7 +24,7 @@ type InterestOption = {
 
 interface CirclesPageProps {
     filters?: CircleFilterState;
-    featured?: Circle[];
+    joinedCircles?: Circle[];
     circles?: CircleCollection;
     interests?: InterestOption[];
 }
@@ -63,12 +51,95 @@ const extractFacets = (facets: CircleFacet[] | CircleFacetRelationship): CircleF
     return [];
 };
 
+const JoinedCircleCard = ({ circle }: CircleCardProps) => {
+    const facets = extractFacets(circle.facets as CircleFacet[] | CircleFacetRelationship);
+    const memberCount = Number.isFinite(circle.membersCount)
+        ? circle.membersCount
+        : 0;
+    const hasFacetOptions = facets.length > 1;
+
+    const form = useForm({});
+
+    const handleLeave = () => {
+        form.delete(circleLeave.url(circle.slug), {
+            preserveScroll: true,
+        });
+    };
+
+    return (
+        <Card className="group relative overflow-hidden border-white/10 bg-black/40 text-white transition-all duration-200 hover:border-emerald-400/30 hover:bg-black/50">
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-transparent to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+
+            <div className="relative flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+                <div className="flex min-w-0 flex-1 items-start gap-4 sm:items-center">
+                    <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border border-emerald-400/20">
+                        <CheckCircle2 className="size-6 text-emerald-400" />
+                    </div>
+                    <div className="min-w-0 flex-1 space-y-1.5">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <CardTitle className="text-lg font-semibold leading-tight">
+                                <Link
+                                    href={circlesShow.url(circle.slug)}
+                                    className="transition-colors hover:text-emerald-400/90"
+                                >
+                                    {circle.name}
+                                </Link>
+                            </CardTitle>
+                            {circle.interest && (
+                                <Badge className="rounded-full border-white/15 bg-white/10 px-2.5 py-0.5 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-white/70">
+                                    {circle.interest.name}
+                                </Badge>
+                            )}
+                        </div>
+                        {circle.tagline && (
+                            <p className="text-sm leading-snug text-white/65 line-clamp-1">
+                                {circle.tagline}
+                            </p>
+                        )}
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-white/55">
+                            <span className="flex items-center gap-1.5">
+                                <Users className="size-3.5" />
+                                {numberFormatter.format(memberCount)} members
+                            </span>
+                            {hasFacetOptions && (
+                                <span className="flex items-center gap-1.5">
+                                    <Layers className="size-3.5" />
+                                    {facets.length} segment{facets.length !== 1 ? 's' : ''}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex shrink-0 items-center gap-3 border-t border-white/10 pt-4 sm:border-t-0 sm:border-l sm:border-white/10 sm:pl-6 sm:pt-0">
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        className="rounded-full border-white/20 bg-white/10 px-3.5 text-xs font-medium text-white transition-colors hover:border-rose-400/40 hover:bg-rose-500/20 hover:text-rose-50"
+                        onClick={handleLeave}
+                        disabled={form.processing}
+                    >
+                        Leave
+                    </Button>
+                    <Link
+                        href={circlesShow.url(circle.slug)}
+                        className="rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-[0_4px_12px_-4px_rgba(16,185,129,0.4)] transition-all hover:scale-[1.02] hover:shadow-[0_6px_16px_-4px_rgba(16,185,129,0.5)]"
+                    >
+                        Enter →
+                    </Link>
+                </div>
+            </div>
+        </Card>
+    );
+};
+
 const CircleCard = ({ circle }: CircleCardProps) => {
     const facets = extractFacets(circle.facets as CircleFacet[] | CircleFacetRelationship);
     const memberCount = Number.isFinite(circle.membersCount)
         ? circle.membersCount
         : 0;
-    const isFeaturedCircle = circle.isFeatured === true;
+    const isJoined = circle.joined === true;
 
     const defaultFacet =
         (circle.membership?.preferences?.facet as string | undefined) ??
@@ -96,115 +167,80 @@ const CircleCard = ({ circle }: CircleCardProps) => {
     const hasFacetOptions = facets.length > 1;
 
     return (
-        <Card className="relative overflow-hidden border-white/10 bg-black/40 text-white shadow-[0_40px_80px_-40px_rgba(249,115,22,0.55)] transition hover:border-amber-400/40 hover:bg-black/50">
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-amber-400/15 via-transparent to-violet-600/20 opacity-0 transition-opacity duration-200 hover:opacity-100" />
+        <Card className="group relative flex flex-col overflow-hidden border-white/10 bg-black/40 text-white shadow-[0_40px_80px_-40px_rgba(249,115,22,0.55)] transition-all duration-300 hover:border-amber-400/40 hover:bg-black/50 hover:shadow-[0_50px_100px_-40px_rgba(249,115,22,0.65)]">
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-amber-400/15 via-transparent to-violet-600/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-            <CardHeader className="relative space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="space-y-2">
-                        <div className="flex flex-wrap items-center gap-2">
-                            {isFeaturedCircle && (
-                                <Badge className="rounded-full border-amber-300/40 bg-amber-400/20 text-[0.6rem] uppercase tracking-[0.35em] text-amber-100">
-                                    Featured
-                                </Badge>
-                            )}
-                            {circle.joined && (
-                                <Badge className="rounded-full border-emerald-400/40 bg-emerald-500/20 text-[0.6rem] uppercase tracking-[0.35em] text-emerald-100">
-                                    You’re in
-                                </Badge>
-                            )}
-                        </div>
-                        <CardTitle className="text-xl font-semibold">
+            <CardHeader className="relative space-y-3 pb-4">
+                <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                        <CardTitle className="text-xl font-semibold leading-tight">
                             <Link
                                 href={circlesShow.url(circle.slug)}
-                                className="transition hover:text-white/80"
+                                className="transition-colors hover:text-amber-400/90"
                             >
                                 {circle.name}
                             </Link>
                         </CardTitle>
                     </div>
-                    <Badge className="rounded-full border-white/15 bg-white/10 text-xs uppercase tracking-[0.3em] text-white/70">
-                        {numberFormatter.format(memberCount)} members
-                            </Badge>
+                    <Badge className="shrink-0 rounded-full border-white/15 bg-white/10 px-3 py-1.5 text-xs font-medium text-white/70">
+                        <Users className="mr-1.5 inline-block size-3.5" />
+                        {numberFormatter.format(memberCount)}
+                    </Badge>
                 </div>
 
-                <CardDescription className="max-w-2xl text-white/65">
-                    {circle.tagline ??
-                        circle.description ??
-                        'This circle curates kink-first conversations, drops, and connections.'}
-                </CardDescription>
+                {circle.tagline && (
+                    <CardDescription className="text-sm leading-relaxed text-white/65">
+                        {circle.tagline}
+                    </CardDescription>
+                )}
             </CardHeader>
 
-            <CardContent className="relative space-y-5 text-sm text-white/70">
-                {circle.interest && (
-                    <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-1 text-xs uppercase tracking-[0.3em] text-white/65">
-                        {circle.interest.name}
-                    </div>
-                )}
-
+            <CardContent className="relative flex-1 space-y-3 pb-4">
                 {hasFacetOptions && (
                     <div className="space-y-2">
-                        <p className="text-xs uppercase tracking-[0.35em] text-white/45">
-                            Circle segments
-                        </p>
-                        <div className="flex flex-wrap gap-2 text-xs text-white/60">
-                            {facets.slice(0, 4).map((facet) => (
+                        <div className="flex flex-wrap gap-2">
+                            {facets.slice(0, 5).map((facet) => (
                                 <span
-                                        key={`${facet.key}:${facet.value}`}
-                                    className="rounded-full border border-white/15 bg-white/5 px-3 py-1"
+                                    key={`${facet.key}:${facet.value}`}
+                                    className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white/70"
                                 >
                                     {facet.label}
                                 </span>
                             ))}
-                            {facets.length > 4 && (
-                                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-white/50">
-                                    +{facets.length - 4} more
-                                            </span>
-                                        )}
+                            {facets.length > 5 && (
+                                <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-white/50">
+                                    +{facets.length - 5}
+                                </span>
+                            )}
                         </div>
                     </div>
                 )}
 
-                <div className="flex flex-wrap items-center gap-3 text-xs text-white/55">
-                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-                        Visibility · {circle.visibility}
-                    </span>
-                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-                        Anchor · #{circle.metadata?.interest_slug ?? circle.slug}
-                    </span>
-                </div>
+                {circle.description && !circle.tagline && (
+                    <p className="text-sm leading-relaxed text-white/60 line-clamp-2">
+                        {circle.description}
+                    </p>
+                )}
             </CardContent>
 
-            <CardFooter className="relative flex flex-wrap items-center gap-3 border-t border-white/10 pt-4">
-                    {circle.joined ? (
+            <CardFooter className="relative mt-auto flex items-center justify-between gap-3 border-t border-white/10 pt-4">
+                    {isJoined ? (
                         <>
-                            {hasFacetOptions && (
-                                <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="outline"
-                                className="rounded-full border-white/20 bg-white/5 text-white hover:border-emerald-400/40 hover:bg-emerald-500/20 hover:text-emerald-50"
-                                    onClick={handleJoin}
-                                    disabled={form.processing}
-                                >
-                                    Update segment
-                                </Button>
-                            )}
                             <Button
                                 type="button"
                                 variant="secondary"
                                 size="sm"
-                            className="rounded-full border-white/20 bg-white/10 text-white hover:border-rose-400/40 hover:bg-rose-500/20"
+                                className="rounded-full border-white/20 bg-white/10 px-4 text-xs font-medium text-white transition-colors hover:border-rose-400/40 hover:bg-rose-500/20 hover:text-rose-50"
                                 onClick={handleLeave}
                                 disabled={form.processing}
                             >
                                 Leave circle
                             </Button>
                             <Link
-                            href={circlesShow.url(circle.slug)}
-                            className="text-xs text-white/75 underline-offset-4 transition hover:text-white hover:underline"
+                                href={circlesShow.url(circle.slug)}
+                                className="rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 px-5 py-2 text-xs font-semibold text-white shadow-[0_4px_12px_-4px_rgba(16,185,129,0.4)] transition-all hover:scale-[1.02] hover:shadow-[0_6px_16px_-4px_rgba(16,185,129,0.5)]"
                             >
-                                Enter community
+                                Enter →
                             </Link>
                         </>
                     ) : (
@@ -212,17 +248,17 @@ const CircleCard = ({ circle }: CircleCardProps) => {
                             <Button
                                 type="button"
                                 size="sm"
-                            className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 text-white shadow-[0_18px_40px_-20px_rgba(249,115,22,0.6)] hover:scale-[1.02]"
+                                className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-5 text-xs font-semibold text-white shadow-[0_18px_40px_-20px_rgba(249,115,22,0.6)] transition-all hover:scale-[1.02] hover:shadow-[0_22px_50px_-20px_rgba(249,115,22,0.7)]"
                                 onClick={handleJoin}
                                 disabled={form.processing}
                             >
                                 Join circle
                             </Button>
                             <Link
-                            href={circlesShow.url(circle.slug)}
-                            className="text-xs text-white/75 underline-offset-4 transition hover:text-white hover:underline"
+                                href={circlesShow.url(circle.slug)}
+                                className="text-xs font-medium text-white/75 underline-offset-4 transition-colors hover:text-white hover:underline"
                             >
-                                Preview circle
+                                Preview →
                             </Link>
                         </>
                     )}
@@ -270,49 +306,43 @@ const emptyMeta = {
 
 export default function CirclesIndex({
     filters = {},
-    featured = [],
+    joinedCircles = [],
     circles,
     interests = [],
 }: CirclesPageProps) {
     const safeFilters: CircleFilterState = filters;
-    const featuredList = Array.isArray(featured) ? featured : [];
+    const joinedCirclesList = Array.isArray(joinedCircles) ? joinedCircles : [];
     const circleCollection: CircleCollection = circles ?? {
         data: [],
         meta: emptyMeta,
     };
     const interestOptions = Array.isArray(interests) ? interests : [];
 
-    const [searchInput, setSearchInput] = useState(safeFilters.search ?? '');
-
-    const currentSort = safeFilters.sort ?? 'featured';
-    const joinedOnly = Boolean(safeFilters.joined);
-
-    const recommended = useMemo(
-        () => circleCollection.data.filter((circle) => circle.isFeatured),
-        [circleCollection.data],
-    );
-
     const totalCircles =
         circleCollection.meta.total ?? circleCollection.data.length;
-    const joinedCirclesCount = circleCollection.data.filter((circle) => circle.joined).length;
+    const joinedCirclesCount = joinedCirclesList.length;
     const heroHighlights = [
         {
-            title: 'Private houses & crews',
-            description: 'Spin up moderated spaces with role-based segments, aftercare channels, and invite-only access.',
+            title: 'Join niche communities',
+            description: 'Connect with circles organized around specific interests, kinks, and scenes. Each circle has its own feed, members, and culture.',
             icon: Users,
         },
         {
-            title: 'Interest-first discovery',
-            description: 'Sort by niche interests, facet paths, and visibility to instantly find circles that match your scene.',
+            title: 'Explore circle segments',
+            description: 'Many circles offer specialized segments or facets, letting you focus on specific aspects that matter most to you.',
+            icon: Layers,
+        },
+        {
+            title: 'Discover by interest',
+            description: 'Browse circles anchored to curated interests, making it easy to find communities that align with your preferences.',
             icon: Compass,
         },
         {
-            title: 'Curated weekly spotlights',
-            description: 'We feature high-signal circles, mentor programs, and collaborative drops to keep energy high.',
-            icon: Sparkles,
+            title: 'Suggest a new circle',
+            description: 'Have an idea for a circle that doesn\'t exist yet? Suggest it to our team and we\'ll consider adding it to the directory.',
+            icon: Lightbulb,
         },
     ] as const;
-    const spotlightInterests = interestOptions.slice(0, 8);
     const paginationMeta = {
         currentPage: circleCollection.meta.current_page,
         perPage:
@@ -323,15 +353,10 @@ export default function CirclesIndex({
     };
 
     const applyFilters = (next: Partial<CircleFilterState & { page?: number }>) => {
-        router.get(circlesIndex.url(), buildQuery(safeFilters, next), {
+        router.get(circlesIndex.url(), buildQuery(safeFilters, next) as Record<string, string | number>, {
             preserveState: true,
             preserveScroll: true,
         });
-    };
-
-    const submitSearch = (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        applyFilters({ search: searchInput || null, page: 1 });
     };
 
     return (
@@ -343,24 +368,24 @@ export default function CirclesIndex({
         >
             <Head title="Circles · Real Kink Men" />
 
-            <div className="space-y-12 text-white">
-                <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-[0_60px_120px_-70px_rgba(249,115,22,0.6)]">
+            <div className="space-y-16 text-white">
+                <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 via-white/5 to-black/20 shadow-[0_60px_120px_-70px_rgba(249,115,22,0.6)]">
                     <div className="pointer-events-none absolute inset-0">
-                        <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-amber-400/20 via-transparent to-transparent blur-3xl" />
-                        <div className="absolute -left-32 top-1/2 size-[520px] -translate-y-1/2 rounded-full bg-rose-500/15 blur-3xl" />
-                        <div className="absolute -right-36 top-16 size-[460px] rounded-full bg-violet-600/15 blur-3xl" />
+                        <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-amber-400/25 via-amber-400/10 to-transparent blur-3xl" />
+                        <div className="absolute -left-32 top-1/2 size-[520px] -translate-y-1/2 rounded-full bg-rose-500/20 blur-3xl" />
+                        <div className="absolute -right-36 top-16 size-[460px] rounded-full bg-violet-600/20 blur-3xl" />
                     </div>
 
-                    <div className="relative grid gap-10 p-8 sm:p-10 lg:grid-cols-[1.2fr_0.8fr]">
-                        <div className="space-y-8">
-                            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-1 text-[0.65rem] uppercase tracking-[0.35em] text-white/70">
-                                Circle directory
-                            </span>
-                            <div className="space-y-4">
-                                <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
-                                    Discover the crews shaping kink culture
+                    <div className="relative grid gap-12 p-10 sm:p-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+                        <div className="space-y-10">
+                            <div className="space-y-5">
+                                <h1 className="text-balance text-4xl font-semibold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+                                    Discover the crews shaping{' '}
+                                    <span className="bg-gradient-to-br from-amber-400 via-rose-500 to-violet-600 bg-clip-text text-transparent">
+                                        kink culture
+                                    </span>
                                 </h1>
-                                <p className="max-w-2xl text-sm leading-relaxed text-white/70 sm:text-base">
+                                <p className="max-w-2xl text-base leading-relaxed text-white/75 sm:text-lg">
                                     Filter by niche interests, tease out invite-only houses, and join circles where
                                     conversations, drops, and aftercare rituals match your exact scene.
                                 </p>
@@ -376,29 +401,34 @@ export default function CirclesIndex({
                                 ].map((stat) => (
                                     <div
                                         key={stat.label}
-                                        className="rounded-2xl border border-white/15 bg-black/35 px-5 py-4 text-left sm:text-center"
+                                        className="group relative overflow-hidden rounded-2xl border border-white/15 bg-black/40 px-6 py-5 text-left transition-all hover:border-white/25 hover:bg-black/50 sm:text-center"
                                     >
-                                        <p className="text-2xl font-semibold text-white">{stat.value}</p>
-                                        <p className="mt-1 text-[0.7rem] uppercase tracking-[0.35em] text-white/55">
-                                            {stat.label}
-                                        </p>
+                                        <div className="absolute inset-0 bg-gradient-to-br from-amber-400/5 via-transparent to-violet-600/5 opacity-0 transition-opacity group-hover:opacity-100" />
+                                        <div className="relative">
+                                            <p className="text-3xl font-semibold text-white">{stat.value}</p>
+                                            <p className="mt-2 text-[0.7rem] font-medium uppercase tracking-[0.35em] text-white/60">
+                                                {stat.label}
+                                            </p>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
                         </div>
 
-                        <div className="space-y-5 rounded-3xl border border-white/10 bg-black/30 p-6">
-                            <p className="text-xs uppercase tracking-[0.35em] text-white/55">
-                                What you’ll find here
-                            </p>
-                            <div className="space-y-5">
+                        <div className="space-y-6 rounded-3xl border border-white/10 bg-black/40 p-7 backdrop-blur-sm">
+                            <div>
+                                <p className="text-xs font-medium uppercase tracking-[0.35em] text-white/60">
+                                    What you'll find here
+                                </p>
+                            </div>
+                            <div className="space-y-6">
                                 {heroHighlights.map(({ title, description, icon: Icon }) => (
-                                    <div key={title} className="flex items-start gap-3">
-                                        <div className="flex size-10 items-center justify-center rounded-xl bg-white/10 text-white">
+                                    <div key={title} className="flex items-start gap-4">
+                                        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-white/15 to-white/5 text-white shadow-sm">
                                             <Icon className="size-5" />
                                         </div>
-                                        <div className="space-y-1">
-                                            <p className="text-sm font-semibold text-white">{title}</p>
+                                        <div className="space-y-1.5 min-w-0 flex-1">
+                                            <p className="text-sm font-semibold leading-snug text-white">{title}</p>
                                             <p className="text-xs leading-relaxed text-white/65">{description}</p>
                                         </div>
                                     </div>
@@ -408,182 +438,24 @@ export default function CirclesIndex({
                     </div>
                 </section>
 
-                <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-                    <div className="space-y-6 rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-8 shadow-[0_45px_100px_-65px_rgba(249,115,22,0.55)]">
-                        <header className="space-y-2">
-                            <p className="text-xs uppercase tracking-[0.35em] text-white/55">
-                                Tune the directory
-                            </p>
-                            <h2 className="text-2xl font-semibold tracking-tight">Dial in your vibe</h2>
-                            <p className="text-sm text-white/65">
-                                Search by keywords, spotlight a specific interest, and show only the circles you already
-                                belong to or the most active crews on the network.
-                            </p>
-                        </header>
-
-                        <form onSubmit={submitSearch} className="space-y-6">
-                            <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_260px] lg:grid-cols-[minmax(0,1fr)_260px_190px]">
-                        <Input
-                            value={searchInput}
-                            onChange={(event) => setSearchInput(event.target.value)}
-                            placeholder="Search by title, tagline, or keywords…"
-                            className="border-white/15 bg-black/40 text-white placeholder:text-white/45"
-                        />
-
-                        <Select
-                                    value={safeFilters.interest ?? 'all'}
-                                    onValueChange={(value) =>
-                                        applyFilters({
-                                            interest: value === 'all' ? null : value,
-                                            page: 1,
-                                        })
-                                    }
-                        >
-                            <SelectTrigger className="border-white/15 bg-black/40 text-white">
-                                <SelectValue placeholder="All interests" />
-                            </SelectTrigger>
-                            <SelectContent className="border-white/10 bg-black/90 text-white">
-                                        <SelectItem value="all" className="text-sm">
-                                    All interests
-                                </SelectItem>
-                                {interestOptions.map((interest) => (
-                                    <SelectItem
-                                        key={interest.slug}
-                                        value={interest.slug}
-                                        className="text-sm"
-                                    >
-                                        {interest.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-
-                        <div className="flex items-center justify-end gap-3">
-                            <Toggle
-                                pressed={joinedOnly}
-                                onPressedChange={(pressed) =>
-                                    applyFilters({ joined: pressed || undefined, page: 1 })
-                                }
-                                className={cn(
-                                            'rounded-full border border-white/15 px-4 py-2 text-xs uppercase tracking-[0.3em] transition data-[state=on]:border-emerald-400/40 data-[state=on]:bg-emerald-500/15 data-[state=on]:text-emerald-100',
-                                            joinedOnly ? 'text-emerald-100' : 'text-white/70',
-                                )}
-                            >
-                                Joined only
-                            </Toggle>
-                            <Button
-                                type="submit"
-                                size="sm"
-                                        className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-6 text-xs font-semibold uppercase tracking-[0.3em] text-white shadow-[0_22px_55px_-30px_rgba(249,115,22,0.65)] transition hover:scale-[1.03]"
-                            >
-                                Search
-                            </Button>
-                        </div>
-                            </div>
-
-                            <div className="flex flex-wrap items-center justify-between gap-4">
-                                <div className="space-y-1">
-                                    <p className="text-xs uppercase tracking-[0.35em] text-white/55">
-                                        Sort results
-                                    </p>
-                                    <p className="text-xs text-white/60">
-                                        Choose how the directory orders circles for you.
-                                    </p>
-                                </div>
-                    <ToggleGroup
-                        type="single"
-                        value={currentSort}
-                        onValueChange={(value) => {
-                            if (value) {
-                                applyFilters({ sort: value, page: 1 });
-                            }
-                        }}
-                                    className="flex w-full overflow-hidden rounded-full border border-white/15 bg-black/30 text-xs text-white/70 sm:w-auto"
-                        variant="outline"
-                    >
-                                    <ToggleGroupItem
-                                        value="featured"
-                                        className="flex-1 px-4 py-2 transition data-[state=on]:bg-white/15 data-[state=on]:text-white/95"
-                                    >
-                            Featured
-                        </ToggleGroupItem>
-                                    <ToggleGroupItem
-                                        value="recent"
-                                        className="flex-1 px-4 py-2 transition data-[state=on]:bg-white/15 data-[state=on]:text-white/95"
-                                    >
-                            Newest
-                        </ToggleGroupItem>
-                                    <ToggleGroupItem
-                                        value="members"
-                                        className="flex-1 px-4 py-2 transition data-[state=on]:bg-white/15 data-[state=on]:text-white/95"
-                                    >
-                            Most active
-                        </ToggleGroupItem>
-                    </ToggleGroup>
-                            </div>
-                        </form>
-                    </div>
-
-                    <div className="space-y-5 rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-8 shadow-[0_45px_100px_-65px_rgba(59,130,246,0.45)]">
-                        <div className="space-y-2">
-                            <p className="text-xs uppercase tracking-[0.35em] text-white/55">
-                                Quick sparks
-                            </p>
-                            <p className="text-sm text-white/65">
-                                Explore popular interests to immediately connect with crews that fit your energy.
-                            </p>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                            {spotlightInterests.map((interest) => (
-                                <Badge
-                                    key={`spotlight-${interest.slug}`}
-                                    className="rounded-full border-white/20 bg-white/10 px-3 py-1 text-xs text-white/75"
-                                >
-                                    {interest.name}
-                                </Badge>
-                            ))}
-                            {spotlightInterests.length === 0 && (
-                                <p className="text-xs text-white/60">
-                                    Interests will appear here as soon as they’re configured.
-                                </p>
-                            )}
-                        </div>
-
-                        <div className="rounded-2xl border border-white/10 bg-black/35 p-5 text-sm text-white/70">
-                            {joinedCirclesCount > 0 ? (
-                                <>
-                                    You’re currently active in{' '}
-                                    <span className="font-semibold text-white">{joinedCirclesCount}</span>{' '}
-                                    {joinedCirclesCount === 1 ? 'circle' : 'circles'} shown on this page. Keep joining to unlock
-                                    richer recommendations and concierge spotlights.
-                                </>
-                            ) : (
-                                <>
-                                    You haven’t joined any of the circles in this view yet. Jump into a crew to unlock tailored
-                                    recommendations and member-only drops.
-                                </>
-                            )}
-                        </div>
-                    </div>
-                </section>
-
-                {featuredList.length > 0 && (
-                    <section className="space-y-6 rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-8 shadow-[0_50px_110px_-70px_rgba(249,115,22,0.55)]">
+                {joinedCirclesList.length > 0 && (
+                    <section className="space-y-6 rounded-3xl border border-white/10 bg-gradient-to-br from-emerald-500/10 via-transparent to-emerald-600/5 p-6 sm:p-8 shadow-[0_50px_110px_-70px_rgba(16,185,129,0.4)]">
                         <header className="flex flex-wrap items-center justify-between gap-3">
-                            <div>
-                                <h2 className="text-2xl font-semibold tracking-tight">Concierge spotlights</h2>
+                            <div className="space-y-1">
+                                <h2 className="text-2xl font-semibold tracking-tight">Your circles</h2>
                                 <p className="text-sm text-white/65">
-                                    Hand-picked circles with high signal, active moderators, and specialty programming.
+                                    Circles you've joined and are actively participating in.
                                 </p>
                             </div>
-                            <Badge className="rounded-full border-amber-400/40 bg-amber-400/20 text-[0.6rem] uppercase tracking-[0.35em] text-amber-100">
-                                Weekly feature
+                            <Badge className="rounded-full border-emerald-400/40 bg-emerald-500/20 px-3 py-1 text-[0.6rem] font-medium uppercase tracking-[0.35em] text-emerald-100">
+                                <CheckCircle2 className="mr-1.5 inline-block size-3" />
+                                {joinedCirclesList.length} {joinedCirclesList.length === 1 ? 'circle' : 'circles'}
                             </Badge>
                         </header>
 
-                        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-                            {featuredList.map((circle) => (
-                                <CircleCard key={`featured-${circle.id}`} circle={circle} />
+                        <div className="space-y-3">
+                            {joinedCirclesList.map((circle) => (
+                                <JoinedCircleCard key={`joined-${circle.id}`} circle={circle} />
                             ))}
                         </div>
                     </section>
@@ -591,97 +463,53 @@ export default function CirclesIndex({
 
                 <section className="space-y-6">
                     <header className="flex flex-wrap items-center justify-between gap-3">
-                        <div>
+                        <div className="space-y-1">
                             <h2 className="text-2xl font-semibold tracking-tight">All circles</h2>
                             <p className="text-sm text-white/65">
-                            Page {circleCollection.meta.current_page} of{' '}
-                            {Math.max(
-                                1,
-                                Math.ceil(
+                                Page {circleCollection.meta.current_page} of{' '}
+                                {Math.max(
+                                    1,
+                                    Math.ceil(
                                         (circleCollection.meta.total || circleCollection.data.length) /
                                             (circleCollection.meta.per_page || circleCollection.data.length || 1),
-                                ),
+                                    ),
                                 )}{' '}
                                 · Showing {circleCollection.data.length} results.
-                        </p>
-                    </div>
+                            </p>
+                        </div>
+                        <SuggestCircleDialog
+                            trigger={
+                                <Button
+                                    size="sm"
+                                    className="rounded-full border-white/20 bg-white/10 px-4 py-2 text-xs font-medium text-white transition-colors hover:border-amber-400/40 hover:bg-amber-500/20 hover:text-amber-50"
+                                >
+                                    <Lightbulb className="mr-2 size-4" />
+                                    Suggest a circle
+                                </Button>
+                            }
+                        />
                     </header>
 
-                    <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-                        {circleCollection.data.map((circle) => (
-                            <CircleCard key={circle.id} circle={circle} />
-                        ))}
-                    </div>
-
-                    <Pagination
-                        meta={paginationMeta}
-                        onPageChange={(page) => applyFilters({ page })}
-                        className="bg-black/30"
-                    />
-                </section>
-
-                {recommended.length > 0 && (
-                    <section className="space-y-6 rounded-3xl border border-white/10 bg-gradient-to-br from-black/60 via-black/40 to-black/25 p-6 sm:p-8 shadow-[0_55px_120px_-75px_rgba(59,130,246,0.55)]">
-                        <header className="flex flex-wrap items-center justify-between gap-3">
-                            <div>
-                                <h3 className="text-2xl font-semibold tracking-tight">Circles you already resonate with</h3>
-                                <p className="text-sm text-white/70">
-                                    Based on your memberships, saved posts, and creator follows. Lean in or explore similar crews.
-                                </p>
+                    {circleCollection.data.length > 0 ? (
+                        <>
+                            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                                {circleCollection.data.map((circle) => (
+                                    <CircleCard key={circle.id} circle={circle} />
+                                ))}
                             </div>
-                        </header>
 
-                        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-                            {recommended.map((circle) => (
-                                <Card
-                                    key={`recommended-${circle.id}`}
-                                    className="relative overflow-hidden border-white/10 bg-black/35 text-white shadow-[0_45px_100px_-70px_rgba(59,130,246,0.55)] transition hover:border-emerald-400/30 hover:bg-black/45"
-                                >
-                                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-emerald-400/15 via-transparent to-cyan-500/15 opacity-0 transition-opacity duration-200 hover:opacity-100" />
-                                    <CardHeader className="relative space-y-2">
-                                        <CardTitle className="text-base font-semibold">
-                                            <Link
-                                                href={circlesShow.url(circle.slug)}
-                                                className="transition hover:text-white/80"
-                                            >
-                                                {circle.name}
-                                            </Link>
-                                        </CardTitle>
-                                        {circle.tagline && (
-                                            <CardDescription className="text-xs text-white/65">
-                                                {circle.tagline}
-                                            </CardDescription>
-                                        )}
-                                    </CardHeader>
-                                    <CardContent className="relative space-y-3 text-xs text-white/60">
-                                        <div className="flex flex-wrap gap-2">
-                                            <Badge className="rounded-full border-white/15 bg-white/10 px-3 py-1 text-[0.65rem] uppercase tracking-[0.3em] text-white/70">
-                                                {circle.interest?.name ?? 'Circle'}
-                                            </Badge>
-                                            <Badge className="rounded-full border-white/15 bg-white/10 px-3 py-1 text-[0.65rem] uppercase tracking-[0.3em] text-white/70">
-                                                {numberFormatter.format(circle.membersCount ?? 0)} members
-                                            </Badge>
-                                        </div>
-                                        <p>
-                                            Curated segments: {extractFacets(circle.facets as CircleFacet[] | CircleFacetRelationship).length}
-                                        </p>
-                                    </CardContent>
-                                    <CardFooter className="relative flex items-center justify-between border-t border-white/10 px-6 py-4 text-xs text-white/75">
-                                        <Link
-                                            href={circlesShow.url(circle.slug)}
-                                            className="underline-offset-4 transition hover:text-white hover:underline"
-                                        >
-                                            Visit circle
-                                        </Link>
-                                        <span className="text-white/55">
-                                            Visibility: {circle.visibility}
-                                        </span>
-                                    </CardFooter>
-                                </Card>
-                            ))}
+                            <Pagination
+                                meta={paginationMeta}
+                                onPageChange={(page) => applyFilters({ page })}
+                                className="bg-black/30"
+                            />
+                        </>
+                    ) : (
+                        <div className="rounded-3xl border border-white/10 bg-black/30 p-12 text-center">
+                            <p className="text-white/70">No circles found matching your filters.</p>
                         </div>
-                    </section>
-                )}
+                    )}
+                </section>
             </div>
         </AppLayout>
     );

@@ -23,6 +23,7 @@ import {
     BarChart3,
     Bell,
     Bookmark,
+    BookOpen,
     CalendarRange,
     Cog,
     Flame,
@@ -141,6 +142,16 @@ export function AppSidebar() {
             href: '/signals',
             icon: Sparkles,
             items: [
+                {
+                    title: 'Setup',
+                    href: '/signals/setup',
+                    icon: LayoutDashboard,
+                },
+                {
+                    title: 'Playbooks',
+                    href: '/signals/playbooks',
+                    icon: BookOpen,
+                },
                 {
                     title: 'Overview',
                     href: '/signals',

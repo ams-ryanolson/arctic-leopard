@@ -15,6 +15,8 @@ Schedule::command('uploads:clean-temp')->hourly();
 Schedule::command('payments:expire-pending')->everyFifteenMinutes();
 Schedule::command('subscriptions:expire')->hourly();
 Schedule::command('subscriptions:send-renewal-reminders')->twiceDaily(9, 21);
+Schedule::command('exports:cleanup-expired')->daily();
+Schedule::command('verification:check-expirations')->daily();
 Schedule::job(new PostMetricsAggregatorJob)->dailyAt('01:30');
 Schedule::job(new GenerateAdReport(Carbon::yesterday()))
     ->daily()

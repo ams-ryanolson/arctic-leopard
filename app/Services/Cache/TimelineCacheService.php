@@ -14,8 +14,7 @@ class TimelineCacheService
 {
     public function __construct(
         private int $ttlSeconds = 60,
-    ) {
-    }
+    ) {}
 
     /**
      * Cache the following feed payload for the given user / page.
@@ -58,12 +57,13 @@ class TimelineCacheService
         int $perPage,
         Closure $resolver,
         string $pageName = 'page',
+        ?string $facetValue = null,
     ): array {
         $viewerKey = $viewer?->getKey() ?? 'guest';
 
         return Cache::tags($this->tagsForCircle($circle->getKey()))
             ->remember(
-                $this->circleFeedCacheKey($circle->getKey(), $viewerKey, $perPage, $pageName, $page),
+                $this->circleFeedCacheKey($circle->getKey(), $viewerKey, $perPage, $pageName, $page, $facetValue),
                 $this->ttlSeconds,
                 $resolver,
             );
@@ -203,9 +203,10 @@ class TimelineCacheService
         return "timeline:user-feed:{$profileId}:viewer:{$viewerKey}:page:{$page}";
     }
 
-    private function circleFeedCacheKey(int $circleId, int|string $viewerKey, int $perPage, string $pageName, int $page): string
+    private function circleFeedCacheKey(int $circleId, int|string $viewerKey, int $perPage, string $pageName, int $page, ?string $facetValue = null): string
     {
-        return "timeline:circle-feed:{$circleId}:viewer:{$viewerKey}:per-page:{$perPage}:page-name:{$pageName}:page:{$page}";
+        $facetSuffix = $facetValue !== null ? ":facet:{$facetValue}" : '';
+
+        return "timeline:circle-feed:{$circleId}:viewer:{$viewerKey}:per-page:{$perPage}:page-name:{$pageName}:page:{$page}{$facetSuffix}";
     }
 }
-

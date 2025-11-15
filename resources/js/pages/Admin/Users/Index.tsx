@@ -1,10 +1,20 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Pagination } from '@/components/ui/pagination';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import AppLayout from '@/layouts/app-layout';
 import adminRoutes from '@/routes/admin';
@@ -13,8 +23,18 @@ import { type Paginated } from '@/types/feed';
 import { type SharedData } from '@/types';
 import { router, Head, usePage } from '@inertiajs/react';
 import { formatDistanceToNow } from 'date-fns';
-import { Check, ChevronDown, Loader2, Search } from 'lucide-react';
+import { AlertCircle, Check, ChevronDown, CheckCircle2, Clock, Loader2, Search, ShieldCheck } from 'lucide-react';
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+
+type VerificationStatus = {
+    status: string;
+    verified_at?: string | null;
+    expires_at?: string | null;
+    renewal_required_at?: string | null;
+    is_expired?: boolean;
+    is_in_grace_period?: boolean;
+    needs_renewal?: boolean;
+} | null;
 
 type AdminUser = {
     id: number;
@@ -25,6 +45,7 @@ type AdminUser = {
     avatar_url?: string | null;
     created_at?: string | null;
     roles: string[];
+    verification?: VerificationStatus;
 };
 
 type LegacyPaginator<T> = {
@@ -82,6 +103,9 @@ export default function AdminUsersIndex({ users, filters, availableRoles }: Admi
     );
     const [pendingAssignments, setPendingAssignments] = useState<Record<number, boolean>>({});
     const [flashMessage, setFlashMessage] = useState<string | null>(null);
+    const [reverificationDialogOpen, setReverificationDialogOpen] = useState<number | null>(null);
+    const [reverificationNote, setReverificationNote] = useState<string>('');
+    const [processingReverification, setProcessingReverification] = useState<number | null>(null);
 
     useEffect(() => {
         setAssignments(Object.fromEntries(normalizedUsers.data.map((user) => [user.id, [...user.roles]])));
@@ -214,6 +238,81 @@ export default function AdminUsersIndex({ users, filters, availableRoles }: Admi
 
     const currentUserId = auth?.user?.id ?? null;
 
+    const handleRequireReverification = useCallback((userId: number) => {
+        if (processingReverification === userId) {
+            return;
+        }
+
+        setProcessingReverification(userId);
+
+        router.post(
+            adminUsersRoutes.requireReverification.url(userId),
+            {
+                compliance_note: reverificationNote,
+            },
+            {
+                preserveScroll: true,
+                onFinish: () => {
+                    setProcessingReverification(null);
+                    setReverificationDialogOpen(null);
+                    setReverificationNote('');
+                },
+            },
+        );
+    }, [processingReverification, reverificationNote]);
+
+    const getVerificationBadge = (verification: VerificationStatus | null | undefined) => {
+        if (!verification) {
+            return (
+                <Badge className="rounded-full border-white/15 bg-white/10 text-xs text-white/60">
+                    Not Verified
+                </Badge>
+            );
+        }
+
+        if (verification.status === 'approved' && !verification.is_expired) {
+            return (
+                <Badge className="rounded-full border-emerald-400/30 bg-emerald-400/10 text-xs text-emerald-300">
+                    <CheckCircle2 className="mr-1 size-3" />
+                    Verified
+                </Badge>
+            );
+        }
+
+        if (verification.status === 'renewal_required' || verification.needs_renewal) {
+            return (
+                <Badge className="rounded-full border-amber-400/30 bg-amber-400/10 text-xs text-amber-300">
+                    <Clock className="mr-1 size-3" />
+                    Renewal Required
+                </Badge>
+            );
+        }
+
+        if (verification.status === 'rejected') {
+            return (
+                <Badge className="rounded-full border-red-400/30 bg-red-400/10 text-xs text-red-300">
+                    <AlertCircle className="mr-1 size-3" />
+                    Rejected
+                </Badge>
+            );
+        }
+
+        if (verification.status === 'pending') {
+            return (
+                <Badge className="rounded-full border-blue-400/30 bg-blue-400/10 text-xs text-blue-300">
+                    <Loader2 className="mr-1 size-3 animate-spin" />
+                    Pending
+                </Badge>
+            );
+        }
+
+        return (
+            <Badge className="rounded-full border-white/15 bg-white/10 text-xs text-white/60">
+                {verification.status}
+            </Badge>
+        );
+    };
+
     return (
         <AppLayout
             breadcrumbs={[
@@ -333,6 +432,7 @@ export default function AdminUsersIndex({ users, filters, availableRoles }: Admi
                             <tr>
                                 <th className="px-5 py-3 text-left">User</th>
                                 <th className="px-5 py-3 text-left">Roles</th>
+                                <th className="px-5 py-3 text-left">Verification</th>
                                 <th className="px-5 py-3 text-left">Joined</th>
                                 <th className="px-5 py-3 text-right">Actions</th>
                             </tr>
@@ -340,7 +440,7 @@ export default function AdminUsersIndex({ users, filters, availableRoles }: Admi
                         <tbody className="divide-y divide-white/10">
                             {normalizedUsers.data.length === 0 ? (
                                 <tr>
-                                    <td colSpan={4} className="px-5 py-10 text-center text-white/55">
+                                    <td colSpan={5} className="px-5 py-10 text-center text-white/55">
                                         No users matched your filters. Try adjusting your search or role selection.
                                     </td>
                                 </tr>
@@ -400,6 +500,16 @@ export default function AdminUsersIndex({ users, filters, availableRoles }: Admi
                                                     )}
                                                 </div>
                                             </td>
+                                            <td className="px-5 py-4">
+                                                <div className="space-y-1">
+                                                    {getVerificationBadge(user.verification)}
+                                                    {user.verification?.expires_at && (
+                                                        <p className="text-xs text-white/50">
+                                                            Expires: {new Date(user.verification.expires_at).toLocaleDateString()}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </td>
                                             <td className="px-5 py-4 text-sm text-white/60">
                                                 {user.created_at
                                                     ? formatDistanceToNow(new Date(user.created_at), { addSuffix: true })
@@ -449,6 +559,17 @@ export default function AdminUsersIndex({ users, filters, availableRoles }: Admi
                                                                 </DropdownMenuCheckboxItem>
                                                             );
                                                         })}
+                                                        <DropdownMenuSeparator className="bg-white/10" />
+                                                        <DropdownMenuLabel className="text-xs uppercase tracking-[0.3em] text-white/60">
+                                                            Verification
+                                                        </DropdownMenuLabel>
+                                                        <DropdownMenuItem
+                                                            onSelect={() => setReverificationDialogOpen(user.id)}
+                                                            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-white/85 focus:bg-white/10 focus:text-white"
+                                                        >
+                                                            <ShieldCheck className="size-4" />
+                                                            <span>Require Re-verification</span>
+                                                        </DropdownMenuItem>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
                                             </td>
@@ -461,6 +582,78 @@ export default function AdminUsersIndex({ users, filters, availableRoles }: Admi
                 </div>
 
                 <Pagination meta={paginationMeta} onPageChange={handlePageChange} />
+
+                <Dialog
+                    open={reverificationDialogOpen !== null}
+                    onOpenChange={(open) => {
+                        if (!open && !processingReverification) {
+                            setReverificationDialogOpen(null);
+                            setReverificationNote('');
+                        }
+                    }}
+                >
+                    <DialogContent className="border-white/10 bg-neutral-950 text-white sm:max-w-lg">
+                        <DialogHeader>
+                            <DialogTitle className="text-xl font-semibold">
+                                Require ID Verification Renewal
+                            </DialogTitle>
+                            <DialogDescription className="text-white/60">
+                                This will require the user to complete a new ID verification. Please provide a compliance note explaining the reason.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="compliance-note" className="text-white">
+                                    Compliance Note <span className="text-red-400">*</span>
+                                </Label>
+                                <Textarea
+                                    id="compliance-note"
+                                    value={reverificationNote}
+                                    onChange={(e) => setReverificationNote(e.target.value)}
+                                    placeholder="Explain why this user needs to re-verify their ID..."
+                                    className="bg-white/5 border-white/10 text-white placeholder:text-white/40 min-h-[100px]"
+                                    required
+                                />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={() => {
+                                    if (!processingReverification) {
+                                        setReverificationDialogOpen(null);
+                                        setReverificationNote('');
+                                    }
+                                }}
+                                disabled={processingReverification !== null}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                type="button"
+                                onClick={() => {
+                                    if (reverificationDialogOpen !== null && reverificationNote.trim()) {
+                                        handleRequireReverification(reverificationDialogOpen);
+                                    }
+                                }}
+                                disabled={!reverificationNote.trim() || processingReverification !== null}
+                            >
+                                {processingReverification !== null ? (
+                                    <>
+                                        <Loader2 className="mr-2 size-4 animate-spin" />
+                                        Processing...
+                                    </>
+                                ) : (
+                                    <>
+                                        <ShieldCheck className="mr-2 size-4" />
+                                        Require Renewal
+                                    </>
+                                )}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
         </AppLayout>
     );

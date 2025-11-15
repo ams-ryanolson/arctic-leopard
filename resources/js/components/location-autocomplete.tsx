@@ -11,6 +11,7 @@ export interface LocationSuggestion {
     city: string;
     region: string;
     country: string;
+    country_code?: string;
     latitude: string;
     longitude: string;
 }
@@ -22,6 +23,7 @@ interface LocationAutocompleteProps {
     error?: string;
     status?: 'idle' | 'locating' | 'acquired' | 'denied';
     autoActive?: boolean;
+    includeAddresses?: boolean; // When true, includes addresses, venues, buildings. When false, only cities/regions.
 }
 
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
@@ -33,6 +35,7 @@ export function LocationAutocomplete({
     error,
     status = 'idle',
     autoActive = false,
+    includeAddresses = false,
 }: LocationAutocompleteProps) {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<LocationSuggestion[]>([]);
@@ -55,9 +58,11 @@ export function LocationAutocomplete({
             try {
                 const url = new URL(NOMINATIM_URL);
                 url.searchParams.set('format', 'json');
-                url.searchParams.set('limit', '5');
+                url.searchParams.set('limit', '10');
                 url.searchParams.set('addressdetails', '1');
                 url.searchParams.set('q', query);
+                // Include various place types: addresses, amenities, buildings, etc.
+                url.searchParams.set('dedupe', '1');
 
                 const response = await fetch(url.toString(), {
                     signal: controller.signal,
@@ -82,27 +87,110 @@ export function LocationAutocomplete({
                     data
                         .map((item) => {
                             const address = item.address ?? {};
+                            
+                            // Extract city from various possible fields
                             const city =
                                 address.city ??
                                 address.town ??
                                 address.village ??
                                 address.hamlet ??
                                 address.municipality ??
+                                address.suburb ??
+                                address.neighbourhood ??
                                 '';
-                            const region = address.state ?? address.region ?? address.county ?? '';
+                            
+                            // Extract region/state
+                            const region = address.state ?? address.region ?? address.county ?? address.province ?? '';
+                            
+                            // Extract country
                             const country = address.country ?? '';
-                            const label = [city, region, country].filter(Boolean).join(', ');
+                            const countryCode = address.country_code?.toUpperCase() ?? undefined;
+                            
+                            // If includeAddresses is false, only return city/region results
+                            if (!includeAddresses) {
+                                // Filter out addresses, buildings, amenities - only cities/regions
+                                if (address.road || address.house_number || address.building || address.amenity) {
+                                    return null;
+                                }
+                                
+                                // Require city for city-only mode
+                                if (!city) {
+                                    return null;
+                                }
+                                
+                                const label = [city, region, country].filter(Boolean).join(', ');
+                                
+                                return {
+                                    id: item.place_id,
+                                    label: label || item.display_name,
+                                    city,
+                                    region,
+                                    country,
+                                    country_code: countryCode,
+                                    latitude: item.lat,
+                                    longitude: item.lon,
+                                } satisfies LocationSuggestion;
+                            }
+                            
+                            // Address mode: include addresses, venues, buildings
+                            // Build label - use display_name for addresses/venues, or build from components
+                            let label = item.display_name;
+                            
+                            // If it's a specific address or venue, use the display_name
+                            // Otherwise, build from city, region, country
+                            if (address.road || address.house_number || address.building || address.amenity) {
+                                // It's an address or venue - use display_name as-is
+                                label = item.display_name;
+                            } else {
+                                // It's a broader location - build from components
+                                label = [city, region, country].filter(Boolean).join(', ');
+                            }
+                            
+                            // For addresses/venues without explicit city, try to extract from display_name
+                            let finalCity = city;
+                            if (!finalCity && item.display_name) {
+                                // Parse display_name which typically follows: "Name, City, Region, Country"
+                                const parts = item.display_name.split(',').map(p => p.trim());
+                                
+                                // Usually city is the second-to-last or third-to-last part
+                                // Skip the last part (country) and potentially region
+                                for (let i = parts.length - 2; i >= 0; i--) {
+                                    const part = parts[i];
+                                    // Skip if it looks like a street address, postal code, or is too short
+                                    if (
+                                        !part.match(/^\d+/) && 
+                                        !part.match(/^\d{4,}/) && // postal codes
+                                        part.length > 2 &&
+                                        !part.match(/^(street|st|avenue|ave|road|rd|boulevard|blvd|drive|dr|way|lane|ln)/i)
+                                    ) {
+                                        finalCity = part;
+                                        break;
+                                    }
+                                }
+                                
+                                // Fallback: if still no city, use the first non-address part
+                                if (!finalCity && parts.length > 1) {
+                                    for (const part of parts.slice(0, -1)) {
+                                        if (!part.match(/^\d+/) && part.length > 2) {
+                                            finalCity = part;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
 
-                            if (!city || !country) {
+                            // Require at least country for valid results
+                            if (!country) {
                                 return null;
                             }
 
                             return {
                                 id: item.place_id,
                                 label: label || item.display_name,
-                                city,
+                                city: finalCity || city || '',
                                 region,
                                 country,
+                                country_code: countryCode,
                                 latitude: item.lat,
                                 longitude: item.lon,
                             } satisfies LocationSuggestion;
@@ -122,7 +210,7 @@ export function LocationAutocomplete({
             controller.abort();
             clearTimeout(timer);
         };
-    }, [query]);
+    }, [query, includeAddresses]);
 
     const showDropdown = useMemo(
         () =>
@@ -175,7 +263,7 @@ export function LocationAutocomplete({
             </div>
 
             {showDropdown && (
-                <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-white/10 bg-black/80 backdrop-blur">
+                <div className="absolute z-50 mt-2 w-full overflow-hidden rounded-xl border border-white/10 bg-black/80 backdrop-blur">
                     {isLoading && (
                         <div className="flex items-center gap-2 px-4 py-3 text-sm text-white/60">
                             <Spinner className="size-4" />

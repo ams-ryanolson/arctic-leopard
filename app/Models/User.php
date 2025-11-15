@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Pagination\AbstractCursorPaginator;
@@ -111,6 +112,7 @@ class User extends Authenticatable
             'profile_completed_at' => 'datetime',
             'requires_follow_approval' => 'bool',
             'is_traveling' => 'bool',
+            'creator_status_disabled_at' => 'datetime',
         ];
     }
 
@@ -660,5 +662,135 @@ class User extends Authenticatable
         $entitlements = app(EntitlementService::class);
 
         return $entitlements->hasActiveSubscription($subscriber, $this);
+    }
+
+    /**
+     * Notification preferences for the user.
+     *
+     * @return HasOne<UserNotificationPreference>
+     */
+    public function notificationPreferences(): HasOne
+    {
+        return $this->hasOne(UserNotificationPreference::class);
+    }
+
+    /**
+     * Data exports for the user.
+     *
+     * @return HasMany<UserDataExport>
+     */
+    public function dataExports(): HasMany
+    {
+        return $this->hasMany(UserDataExport::class);
+    }
+
+    /**
+     * Verifications for the user.
+     *
+     * @return HasMany<Verification>
+     */
+    public function verifications(): HasMany
+    {
+        return $this->hasMany(Verification::class);
+    }
+
+    /**
+     * Latest verification for the user.
+     *
+     * @return HasOne<Verification>
+     */
+    public function latestVerification(): HasOne
+    {
+        return $this->hasOne(Verification::class)->latestOfMany();
+    }
+
+    /**
+     * Check if the user is ID verified.
+     */
+    public function isIdVerified(): bool
+    {
+        $latest = $this->latestVerification;
+
+        if ($latest === null) {
+            return false;
+        }
+
+        return $latest->isApproved() && ! $latest->isExpired();
+    }
+
+    /**
+     * Check if the user's ID verification is not expired.
+     */
+    public function idVerificationNotExpired(): bool
+    {
+        $latest = $this->latestVerification;
+
+        if ($latest === null) {
+            return false;
+        }
+
+        return ! $latest->isExpired();
+    }
+
+    /**
+     * Check if the user's ID verification is in grace period.
+     */
+    public function idVerificationInGracePeriod(): bool
+    {
+        $latest = $this->latestVerification;
+
+        if ($latest === null) {
+            return false;
+        }
+
+        return $latest->isInGracePeriod();
+    }
+
+    /**
+     * Check if the user's creator status is disabled.
+     */
+    public function isCreatorStatusDisabled(): bool
+    {
+        return $this->creator_status_disabled_at !== null;
+    }
+
+    /**
+     * Check if the user can become a creator.
+     */
+    public function canBecomeCreator(): bool
+    {
+        return $this->isIdVerified() && $this->idVerificationNotExpired();
+    }
+
+    /**
+     * Require ID verification renewal for the user.
+     */
+    public function requireIdVerificationRenewal(?string $note = null): void
+    {
+        $latest = $this->latestVerification;
+
+        if ($latest === null) {
+            return;
+        }
+
+        $latest->update([
+            'status' => \App\Enums\VerificationStatus::RenewalRequired,
+            'renewal_required_at' => now(),
+            'compliance_note' => $note,
+        ]);
+    }
+
+    /**
+     * Disable creator status for the user.
+     */
+    public function disableCreatorStatus(): void
+    {
+        $this->update(['creator_status_disabled_at' => now()]);
+
+        $latest = $this->latestVerification;
+
+        if ($latest !== null && $latest->creator_status_disabled_at === null) {
+            $latest->update(['creator_status_disabled_at' => now()]);
+        }
     }
 }

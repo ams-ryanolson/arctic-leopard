@@ -168,6 +168,7 @@ class FeedService
         int $page,
         int $perPage,
         Request $request,
+        ?string $facetValue = null,
         string $pageName = 'page',
     ): array {
         return app(TimelineCacheService::class)->rememberCircleFeed(
@@ -175,16 +176,48 @@ class FeedService
             $viewer,
             $page,
             $perPage,
-            function () use ($circle, $viewer, $page, $perPage, $pageName, $request) {
-                $posts = $circle->posts()
+            function () use ($circle, $viewer, $page, $perPage, $pageName, $request, $facetValue) {
+                $postsQuery = $circle->posts()
                     ->with([
-                        'author' => static fn ($author) => $author->select('id', 'name', 'username', 'display_name', 'avatar_path'),
+                        'author' => static fn ($author) => $author->select('id', 'name', 'username', 'display_name', 'avatar_path', 'gender', 'role'),
                         'media',
                         'poll.options',
                         'hashtags',
                     ])
                     ->withCount(['bookmarks as bookmark_count'])
-                    ->visibleTo($viewer)
+                    ->visibleTo($viewer);
+
+                // Apply facet filtering if a facet is specified
+                if ($facetValue !== null) {
+                    $facet = $circle->facets()
+                        ->where('value', $facetValue)
+                        ->first();
+
+                    if ($facet !== null && $facet->filters !== null) {
+                        $filters = $facet->filters;
+
+                        // Filter by gender if specified
+                        if (isset($filters['gender']) && is_array($filters['gender']) && count($filters['gender']) > 0) {
+                            $postsQuery->whereHas('author', function ($query) use ($filters): void {
+                                $query->whereIn('gender', $filters['gender']);
+                            });
+                        }
+
+                        // Filter by role range if specified
+                        if (isset($filters['role_min']) || isset($filters['role_max'])) {
+                            $postsQuery->whereHas('author', function ($query) use ($filters): void {
+                                if (isset($filters['role_min'])) {
+                                    $query->where('role', '>=', $filters['role_min']);
+                                }
+                                if (isset($filters['role_max'])) {
+                                    $query->where('role', '<=', $filters['role_max']);
+                                }
+                            });
+                        }
+                    }
+                }
+
+                $posts = $postsQuery
                     ->latest('published_at')
                     ->paginate(perPage: $perPage, page: $page, pageName: $pageName)
                     ->withQueryString();
@@ -202,6 +235,7 @@ class FeedService
                 return $payload;
             },
             $pageName,
+            $facetValue,
         );
     }
 

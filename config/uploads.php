@@ -56,6 +56,15 @@ return [
         'image/webp',
         'image/gif',
         'image/avif',
+        'audio/mpeg',
+        'audio/wav',
+        'audio/ogg',
+        'audio/mp4',
+        'audio/webm',
+        'video/mp4',
+        'video/webm',
+        'video/quicktime',
+        'video/x-msvideo',
     ],
 
     /*
@@ -70,5 +79,3 @@ return [
 
     'temporary_ttl_minutes' => (int) env('UPLOAD_TMP_TTL', 60),
 ];
-
-

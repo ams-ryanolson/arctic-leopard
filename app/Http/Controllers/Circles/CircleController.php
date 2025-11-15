@@ -2,21 +2,29 @@
 
 namespace App\Http\Controllers\Circles;
 
+use App\Enums\Ads\AdPlacement;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Circles\CircleFilterRequest;
+use App\Http\Requests\Circles\SuggestCircleRequest;
+use App\Http\Resources\Ads\AdCreativeResource;
 use App\Http\Resources\CircleResource;
+use App\Models\Ads\Ad;
 use App\Models\Circle;
+use App\Models\CircleSuggestion;
 use App\Models\Interest;
+use App\Services\Ads\AdServingService;
 use App\Services\Feed\FeedService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class CircleController extends Controller
 {
-    public function __construct(private readonly FeedService $feedService)
-    {
-    }
+    public function __construct(
+        private readonly FeedService $feedService,
+        private readonly AdServingService $adServingService,
+    ) {}
 
     /**
      * Display a listing of available circles.
@@ -65,18 +73,24 @@ class CircleController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        $featured = Circle::query()
-            ->with('interest')
-            ->withCount('members as members_count')
-            ->when($user, fn ($query) => $query->with([
-                'members' => fn ($members) => $members
-                    ->select('users.id')
-                    ->where('user_id', $user->getKey()),
-            ]))
-            ->where('is_featured', true)
-            ->orderBy('sort_order')
-            ->take(6)
-            ->get();
+        $joinedCircles = collect();
+
+        if ($user) {
+            $joinedCircles = Circle::query()
+                ->with(['interest'])
+                ->withCount('members as members_count')
+                ->with(['facets' => fn ($query) => $query->orderBy('sort_order')])
+                ->with([
+                    'members' => fn ($members) => $members
+                        ->select('users.id')
+                        ->where('user_id', $user->getKey()),
+                ])
+                ->whereHas('members', fn ($query) => $query->where('user_id', $user->getKey()))
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->take(12)
+                ->get();
+        }
 
         $interestOptions = Interest::query()
             ->orderBy('name')
@@ -94,7 +108,7 @@ class CircleController extends Controller
                 'joined' => (bool) ($filters['joined'] ?? false),
                 'sort' => $filters['sort'] ?? null,
             ],
-            'featured' => CircleResource::collection($featured)->resolve($request),
+            'joinedCircles' => CircleResource::collection($joinedCircles)->resolve($request),
             'circles' => [
                 'data' => CircleResource::collection($paginator->getCollection())->resolve($request),
                 'meta' => [
@@ -122,15 +136,28 @@ class CircleController extends Controller
             'facets' => fn ($query) => $query->orderByDesc('is_default')->orderBy('sort_order'),
         ])->loadCount('members as members_count');
 
+        $membership = null;
         if ($user) {
             $circle->load([
                 'members' => fn ($members) => $members
                     ->select('users.id')
                     ->where('user_id', $user->getKey()),
             ]);
+
+            // Get membership to access preferences
+            $member = $circle->members->first();
+            if ($member !== null) {
+                $membership = $member->pivot;
+            }
         }
 
         $page = max(1, (int) $request->integer('page', 1));
+
+        // Determine which facet to use: query param > membership preference > default facet
+        $facetValue = $request->query('facet');
+        if ($facetValue === null && $membership !== null && isset($membership->preferences['facet'])) {
+            $facetValue = $membership->preferences['facet'];
+        }
 
         $postsPayload = $this->feedService->getCircleFeed(
             $circle,
@@ -138,6 +165,7 @@ class CircleController extends Controller
             $page,
             10,
             $request,
+            $facetValue,
         );
 
         return Inertia::render('Circles/Show', [
@@ -157,8 +185,112 @@ class CircleController extends Controller
                 ],
             ],
             'filters' => [
-                'facet' => $request->query('facet'),
+                'facet' => $facetValue,
             ],
+            'sidebarAds' => Inertia::defer(fn () => $this->getSidebarAds($user, $request)),
+        ]);
+    }
+
+    /**
+     * Get sidebar ads for circle page from all sidebar placements in equal rotation.
+     * Returns 1-2 ads, positioned away from each other.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function getSidebarAds(?\App\Models\User $user, Request $request): array
+    {
+        $context = [
+            'session_id' => $request->session()->getId(),
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ];
+
+        // Try circle sidebar placements first, then fall back to dashboard sidebar placements
+        $allPlacements = [
+            AdPlacement::CircleSidebarSmall,
+            AdPlacement::CircleSidebarMedium,
+            AdPlacement::CircleSidebarLarge,
+            AdPlacement::DashboardSidebarSmall,
+            AdPlacement::DashboardSidebarMedium,
+            AdPlacement::DashboardSidebarLarge,
+        ];
+
+        $allEligibleCreatives = collect();
+
+        // Collect all eligible creatives from all placements
+        foreach ($allPlacements as $placement) {
+            $ads = Ad::query()
+                ->eligible()
+                ->forPlacement($placement)
+                ->forViewer($user)
+                ->with(['creatives' => function ($query) use ($placement): void {
+                    $query->where('placement', $placement->value)
+                        ->where('is_active', true)
+                        ->where('review_status', 'approved')
+                        ->orderBy('display_order');
+                }])
+                ->get();
+
+            foreach ($ads as $ad) {
+                if ($this->adServingService->isEligible($ad, $user, $context)) {
+                    $creative = $ad->creatives
+                        ->where('placement', $placement->value)
+                        ->where('is_active', true)
+                        ->where('review_status', 'approved')
+                        ->first();
+
+                    if ($creative !== null) {
+                        $allEligibleCreatives->push([
+                            'creative' => $creative,
+                            'placement' => $placement,
+                        ]);
+                    }
+                }
+            }
+        }
+
+        if ($allEligibleCreatives->isEmpty()) {
+            return [];
+        }
+
+        // Randomly select 1-2 ads from the combined pool (equal rotation across all sizes)
+        $count = min($allEligibleCreatives->count(), mt_rand(1, 2));
+        $selected = $allEligibleCreatives->shuffle()->take($count);
+
+        $result = [];
+        foreach ($selected as $item) {
+            $creative = $item['creative'];
+            $placement = $item['placement'];
+
+            // Record impression
+            $this->adServingService->recordImpression(
+                $creative,
+                $placement,
+                $user,
+                $context
+            );
+
+            $result[] = (new AdCreativeResource($creative))->toArray($request);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Store a circle suggestion.
+     */
+    public function suggest(SuggestCircleRequest $request): RedirectResponse
+    {
+        CircleSuggestion::create([
+            'user_id' => $request->user()->id,
+            'name' => $request->validated()['name'],
+            'description' => $request->validated()['description'],
+            'status' => 'pending',
+        ]);
+
+        return back()->with('flash', [
+            'type' => 'success',
+            'message' => __('Your circle suggestion has been submitted. We\'ll review it and get back to you.'),
         ]);
     }
 }

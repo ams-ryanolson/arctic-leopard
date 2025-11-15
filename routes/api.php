@@ -19,21 +19,31 @@ use App\Http\Controllers\Posts\PostController;
 use App\Http\Controllers\Posts\PostLikeController;
 use App\Http\Controllers\Posts\PostViewController;
 use App\Http\Controllers\Posts\PurchaseController;
+use App\Http\Controllers\Settings\VerificationController;
+use App\Http\Controllers\Signals\PlaybookArticleLikeController;
 use App\Http\Controllers\Subscriptions\SubscriptionController;
 use App\Http\Controllers\Subscriptions\SubscriptionPlanController;
 use App\Http\Controllers\Webhooks\PaymentWebhookController;
+use App\Http\Controllers\Webhooks\SumsubWebhookController;
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Models\PlaybookArticle;
 use App\Models\Payments\PaymentSubscription;
 use App\Models\Payments\SubscriptionPlan;
+use Illuminate\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Route;
 
 Route::model('subscription', PaymentSubscription::class);
 Route::model('subscriptionPlan', SubscriptionPlan::class);
 Route::model('conversation', Conversation::class);
+Route::model('article', PlaybookArticle::class);
 Route::bind('message', static fn ($value) => Message::withTrashed()->findOrFail($value));
 
 Route::post('webhooks/payments/{provider}', [PaymentWebhookController::class, 'store'])->name('webhooks.payments.store');
+
+Route::post('webhooks/sumsub', [SumsubWebhookController::class, 'handle'])
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->name('webhooks.sumsub');
 
 Route::apiResource('posts', PostController::class)->only(['index', 'show']);
 Route::apiResource('posts.comments', CommentController::class)->only(['index']);
@@ -54,6 +64,9 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::post('posts/{post}/purchase', [PurchaseController::class, 'store'])->name('posts.purchase.store');
     Route::post('posts/{post}/like', [PostLikeController::class, 'store'])->name('posts.like.store');
     Route::delete('posts/{post}/like', [PostLikeController::class, 'destroy'])->name('posts.like.destroy');
+
+    Route::post('playbook-articles/{article}/like', [PlaybookArticleLikeController::class, 'store'])->name('playbook-articles.like.store');
+    Route::delete('playbook-articles/{article}/like', [PlaybookArticleLikeController::class, 'destroy'])->name('playbook-articles.like.destroy');
 
     Route::post('polls/{poll}/vote', [PollVoteController::class, 'store'])->name('polls.vote.store');
     Route::delete('polls/{poll}/vote/{vote}', [PollVoteController::class, 'destroy'])->name('polls.vote.destroy');
@@ -94,5 +107,11 @@ Route::middleware('auth:sanctum')->group(function (): void {
         Route::post('{ad}/impressions', [\App\Http\Controllers\Ads\AdController::class, 'recordImpression'])->name('impressions.store');
         Route::post('{ad}/clicks', [\App\Http\Controllers\Ads\AdController::class, 'recordClick'])->name('clicks.store');
         Route::get('{ad}/track', [\App\Http\Controllers\Ads\AdController::class, 'trackClick'])->name('track');
+    });
+
+    Route::prefix('settings/verification')->as('settings.verification.')->group(function () {
+        Route::post('session', [VerificationController::class, 'createSession'])->name('session.store');
+        Route::post('token', [VerificationController::class, 'refreshToken'])->name('token.refresh');
+        Route::get('status', [VerificationController::class, 'status'])->name('status');
     });
 });

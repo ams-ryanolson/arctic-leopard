@@ -2,6 +2,7 @@ import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
+import { MobileBottomNav } from '@/components/mobile-bottom-nav';
 import {
     type BreadcrumbItem,
     type HeaderAction,
@@ -63,7 +64,7 @@ export default function AppSidebarLayout({
                             toolbar={headerToolbar}
                         />
                     ) : (
-                        <div className="sticky top-0 z-40 border-b border-white/10 bg-black/45 px-4 py-4 text-sm uppercase tracking-[0.35em] text-white/60 backdrop-blur-2xl md:px-8">
+                        <div className="sticky top-0 z-40 border-b border-white/10 bg-black/45 px-3 py-3 text-sm uppercase tracking-[0.35em] text-white/60 backdrop-blur-2xl sm:px-4 md:px-8">
                             Messages
                         </div>
                     )}
@@ -76,8 +77,8 @@ export default function AppSidebarLayout({
                     >
                         <div
                             className={cn(
-                                'mx-auto w-full max-w-6xl px-4 pb-16 pt-8 md:px-8',
-                                hideHeader && 'flex h-full min-h-0 flex-col',
+                                'mx-auto w-full max-w-6xl px-3 pb-24 pt-4 sm:px-4 sm:pb-16 sm:pt-6 md:px-8 md:pt-8',
+                                hideHeader && 'flex h-full min-h-0 flex-col pb-24 sm:pb-16',
                                 contentClassName,
                             )}
                         >
@@ -86,6 +87,7 @@ export default function AppSidebarLayout({
                     </main>
                 </div>
             </AppContent>
+            <MobileBottomNav />
         </AppShell>
     );
 }

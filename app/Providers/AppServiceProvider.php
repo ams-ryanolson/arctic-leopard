@@ -11,6 +11,7 @@ use App\Models\Post;
 use App\Models\PostPoll;
 use App\Models\PostPollVote;
 use App\Models\User;
+use App\Models\Verification;
 use App\Policies\CirclePolicy;
 use App\Policies\CommentPolicy;
 use App\Policies\ConversationPolicy;
@@ -19,6 +20,7 @@ use App\Policies\MessagePolicy;
 use App\Policies\PollVotePolicy;
 use App\Policies\PostPolicy;
 use App\Policies\ProfilePolicy;
+use App\Policies\VerificationPolicy;
 use App\Services\Payments\EntitlementService;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -47,6 +49,27 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Conversation::class, ConversationPolicy::class);
         Gate::policy(Message::class, MessagePolicy::class);
         Gate::policy(Event::class, EventPolicy::class);
+        Gate::policy(Verification::class, VerificationPolicy::class);
+
+        Gate::define('be-creator', function (User $user): bool {
+            return $user->canBecomeCreator();
+        });
+
+        Gate::define('access-creator-features', function (User $user): bool {
+            if (! $user->hasRole('Creator')) {
+                return false;
+            }
+
+            if (! $user->isIdVerified() || ! $user->idVerificationNotExpired()) {
+                return false;
+            }
+
+            if ($user->idVerificationInGracePeriod()) {
+                return true;
+            }
+
+            return ! $user->isCreatorStatusDisabled();
+        });
 
         Gate::define('access-creator-content', function (User $viewer, User $creator): bool {
             if ($viewer->is($creator)) {
@@ -72,7 +95,15 @@ class AppServiceProvider extends ServiceProvider
                 return false;
             }
 
-            return $user->hasRole('Creator') || $user->can('create subscription plans');
+            if (! $user->hasRole('Creator')) {
+                return false;
+            }
+
+            if (! $user->can('access-creator-features')) {
+                return false;
+            }
+
+            return $user->can('create subscription plans');
         });
     }
 }

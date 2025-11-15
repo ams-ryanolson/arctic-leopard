@@ -2,53 +2,61 @@ import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { cn, isSameUrl, resolveUrl } from '@/lib/utils';
-import { edit as editAppearance } from '@/routes/appearance';
-import { edit } from '@/routes/profile';
-import { show } from '@/routes/two-factor';
-import { edit as editPassword } from '@/routes/user-password';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { type PropsWithChildren, useMemo } from 'react';
+import {
+    User,
+    Lock,
+    Shield,
+    Bell,
+    Share2,
+    Database,
+} from 'lucide-react';
 
 const sidebarNavItems: NavItem[] = [
     {
         title: 'Profile',
-        href: edit(),
-        icon: null,
+        href: '/settings/profile',
+        icon: User,
     },
     {
-        title: 'Blocked',
-        href: '/settings/blocked-users',
-        icon: null,
+        title: 'Privacy',
+        href: '/settings/privacy',
+        icon: Shield,
     },
     {
-        title: 'Password',
-        href: editPassword(),
-        icon: null,
+        title: 'Security',
+        href: '/settings/security',
+        icon: Lock,
     },
     {
-        title: 'Two-Factor Auth',
-        href: show(),
-        icon: null,
+        title: 'Notifications',
+        href: '/settings/notifications',
+        icon: Bell,
     },
     {
-        title: 'Appearance',
-        href: editAppearance(),
-        icon: null,
+        title: 'Social',
+        href: '/settings/social',
+        icon: Share2,
+    },
+    {
+        title: 'Data & Account',
+        href: '/settings/account',
+        icon: Database,
     },
 ];
 
-export default function SettingsLayout({ children }: PropsWithChildren) {
+type SettingsLayoutProps = PropsWithChildren;
+
+export default function SettingsLayout({ children }: SettingsLayoutProps) {
     const { features } = usePage<SharedData>().props;
     const navItems = useMemo(() => {
         return sidebarNavItems.filter((item) => {
-            if (item.href === '/settings/blocked-users' && features?.blocking !== true) {
-                return false;
-            }
-
+            // Filter based on feature flags if needed
             return true;
         });
-    }, [features?.blocking]);
+    }, [features]);
 
     // When server-side rendering, we only render the layout on the client...
     if (typeof window === 'undefined') {
@@ -58,45 +66,77 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     const currentPath = window.location.pathname;
 
     return (
-        <div className="px-4 py-6">
-            <Heading
-                title="Settings"
-                description="Manage your profile and account settings"
-            />
+        <div className="space-y-8 text-white">
+            {/* Hero Section */}
+            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 via-white/5 to-black/20 shadow-[0_60px_120px_-70px_rgba(249,115,22,0.6)]">
+                <div className="pointer-events-none absolute inset-0">
+                    <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-amber-500/25 via-amber-400/10 to-transparent blur-3xl" />
+                    <div className="absolute -left-32 top-1/2 size-[520px] -translate-y-1/2 rounded-full bg-violet-500/20 blur-3xl" />
+                    <div className="absolute -right-36 top-16 size-[460px] rounded-full bg-rose-600/20 blur-3xl" />
+                </div>
 
-            <div className="flex flex-col lg:flex-row lg:space-x-12">
-                <aside className="w-full max-w-xl lg:w-48">
-                    <nav className="flex flex-col space-y-1 space-x-0">
-                        {navItems.map((item, index) => (
-                            <Button
-                                key={`${resolveUrl(item.href)}-${index}`}
-                                size="sm"
-                                variant="ghost"
-                                asChild
-                                className={cn('w-full justify-start', {
-                                    'bg-muted': isSameUrl(
-                                        currentPath,
-                                        item.href,
-                                    ),
-                                })}
-                            >
-                                <Link href={item.href}>
-                                    {item.icon && (
-                                        <item.icon className="h-4 w-4" />
+                <div className="relative p-8 sm:p-10 md:p-12">
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <h1 className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
+                                Account{' '}
+                                <span className="bg-gradient-to-br from-amber-400 via-rose-500 to-violet-600 bg-clip-text text-transparent">
+                                    Settings
+                                </span>
+                            </h1>
+                            <p className="max-w-2xl text-base leading-relaxed text-white/75 sm:text-lg">
+                                Manage your profile, privacy, security, and account preferences. Keep your information up to date and control how others see you.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="flex flex-col gap-8 lg:flex-row lg:gap-8">
+                <aside className="w-full lg:w-64 lg:shrink-0">
+                    <nav className="flex flex-col gap-2 rounded-3xl border border-white/10 bg-white/5 p-2 shadow-[0_20px_60px_-45px_rgba(59,130,246,0.35)]">
+                        {navItems.map((item, index) => {
+                            const isActive = isSameUrl(currentPath, item.href);
+                            return (
+                                <Link
+                                    key={`${resolveUrl(item.href)}-${index}`}
+                                    href={item.href}
+                                    className={cn(
+                                        'group relative flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all duration-200',
+                                        isActive
+                                            ? 'bg-gradient-to-r from-amber-400/20 via-amber-400/10 to-transparent border border-amber-400/30 text-white shadow-[0_12px_30px_-18px_rgba(249,115,22,0.65)]'
+                                            : 'text-white/70 hover:bg-white/10 hover:text-white hover:border hover:border-white/20',
                                     )}
-                                    {item.title}
+                                >
+                                    {isActive && (
+                                        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-amber-400/10 via-transparent to-transparent opacity-50" />
+                                    )}
+                                    {item.icon && (
+                                        <div className={cn(
+                                            'flex items-center justify-center rounded-xl p-2 transition-all',
+                                            isActive
+                                                ? 'bg-gradient-to-br from-amber-400/30 to-amber-500/20 border border-amber-400/40'
+                                                : 'bg-white/5 border border-white/10 group-hover:border-white/20 group-hover:bg-white/10',
+                                        )}>
+                                            <item.icon className={cn(
+                                                'h-4 w-4 transition-colors',
+                                                isActive ? 'text-amber-300' : 'text-white/60 group-hover:text-white',
+                                            )} />
+                                        </div>
+                                    )}
+                                    <span>{item.title}</span>
                                 </Link>
-                            </Button>
-                        ))}
+                            );
+                        })}
                     </nav>
                 </aside>
 
-                <Separator className="my-6 lg:hidden" />
+                <Separator className="my-6 lg:hidden border-white/10" />
 
-                <div className="flex-1 md:max-w-2xl">
-                    <section className="max-w-xl space-y-12">
+                <div className="flex-1 min-w-0">
+                    <div className="space-y-8">
                         {children}
-                    </section>
+                    </div>
                 </div>
             </div>
         </div>

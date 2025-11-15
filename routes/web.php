@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\Ads\AdAdminController;
 use App\Http\Controllers\Admin\Ads\CampaignAdminController;
 use App\Http\Controllers\Admin\Ads\ReportAdminController;
+use App\Http\Controllers\Admin\CircleAdminController;
 use App\Http\Controllers\Advertiser\AdvertiserController;
 use App\Http\Controllers\Auth\EmailAvailabilityController;
 use App\Http\Controllers\Auth\UsernameAvailabilityController;
@@ -28,12 +29,15 @@ use App\Http\Controllers\Posts\PostComposerController;
 use App\Http\Controllers\Profile\UpdateCoordinatesController;
 use App\Http\Controllers\Profile\UpdateTravelBeaconController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Radar\BoostController;
 use App\Http\Controllers\RadarController;
 use App\Http\Controllers\Signals\SignalsAudienceController;
 use App\Http\Controllers\Signals\SignalsComplianceController;
 use App\Http\Controllers\Signals\SignalsMonetizationController;
 use App\Http\Controllers\Signals\SignalsOverviewController;
 use App\Http\Controllers\Signals\SignalsPayoutsController;
+use App\Http\Controllers\Signals\SignalsPlaybooksController;
+use App\Http\Controllers\Signals\SignalsSetupController;
 use App\Http\Controllers\Signals\SignalsSettingsController;
 use App\Http\Controllers\Signals\SignalsStatsController;
 use App\Http\Controllers\Signals\SignalsSubscriptionsController;
@@ -195,12 +199,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::prefix('circles')->as('circles.')->group(function () {
             Route::get('/', [CircleController::class, 'index'])->name('index');
+            Route::post('suggest', [CircleController::class, 'suggest'])->name('suggest');
             Route::get('{circle:slug}', [CircleController::class, 'show'])->name('show');
             Route::post('{circle:slug}/join', [CircleMembershipController::class, 'store'])->name('join');
             Route::delete('{circle:slug}/leave', [CircleMembershipController::class, 'destroy'])->name('leave');
         });
 
         Route::prefix('signals')->as('signals.')->group(function () {
+            Route::get('setup', SignalsSetupController::class)->name('setup');
+            Route::get('playbooks', [SignalsPlaybooksController::class, 'index'])->name('playbooks.index');
+            Route::get('playbooks/{slug}', [SignalsPlaybooksController::class, 'show'])->name('playbooks.show');
             Route::get('/', SignalsOverviewController::class)->name('overview');
             Route::get('stats', SignalsStatsController::class)->name('stats');
             Route::get('subscriptions', SignalsSubscriptionsController::class)->name('subscriptions');
@@ -290,6 +298,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::prefix('events')->as('events.')->group(function () {
             Route::get('/', [EventController::class, 'index'])->name('index');
+            Route::get('submit', [EventController::class, 'submit'])->name('submit');
             Route::post('/', [EventController::class, 'store'])->name('store');
             Route::get('{event:slug}', [EventController::class, 'show'])->name('show');
             Route::post('{event:slug}/rsvp', [EventRsvpController::class, 'store'])->name('rsvps.store');
@@ -311,6 +320,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     Route::patch('{user}/roles', [AdminUserController::class, 'update'])
                         ->name('roles.update')
                         ->can('updateRoles', 'user');
+                    Route::post('{user}/require-reverification', [\App\Http\Controllers\Admin\AdminVerificationController::class, 'requireReverification'])
+                        ->name('require-reverification')
+                        ->can('manageUsers', User::class);
+                });
+
+                Route::prefix('settings')->as('settings.')->group(function () {
+                    Route::get('/', [\App\Http\Controllers\Admin\AdminSettingsController::class, 'index'])
+                        ->name('index');
+                    Route::patch('{key}', [\App\Http\Controllers\Admin\AdminSettingsController::class, 'update'])
+                        ->name('update');
                 });
 
                 Route::prefix('events')->as('events.')->group(function () {
@@ -338,6 +357,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     Route::post('{event}/cancel', [EventAdminController::class, 'cancel'])
                         ->name('cancel')
                         ->can('cancel', 'event');
+                });
+
+                Route::prefix('circles')->as('circles.')->group(function () {
+                    Route::get('/', [CircleAdminController::class, 'index'])->name('index');
+                    Route::get('suggestions/{suggestion:id}/review', [CircleAdminController::class, 'review'])->name('suggestions.review');
+                    Route::post('suggestions/{suggestion:id}/create', [CircleAdminController::class, 'createFromSuggestion'])->name('suggestions.create');
+                    Route::post('suggestions/{suggestion:id}/decline', [CircleAdminController::class, 'decline'])->name('suggestions.decline');
                 });
 
                 Route::prefix('ads')->as('ads.')->group(function () {
@@ -417,6 +443,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             });
 
         Route::get('radar', RadarController::class)->name('radar');
+        Route::post('radar/boost', [BoostController::class, 'store'])->name('radar.boost.store');
         Route::patch('profile/location', UpdateCoordinatesController::class)->name('profile.location.update');
         Route::patch('profile/travel-beacon', UpdateTravelBeaconController::class)->name('profile.travel-beacon.update');
         Route::get('bookmarks', [BookmarkController::class, 'index'])->name('bookmarks.index');

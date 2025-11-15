@@ -1,29 +1,32 @@
 import { useCallback } from 'react';
 
 import AppLayout from '@/layouts/app-layout';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import {
     Alert,
     AlertDescription,
     AlertTitle,
 } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils';
 import { useCirclePresence } from '@/hooks/use-circle-presence';
 import { useFeed } from '@/hooks/use-feed';
-import { useInitials } from '@/hooks/use-initials';
 import type { Circle, CircleFacet as CircleFacetType } from '@/types/circles';
 import type { FeedPost, PostCollectionPayload, TimelineEntry, TimelinePayload } from '@/types/feed';
-import { Head, router, useForm } from '@inertiajs/react';
+import { Deferred, Head, router, useForm } from '@inertiajs/react';
 import { index as circlesIndex, join as circleJoin, leave as circleLeave, show as circlesShow } from '@/routes/circles';
 import { Activity, Layers, Sparkles, Users } from 'lucide-react';
 import TimelineEntryCard from '@/components/feed/timeline-entry-card';
 import CommentThreadSheet from '@/components/feed/comment-thread-sheet';
 import FeedLoadingPlaceholder from '@/components/feed/feed-loading-placeholder';
+import SidebarAd from '@/components/ads/sidebar-ad';
 import { fetchCircleFeedPage } from '@/lib/feed-client';
 
 type CircleShowProps = {
@@ -32,6 +35,21 @@ type CircleShowProps = {
     filters: {
         facet?: string | null;
     };
+    sidebarAds?: Array<{
+        id: number;
+        ad_id: number;
+        placement: string;
+        size: string;
+        asset_type: string;
+        asset_path: string | null;
+        asset_url: string | null;
+        headline: string | null;
+        body_text: string | null;
+        cta_text: string | null;
+        cta_url: string;
+        display_order: number;
+        is_active: boolean;
+    }>;
 };
 
 const numberFormatter = new Intl.NumberFormat();
@@ -185,19 +203,14 @@ const CircleMembershipControls = ({ circle }: { circle: Circle }) => {
     );
 };
 
-export default function CircleShow({ circle, posts, filters }: CircleShowProps) {
+export default function CircleShow({ circle, posts, filters, sidebarAds = [] }: CircleShowProps) {
     const facets = getCircleFacets(circle);
     const segmentsCount = facets.length;
     const circleChannelIdentifier = circle.slug ?? circle.id;
-    const { count: liveCount, members: liveMembers, isSubscribed: presenceReady } = useCirclePresence(
+    const { count: liveCount, isSubscribed: presenceReady } = useCirclePresence(
         circleChannelIdentifier,
         { enabled: circle.joined },
     );
-    const getInitials = useInitials();
-    const livePreviewMembers =
-        circle.joined && presenceReady ? liveMembers.slice(0, 4).filter((member) => member.id !== 0) : [];
-    const remainingLiveMembers =
-        circle.joined && presenceReady ? Math.max(liveMembers.length - livePreviewMembers.length, 0) : 0;
     const liveValue = circle.joined
         ? presenceReady
             ? liveCount > 0
@@ -206,57 +219,48 @@ export default function CircleShow({ circle, posts, filters }: CircleShowProps) 
             : 'Connecting…'
         : 'Join to view';
 
-        console.log(circle);
     const heroHighlights = [
         {
             label: 'Members',
             value: numberFormatter.format(circle.membersCount),
             icon: Users,
+            iconColor: 'emerald',
+            gradient: 'from-emerald-400/20 via-emerald-300/15 to-emerald-400/10',
+            borderColor: 'border-emerald-400/20',
+            textColor: 'text-emerald-300',
+            shadowColor: 'rgba(16,185,129,0.3)',
         },
         {
             label: 'Live now',
             value: liveValue,
             icon: Activity,
-            footer:
-                livePreviewMembers.length > 0 ? (
-                    <div className="mt-3 flex items-center justify-center gap-2">
-                        {livePreviewMembers.map((member) => (
-                            <Avatar
-                                key={member.id}
-                                className="size-8 border border-white/20 bg-black/60 text-white"
-                            >
-                                {member.avatar ? (
-                                    <AvatarImage
-                                        src={member.avatar ?? undefined}
-                                        alt={member.name ?? 'Live member'}
-                                    />
-                                ) : (
-                                    <AvatarFallback className="text-xs uppercase tracking-[0.2em]">
-                                        {getInitials(member.name ?? 'Member') || '•'}
-                                    </AvatarFallback>
-                                )}
-                            </Avatar>
-                        ))}
-                        {remainingLiveMembers > 0 && (
-                            <div className="grid size-8 place-items-center rounded-full border border-dashed border-white/30 text-[0.65rem] uppercase tracking-[0.2em] text-white/70">
-                                +{Math.min(remainingLiveMembers, 99)}
-                            </div>
-                        )}
-                    </div>
-                ) : undefined,
+            iconColor: 'amber',
+            gradient: 'from-amber-400/20 via-amber-300/15 to-amber-400/10',
+            borderColor: 'border-amber-400/20',
+            textColor: 'text-amber-300',
+            shadowColor: 'rgba(251,191,36,0.3)',
         },
         {
             label: 'Segments',
             value: segmentsCount > 0 ? String(segmentsCount) : 'Single stream',
             icon: Layers,
+            iconColor: 'violet',
+            gradient: 'from-violet-400/20 via-violet-300/15 to-violet-400/10',
+            borderColor: 'border-violet-400/20',
+            textColor: 'text-violet-300',
+            shadowColor: 'rgba(139,92,246,0.3)',
         },
         {
             label: 'Visibility',
             value: circle.visibility ?? 'Private',
             icon: Sparkles,
+            iconColor: 'rose',
+            gradient: 'from-rose-400/20 via-rose-300/15 to-rose-400/10',
+            borderColor: 'border-rose-400/20',
+            textColor: 'text-rose-300',
+            shadowColor: 'rgba(244,63,94,0.3)',
         },
     ];
-    const prominentFacets: CircleFacetType[] = facets.slice(0, 6);
     const hasFacetOptions = facets.length > 1;
     const transformCirclePayload = useCallback(
         (payload: TimelinePayload | PostCollectionPayload): TimelinePayload => {
@@ -343,84 +347,86 @@ export default function CircleShow({ circle, posts, filters }: CircleShowProps) 
             <Head title={`${circle.name} · Circles`} />
 
             <div className="space-y-12 text-white">
-                <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-[0_60px_120px_-70px_rgba(249,115,22,0.6)]">
+                <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 via-white/5 to-black/20 shadow-[0_60px_120px_-70px_rgba(249,115,22,0.6)]">
                     <div className="pointer-events-none absolute inset-0">
-                        <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-amber-400/15 via-transparent to-transparent blur-3xl" />
-                        <div className="absolute -left-32 top-1/2 size-[520px] -translate-y-1/2 rounded-full bg-rose-500/15 blur-3xl" />
-                        <div className="absolute -right-36 top-16 size-[460px] rounded-full bg-violet-600/15 blur-3xl" />
+                        <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-amber-400/25 via-amber-400/10 to-transparent blur-3xl" />
+                        <div className="absolute -left-32 top-1/2 size-[520px] -translate-y-1/2 rounded-full bg-rose-500/20 blur-3xl" />
+                        <div className="absolute -right-36 top-16 size-[460px] rounded-full bg-violet-600/20 blur-3xl" />
                     </div>
 
-                    <div className="relative grid gap-10 p-8 sm:p-10 lg:grid-cols-[1.1fr_0.9fr]">
-                        <div className="space-y-6">
-                            <Badge className="rounded-full border-white/20 bg-white/10 text-[0.65rem] uppercase tracking-[0.35em] text-white/70">
-                                {circle.interest?.name ?? 'Curated house'}
-                            </Badge>
-
+                    <div className="relative grid gap-12 p-10 sm:p-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+                        <div className="space-y-8">
                             <div className="space-y-4">
-                                <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
+                                <h1 className="text-balance text-4xl font-semibold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
                                     {circle.name}
                                 </h1>
-                                <p className="max-w-2xl text-sm leading-relaxed text-white/70 sm:text-base">
-                                    {circle.description ??
-                                        'Join this circle to share scenes, build rituals, and stay tapped into a crew that matches your kink energy.'}
-                                </p>
+                                {circle.description && (
+                                    <p className="max-w-2xl text-base leading-relaxed text-white/75 sm:text-lg">
+                                        {circle.description}
+                                    </p>
+                                )}
                             </div>
 
-                            <div className="grid gap-4 sm:grid-cols-3">
-                                {heroHighlights.map(({ label, value, icon: Icon, footer }) => (
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                {heroHighlights.map(({ label, value, icon: Icon, gradient, borderColor, textColor, shadowColor }) => (
                                     <div
                                         key={label}
-                                        className="rounded-2xl border border-white/15 bg-black/35 px-5 py-4 text-left sm:text-center"
+                                        className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-black/50 via-black/40 to-black/50 px-5 py-4 shadow-[0_4px_24px_-12px_rgba(0,0,0,0.4)] backdrop-blur-sm transition-all hover:border-white/20 hover:shadow-[0_8px_32px_-16px_rgba(249,115,22,0.2)]"
                                     >
-                                        <div className="flex items-center justify-center gap-2 text-xs uppercase tracking-[0.35em] text-white/55">
-                                            <Icon className="size-3.5" />
-                                            <span>{label}</span>
+                                        <div className="relative flex items-center gap-4">
+                                            <div
+                                                className={`flex size-11 items-center justify-center rounded-xl border ${borderColor} bg-gradient-to-br ${gradient} ${textColor} transition-all group-hover:scale-105`}
+                                                style={{
+                                                    boxShadow: `0 4px 16px -8px ${shadowColor}`,
+                                                }}
+                                            >
+                                                <Icon className="size-5" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="mb-1 text-xs font-medium uppercase tracking-[0.3em] text-white/55">
+                                                    {label}
+                                                </p>
+                                                <p className="text-xl font-semibold text-white">{value}</p>
+                                            </div>
                                         </div>
-                                        <p className="mt-2 text-2xl font-semibold text-white">{value}</p>
-                                        {footer ?? null}
                                     </div>
                                 ))}
                             </div>
-
-                            {prominentFacets.length > 0 && (
-                                <div className="space-y-2">
-                                    <p className="text-xs uppercase tracking-[0.35em] text-white/55">
-                                        Segment spotlight
-                                    </p>
-                                    <div className="flex flex-wrap gap-2">
-                                        {prominentFacets.map((facet: CircleFacetType) => (
-                                            <Badge
-                                                key={`${facet.key}:${facet.value}`}
-                                                className={cn(
-                                                    'rounded-full border-white/15 bg-white/10 text-xs text-white/70',
-                                                    filters.facet === facet.value &&
-                                                        'border-emerald-400/40 bg-emerald-500/20 text-emerald-100',
-                                                )}
-                                            >
-                                                {facet.label}
-                                            </Badge>
-                                        ))}
-                                        {segmentsCount > prominentFacets.length && (
-                                            <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs text-white/60">
-                                                +{segmentsCount - prominentFacets.length} more segments
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
                         </div>
 
-                        <div className="space-y-5">
+                        <div className="space-y-6">
                             <CircleMembershipControls circle={circle} />
-                            <div className="rounded-3xl border border-white/10 bg-black/35 p-5 text-sm text-white/70">
-                                <p className="text-xs uppercase tracking-[0.35em] text-white/55">
-                                    Concierge notes
-                                </p>
-                                <ul className="mt-3 space-y-2 text-xs leading-relaxed text-white/60">
-                                    <li>• Weekly live mentoring sessions led by veteran doms.</li>
-                                    <li>• Dedicated aftercare thread monitored by circle moderators.</li>
-                                    <li>• Segment opt-ins unlock specialized drop schedules and alerts.</li>
-                                </ul>
+
+                            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 px-6 py-6 text-white shadow-[0_48px_130px_-60px_rgba(99,102,241,0.45)]">
+                                <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(249,115,22,0.15),_transparent_60%)]" />
+                                <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_bottom,_rgba(59,130,246,0.12),_transparent_65%)]" />
+
+                                <div className="relative space-y-4">
+                                    <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.35em] text-white/55">
+                                        <Layers className="size-4" />
+                                        Circle metadata
+                                    </div>
+                                    <div className="grid gap-3">
+                                        <div className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-xs text-white/70">
+                                            <p className="text-white/80">Interest anchor</p>
+                                            <p className="mt-1 text-sm font-semibold text-white">
+                                                {circle.interest?.name ?? 'Not assigned'}
+                                            </p>
+                                        </div>
+                                        <div className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-xs text-white/70">
+                                            <p className="text-white/80">Visibility tier</p>
+                                            <p className="mt-1 text-sm font-semibold text-white capitalize">
+                                                {circle.visibility}
+                                            </p>
+                                        </div>
+                                        <div className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-xs text-white/70">
+                                            <p className="text-white/80">Segment count</p>
+                                            <p className="mt-1 text-sm font-semibold text-white">
+                                                {segmentsCount > 0 ? segmentsCount : 'Single stream'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -525,43 +531,20 @@ export default function CircleShow({ circle, posts, filters }: CircleShowProps) 
                         )}
                     </div>
 
-                    <div className="space-y-6 rounded-3xl border border-white/10 bg-gradient-to-br from-black/50 via-black/35 to-black/25 p-6 sm:p-8 shadow-[0_50px_110px_-70px_rgba(59,130,246,0.45)]">
-                        <div className="space-y-3">
-                            <h3 className="text-sm uppercase tracking-[0.35em] text-white/55">
-                                Circle metadata
-                            </h3>
-                            <div className="grid gap-4">
-                                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-white/70">
-                                    <p className="text-white/80">Interest anchor</p>
-                                    <p className="mt-1 text-sm font-semibold text-white">
-                                        {circle.interest?.name ?? 'Not assigned'}
-                                    </p>
-                                </div>
-                                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-white/70">
-                                    <p className="text-white/80">Visibility tier</p>
-                                    <p className="mt-1 text-sm font-semibold text-white capitalize">
-                                        {circle.visibility}
-                                    </p>
-                                </div>
-                                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-white/70">
-                                    <p className="text-white/80">Segment count</p>
-                                    <p className="mt-1 text-sm font-semibold text-white">
-                                        {segmentsCount > 0 ? segmentsCount : 'Single stream'}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
+                    <div className="flex flex-col gap-4">
                         {facets.length > 0 && (
-                            <div className="space-y-3">
-                                <h4 className="text-xs uppercase tracking-[0.35em] text-white/55">
-                                    Segment overview
-                                </h4>
-                                <div className="space-y-3">
+                            <Card className="border-white/10 bg-white/5 text-white shadow-[0_24px_65px_-35px_rgba(249,115,22,0.45)]">
+                                <CardHeader>
+                                    <CardTitle className="text-base font-semibold">Segment overview</CardTitle>
+                                    <CardDescription className="text-white/60">
+                                        All available segments for this circle.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-3">
                                     {facets.map((facet: CircleFacetType) => (
                                         <div
                                             key={`overview-${facet.value}`}
-                                            className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-white/70"
+                                            className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-xs text-white/70"
                                         >
                                             <div className="flex items-center justify-between gap-2 text-white">
                                                 <p className="text-sm font-semibold">{facet.label}</p>
@@ -576,22 +559,42 @@ export default function CircleShow({ circle, posts, filters }: CircleShowProps) 
                                             )}
                                         </div>
                                     ))}
-                                </div>
-                            </div>
+                                </CardContent>
+                            </Card>
                         )}
 
-                        <Separator className="border-white/10" />
+                        <Deferred data="sidebarAds" fallback={null}>
+                            {sidebarAds && sidebarAds.length > 0 && sidebarAds[0] && (
+                                <SidebarAd
+                                    ad={sidebarAds[0]}
+                                    size={
+                                        sidebarAds[0].placement === 'circle_sidebar_small' ||
+                                        sidebarAds[0].placement === 'dashboard_sidebar_small'
+                                            ? 'small'
+                                            : sidebarAds[0].placement === 'circle_sidebar_medium' ||
+                                              sidebarAds[0].placement === 'dashboard_sidebar_medium'
+                                              ? 'medium'
+                                              : 'large'
+                                    }
+                                />
+                            )}
+                        </Deferred>
 
-                        <div className="space-y-3 text-xs text-white/60">
-                            <h4 className="text-xs uppercase tracking-[0.35em] text-white/55">
-                                Participation tips
-                            </h4>
-                            <ul className="space-y-2">
-                                <li>• Tag your drops with relevant segment keywords for easier discovery.</li>
-                                <li>• Use aftercare threads to continue consent conversations post-scene.</li>
-                                <li>• Share mentor resources in the default segment to welcome new members.</li>
-                            </ul>
-                        </div>
+                        <Card className="border-white/10 bg-white/5 text-white">
+                            <CardHeader>
+                                <CardTitle className="text-base font-semibold">Participation tips</CardTitle>
+                                <CardDescription className="text-white/60">
+                                    Best practices for engaging with this circle.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <ul className="space-y-2 text-sm text-white/75">
+                                    <li>• Tag your drops with relevant segment keywords for easier discovery.</li>
+                                    <li>• Use aftercare threads to continue consent conversations post-scene.</li>
+                                    <li>• Share mentor resources in the default segment to welcome new members.</li>
+                                </ul>
+                            </CardContent>
+                        </Card>
                     </div>
                 </section>
 

@@ -51,17 +51,13 @@ export default function BlockedUsersPage({ blocked }: BlockedUsersPageProps) {
 
         setProcessingIds((previous) => [...previous, userId]);
 
-        router.delete(
-            usersRoutes.block.destroy.url(userId),
-            {},
-            {
+        router.delete(usersRoutes.block.destroy.url(userId), {
             preserveScroll: true,
             onFinish: () =>
                 setProcessingIds((previous) =>
                     previous.filter((id) => id !== userId),
                 ),
-            },
-        );
+        });
     };
 
     const isEmpty = blocked.length === 0;

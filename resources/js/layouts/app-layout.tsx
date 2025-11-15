@@ -17,6 +17,7 @@ interface AppLayoutProps {
     headerSupportLinks?: HeaderSupportLink[];
     headerToolbar?: ReactNode;
     contentClassName?: string;
+    hideHeader?: boolean;
 }
 
 export default function AppLayout({

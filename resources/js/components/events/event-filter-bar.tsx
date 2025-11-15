@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -7,8 +8,21 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import eventsRoute from '@/routes/events';
+import eventsRoutes from '@/routes/events';
 import { router } from '@inertiajs/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -17,317 +31,435 @@ import {
     formatEventModality,
     formatEventType,
 } from '@/types/events';
+import { ChevronDown, ChevronUp, Filter, Search, X } from 'lucide-react';
+import { LocationAutocomplete, type LocationSuggestion } from '@/components/location-autocomplete';
 
-type FilterState = {
-    search: string;
-    status: string;
-    modality: string;
-    type: string;
-    tag: string;
-    city: string;
+type ActiveFilters = {
+    search?: string;
+    type?: string;
+    modality?: string;
+    tags?: number[];
+    location_city?: string;
+    location_region?: string;
+    location_country?: string;
+    location_latitude?: number;
+    location_longitude?: number;
 };
 
 type EventFilterBarProps = {
     filters: EventFilters;
     meta: Pick<EventMeta, 'modalities' | 'types' | 'tags'>;
-    statuses?: string[];
+    isCollapsed?: boolean;
+    onCollapsedChange?: (collapsed: boolean) => void;
     className?: string;
-    onOpenSubmission?: () => void;
 };
 
-const defaultStatusOptions = [
-    {
-        value: 'all',
-        label: 'All statuses',
-    },
-    {
-        value: 'published',
-        label: 'Published',
-    },
-    {
-        value: 'pending',
-        label: 'Pending',
-    },
-    {
-        value: 'draft',
-        label: 'Draft',
-    },
-    {
-        value: 'cancelled',
-        label: 'Cancelled',
-    },
-];
+const EVENTS_FILTERS_COLLAPSED_KEY = 'events_filters_collapsed';
 
 export function EventFilterBar({
     filters,
     meta,
-    statuses = defaultStatusOptions.map((option) => option.value),
+    isCollapsed: externalIsCollapsed,
+    onCollapsedChange: externalOnCollapsedChange,
     className,
-    onOpenSubmission,
 }: EventFilterBarProps) {
-    const ALL_OPTION = 'all';
+    const [internalCollapsed, setInternalCollapsed] = useState(() => {
+        if (typeof window === 'undefined') {
+            return false;
+        }
+        try {
+            const value = window.localStorage.getItem(EVENTS_FILTERS_COLLAPSED_KEY);
+            return value === 'true';
+        } catch {
+            return false;
+        }
+    });
 
-    const [state, setState] = useState<FilterState>({
-        search: filters.search ?? '',
-        status: filters.status ?? '',
-        modality: filters.modality ?? '',
-        type: filters.type ?? '',
-        tag: filters.tag ? String(filters.tag) : '',
-        city: filters.city ?? '',
+    const isCollapsed = externalIsCollapsed ?? internalCollapsed;
+    const setIsCollapsed = externalOnCollapsedChange ?? setInternalCollapsed;
+
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+        try {
+            window.localStorage.setItem(EVENTS_FILTERS_COLLAPSED_KEY, String(isCollapsed));
+        } catch {
+            // ignore storage errors
+        }
+    }, [isCollapsed]);
+
+    // Initialize active filters from URL params
+    const initialActiveFilters = useMemo<ActiveFilters>(() => {
+        const active: ActiveFilters = {};
+        if (filters.search) active.search = filters.search;
+        if (filters.type) active.type = filters.type;
+        if (filters.modality) active.modality = filters.modality;
+        if (filters.tags && Array.isArray(filters.tags)) {
+            active.tags = filters.tags.map(Number).filter(Boolean);
+        }
+        if (filters.location_city) active.location_city = filters.location_city;
+        if (filters.location_region) active.location_region = filters.location_region;
+        if (filters.location_country) active.location_country = filters.location_country;
+        if (filters.location_latitude) active.location_latitude = Number(filters.location_latitude);
+        if (filters.location_longitude) active.location_longitude = Number(filters.location_longitude);
+        return active;
+    }, [filters]);
+
+    const [localFilters, setLocalFilters] = useState<ActiveFilters>(initialActiveFilters);
+    const [tagSearch, setTagSearch] = useState('');
+    const [locationQuery, setLocationQuery] = useState(() => {
+        if (filters.location_city && filters.location_country) {
+            return [filters.location_city, filters.location_region, filters.location_country]
+                .filter(Boolean)
+                .join(', ');
+        }
+        return '';
     });
 
     useEffect(() => {
-        setState({
-            search: filters.search ?? '',
-            status: filters.status ?? '',
-            modality: filters.modality ?? '',
-            type: filters.type ?? '',
-            tag: filters.tag ? String(filters.tag) : '',
-            city: filters.city ?? '',
-        });
-    }, [filters]);
+        setLocalFilters(initialActiveFilters);
+        if (filters.location_city && filters.location_country) {
+            setLocationQuery(
+                [filters.location_city, filters.location_region, filters.location_country]
+                    .filter(Boolean)
+                    .join(', '),
+            );
+        } else {
+            setLocationQuery('');
+        }
+    }, [initialActiveFilters, filters.location_city, filters.location_region, filters.location_country]);
 
-    const hasActiveFilters = useMemo(
-        () =>
-            Boolean(
-                state.search ||
-                    state.status ||
-                    state.modality ||
-                    state.type ||
-                    state.tag ||
-                    state.city,
-            ),
-        [state],
+    const hasChanges = useMemo(() => {
+        return JSON.stringify(localFilters) !== JSON.stringify(initialActiveFilters);
+    }, [localFilters, initialActiveFilters]);
+
+    const filteredTags = useMemo(() => {
+        if (!tagSearch.trim()) {
+            return meta.tags.slice(0, 30);
+        }
+        const search = tagSearch.toLowerCase();
+        return meta.tags.filter((tag) => tag.name.toLowerCase().includes(search)).slice(0, 30);
+    }, [meta.tags, tagSearch]);
+
+    const selectedTagIds = useMemo(() => localFilters.tags ?? [], [localFilters.tags]);
+
+    const buildQueryParams = useCallback(
+        (filters: ActiveFilters): Record<string, string | number | (string | number)[]> => {
+            const params: Record<string, string | number | (string | number)[]> = {};
+            if (filters.search) params.search = filters.search;
+            if (filters.type) params.type = filters.type;
+            if (filters.modality) params.modality = filters.modality;
+            if (filters.tags && filters.tags.length > 0) {
+                params.tags = filters.tags;
+            }
+            if (filters.location_city) params.location_city = filters.location_city;
+            if (filters.location_region) params.location_region = filters.location_region;
+            if (filters.location_country) params.location_country = filters.location_country;
+            if (filters.location_latitude) params.location_latitude = filters.location_latitude;
+            if (filters.location_longitude) params.location_longitude = filters.location_longitude;
+            return params;
+        },
+        [],
     );
 
-    const handleApply = useCallback(() => {
-        const query: Record<string, string> = {};
-
-        if (state.search) query.search = state.search;
-        if (state.status) query.status = state.status;
-        if (state.modality) query.modality = state.modality;
-        if (state.type) query.type = state.type;
-        if (state.tag) query.tag = state.tag;
-        if (state.city) query.city = state.city;
-
-        router.visit(
-            eventsRoute.index({
-                query,
-            }).url,
-            {
-                preserveScroll: true,
-                only: ['events', 'pastEvents', 'filters'],
-            },
-        );
-    }, [state]);
-
     const handleReset = useCallback(() => {
-        setState({
-            search: '',
-            status: '',
-            modality: '',
-            type: '',
-            tag: '',
-            city: '',
-        });
+        setLocalFilters({});
+        setLocationQuery('');
+        router.get(eventsRoutes.index().url, {}, { preserveScroll: true, preserveState: false });
+    }, []);
 
-        router.visit(eventsRoute.index().url, {
+    const handleApply = useCallback(() => {
+        router.get(eventsRoutes.index().url, buildQueryParams(localFilters), {
             preserveScroll: true,
-            only: ['events', 'pastEvents', 'filters'],
+            preserveState: false,
+        });
+    }, [localFilters, buildQueryParams]);
+
+    const toggleTag = useCallback((tagId: number) => {
+        setLocalFilters((prev) => {
+            const currentIds = prev.tags ?? [];
+            const newIds = currentIds.includes(tagId)
+                ? currentIds.filter((id) => id !== tagId)
+                : [...currentIds, tagId];
+            const newFilters = { ...prev, tags: newIds.length > 0 ? newIds : undefined };
+            if (newIds.length === 0) {
+                delete newFilters.tags;
+            }
+            return newFilters;
+        });
+    }, []);
+
+    const handleLocationSelect = useCallback(
+        (suggestion: LocationSuggestion) => {
+            setLocalFilters((prev) => ({
+                ...prev,
+                location_city: suggestion.city,
+                location_region: suggestion.region || undefined,
+                location_country: suggestion.country,
+                location_latitude: Number(suggestion.latitude),
+                location_longitude: Number(suggestion.longitude),
+            }));
+            setLocationQuery(suggestion.label);
+        },
+        [],
+    );
+
+    const handleLocationQueryChange = useCallback((value: string) => {
+        setLocationQuery(value);
+        setLocalFilters((prev) => {
+            const newFilters = { ...prev };
+            delete newFilters.location_city;
+            delete newFilters.location_region;
+            delete newFilters.location_country;
+            delete newFilters.location_latitude;
+            delete newFilters.location_longitude;
+            return newFilters;
         });
     }, []);
 
     return (
-        <div
-            className={cn(
-                'rounded-3xl border border-white/10 bg-white/5 p-5 shadow-[0_40px_95px_-65px_rgba(249,115,22,0.5)]',
-                className,
-            )}
+        <Collapsible
+            open={!isCollapsed}
+            onOpenChange={(open) => setIsCollapsed(!open)}
+            className={className}
         >
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div className="grid gap-3 lg:grid-cols-[minmax(0,260px)_minmax(0,200px)_minmax(0,200px)_minmax(0,200px)] lg:items-center lg:gap-4">
-                    <Input
-                        value={state.search}
-                        placeholder="Search events"
-                        onChange={(event) =>
-                            setState((prev) => ({
-                                ...prev,
-                                search: event.target.value,
-                            }))
-                        }
-                        onKeyDown={(event) => {
-                            if (event.key === 'Enter') {
-                                handleApply();
-                            }
-                        }}
-                        className="rounded-full border-white/20 bg-black/25 text-sm text-white/85 placeholder:text-white/45 focus-visible:ring-amber-400/40"
-                    />
+            <Card className="border-white/10 bg-black/35 text-white">
+                <CardHeader className="gap-4">
+                    <div className="flex items-center justify-between gap-4">
+                        {isCollapsed ? (
+                            <div className="flex-1">
+                                <CardTitle className="inline-flex items-center gap-2 text-lg font-semibold tracking-tight">
+                                    <span className="flex size-7 items-center justify-center rounded-full bg-gradient-to-br from-amber-400/30 via-rose-500/35 to-violet-600/30 text-amber-200">
+                                        <Filter className="size-4" />
+                                    </span>
+                                    Filter events
+                                </CardTitle>
+                                <CardDescription className="mt-1 text-sm text-white/55">
+                                    Search, filter by type, modality, tags, and location.
+                                </CardDescription>
+                            </div>
+                        ) : (
+                            <div className="flex-1 space-y-2">
+                                <CardTitle className="inline-flex items-center gap-2 text-2xl font-semibold tracking-tight">
+                                    <span className="flex size-9 items-center justify-center rounded-full bg-gradient-to-br from-amber-400/30 via-rose-500/35 to-violet-600/30 text-amber-200">
+                                        <Filter className="size-5" />
+                                    </span>
+                                    Filter events
+                                </CardTitle>
+                                <CardDescription className="max-w-2xl text-white/65">
+                                    Search, filter by type, modality, tags, and location.
+                                </CardDescription>
+                            </div>
+                        )}
 
-                    <Select
-                        value={state.status === '' ? ALL_OPTION : state.status}
-                        onValueChange={(value) =>
-                            setState((prev) => ({
-                                ...prev,
-                                status: value === ALL_OPTION ? '' : value,
-                            }))
-                        }
-                    >
-                        <SelectTrigger className="w-full rounded-full border-white/20 bg-black/25 text-sm text-white/80">
-                            <SelectValue placeholder="Status" />
-                        </SelectTrigger>
-                        <SelectContent className="w-[200px] rounded-2xl border border-white/10 bg-black/85 text-white shadow-[0_30px_70px_-50px_rgba(0,0,0,0.75)] backdrop-blur-xl">
-                            <SelectItem value={ALL_OPTION} className="text-sm text-white/80">
-                                All statuses
-                            </SelectItem>
-                            {statuses
-                                .filter((status) => status !== ALL_OPTION)
-                                .map((status) => (
-                                    <SelectItem
-                                        key={status}
-                                        value={status}
-                                        className="text-sm text-white/80 focus:bg-white/10 focus:text-white"
+                        <div className="flex items-center gap-2">
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={handleReset}
+                                className="rounded-full border border-white/10 bg-white/5 px-4 text-xs text-white/80 hover:border-white/30 hover:bg-white/10 hover:text-white"
+                            >
+                                Reset
+                            </Button>
+                            <Button
+                                size="sm"
+                                onClick={handleApply}
+                                disabled={!hasChanges}
+                                className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-5 text-xs font-semibold text-white shadow-[0_4px_16px_-8px_rgba(249,115,22,0.55)] transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                                Apply
+                            </Button>
+                        </div>
+
+                        <CollapsibleTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="flex-shrink-0 rounded-full border border-white/10 bg-white/5 p-2 text-white/70 hover:border-white/30 hover:bg-white/10 hover:text-white"
+                                aria-label={isCollapsed ? 'Expand filters' : 'Collapse filters'}
+                            >
+                                {isCollapsed ? (
+                                    <ChevronDown className="size-4" />
+                                ) : (
+                                    <ChevronUp className="size-4" />
+                                )}
+                            </Button>
+                        </CollapsibleTrigger>
+                    </div>
+                </CardHeader>
+
+                <CollapsibleContent className="overflow-visible transition-all duration-200 ease-in-out">
+                    <CardContent className="border-t border-white/10 px-6 pt-6 overflow-visible">
+                        <div className="grid gap-4">
+                            {/* Row 1: Text Search */}
+                            <div className="rounded-3xl border border-white/10 bg-white/5 p-5 space-y-3">
+                                <Label className="text-xs uppercase tracking-[0.3em] text-white/55 flex items-center gap-2">
+                                    <Search className="size-3.5" />
+                                    Search by title
+                                </Label>
+                                <Input
+                                    value={localFilters.search ?? ''}
+                                    onChange={(e) =>
+                                        setLocalFilters((prev) => ({
+                                            ...prev,
+                                            search: e.target.value || undefined,
+                                        }))
+                                    }
+                                    placeholder="Search event titles..."
+                                    className="border-white/20 bg-white/5 text-white placeholder:text-white/50 focus:border-white/35 focus:bg-white/10"
+                                />
+                            </div>
+
+                            {/* Row 2: Types and Modalities */}
+                            <div className="grid gap-4 md:grid-cols-2">
+                                <div className="rounded-3xl border border-white/10 bg-white/5 p-5 space-y-3">
+                                    <Label className="text-xs uppercase tracking-[0.3em] text-white/55">
+                                        Event Type
+                                    </Label>
+                                    <Select
+                                        value={localFilters.type ?? 'all'}
+                                        onValueChange={(value) =>
+                                            setLocalFilters((prev) => ({
+                                                ...prev,
+                                                type: value === 'all' ? undefined : value,
+                                            }))
+                                        }
                                     >
-                                        {status.charAt(0).toUpperCase() +
-                                            status.slice(1)}
-                                    </SelectItem>
-                                ))}
-                        </SelectContent>
-                    </Select>
+                                        <SelectTrigger className="h-auto w-full border-white/20 bg-white/5 py-2.5 text-white placeholder:text-white/50 focus:border-white/35 focus:bg-white/10 focus:ring-amber-500/40">
+                                            <SelectValue placeholder="All types" />
+                                        </SelectTrigger>
+                                        <SelectContent className="border-white/20 bg-neutral-900 text-white">
+                                            <SelectItem
+                                                value="all"
+                                                className="focus:bg-white/10 focus:text-white"
+                                            >
+                                                All types
+                                            </SelectItem>
+                                            {meta.types.map((type) => (
+                                                <SelectItem
+                                                    key={type}
+                                                    value={type}
+                                                    className="focus:bg-white/10 focus:text-white"
+                                                >
+                                                    {formatEventType(type)}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
 
-                    <Select
-                        value={state.type === '' ? ALL_OPTION : state.type}
-                        onValueChange={(value) =>
-                            setState((prev) => ({
-                                ...prev,
-                                type: value === ALL_OPTION ? '' : value,
-                            }))
-                        }
-                    >
-                        <SelectTrigger className="w-full rounded-full border-white/20 bg-black/25 text-sm text-white/80">
-                            <SelectValue placeholder="Type" />
-                        </SelectTrigger>
-                        <SelectContent className="w-[200px] rounded-2xl border border-white/10 bg-black/85 text-white shadow-[0_30px_70px_-50px_rgba(0,0,0,0.75)] backdrop-blur-xl">
-                            <SelectItem value={ALL_OPTION} className="text-sm text-white/80">
-                                All types
-                            </SelectItem>
-                            {meta.types.map((type) => (
-                                <SelectItem
-                                    key={type}
-                                    value={type}
-                                    className="text-sm text-white/80 focus:bg-white/10 focus:text-white"
-                                >
-                                    {formatEventType(type)}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                                <div className="rounded-3xl border border-white/10 bg-white/5 p-5 space-y-3">
+                                    <Label className="text-xs uppercase tracking-[0.3em] text-white/55">
+                                        Modality
+                                    </Label>
+                                    <Select
+                                        value={localFilters.modality ?? 'all'}
+                                        onValueChange={(value) =>
+                                            setLocalFilters((prev) => ({
+                                                ...prev,
+                                                modality: value === 'all' ? undefined : value,
+                                            }))
+                                        }
+                                    >
+                                        <SelectTrigger className="h-auto w-full border-white/20 bg-white/5 py-2.5 text-white placeholder:text-white/50 focus:border-white/35 focus:bg-white/10 focus:ring-amber-500/40">
+                                            <SelectValue placeholder="All modalities" />
+                                        </SelectTrigger>
+                                        <SelectContent className="border-white/20 bg-neutral-900 text-white">
+                                            <SelectItem
+                                                value="all"
+                                                className="focus:bg-white/10 focus:text-white"
+                                            >
+                                                All modalities
+                                            </SelectItem>
+                                            {meta.modalities.map((modality) => (
+                                                <SelectItem
+                                                    key={modality}
+                                                    value={modality}
+                                                    className="focus:bg-white/10 focus:text-white"
+                                                >
+                                                    {formatEventModality(modality)}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
 
-                    <Select
-                        value={state.modality === '' ? ALL_OPTION : state.modality}
-                        onValueChange={(value) =>
-                            setState((prev) => ({
-                                ...prev,
-                                modality: value === ALL_OPTION ? '' : value,
-                            }))
-                        }
-                    >
-                        <SelectTrigger className="w-full rounded-full border-white/20 bg-black/25 text-sm text-white/80">
-                            <SelectValue placeholder="Modality" />
-                        </SelectTrigger>
-                        <SelectContent className="w-[200px] rounded-2xl border border-white/10 bg-black/85 text-white shadow-[0_30px_70px_-50px_rgba(0,0,0,0.75)] backdrop-blur-xl">
-                            <SelectItem value={ALL_OPTION} className="text-sm text-white/80">
-                                All modalities
-                            </SelectItem>
-                            {meta.modalities.map((modality) => (
-                                <SelectItem
-                                    key={modality}
-                                    value={modality}
-                                    className="text-sm text-white/80 focus:bg-white/10 focus:text-white"
-                                >
-                                    {formatEventModality(modality)}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
+                            {/* Row 3: Tags */}
+                            <div className="rounded-3xl border border-white/10 bg-white/5 p-5 space-y-3">
+                                <Label className="text-xs uppercase tracking-[0.3em] text-white/55">
+                                    Tags
+                                </Label>
+                                {selectedTagIds.length > 0 && (
+                                    <div className="flex flex-wrap gap-2">
+                                        {selectedTagIds.map((tagId) => {
+                                            const tag = meta.tags.find((t) => t.id === tagId);
+                                            if (!tag) return null;
+                                            return (
+                                                <Badge
+                                                    key={tagId}
+                                                    className="flex items-center gap-1 rounded-full border border-amber-400/60 bg-amber-400/15 px-3 py-1 text-xs font-medium text-amber-200"
+                                                >
+                                                    {tag.name}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => toggleTag(tagId)}
+                                                        className="ml-1 rounded-full p-0.5 hover:bg-amber-400/30"
+                                                    >
+                                                        <X className="size-3" />
+                                                    </button>
+                                                </Badge>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                                <Input
+                                    type="text"
+                                    placeholder="Search tags..."
+                                    value={tagSearch}
+                                    onChange={(e) => setTagSearch(e.target.value)}
+                                    className="border-white/20 bg-white/5 text-white placeholder:text-white/50 focus:border-white/35 focus:bg-white/10"
+                                />
+                                <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                                    {filteredTags.map((tag) => {
+                                        const isSelected = selectedTagIds.includes(tag.id);
+                                        return (
+                                            <button
+                                                key={tag.id}
+                                                type="button"
+                                                onClick={() => toggleTag(tag.id)}
+                                                className={cn(
+                                                    'rounded-full border px-3 py-1 text-xs font-medium transition-all',
+                                                    isSelected
+                                                        ? 'border-amber-400/60 bg-amber-400/15 text-amber-200'
+                                                        : 'border-white/20 bg-white/5 text-white/80 hover:border-white/35 hover:bg-white/10 hover:text-white',
+                                                )}
+                                            >
+                                                {tag.name}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
 
-                <div className="grid gap-3 sm:grid-cols-2 lg:max-w-xs">
-                    <Select
-                        value={state.tag === '' ? ALL_OPTION : state.tag}
-                        onValueChange={(value) =>
-                            setState((prev) => ({
-                                ...prev,
-                                tag: value === ALL_OPTION ? '' : value,
-                            }))
-                        }
-                    >
-                        <SelectTrigger className="w-full rounded-full border-white/20 bg-black/25 text-sm text-white/80">
-                            <SelectValue placeholder="Tag" />
-                        </SelectTrigger>
-                        <SelectContent className="w-[220px] rounded-2xl border border-white/10 bg-black/85 text-white shadow-[0_30px_70px_-50px_rgba(0,0,0,0.75)] backdrop-blur-xl">
-                            <SelectItem value={ALL_OPTION} className="text-sm text-white/80">
-                                All tags
-                            </SelectItem>
-                            {meta.tags.map((tag) => (
-                                <SelectItem
-                                    key={tag.id}
-                                    value={String(tag.id)}
-                                    className="text-sm text-white/80 focus:bg-white/10 focus:text-white"
-                                >
-                                    {tag.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-
-                    <Input
-                        value={state.city}
-                        placeholder="City or region"
-                        onChange={(event) =>
-                            setState((prev) => ({
-                                ...prev,
-                                city: event.target.value,
-                            }))
-                        }
-                        onKeyDown={(event) => {
-                            if (event.key === 'Enter') {
-                                handleApply();
-                            }
-                        }}
-                        className="rounded-full border-white/20 bg-black/25 text-sm text-white/85 placeholder:text-white/45 focus-visible:ring-amber-400/40"
-                    />
-                </div>
-            </div>
-
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-                <div className="flex flex-wrap items-center gap-2">
-                    <Button
-                        type="button"
-                        onClick={handleApply}
-                        className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-6 text-xs font-semibold uppercase tracking-[0.35em] text-white shadow-[0_28px_70px_-36px_rgba(249,115,22,0.65)] transition hover:scale-[1.02]"
-                    >
-                        Apply
-                    </Button>
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        disabled={!hasActiveFilters}
-                        onClick={handleReset}
-                        className="rounded-full border border-white/15 bg-white/10 px-5 text-xs font-semibold uppercase tracking-[0.35em] text-white/70 hover:border-white/30 hover:bg-white/15 hover:text-white disabled:border-white/10 disabled:text-white/40"
-                    >
-                        Reset
-                    </Button>
-                </div>
-
-                <Button
-                    type="button"
-                    onClick={onOpenSubmission}
-                    className="rounded-full bg-white/90 px-6 text-xs font-semibold uppercase tracking-[0.35em] text-black shadow-[0_30px_65px_-40px_rgba(255,255,255,0.6)] transition hover:scale-[1.02]"
-                >
-                    Suggest an event
-                </Button>
-            </div>
-        </div>
+                            {/* Row 4: Location */}
+                            <div className="relative rounded-3xl border border-white/10 bg-white/5 p-5 space-y-3 overflow-visible">
+                                <Label className="text-xs uppercase tracking-[0.3em] text-white/55">
+                                    Location
+                                </Label>
+                                <div className="relative overflow-visible">
+                                    <LocationAutocomplete
+                                        value={locationQuery}
+                                        onChange={handleLocationQueryChange}
+                                        onSelect={handleLocationSelect}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                </CollapsibleContent>
+            </Card>
+        </Collapsible>
     );
 }
-

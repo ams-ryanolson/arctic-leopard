@@ -260,16 +260,18 @@ export default function ProfileBasics({ profile, interests, hashtags }: ProfileB
                                     <InputError message={errors.pronouns} />
                                 </div>
                                 <div className="space-y-2.5">
-                                    <Label htmlFor="gender" className="text-sm font-medium text-white">Gender</Label>
+                                    <Label htmlFor="gender" className="text-sm font-medium text-white">
+                                        Gender <span className="text-white/50 font-normal">(optional)</span>
+                                    </Label>
                                     <Select
-                                        value={data.gender}
+                                        value={data.gender || ''}
                                         onValueChange={(value) => setData('gender', value)}
                                     >
                                         <SelectTrigger
                                             id="gender"
                                             className="h-auto w-full border-white/20 bg-white/5 py-2.5 text-white placeholder:text-white/50 focus:border-white/35 focus:bg-white/10 focus:ring-amber-500/40"
                                         >
-                                            <SelectValue placeholder="Select your gender" />
+                                            <SelectValue placeholder="Select your gender (optional)" />
                                         </SelectTrigger>
                                         <SelectContent className="border-white/20 bg-neutral-900 text-white">
                                             {genderOptions.map((option) => (

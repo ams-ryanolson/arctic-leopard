@@ -153,4 +153,50 @@
         color: #0b0811 !important;
         background-color: #ffffff !important;
     }
+
+    /* Emoji Picker Styling */
+    :where(.epr-emoji-category-label) {
+        color: rgba(255, 255, 255, 0.7) !important;
+    }
+
+    :where(.epr-search-container input) {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+        color: rgba(255, 255, 255, 0.9) !important;
+    }
+
+    :where(.epr-search-container input:focus) {
+        border-color: rgba(251, 191, 36, 0.5) !important;
+        outline-color: rgba(251, 191, 36, 0.4) !important;
+    }
+
+    :where(.epr-body::-webkit-scrollbar) {
+        width: 8px;
+    }
+
+    :where(.epr-body::-webkit-scrollbar-track) {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    :where(.epr-body::-webkit-scrollbar-thumb) {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+    }
+
+    :where(.epr-body::-webkit-scrollbar-thumb:hover) {
+        background: rgba(255, 255, 255, 0.3);
+    }
+}
+
+@layer utilities {
+    /* Safe area support for mobile devices with notches/home indicators */
+    @supports (padding: max(0px)) {
+        .pb-safe {
+            padding-bottom: max(1rem, env(safe-area-inset-bottom));
+        }
+
+        .safe-area-inset-bottom {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+    }
 }

@@ -22,7 +22,7 @@ class AdminUserController extends Controller
         $roleFilter = trim((string) $request->string('role'));
 
         $users = User::query()
-            ->with(['roles:id,name'])
+            ->with(['roles:id,name', 'latestVerification'])
             ->select(['id', 'name', 'display_name', 'username', 'email', 'created_at', 'avatar_path'])
             ->when($search !== '', static function ($query) use ($search): void {
                 $query->where(static function ($builder) use ($search): void {
@@ -52,6 +52,8 @@ class AdminUserController extends Controller
                 'role' => $roleFilter,
             ],
             'users' => $users->through(static function (User $user): array {
+                $latest = $user->latestVerification;
+
                 return [
                     'id' => $user->getKey(),
                     'name' => $user->name,
@@ -61,6 +63,15 @@ class AdminUserController extends Controller
                     'avatar_url' => $user->avatar_url,
                     'created_at' => optional($user->created_at)->toIso8601String(),
                     'roles' => $user->roles->pluck('name')->all(),
+                    'verification' => $latest ? [
+                        'status' => $latest->status->value,
+                        'verified_at' => $latest->verified_at?->toIso8601String(),
+                        'expires_at' => $latest->expires_at?->toIso8601String(),
+                        'renewal_required_at' => $latest->renewal_required_at?->toIso8601String(),
+                        'is_expired' => $latest->isExpired(),
+                        'is_in_grace_period' => $latest->isInGracePeriod(),
+                        'needs_renewal' => $latest->needsRenewal(),
+                    ] : null,
                 ];
             }),
             'availableRoles' => $availableRoles,

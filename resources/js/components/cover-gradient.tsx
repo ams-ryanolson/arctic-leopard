@@ -29,3 +29,4 @@ export default function CoverGradient({ className, style }: CoverGradientProps) 
 
 
 
+

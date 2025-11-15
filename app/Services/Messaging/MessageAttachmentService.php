@@ -39,7 +39,7 @@ class MessageAttachmentService
                 $identifier,
                 sprintf('messages/%d', $message->conversation_id),
                 $attachment['filename'] ?? null,
-                'private',
+                'public',
             );
 
             if ($promotedPath === null) {

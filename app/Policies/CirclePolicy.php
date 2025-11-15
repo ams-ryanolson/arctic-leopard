@@ -12,7 +12,11 @@ class CirclePolicy
      */
     public function viewAny(?User $user): bool
     {
-        return true;
+        if ($user === null) {
+            return false;
+        }
+
+        return $user->hasRole(['Admin', 'Super Admin']) || $user->can('manage roles');
     }
 
     /**
@@ -33,6 +37,14 @@ class CirclePolicy
         }
 
         return $user->can('manage roles') || $user->can('manage permissions');
+    }
+
+    /**
+     * Determine whether the user can create models.
+     */
+    public function create(User $user): bool
+    {
+        return $user->hasRole(['Admin', 'Super Admin']) || $user->can('manage roles');
     }
 
     /**

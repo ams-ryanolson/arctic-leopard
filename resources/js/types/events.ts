@@ -145,8 +145,12 @@ export type EventFilters = {
     status?: EventStatus | '';
     modality?: EventModality | '';
     type?: EventType | '';
-    tag?: number | string | null;
-    city?: string | null;
+    tags?: number[] | string[] | null;
+    location_city?: string | null;
+    location_region?: string | null;
+    location_country?: string | null;
+    location_latitude?: number | string | null;
+    location_longitude?: number | string | null;
 };
 
 export type EventMeta = {

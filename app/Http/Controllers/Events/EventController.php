@@ -32,8 +32,12 @@ class EventController extends Controller
             'search' => $request->string('search')->toString(),
             'type' => $request->string('type')->toString(),
             'modality' => $request->string('modality')->toString(),
-            'tag' => $request->input('tag'),
-            'city' => $request->string('city')->toString(),
+            'tags' => $request->input('tags', []),
+            'location_city' => $request->string('location_city')->toString(),
+            'location_region' => $request->string('location_region')->toString(),
+            'location_country' => $request->string('location_country')->toString(),
+            'location_latitude' => $request->has('location_latitude') ? $request->float('location_latitude') : null,
+            'location_longitude' => $request->has('location_longitude') ? $request->float('location_longitude') : null,
             'status' => $request->string('status')->toString() ?: EventStatus::Published->value,
         ];
 
@@ -47,11 +51,7 @@ class EventController extends Controller
             ->where('status', EventStatus::Published->value);
 
         if ($filters['search']) {
-            $baseQuery->where(function ($query) use ($filters) {
-                $query
-                    ->where('title', 'like', "%{$filters['search']}%")
-                    ->orWhere('description', 'like', "%{$filters['search']}%");
-            });
+            $baseQuery->where('title', 'like', "%{$filters['search']}%");
         }
 
         if ($filters['type']) {
@@ -62,12 +62,23 @@ class EventController extends Controller
             $baseQuery->where('modality', $filters['modality']);
         }
 
-        if ($filters['city']) {
-            $baseQuery->where('location_city', 'like', "%{$filters['city']}%");
+        if ($filters['location_city']) {
+            $baseQuery->where('location_city', 'like', "%{$filters['location_city']}%");
         }
 
-        if ($filters['tag']) {
-            $baseQuery->whereHas('tags', fn ($query) => $query->where('event_tags.id', $filters['tag']));
+        if ($filters['location_region']) {
+            $baseQuery->where('location_region', 'like', "%{$filters['location_region']}%");
+        }
+
+        if ($filters['location_country']) {
+            $baseQuery->where('location_country', 'like', "%{$filters['location_country']}%");
+        }
+
+        if (! empty($filters['tags']) && is_array($filters['tags'])) {
+            $tagIds = array_filter(array_map('intval', $filters['tags']));
+            if (! empty($tagIds)) {
+                $baseQuery->whereHas('tags', fn ($query) => $query->whereIn('event_tags.id', $tagIds));
+            }
         }
 
         $now = Carbon::now();
@@ -84,15 +95,62 @@ class EventController extends Controller
             ->limit(6)
             ->get();
 
+        // Get all upcoming events for featured selection (before pagination)
+        $allUpcomingForFeatured = (clone $upcomingQuery)->get();
+
+        // Get a random featured event from upcoming events (for header display)
+        $featuredEvent = null;
+        $featuredEventId = null;
+        if ($allUpcomingForFeatured->isNotEmpty()) {
+            $featuredEvent = $allUpcomingForFeatured->random();
+            $featuredEventId = $featuredEvent->getKey();
+
+            // Exclude featured event from paginated results
+            $upcoming = $upcomingQuery
+                ->where('id', '!=', $featuredEventId)
+                ->paginate($perPage)
+                ->withQueryString();
+        }
+
         if ($viewer) {
             $viewerId = $viewer->getKey();
 
             $this->attachViewerRsvp($upcoming->getCollection(), $viewerId);
             $this->attachViewerRsvp($past, $viewerId);
+
+            // Attach viewer RSVP to featured event separately
+            if ($featuredEvent) {
+                $viewerRsvp = $featuredEvent->rsvps()
+                    ->where('user_id', $viewerId)
+                    ->first();
+
+                if ($viewerRsvp) {
+                    $featuredEvent->setRelation('viewer_rsvp', $viewerRsvp);
+                }
+            }
         }
 
         $upcomingPayload = EventResource::collection($upcoming)->toResponse($request)->getData(true);
         $pastPayload = EventResource::collection($past)->resolve();
+        $featuredEventPayload = $featuredEvent ? (new EventResource($featuredEvent))->resolve($request) : null;
+
+        // Get tags only from published events
+        $eventTagIds = Event::query()
+            ->where('status', EventStatus::Published->value)
+            ->whereHas('tags')
+            ->with('tags:id')
+            ->get()
+            ->pluck('tags')
+            ->flatten()
+            ->pluck('id')
+            ->unique()
+            ->values();
+
+        $eventTags = EventTag::query()
+            ->whereIn('id', $eventTagIds)
+            ->active()
+            ->orderBy('display_order')
+            ->get();
 
         $filtersMeta = [
             'statuses' => array_map(
@@ -101,25 +159,72 @@ class EventController extends Controller
             ),
             'types' => EventType::values(),
             'modalities' => EventModality::values(),
-            'tags' => EventTagResource::collection(
-                EventTag::query()->active()->orderBy('display_order')->get()
-            )->resolve(),
+            'tags' => EventTagResource::collection($eventTags)->resolve(),
         ];
 
         if ($request->wantsJson()) {
             return response()->json([
                 'events' => $upcomingPayload,
                 'past' => $pastPayload,
+                'featuredEvent' => $featuredEventPayload,
                 'filters' => $filters,
                 'meta' => $filtersMeta,
             ]);
         }
 
+        $filtersForFrontend = [
+            'search' => $filters['search'] ?: null,
+            'type' => $filters['type'] ?: null,
+            'modality' => $filters['modality'] ?: null,
+            'tags' => ! empty($filters['tags']) && is_array($filters['tags'])
+                ? array_map('intval', $filters['tags'])
+                : null,
+            'location_city' => $filters['location_city'] ?: null,
+            'location_region' => $filters['location_region'] ?: null,
+            'location_country' => $filters['location_country'] ?: null,
+            'location_latitude' => $filters['location_latitude'] ?: null,
+            'location_longitude' => $filters['location_longitude'] ?: null,
+        ];
+
         return Inertia::render('Events/Index', [
             'events' => $upcomingPayload,
             'pastEvents' => $pastPayload,
-            'filters' => $filters,
+            'featuredEvent' => $featuredEventPayload,
+            'filters' => $filtersForFrontend,
             'meta' => $filtersMeta,
+        ]);
+    }
+
+    public function submit(Request $request): Response
+    {
+        // Get tags only from published events
+        $eventTagIds = Event::query()
+            ->where('status', EventStatus::Published->value)
+            ->whereHas('tags')
+            ->with('tags:id')
+            ->get()
+            ->pluck('tags')
+            ->flatten()
+            ->pluck('id')
+            ->unique()
+            ->values();
+
+        $eventTags = EventTag::query()
+            ->whereIn('id', $eventTagIds)
+            ->active()
+            ->orderBy('display_order')
+            ->get();
+
+        $filtersMeta = [
+            'types' => EventType::values(),
+            'modalities' => EventModality::values(),
+            'tags' => EventTagResource::collection($eventTags)->resolve(),
+        ];
+
+        return Inertia::render('Events/Submit', [
+            'tags' => $filtersMeta['tags'],
+            'modalities' => $filtersMeta['modalities'],
+            'types' => $filtersMeta['types'],
         ]);
     }
 

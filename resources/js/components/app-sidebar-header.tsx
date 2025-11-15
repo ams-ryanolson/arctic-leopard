@@ -111,8 +111,51 @@ export function AppSidebarHeader({
 
     return (
         <header className="sticky top-0 z-40 border-b border-white/10 bg-black/45 backdrop-blur-2xl">
-            <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-4 md:px-8">
-                <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-3 py-3 sm:gap-4 sm:px-4 sm:py-4 md:px-8">
+                {/* Mobile: Compact Header */}
+                <div className="flex items-center justify-between gap-2 sm:hidden">
+                    <div className="flex min-w-0 flex-1 items-center gap-2">
+                        <SidebarTrigger className="h-9 w-9 rounded-full border border-white/15 text-white hover:bg-white/10" />
+                        <Avatar className="size-9 border border-white/10 bg-white/10">
+                            {user?.avatar ? (
+                                <AvatarImage src={user.avatar} alt={displayName} />
+                            ) : (
+                                <AvatarFallback className="bg-gradient-to-br from-amber-400/70 via-rose-500/70 to-violet-600/70 text-xs font-semibold text-white">
+                                    {initials || 'RK'}
+                                </AvatarFallback>
+                            )}
+                        </Avatar>
+                        <div className="min-w-0 text-white">
+                            <h1 className="truncate text-sm font-semibold">{displayName}</h1>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        {(actions?.length ? actions : defaultActions).slice(0, 1).map((action) => {
+                            const Icon = action.icon;
+                            return (
+                                <Button
+                                    key={action.id}
+                                    size="sm"
+                                    variant={action.variant === 'ghost' ? 'ghost' : action.variant === 'outline' ? 'outline' : 'default'}
+                                    className={cn(
+                                        'h-9 rounded-full text-xs font-semibold transition',
+                                        action.variant === 'primary'
+                                            ? 'bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-4 text-white shadow-[0_18px_40px_-12px_rgba(249,115,22,0.45)] hover:scale-[1.02]'
+                                            : action.variant === 'secondary'
+                                            ? 'border-white/25 bg-white/10 px-3 text-white hover:border-white/40 hover:bg-white/20'
+                                            : 'text-white/80 hover:bg-white/10 hover:text-white'
+                                    )}
+                                >
+                                    {Icon && <Icon className="mr-1.5 size-3.5" />}
+                                    <span className="hidden min-[375px]:inline">{action.label}</span>
+                                </Button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Desktop: Full Header */}
+                <div className="hidden flex-wrap items-center justify-between gap-4 sm:flex">
                     <div className="flex min-w-0 flex-1 items-center gap-3">
                         <SidebarTrigger className="rounded-full border border-white/15 text-white hover:bg-white/10" />
                         <Avatar className="size-12 border border-white/10 bg-white/10">
@@ -142,23 +185,25 @@ export function AppSidebarHeader({
                     </div>
                 </div>
 
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                    <div className="flex w-full flex-1 items-center gap-3 lg:max-w-xl">
+                {/* Search Bar - Mobile Optimized */}
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex w-full flex-1 items-center gap-2 sm:max-w-xl">
                         <div className="relative w-full">
-                            <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-white/40" />
+                            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/40 sm:left-4" />
                             <Input
                                 type="search"
-                                placeholder="Search kinks, circles, creators, locations..."
-                                className="h-11 rounded-full border-white/15 bg-white/10 pl-11 text-sm text-white placeholder:text-white/40"
+                                placeholder="Search..."
+                                className="h-9 rounded-full border-white/15 bg-white/10 pl-9 text-sm text-white placeholder:text-white/40 sm:h-11 sm:pl-11"
                             />
                         </div>
-                        <Badge className="rounded-full border-white/20 bg-white/10 px-3 py-1 text-white/70">
+                        <Badge className="hidden rounded-full border-white/20 bg-white/10 px-2.5 py-1 text-xs text-white/70 sm:flex">
                             <Sparkles className="size-3 text-amber-400" />
-                            Beta access
+                            Beta
                         </Badge>
                     </div>
 
-                    <div className="flex w-full flex-1 flex-wrap items-center justify-start gap-2 lg:w-auto lg:justify-end">
+                    {/* Filters - Hidden on Mobile */}
+                    <div className="hidden flex-wrap items-center justify-start gap-2 lg:flex lg:w-auto lg:justify-end">
                         {toolbar}
                         {filters?.map((filter) => (
                             <Button
@@ -192,8 +237,9 @@ export function AppSidebarHeader({
                     </div>
                 </div>
 
+                {/* Quick Actions - Hidden on Mobile */}
                 {quickActions?.length ? (
-                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="hidden grid-cols-2 gap-2 sm:grid lg:grid-cols-3">
                         {quickActions.map((action) => {
                             const Icon = action.icon;
                             const content = (
@@ -238,7 +284,7 @@ export function AppSidebarHeader({
             </div>
             {breadcrumbs.length > 0 && (
                 <div className="border-t border-white/10 bg-black/35">
-                    <div className="mx-auto flex w-full max-w-6xl items-center px-4 py-3 md:px-8">
+                    <div className="mx-auto flex w-full max-w-6xl items-center px-3 py-2 sm:px-4 md:px-8">
                         <Breadcrumbs
                             breadcrumbs={[
                                 { title: 'Home', href: '/' },

@@ -4,6 +4,7 @@ namespace App\Listeners\Payments;
 
 use App\Enums\Payments\WishlistPurchaseStatus;
 use App\Events\Payments\PaymentCaptured;
+use App\Events\Wishlists\WishlistPurchaseCompleted;
 use App\Models\Wishlists\WishlistPurchase;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
@@ -25,6 +26,8 @@ class FulfillWishlistPurchaseOnPaymentCaptured implements ShouldQueue
             'payment_id' => $event->payment->id,
             'fulfilled_at' => now(),
         ])->save();
+
+        // Fire event for wishlist-specific handlers
+        event(new WishlistPurchaseCompleted($purchase->fresh()));
     }
 }
-

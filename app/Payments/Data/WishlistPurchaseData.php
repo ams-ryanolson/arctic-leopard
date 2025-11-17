@@ -8,7 +8,7 @@ use InvalidArgumentException;
 final class WishlistPurchaseData
 {
     /**
-     * @param array<string, mixed> $metadata
+     * @param  array<string, mixed>  $metadata
      */
     public function __construct(
         public readonly int $wishlistItemId,
@@ -17,7 +17,8 @@ final class WishlistPurchaseData
         public readonly Money $amount,
         public readonly ?string $message = null,
         public readonly array $metadata = [],
-        public readonly ?string $method = null
+        public readonly ?string $method = null,
+        public readonly bool $coversFee = false
     ) {
         if ($wishlistItemId <= 0 || $buyerId <= 0 || $creatorId <= 0) {
             throw new InvalidArgumentException('Wishlist purchase requires valid identifiers.');
@@ -25,7 +26,7 @@ final class WishlistPurchaseData
     }
 
     /**
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      */
     public static function fromArray(array $attributes): self
     {
@@ -41,6 +42,7 @@ final class WishlistPurchaseData
             message: $attributes['message'] ?? null,
             metadata: $attributes['metadata'] ?? [],
             method: $attributes['method'] ?? null,
+            coversFee: (bool) ($attributes['covers_fee'] ?? $attributes['coversFee'] ?? false),
         );
     }
 
@@ -58,7 +60,7 @@ final class WishlistPurchaseData
             'message' => $this->message,
             'metadata' => $this->metadata,
             'method' => $this->method,
+            'covers_fee' => $this->coversFee,
         ];
     }
 }
-

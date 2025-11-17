@@ -4,8 +4,8 @@ namespace App\Models\Wishlists;
 
 use App\Enums\Payments\WishlistPurchaseStatus;
 use App\Models\Concerns\GeneratesUuid;
-use App\Models\User;
 use App\Models\Payments\Payment;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,11 +17,15 @@ class WishlistPurchase extends Model
 
     protected $guarded = [];
 
-    protected $casts = [
-        'status' => WishlistPurchaseStatus::class,
-        'metadata' => 'array',
-        'fulfilled_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'status' => WishlistPurchaseStatus::class,
+            'covers_fee' => 'boolean',
+            'metadata' => 'array',
+            'fulfilled_at' => 'datetime',
+        ];
+    }
 
     protected static function newFactory()
     {
@@ -43,4 +47,3 @@ class WishlistPurchase extends Model
         return $this->belongsTo(Payment::class);
     }
 }
-

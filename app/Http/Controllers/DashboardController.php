@@ -14,6 +14,7 @@ use App\Models\PostPurchase;
 use App\Services\Ads\AdServingService;
 use App\Services\Cache\TimelineCacheService;
 use App\Services\Feed\FeedService;
+use App\Services\Stories\StoryService;
 use App\Support\Feed\FeedFilters;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -31,6 +32,7 @@ class DashboardController extends Controller
         private readonly TimelineCacheService $timelineCache,
         private readonly FeedService $feedService,
         private readonly AdServingService $adServingService,
+        private readonly StoryService $storyService,
     ) {}
 
     public function __invoke(Request $request): Response
@@ -85,6 +87,7 @@ class DashboardController extends Controller
             'pulse' => $user ? $this->buildScenePulse($user) : [],
             'trending' => $this->trendingTags(),
             'sidebarAds' => Inertia::defer(fn () => $this->getSidebarAds($user, $request)),
+            'stories' => $this->storyService->getStoriesForDashboard($user),
             'viewer' => [
                 'id' => $user?->getKey(),
                 'name' => $user?->display_name ?? $user?->username,

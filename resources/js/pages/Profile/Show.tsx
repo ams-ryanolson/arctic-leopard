@@ -187,7 +187,9 @@ export default function ProfileShow() {
         tipOptions: providedTipOptions,
         availability: providedAvailability,
         wishlist: providedWishlist,
+        features: sharedFeatures,
     } = usePage<ProfilePageProps>().props;
+    const features = (sharedFeatures ?? {}) as Record<string, boolean>;
     const getInitials = useInitials();
     const initials = getInitials(user.display_name ?? user.username ?? '');
     const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
@@ -613,13 +615,13 @@ export default function ProfileShow() {
                                     }
                                 />
                             )}
-                            {canSupportCreator && (
+                            {canSupportCreator && features.feature_signals_enabled && features.feature_wishlist_enabled && (
                                 <Button
                                     asChild
                                     variant="ghost"
                                     className="rounded-full text-white/80 hover:bg-white/10 hover:text-white"
                                 >
-                                    <Link href={`${profileRoutes.show.url(user.username ?? '')}/wishlist`}>
+                                    <Link href={`/w/${user.username ?? ''}`}>
                                         Wishlist
                                     </Link>
                                 </Button>

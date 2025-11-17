@@ -20,6 +20,7 @@ Route::middleware('auth')->group(function () {
     // Profile Settings
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('settings.profile.edit');
     Route::patch('settings/profile', [ProfileController::class, 'update'])->name('settings.profile.update');
+    Route::patch('settings/profile/media', [ProfileController::class, 'updateMedia'])->name('settings.profile.media.update');
 
     // Privacy Settings
     Route::get('settings/privacy', [PrivacyController::class, 'edit'])->name('settings.privacy.edit');

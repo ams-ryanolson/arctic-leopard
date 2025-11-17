@@ -30,6 +30,7 @@ use App\Events\UserBlocked;
 use App\Events\UserFollowAccepted;
 use App\Events\UserFollowRequested;
 use App\Events\UserUnblocked;
+use App\Events\Wishlists\WishlistPurchaseCompleted;
 use App\Listeners\Ads\ActivateAdOnPaymentCaptured;
 use App\Listeners\DispatchUserFollowedEvent;
 use App\Listeners\FlushTimelinesOnBlock;
@@ -70,6 +71,8 @@ use App\Listeners\SendPostBookmarkedNotification;
 use App\Listeners\SendPostLikedNotification;
 use App\Listeners\SendUserFollowedNotification;
 use App\Listeners\SendUserFollowRequestedNotification;
+use App\Listeners\Wishlists\SendWishlistThankYouNotification;
+use App\Listeners\Wishlists\UpdateWishlistItemStatus;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -217,6 +220,10 @@ class EventServiceProvider extends ServiceProvider
         ],
         MembershipCancelled::class => [
             // Can add listeners here if needed
+        ],
+        WishlistPurchaseCompleted::class => [
+            UpdateWishlistItemStatus::class,
+            SendWishlistThankYouNotification::class,
         ],
     ];
 }

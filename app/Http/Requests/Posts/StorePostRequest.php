@@ -5,6 +5,7 @@ namespace App\Http\Requests\Posts;
 use App\Enums\PostAudience;
 use App\Enums\PostType;
 use App\Models\Post;
+use App\Services\TemporaryUploadService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -41,14 +42,30 @@ class StorePostRequest extends FormRequest
                 'array',
                 'max:6',
             ],
-            'media.*.disk' => ['required_with:media', 'string'],
-            'media.*.path' => ['required_with:media', 'string'],
-            'media.*.thumbnail_path' => ['nullable', 'string'],
+            'media.*.identifier' => [
+                'required_with:media',
+                'string',
+                function ($attribute, $value, $fail) {
+                    if (! is_string($value)) {
+                        return;
+                    }
+
+                    $temporaryUploads = app(TemporaryUploadService::class);
+
+                    if (! $temporaryUploads->exists($value)) {
+                        $fail('The temporary upload identifier is invalid or has expired.');
+                    }
+                },
+            ],
             'media.*.mime_type' => ['required_with:media', 'string', 'max:150'],
             'media.*.position' => ['nullable', 'integer', 'min:0'],
             'media.*.width' => ['nullable', 'integer', 'min:1'],
             'media.*.height' => ['nullable', 'integer', 'min:1'],
             'media.*.duration' => ['nullable', 'integer', 'min:1'],
+            'media.*.is_primary' => ['nullable', 'boolean'],
+            'media.*.filename' => ['nullable', 'string', 'max:255'],
+            'media.*.original_name' => ['nullable', 'string', 'max:255'],
+            'media.*.size' => ['nullable', 'integer', 'min:1'],
             'media.*.meta' => ['nullable', 'array'],
             'poll' => [
                 'nullable',

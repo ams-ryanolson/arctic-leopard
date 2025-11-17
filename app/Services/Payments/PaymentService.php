@@ -6,8 +6,8 @@ use App\Enums\Payments\PaymentIntentStatus;
 use App\Enums\Payments\PaymentRefundStatus;
 use App\Enums\Payments\PaymentStatus;
 use App\Enums\Payments\PaymentType;
-use App\Events\Payments\PaymentCaptured;
 use App\Events\Payments\PaymentCancelled;
+use App\Events\Payments\PaymentCaptured;
 use App\Events\Payments\PaymentFailed;
 use App\Events\Payments\PaymentInitiated;
 use App\Events\Payments\PaymentIntentCancelled;
@@ -29,8 +29,7 @@ class PaymentService
 {
     public function __construct(
         protected readonly PaymentGatewayManager $gateways
-    ) {
-    }
+    ) {}
 
     public function createIntent(PaymentIntentData $data, ?string $gateway = null): PaymentIntent
     {
@@ -38,7 +37,10 @@ class PaymentService
 
         $response = $this->gateways->driver($gateway)->createIntent($data);
 
-        return DB::transaction(function () use ($data, $response, $gateway) {
+        return DB::transaction(function () use ($data, $response) {
+            $feeAmount = $data->metadata['fee_amount'] ?? 0;
+            $netAmount = $data->amount->amount() - $feeAmount;
+
             $payment = Payment::query()->create([
                 'payable_type' => $data->payableType,
                 'payable_id' => $data->payableId,
@@ -47,8 +49,8 @@ class PaymentService
                 'type' => ($data->type ?? PaymentType::OneTime)->value,
                 'status' => PaymentStatus::Pending,
                 'amount' => $data->amount->amount(),
-                'fee_amount' => 0,
-                'net_amount' => $data->amount->amount(),
+                'fee_amount' => $feeAmount,
+                'net_amount' => $netAmount,
                 'currency' => $data->amount->currency(),
                 'method' => $data->method,
                 'provider' => $response->provider,
@@ -147,7 +149,7 @@ class PaymentService
 
         $response = $this->gateways->driver($gateway)->capturePayment($data);
 
-        return DB::transaction(function () use ($intent, $response, $data) {
+        return DB::transaction(function () use ($intent, $response) {
             $payment = $intent->payment()->lockForUpdate()->firstOrFail();
 
             $payment->provider_payment_id = $response->providerPaymentId;
@@ -249,4 +251,3 @@ class PaymentService
         };
     }
 }
-

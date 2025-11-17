@@ -27,6 +27,7 @@ import {
     CalendarRange,
     Cog,
     Flame,
+    Gift,
     LineChart,
     MessageCircle,
     Radar,
@@ -43,8 +44,9 @@ import {
 
 export function AppSidebar() {
     const {
-        props: { notifications, messaging, auth },
+        props: { notifications, messaging, auth, features: sharedFeatures },
     } = usePage<SharedData>();
+    const features = (sharedFeatures ?? {}) as Record<string, boolean>;
 
     const user = auth?.user;
     const userRoles = user?.roles?.map((role) => role.name) ?? [];
@@ -134,100 +136,57 @@ export function AppSidebar() {
             href: '/circles',
             icon: Users,
         },
-        {
+        ...(features.feature_radar_enabled ? [{
             title: 'Radar',
             href: radar(),
             icon: Radar,
-        },
-        {
+        }] : []),
+        ...(features.feature_signals_enabled ? [{
             title: 'Signals',
             href: '/signals',
             icon: Sparkles,
             items: [
-                {
-                    title: 'Setup',
-                    href: '/signals/setup',
-                    icon: LayoutDashboard,
-                },
-                {
-                    title: 'Playbooks',
-                    href: '/signals/playbooks',
-                    icon: BookOpen,
-                },
-                {
-                    title: 'Overview',
-                    href: '/signals',
-                    icon: Sparkles,
-                },
-                {
-                    title: 'Stats',
-                    href: '/signals/stats',
-                    icon: BarChart3,
-                },
-                {
-                    title: 'Subscriptions',
-                    href: '/signals/subscriptions',
-                    icon: Users,
-                },
-                {
-                    title: 'Monetization',
-                    href: '/signals/monetization',
-                    icon: LineChart,
-                },
-                {
-                    title: 'Payouts',
-                    href: '/signals/payouts',
-                    icon: Banknote,
-                },
-                {
-                    title: 'Audience',
-                    href: '/signals/audience',
-                    icon: Radar,
-                },
-                {
-                    title: 'Compliance',
-                    href: '/signals/compliance',
-                    icon: ShieldAlert,
-                },
-                {
-                    title: 'Settings',
-                    href: '/signals/settings',
-                    icon: Cog,
-                },
-                {
-                    title: 'Ads',
-                    href: '/signals/ads',
-                    icon: Megaphone,
-                },
+                { title: 'Setup', href: '/signals/setup', icon: LayoutDashboard },
+                { title: 'Playbooks', href: '/signals/playbooks', icon: BookOpen },
+                { title: 'Overview', href: '/signals', icon: Sparkles },
+                { title: 'Stats', href: '/signals/stats', icon: BarChart3 },
+                { title: 'Subscriptions', href: '/signals/subscriptions', icon: Users },
+                { title: 'Monetization', href: '/signals/monetization', icon: LineChart },
+                ...(features.feature_wishlist_enabled ? [{ title: 'Wishlist', href: '/signals/wishlist', icon: Gift }] : []),
+                { title: 'Payouts', href: '/signals/payouts', icon: Banknote },
+                { title: 'Audience', href: '/signals/audience', icon: Radar },
+                { title: 'Compliance', href: '/signals/compliance', icon: ShieldAlert },
+                { title: 'Settings', href: '/signals/settings', icon: Cog },
+                ...(features.feature_ads_enabled ? [{ title: 'Ads', href: '/signals/ads', icon: Megaphone }] : []),
             ],
-        },
-        {
+        }] : []),
+        ...(features.feature_events_enabled ? [{
             title: 'Events',
             href: '/events',
             icon: CalendarRange,
-        },
-        {
+        }] : []),
+        ...(features.feature_bookmarks_enabled ? [{
             title: 'Bookmarks',
             href: bookmarksIndex(),
             icon: Bookmark,
-        },
+        }] : []),
         {
             title: 'Notifications',
             href: notificationsIndex(),
             icon: Bell,
             badge: notificationsBadge,
         },
-        {
+        ...(features.feature_messaging_enabled ? [{
             title: 'Messages',
             href: '/messages',
             icon: MessageCircle,
             badge: unreadMessages > 0 ? unreadMessages : undefined,
-        },
-        {
+        }] : []),
+        ...(features.feature_video_chat_enabled ? [{
             title: 'Video Chat',
             href: dashboard({ query: { view: 'video-chat' } }),
             icon: Video,
-        },
+        }] : []),
         ...(isAdmin
             ? [
                   {
@@ -245,21 +204,16 @@ export function AppSidebar() {
                               href: admin.users.index().url,
                               icon: Users,
                           },
-                          {
+                          ...(features.feature_events_enabled ? [{
                               title: 'Events',
                               href: admin.events.index().url,
                               icon: CalendarRange,
-                          },
-                          {
+                          }] : []),
+                          ...(features.feature_ads_enabled ? [{
                               title: 'Ads',
                               href: '/admin/ads',
                               icon: Megaphone,
-                          },
-                          {
-                              title: 'Settings',
-                              href: admin.settings.index().url,
-                              icon: Cog,
-                          },
+                          }] : []),
                           {
                               title: 'Roles',
                               href: admin.roles.index().url,
@@ -269,6 +223,11 @@ export function AppSidebar() {
                               title: 'Memberships',
                               href: admin.memberships.index().url,
                               icon: Crown,
+                          },
+                          {
+                          title: 'Settings',
+                          href: admin.settings.index().url,
+                          icon: Cog,
                           },
                           {
                               title: 'Activity Log',

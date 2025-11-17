@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
+use App\Http\Requests\Settings\UpdateMediaRequest;
 use App\Http\Resources\CircleResource;
 use App\Models\Hashtag;
 use App\Models\Interest;
 use App\Models\User;
 use App\Services\Circles\CircleMembershipService;
 use App\Services\UserFollowService;
+use App\Services\Users\UserMediaService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
@@ -22,6 +24,7 @@ class ProfileController extends Controller
 {
     public function __construct(
         private readonly CircleMembershipService $circleMemberships,
+        private readonly UserMediaService $userMediaService,
     ) {}
 
     /**
@@ -163,6 +166,41 @@ class ProfileController extends Controller
         }
 
         return to_route('settings.profile.edit');
+    }
+
+    /**
+     * Update user avatar/cover images
+     */
+    public function updateMedia(UpdateMediaRequest $request): RedirectResponse
+    {
+        $user = $request->user();
+        $updates = [];
+
+        $avatarIdentifier = $request->string('avatar_upload_id')->toString();
+        if ($avatarIdentifier !== '') {
+            $avatarPath = $this->userMediaService->updateAvatar($user, $avatarIdentifier);
+
+            if ($avatarPath !== null) {
+                $updates['avatar_path'] = $avatarPath;
+            }
+        }
+
+        $coverIdentifier = $request->string('cover_upload_id')->toString();
+        if ($coverIdentifier !== '') {
+            $coverPath = $this->userMediaService->updateCover($user, $coverIdentifier);
+
+            if ($coverPath !== null) {
+                $updates['cover_path'] = $coverPath;
+            }
+        }
+
+        if (! empty($updates)) {
+            $user->forceFill($updates)->save();
+        }
+
+        return redirect()
+            ->back()
+            ->with('status', 'Media updated successfully.');
     }
 
     private function sanitizeBio(?string $bio): ?string

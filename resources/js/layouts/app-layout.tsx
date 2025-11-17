@@ -1,4 +1,5 @@
 import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
+import AnnouncementBar from '@/components/announcement-bar';
 import {
     type BreadcrumbItem,
     type HeaderAction,
@@ -42,6 +43,7 @@ export default function AppLayout({
             contentClassName={contentClassName}
             {...props}
         >
+            <AnnouncementBar />
             {children}
         </AppLayoutTemplate>
     );

@@ -16,6 +16,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Events\EventAdminController;
 use App\Http\Controllers\Events\EventController;
 use App\Http\Controllers\Events\EventRsvpController;
+use App\Http\Controllers\LegalPageController;
 use App\Http\Controllers\Notifications\NotificationController;
 use App\Http\Controllers\Onboarding\CreatorSetupController;
 use App\Http\Controllers\Onboarding\FinishOnboardingController;
@@ -41,6 +42,8 @@ use App\Http\Controllers\Signals\SignalsSettingsController;
 use App\Http\Controllers\Signals\SignalsSetupController;
 use App\Http\Controllers\Signals\SignalsStatsController;
 use App\Http\Controllers\Signals\SignalsSubscriptionsController;
+use App\Http\Controllers\Stories\StoryController;
+use App\Http\Controllers\Stories\StoryReactionController;
 use App\Http\Controllers\Toasts\AcknowledgeToastController;
 use App\Http\Controllers\Toasts\ResolveToastActionController;
 use App\Http\Controllers\Uploads\TemporaryUploadController;
@@ -197,6 +200,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('posts.analytics.show')
             ->can('viewAnalytics', 'post');
 
+        Route::prefix('stories')->as('stories.')->middleware('feature:feature_stories_enabled')->group(function () {
+            Route::get('/create', function () {
+                return Inertia::render('Stories/Create', [
+                    'audiences' => [
+                        ['value' => 'public', 'label' => 'Public'],
+                        ['value' => 'followers', 'label' => 'Followers'],
+                        ['value' => 'subscribers', 'label' => 'Subscribers'],
+                    ],
+                ]);
+            })->name('create');
+            Route::get('/', [StoryController::class, 'index'])->name('index');
+            Route::post('/', [StoryController::class, 'store'])->name('store');
+            Route::get('{story}', [StoryController::class, 'show'])->name('show');
+            Route::delete('{story}', [StoryController::class, 'destroy'])->name('destroy');
+            Route::post('{story}/view', [StoryController::class, 'markAsViewed'])->name('view');
+            Route::get('{story}/analytics', [StoryController::class, 'analytics'])->name('analytics');
+
+            Route::post('{story}/reactions', [StoryReactionController::class, 'store'])->name('reactions.store');
+            Route::delete('{story}/reactions/{reaction}', [StoryReactionController::class, 'destroy'])->name('reactions.destroy');
+        });
+
         Route::prefix('circles')->as('circles.')->group(function () {
             Route::get('/', [CircleController::class, 'index'])->name('index');
             Route::post('suggest', [CircleController::class, 'suggest'])->name('suggest');
@@ -205,7 +229,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::delete('{circle:slug}/leave', [CircleMembershipController::class, 'destroy'])->name('leave');
         });
 
-        Route::prefix('signals')->as('signals.')->group(function () {
+        Route::prefix('signals')->as('signals.')->middleware('feature:feature_signals_enabled')->group(function () {
             Route::get('setup', SignalsSetupController::class)->name('setup');
             Route::get('playbooks', [SignalsPlaybooksController::class, 'index'])->name('playbooks.index');
             Route::get('playbooks/{slug}', [SignalsPlaybooksController::class, 'show'])->name('playbooks.show');
@@ -243,6 +267,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->name('ads.campaigns.index');
             Route::post('ads/checkout', [AdvertiserController::class, 'checkout'])
                 ->name('ads.checkout');
+
+            Route::prefix('wishlist')->as('wishlist.')->middleware('feature:feature_wishlist_enabled')->group(function () {
+                Route::get('/', [\App\Http\Controllers\Signals\SignalsWishlistController::class, 'index'])->name('index');
+                Route::post('/', [\App\Http\Controllers\Signals\SignalsWishlistController::class, 'store'])->name('store');
+                Route::put('{wishlistItem}', [\App\Http\Controllers\Signals\SignalsWishlistController::class, 'update'])->name('update');
+                Route::delete('{wishlistItem}', [\App\Http\Controllers\Signals\SignalsWishlistController::class, 'destroy'])->name('destroy');
+                Route::post('{wishlistItem}/renew', [\App\Http\Controllers\Signals\SignalsWishlistController::class, 'renew'])->name('renew');
+                Route::get('{wishlistItem}/contributors', [\App\Http\Controllers\Signals\SignalsWishlistController::class, 'contributors'])->name('contributors');
+                Route::get('{wishlistItem}/analytics', [\App\Http\Controllers\Signals\SignalsWishlistController::class, 'analytics'])->name('analytics');
+            });
         });
 
         Route::get('upgrade', [\App\Http\Controllers\Memberships\MembershipController::class, 'index'])
@@ -261,7 +295,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->name('apply-discount');
         });
 
-        Route::prefix('events')->as('events.')->group(function () {
+        Route::prefix('events')->as('events.')->middleware('feature:feature_events_enabled')->group(function () {
             Route::get('/', [EventController::class, 'index'])->name('index');
             Route::get('submit', [EventController::class, 'submit'])->name('submit');
             Route::post('/', [EventController::class, 'store'])->name('store');
@@ -295,6 +329,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
                         ->name('index');
                     Route::patch('{key}', [\App\Http\Controllers\Admin\AdminSettingsController::class, 'update'])
                         ->name('update');
+                    Route::patch('/', [\App\Http\Controllers\Admin\AdminSettingsController::class, 'updateMany'])
+                        ->name('update-many');
+                    Route::post('branding/upload', [\App\Http\Controllers\Admin\AdminSettingsController::class, 'uploadBranding'])
+                        ->name('branding.upload');
                 });
 
                 Route::prefix('roles')->as('roles.')->group(function () {
@@ -396,7 +434,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     Route::post('suggestions/{suggestion:id}/decline', [CircleAdminController::class, 'decline'])->name('suggestions.decline');
                 });
 
-                Route::prefix('ads')->as('ads.')->group(function () {
+                Route::prefix('ads')->as('ads.')->middleware('feature:feature_ads_enabled')->group(function () {
                     Route::get('/', [AdAdminController::class, 'index'])
                         ->name('index')
                         ->can('viewAny', \App\Models\Ads\Ad::class);
@@ -472,11 +510,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 });
             });
 
-        Route::get('radar', RadarController::class)->name('radar');
-        Route::post('radar/boost', [BoostController::class, 'store'])->name('radar.boost.store');
+        Route::get('radar', RadarController::class)->middleware('feature:feature_radar_enabled')->name('radar');
+        Route::post('radar/boost', [BoostController::class, 'store'])->middleware('feature:feature_radar_enabled')->name('radar.boost.store');
         Route::patch('profile/location', UpdateCoordinatesController::class)->name('profile.location.update');
         Route::patch('profile/travel-beacon', UpdateTravelBeaconController::class)->name('profile.travel-beacon.update');
-        Route::get('bookmarks', [BookmarkController::class, 'index'])->name('bookmarks.index');
+        Route::get('bookmarks', [BookmarkController::class, 'index'])->middleware('feature:feature_bookmarks_enabled')->name('bookmarks.index');
         Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
         Route::get('notifications/unread-count', [NotificationController::class, 'unreadCount'])->name('notifications.unread-count');
         Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
@@ -484,8 +522,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
         Route::delete('notifications', [NotificationController::class, 'destroyAll'])->name('notifications.destroy-all');
 
-        Route::get('messages', \App\Http\Controllers\Messaging\InboxController::class)->name('messages.index');
+        Route::get('messages', \App\Http\Controllers\Messaging\InboxController::class)->middleware('feature:feature_messaging_enabled')->name('messages.index');
         Route::get('messages/{conversation:ulid?}', \App\Http\Controllers\Messaging\InboxController::class)
+            ->middleware('feature:feature_messaging_enabled')
             ->where('conversation', '[A-Z0-9]+')
             ->name('messages.show');
 
@@ -520,7 +559,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::get('p/{username}', [ProfileController::class, 'show'])
     ->name('profile.show');
 
+Route::get('w/{username}', [\App\Http\Controllers\WishlistController::class, 'show'])
+    ->middleware(['feature:feature_signals_enabled', 'feature:feature_wishlist_enabled'])
+    ->name('wishlist.show');
+
+Route::middleware(['auth', 'verified', 'feature:feature_signals_enabled', 'feature:feature_wishlist_enabled'])->group(function () {
+    Route::get('wishlist/{wishlistItem}/checkout', [\App\Http\Controllers\WishlistCheckoutController::class, 'show'])->name('wishlist.checkout');
+    Route::post('wishlist/{wishlistItem}/purchase', [\App\Http\Controllers\WishlistCheckoutController::class, 'store'])->name('wishlist.purchase');
+    Route::get('wishlist/purchase/{purchase}/success', [\App\Http\Controllers\WishlistPurchaseController::class, 'success'])->name('wishlist.purchase.success');
+    Route::get('wishlist/purchase/{purchase}/failure', [\App\Http\Controllers\WishlistPurchaseController::class, 'failure'])->name('wishlist.purchase.failure');
+});
+
 Route::get('username/check', UsernameAvailabilityController::class)->name('username.check');
 Route::get('email/check', EmailAvailabilityController::class)->name('email.check');
 
 require __DIR__.'/settings.php';
+
+// Public legal pages
+Route::prefix('legal')->group(function () {
+    Route::get('/terms', [LegalPageController::class, 'show'])->defaults('page', 'terms')->name('legal.terms');
+    Route::get('/privacy', [LegalPageController::class, 'show'])->defaults('page', 'privacy')->name('legal.privacy');
+    Route::get('/guidelines', [LegalPageController::class, 'show'])->defaults('page', 'guidelines')->name('legal.guidelines');
+    Route::get('/cookies', [LegalPageController::class, 'show'])->defaults('page', 'cookies')->name('legal.cookies');
+    Route::get('/dmca', [LegalPageController::class, 'show'])->defaults('page', 'dmca')->name('legal.dmca');
+});

@@ -143,6 +143,60 @@
 }
 
 @layer components {
+    /* Minimal prose styling without relying on external plugins */
+    .prose {
+        line-height: 1.75;
+        font-size: 0.9375rem; /* ~15px, overridden by container if needed */
+    }
+    .prose :where(p) {
+        margin-top: 1rem;
+        margin-bottom: 1.25rem;
+    }
+    .prose :where(h2) {
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        font-weight: 700;
+        font-size: clamp(1.5rem, 2.2vw, 2.25rem); /* 24-36px */
+        line-height: 1.2;
+    }
+    .prose :where(h3) {
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+        font-weight: 700;
+        font-size: clamp(1.25rem, 1.8vw, 1.875rem); /* 20-30px */
+        line-height: 1.25;
+    }
+    .prose :where(ul) {
+        margin-top: 1rem;
+        margin-bottom: 1.25rem;
+        padding-left: 1.25rem;
+        list-style: disc;
+    }
+    .prose :where(ol) {
+        margin-top: 1rem;
+        margin-bottom: 1.25rem;
+        padding-left: 1.25rem;
+        list-style: decimal;
+    }
+    .prose :where(li) {
+        margin-top: 0.375rem;
+        margin-bottom: 0.375rem;
+    }
+    .prose-invert {
+        color: rgba(255,255,255,0.86);
+    }
+    .prose-invert :where(h1,h2,h3,h4) {
+        color: #fff;
+    }
+    .prose-invert :where(a) {
+        color: rgb(253 230 138); /* amber-200-ish */
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+    .prose-invert :where(a:hover) {
+        color: rgb(254 240 138); /* amber-100-ish */
+    }
+
     :where(.rdp-dropdown) {
         color: #ffffff !important;
         background-color: rgba(255, 255, 255, 0.1) !important;

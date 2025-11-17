@@ -4,6 +4,8 @@ import CommentThreadSheet from '@/components/feed/comment-thread-sheet';
 import TimelineEntryCard from '@/components/feed/timeline-entry-card';
 import TimelineAd from '@/components/ads/timeline-ad';
 import SidebarAd from '@/components/ads/sidebar-ad';
+import StoriesSection from '@/components/stories/stories-section';
+import StoryViewer from '@/components/stories/story-viewer';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -129,16 +131,30 @@ type DashboardProps = SharedData & {
         display_order: number;
         is_active: boolean;
     }>;
+    stories?: Array<{
+        id: number;
+        username: string;
+        display_name: string;
+        avatar_url: string | null;
+        latest_story_preview: string | null;
+        story_count: number;
+        has_new_stories: boolean;
+    }>;
     viewer: ViewerContext & { avatar?: string | null };
 };
 
 export default function Dashboard() {
+    const [selectedStoryId, setSelectedStoryId] = useState<number | null>(null);
+    const [nextStoryId, setNextStoryId] = useState<number | null>(null);
+    const [previousStoryId, setPreviousStoryId] = useState<number | null>(null);
+
     const {
         timeline,
         composer,
         pulse,
         trending,
         sidebarAds,
+        stories,
         viewer,
     } = usePage<DashboardProps>().props;
 
@@ -265,8 +281,13 @@ export default function Dashboard() {
                 <Head title="Dashboard" />
 
                 <div className="space-y-8">
-                    <div className="flex flex-col gap-6 xl:grid xl:grid-cols-3">
-                        <section className="col-span-2 min-w-0 space-y-6">
+                    <StoriesSection
+                        stories={stories}
+                        onStoryClick={(storyId) => setSelectedStoryId(storyId)}
+                    />
+
+                    <div className="flex flex-col gap-6 xl:flex-row">
+                        <section className="flex-1 min-w-0 space-y-6">
                             <FeedPostComposer config={composer} onSubmitted={handleComposerSubmitted} />
 
                             <Card className="border-white/10 bg-white/5 text-white">
@@ -535,6 +556,22 @@ export default function Dashboard() {
                 onOpenChange={handleCommentsOpenChange}
                 onCommentAdded={handleCommentAdded}
             />
+
+            {/* Story Viewer Modal */}
+            {selectedStoryId && (
+                <StoryViewer
+                    storyId={selectedStoryId}
+                    onClose={() => {
+                        setSelectedStoryId(null);
+                        setNextStoryId(null);
+                        setPreviousStoryId(null);
+                    }}
+                    onStoryChange={(storyId, nextId, prevId) => {
+                        setNextStoryId(nextId);
+                        setPreviousStoryId(prevId);
+                    }}
+                />
+            )}
         </>
     );
 }

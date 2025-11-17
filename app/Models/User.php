@@ -265,6 +265,54 @@ class User extends Authenticatable
     }
 
     /**
+     * Stories created by the user.
+     *
+     * @return HasMany<Story>
+     */
+    public function stories(): HasMany
+    {
+        return $this->hasMany(Story::class);
+    }
+
+    /**
+     * Active stories created by the user.
+     *
+     * @return HasMany<Story>
+     */
+    public function activeStories(): HasMany
+    {
+        return $this->stories()->active();
+    }
+
+    /**
+     * Story views by the user.
+     *
+     * @return HasMany<StoryView>
+     */
+    public function storyViews(): HasMany
+    {
+        return $this->hasMany(StoryView::class);
+    }
+
+    /**
+     * Story reactions by the user.
+     *
+     * @return HasMany<StoryReaction>
+     */
+    public function storyReactions(): HasMany
+    {
+        return $this->hasMany(StoryReaction::class);
+    }
+
+    /**
+     * Check if the user has any active stories.
+     */
+    public function hasActiveStories(): bool
+    {
+        return $this->activeStories()->exists();
+    }
+
+    /**
      * Bookmarks created by the user.
      *
      * @return HasMany<Bookmark>

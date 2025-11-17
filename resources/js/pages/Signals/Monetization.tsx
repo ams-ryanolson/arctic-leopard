@@ -22,15 +22,6 @@ type TipTrain = {
     lift: string;
 };
 
-type WishlistItem = {
-    id: string;
-    title: string;
-    goal: string;
-    progress: number;
-    status: string;
-    description: string;
-};
-
 type RevenueHeatmap = {
     days: string[];
     hours: string[];
@@ -77,7 +68,6 @@ type CampaignFormDefinition = {
 
 interface MonetizationPageProps {
     tipTrains: TipTrain[];
-    wishlist: WishlistItem[];
     tipActivity: TipActivity;
     revenueHeatmap: RevenueHeatmap;
     topSupporters: Supporter[];
@@ -101,7 +91,6 @@ function formatCurrency(value: number): string {
 
 export default function MonetizationPage({
     tipTrains,
-    wishlist,
     tipActivity,
     revenueHeatmap,
     topSupporters,
@@ -144,18 +133,10 @@ export default function MonetizationPage({
         {
             id: 'reward-supporters',
             title: 'Reward top supporters',
-            description: 'Queue custom gratitude drop for this week’s highest spenders.',
+            description: 'Queue custom gratitude drop for this week\'s highest spenders.',
             icon: Trophy,
             badge: 'Retention',
             href: '/signals/settings?view=automations',
-        },
-        {
-            id: 'wishlist-tutorial',
-            title: 'Wishlist playbook',
-            description: 'Learn how to stage limited wishlist drops with urgency.',
-            icon: ShoppingBag,
-            badge: 'Guide',
-            href: '/signals/overview',
         },
     ];
 
@@ -229,62 +210,6 @@ export default function MonetizationPage({
                                     </div>
                                 </div>
                             ))}
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-white/10 bg-white/5">
-                        <CardHeader className="flex items-start justify-between gap-4">
-                            <div>
-                                <CardTitle className="text-xl font-semibold">Wishlist manager</CardTitle>
-                                <CardDescription className="text-white/60">
-                                    Track funding progress and stage the next drop.
-                                </CardDescription>
-                            </div>
-                            <Button size="sm" variant="outline" className="rounded-full border-white/25 text-white/80 hover:border-white/40">
-                                <ListPlus className="mr-2 size-4" />
-                                Add item
-                            </Button>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            {wishlist.map((item) => (
-                                <div key={item.id} className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                                    <div className="flex flex-wrap items-center justify-between gap-3">
-                                        <div>
-                                            <p className="text-sm font-semibold text-white">{item.title}</p>
-                                            <p className="text-xs text-white/60">{item.description}</p>
-                                        </div>
-                                        <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.3em] text-white/60">
-                                            {item.status}
-                                        </span>
-                                    </div>
-                                    <div className="mt-3 flex items-center justify-between text-xs text-white/60">
-                                        <span>Goal {item.goal}</span>
-                                        <span>{Math.round(item.progress * 100)}% funded</span>
-                                    </div>
-                                    <div className="mt-2 h-3 overflow-hidden rounded-full bg-white/10">
-                                        <div
-                                            className="h-full rounded-full bg-gradient-to-r from-sky-400 via-amber-300 to-rose-400"
-                                            style={{ width: `${Math.min(item.progress * 100, 100)}%` }}
-                                        />
-                                    </div>
-                                    <div className="mt-3 flex items-center justify-end gap-2">
-                                        <Button variant="outline" size="sm" className="border-white/20 text-white/70">
-                                            Edit
-                                        </Button>
-                                        <Button variant="ghost" size="sm" className="text-white/60 hover:text-rose-200">
-                                            Remove
-                                        </Button>
-                                    </div>
-                                </div>
-                            ))}
-                            <ActionBanner
-                                title="Wishlist launch tutorial"
-                                description="Walk through pacing, messaging, and fulfillment best practices before your next drop."
-                                icon={ShoppingBag}
-                                tone="sky"
-                                href="/signals/overview"
-                                actionLabel="View guide"
-                            />
                         </CardContent>
                     </Card>
 

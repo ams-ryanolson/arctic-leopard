@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 
 class AdminSetting extends Model
 {
@@ -16,6 +17,22 @@ class AdminSetting extends Model
         'type',
         'category',
     ];
+
+    protected static function booted(): void
+    {
+        static::saved(function (self $setting): void {
+            Cache::forget(static::cacheKey($setting->key));
+        });
+
+        static::deleted(function (self $setting): void {
+            Cache::forget(static::cacheKey($setting->key));
+        });
+    }
+
+    protected static function cacheKey(string $key): string
+    {
+        return "admin_setting:{$key}";
+    }
 
     public function getValue(): mixed
     {
@@ -39,13 +56,11 @@ class AdminSetting extends Model
 
     public static function get(string $key, mixed $default = null): mixed
     {
-        $setting = static::query()->where('key', $key)->first();
+        return Cache::rememberForever(static::cacheKey($key), function () use ($key, $default) {
+            $setting = static::query()->where('key', $key)->first();
 
-        if ($setting === null) {
-            return $default;
-        }
-
-        return $setting->getValue();
+            return $setting?->getValue() ?? $default;
+        });
     }
 
     public static function set(string $key, mixed $value): static
@@ -59,6 +74,8 @@ class AdminSetting extends Model
 
         $setting->setValue($value);
         $setting->save();
+
+        Cache::forget(static::cacheKey($key));
 
         return $setting;
     }

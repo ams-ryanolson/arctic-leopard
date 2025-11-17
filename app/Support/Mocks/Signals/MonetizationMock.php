@@ -7,7 +7,6 @@ class MonetizationMock
     /**
      * @return array{
      *     tipTrains: array<int, array<string, mixed>>,
-     *     wishlist: array<int, array<string, mixed>>,
      *     tipActivity: array<string, mixed>,
      *     revenueHeatmap: array<string, mixed>,
      *     topSupporters: array<int, array<string, mixed>>,
@@ -48,32 +47,6 @@ class MonetizationMock
                     'match' => 'Unlocks Friday studio session',
                     'contributors' => 74,
                     'lift' => 'Projected +14%',
-                ],
-            ],
-            'wishlist' => [
-                [
-                    'id' => 'wishlist-camera',
-                    'title' => '4K low-light camera rig',
-                    'goal' => '$1,280',
-                    'progress' => 0.62,
-                    'status' => 'Funding',
-                    'description' => 'Enables multi-angle breath play recording with crystal clear detail.',
-                ],
-                [
-                    'id' => 'wishlist-rope',
-                    'title' => 'Custom dyed jute rope set',
-                    'goal' => '$420',
-                    'progress' => 0.88,
-                    'status' => 'Almost fulfilled',
-                    'description' => 'Locally sourced rope for the Eclipse Suspension tour.',
-                ],
-                [
-                    'id' => 'wishlist-travel',
-                    'title' => 'Travel fund – Berlin Leather Week',
-                    'goal' => '$2,400',
-                    'progress' => 0.34,
-                    'status' => 'Funding',
-                    'description' => 'Workshops + collaborations with European riggers.',
                 ],
             ],
             'tipActivity' => [
@@ -174,5 +147,3 @@ class MonetizationMock
         ];
     }
 }
-
-

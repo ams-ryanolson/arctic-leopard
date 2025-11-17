@@ -2,6 +2,8 @@
 
 use App\Jobs\Ads\GenerateAdReport;
 use App\Jobs\PostMetricsAggregatorJob;
+use App\Jobs\Stories\ExpireStoriesJob;
+use App\Jobs\Stories\PublishScheduledStoriesJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
@@ -22,3 +24,5 @@ Schedule::job(new GenerateAdReport(Carbon::yesterday()))
     ->daily()
     ->at('02:00')
     ->onOneServer();
+Schedule::job(new ExpireStoriesJob)->hourly();
+Schedule::job(new PublishScheduledStoriesJob)->everyFiveMinutes();

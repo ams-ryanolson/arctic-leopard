@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureProfileIsCompleted;
+use App\Http\Middleware\FeatureEnabled;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -31,6 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
+            'feature' => FeatureEnabled::class,
         ]);
 
         $middleware->statefulApi();

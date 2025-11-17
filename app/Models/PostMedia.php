@@ -24,13 +24,19 @@ class PostMedia extends Model
         'post_id',
         'disk',
         'path',
+        'original_path',
+        'optimized_path',
         'thumbnail_path',
+        'blur_path',
         'mime_type',
         'position',
         'width',
         'height',
         'duration',
         'meta',
+        'processing_meta',
+        'processing_status',
+        'processing_error',
         'is_primary',
     ];
 
@@ -40,6 +46,8 @@ class PostMedia extends Model
     protected $appends = [
         'url',
         'thumbnail_url',
+        'optimized_url',
+        'blur_url',
     ];
 
     /**
@@ -53,6 +61,7 @@ class PostMedia extends Model
             'height' => 'integer',
             'duration' => 'integer',
             'meta' => 'array',
+            'processing_meta' => 'array',
             'is_primary' => 'boolean',
         ];
     }
@@ -68,6 +77,20 @@ class PostMedia extends Model
     {
         return Attribute::make(
             get: fn (?string $value, array $attributes) => $this->resolveMediaUrl($attributes['thumbnail_path'] ?? null, $attributes['disk'] ?? null),
+        )->shouldCache();
+    }
+
+    protected function optimizedUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn (?string $value, array $attributes) => $this->resolveMediaUrl($attributes['optimized_path'] ?? null, $attributes['disk'] ?? null),
+        )->shouldCache();
+    }
+
+    protected function blurUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn (?string $value, array $attributes) => $this->resolveMediaUrl($attributes['blur_path'] ?? null, $attributes['disk'] ?? null),
         )->shouldCache();
     }
 

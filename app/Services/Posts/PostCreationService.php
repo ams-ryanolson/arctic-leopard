@@ -2,19 +2,18 @@
 
 namespace App\Services\Posts;
 
-use App\Services\Cache\PostCacheService;
-use App\Services\Cache\TimelineCacheService;
 use App\Enums\PostAudience;
 use App\Enums\PostType;
 use App\Enums\TimelineVisibilitySource;
 use App\Events\PostPublished;
 use App\Models\Hashtag;
 use App\Models\Post;
-use App\Models\PostMedia;
 use App\Models\PostPoll;
 use App\Models\PostPollOption;
 use App\Models\Timeline;
 use App\Models\User;
+use App\Services\Cache\PostCacheService;
+use App\Services\Cache\TimelineCacheService;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -25,8 +24,8 @@ class PostCreationService
     public function __construct(
         private TimelineCacheService $timelineCache,
         private PostCacheService $postCache,
-    ) {
-    }
+        private PostMediaService $postMediaService,
+    ) {}
 
     /**
      * @param  array<int, array<string, mixed>>  $media
@@ -70,7 +69,7 @@ class PostCreationService
 
             $this->createAuthorTimelineEntry($post);
             $this->syncHashtags($post, $hashtags);
-            $this->storeMedia($post, $media);
+            $this->postMediaService->attachFromTemporary($post, $media);
 
             if ($pollData !== null) {
                 $this->storePoll($post, $pollData);
@@ -221,36 +220,6 @@ class PostCreationService
     }
 
     /**
-     * @param  array<int, array<string, mixed>>  $media
-     */
-    public function storeMedia(Post $post, array $media): void
-    {
-        if ($media === []) {
-            return;
-        }
-
-        $position = 0;
-
-        foreach ($media as $attachment) {
-            PostMedia::create([
-                'post_id' => $post->getKey(),
-                'disk' => $attachment['disk'],
-                'path' => $attachment['path'],
-                'thumbnail_path' => $attachment['thumbnail_path'] ?? null,
-                'mime_type' => $attachment['mime_type'],
-                'position' => $attachment['position'] ?? $position,
-                'width' => $attachment['width'] ?? null,
-                'height' => $attachment['height'] ?? null,
-                'duration' => $attachment['duration'] ?? null,
-                'meta' => $attachment['meta'] ?? [],
-                'is_primary' => $attachment['is_primary'] ?? $position === 0,
-            ]);
-
-            $position++;
-        }
-    }
-
-    /**
      * @param  array<string, mixed>  $pollData
      */
     public function storePoll(Post $post, array $pollData): void
@@ -312,6 +281,7 @@ class PostCreationService
             ],
         ], ['user_id', 'post_id'], ['visibility_source', 'context', 'visible_at', 'updated_at']);
     }
+
     protected function detachHashtags(Post $post): void
     {
         $ids = $post->hashtags()->pluck('hashtags.id')->all();
@@ -333,4 +303,3 @@ class PostCreationService
         Hashtag::query()->where('usage_count', '<', 0)->update(['usage_count' => 0]);
     }
 }
-

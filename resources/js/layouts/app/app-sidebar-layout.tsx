@@ -3,6 +3,8 @@ import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
 import { MobileBottomNav } from '@/components/mobile-bottom-nav';
+import AgeConsentModal from '@/components/age-consent-modal';
+import CookiesBanner from '@/components/cookies-banner';
 import {
     type BreadcrumbItem,
     type HeaderAction,
@@ -86,6 +88,8 @@ export default function AppSidebarLayout({
                         </div>
                     </main>
                 </div>
+                <AgeConsentModal />
+                <CookiesBanner />
             </AppContent>
             <MobileBottomNav />
         </AppShell>

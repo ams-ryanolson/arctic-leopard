@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Onboarding;
 
 use App\Http\Requests\Onboarding\MediaRequest;
 use App\Services\TemporaryUploadService;
+use App\Services\Users\UserMediaService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -15,8 +15,8 @@ class MediaController
 {
     public function __construct(
         protected TemporaryUploadService $temporaryUploads,
-    ) {
-    }
+        protected UserMediaService $userMediaService,
+    ) {}
 
     public function show(Request $request): Response
     {
@@ -50,20 +50,18 @@ class MediaController
 
         $avatarIdentifier = $request->string('avatar_upload_id')->toString();
         if ($avatarIdentifier !== '') {
-            $avatarPath = $this->promoteUpload($avatarIdentifier, "users/{$user->id}", 'avatar');
+            $avatarPath = $this->userMediaService->updateAvatar($user, $avatarIdentifier);
 
             if ($avatarPath !== null) {
-                $this->deleteMedia($user->avatar_path);
                 $updates['avatar_path'] = $avatarPath;
             }
         }
 
         $coverIdentifier = $request->string('cover_upload_id')->toString();
         if ($coverIdentifier !== '') {
-            $coverPath = $this->promoteUpload($coverIdentifier, "users/{$user->id}", 'cover');
+            $coverPath = $this->userMediaService->updateCover($user, $coverIdentifier);
 
             if ($coverPath !== null) {
-                $this->deleteMedia($user->cover_path);
                 $updates['cover_path'] = $coverPath;
             }
         }
@@ -74,32 +72,4 @@ class MediaController
 
         return redirect()->route('onboarding.follow');
     }
-
-    protected function promoteUpload(string $identifier, string $directory, string $basename): ?string
-    {
-        $temporaryPath = $this->temporaryUploads->resolvePath($identifier);
-
-        if ($temporaryPath === null) {
-            return null;
-        }
-
-        $extension = pathinfo($temporaryPath, PATHINFO_EXTENSION);
-        $filename = $extension !== '' ? "{$basename}.{$extension}" : $basename;
-
-        return $this->temporaryUploads->promote($identifier, $directory, $filename);
-    }
-
-    protected function deleteMedia(?string $path): void
-    {
-        if (! $path) {
-            return;
-        }
-
-        $disk = Storage::disk(config('filesystems.default'));
-
-        if ($disk->exists($path)) {
-            $disk->delete($path);
-        }
-    }
 }
-

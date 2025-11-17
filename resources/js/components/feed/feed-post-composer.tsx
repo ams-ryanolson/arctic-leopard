@@ -606,22 +606,31 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
         setFormData(
             'media',
             uploadedMedia
-                .filter((media) => typeof media.path === 'string' && media.path.trim() !== '')
+                .filter((media) => typeof media.identifier === 'string' && media.identifier.trim() !== '')
                 .map((media, index) => {
                     const { isPrimary } = media as FeedUploadedMedia & {
                         isPrimary?: boolean;
                     };
 
+                    const extractFilename = (path?: string | null): string | null => {
+                        if (!path) {
+                            return null;
+                        }
+                        const parts = path.split('/');
+                        return parts[parts.length - 1] || null;
+                    };
+
                     return {
-                        disk: media.disk ?? 'public',
-                        path: media.path ?? '',
+                        identifier: media.identifier ?? '',
                         mime_type: media.mime_type ?? 'application/octet-stream',
-                        thumbnail_path: media.thumbnail_url ?? null,
                         width: media.width ?? null,
                         height: media.height ?? null,
                         duration: media.duration ?? null,
                         position: index,
                         is_primary: isPrimary ?? index === 0,
+                        filename: extractFilename(media.path),
+                        original_name: null,
+                        size: media.size ?? null,
                     };
                 }),
         );

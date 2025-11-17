@@ -1,7 +1,10 @@
 import { dashboard, login, register } from '@/routes';
 import { type SharedData } from '@/types';
 import { Button } from '@/components/ui/button';
+import AgeConsentModal from '@/components/age-consent-modal';
+import CookiesBanner from '@/components/cookies-banner';
 import { Head, Link, usePage } from '@inertiajs/react';
+import AnnouncementBar from '@/components/announcement-bar';
 import {
     ArrowRight,
     Flame,
@@ -81,6 +84,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
             </Head>
 
             <div className="relative min-h-screen overflow-hidden bg-neutral-950 text-white">
+                <AnnouncementBar />
                 <div className="pointer-events-none absolute inset-0 -z-10">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(249,115,22,0.28),_transparent_55%)]" />
                     <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-amber-500/15 via-transparent to-transparent blur-3xl" />
@@ -475,6 +479,8 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                     </footer>
                 </div>
             </div>
+            <AgeConsentModal />
+            <CookiesBanner />
         </>
     );
 }

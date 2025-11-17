@@ -95,20 +95,6 @@ export default function MessageComposer({
         },
     ] as const;
 
-    if (isConversationBlocked) {
-        return (
-            <div
-                className={cn(
-                    'rounded-3xl border border-white/15 bg-black/40 px-5 py-6 text-sm text-white/70 shadow-[0_20px_45px_-30px_rgba(255,255,255,0.45)] sm:px-6',
-                    className,
-                )}
-            >
-                <h3 className="text-base font-semibold text-white">Messaging unavailable</h3>
-                <p className="mt-2 text-xs text-white/60 sm:text-sm">{blockedNotice}</p>
-            </div>
-        );
-    }
-
     const triggerTyping = useCallback(() => {
         onTyping?.();
 
@@ -145,12 +131,12 @@ export default function MessageComposer({
         triggerTyping();
     }
 
-    const resetTypingState = () => {
+    const resetTypingState = useCallback(() => {
         if (typingTimeoutRef.current) {
             window.clearTimeout(typingTimeoutRef.current);
             typingTimeoutRef.current = undefined;
         }
-    };
+    }, []);
 
     const triggerPhotoUpload = useCallback(() => {
         const pond = photoUploaderRef.current;
@@ -474,6 +460,21 @@ export default function MessageComposer({
     async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
         await submitMessage();
+    }
+
+    // Early return for blocked conversations - must be after all hooks
+    if (isConversationBlocked) {
+        return (
+            <div
+                className={cn(
+                    'rounded-3xl border border-white/15 bg-black/40 px-5 py-6 text-sm text-white/70 shadow-[0_20px_45px_-30px_rgba(255,255,255,0.45)] sm:px-6',
+                    className,
+                )}
+            >
+                <h3 className="text-base font-semibold text-white">Messaging unavailable</h3>
+                <p className="mt-2 text-xs text-white/60 sm:text-sm">{blockedNotice}</p>
+            </div>
+        );
     }
 
     return (

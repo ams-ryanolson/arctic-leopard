@@ -9,6 +9,7 @@ import AppLayout from '@/layouts/app-layout';
 import adminRoutes from '@/routes/admin';
 import { Head, router, useForm } from '@inertiajs/react';
 import { ArrowLeft, Loader2, Save } from 'lucide-react';
+import { useMemo } from 'react';
 
 type Plan = {
     id: number;
@@ -21,6 +22,13 @@ type AdminDiscountsCreateProps = {
 };
 
 export default function AdminDiscountsCreate({ plans }: AdminDiscountsCreateProps) {
+    // Calculate default end date using useMemo to avoid calling Date.now() during render
+    const defaultEndDate = useMemo(() => {
+        const endDate = new Date();
+        endDate.setDate(endDate.getDate() + 30);
+        return endDate.toISOString().split('T')[0];
+    }, []);
+
     const { data, setData, post, processing, errors } = useForm({
         code: '',
         description: '',
@@ -28,7 +36,7 @@ export default function AdminDiscountsCreate({ plans }: AdminDiscountsCreateProp
         discount_value: 0,
         membership_plan_id: null as number | null,
         starts_at: new Date().toISOString().split('T')[0],
-        ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
+        ends_at: defaultEndDate,
         max_uses: null as number | null,
         is_active: true,
     });

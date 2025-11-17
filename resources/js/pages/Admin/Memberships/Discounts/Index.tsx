@@ -35,7 +35,7 @@ type AdminDiscountsIndexProps = {
     }>;
 };
 
-export default function AdminDiscountsIndex({ discounts, plans }: AdminDiscountsIndexProps) {
+export default function AdminDiscountsIndex({ discounts, plans: _plans }: AdminDiscountsIndexProps) { // eslint-disable-line @typescript-eslint/no-unused-vars
     const [deleting, setDeleting] = useState<number | null>(null);
 
     const handleDelete = (discount: Discount) => {

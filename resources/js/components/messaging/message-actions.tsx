@@ -11,8 +11,8 @@ type MessageActionsProps = {
 };
 
 export default function MessageActions({
-    isOwnMessage,
-    reactionCount,
+    isOwnMessage: _isOwnMessage, // eslint-disable-line @typescript-eslint/no-unused-vars
+    reactionCount: _reactionCount, // eslint-disable-line @typescript-eslint/no-unused-vars
     isReactionsExpanded,
     isHovered = false,
     onToggleReactions,

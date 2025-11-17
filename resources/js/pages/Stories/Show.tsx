@@ -14,28 +14,9 @@ type StoriesShowProps = SharedData & {
 };
 
 export default function StoriesShow({ story: initialStory, nextStoryId, previousStoryId }: StoriesShowProps) {
-    // Ensure we have a valid story with an ID
-    if (!initialStory?.id) {
-        return (
-            <>
-                <Head title="Story Not Found" />
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black">
-                    <div className="text-center text-white">
-                        <p className="mb-4">Story not found</p>
-                        <button
-                            onClick={() => router.visit(dashboard().url)}
-                            className="rounded bg-white px-4 py-2 text-black"
-                        >
-                            Go to Dashboard
-                        </button>
-                    </div>
-                </div>
-            </>
-        );
-    }
-
-    const [currentStoryId, setCurrentStoryId] = useState(initialStory.id);
-    const [story, setStory] = useState<StoryResponse>(initialStory);
+    // All hooks must be called before any conditional returns
+    const [currentStoryId, setCurrentStoryId] = useState(initialStory?.id ?? 0);
+    const [story, setStory] = useState<StoryResponse | null>(initialStory ?? null);
 
     const handleNext = useCallback(() => {
         if (nextStoryId) {
@@ -65,7 +46,7 @@ export default function StoriesShow({ story: initialStory, nextStoryId, previous
     }, []);
 
     useEffect(() => {
-        if (currentStoryId !== initialStory.id) {
+        if (currentStoryId !== initialStory?.id && initialStory?.id) {
             // Fetch the new story
             fetch(storiesShow({ story: currentStoryId }).url, {
                 headers: {
@@ -82,11 +63,31 @@ export default function StoriesShow({ story: initialStory, nextStoryId, previous
                     console.error('Failed to fetch story:', error);
                 });
         }
-    }, [currentStoryId, initialStory.id]);
+    }, [currentStoryId, initialStory?.id]);
+
+    // Ensure we have a valid story with an ID
+    if (!initialStory?.id || !story) {
+        return (
+            <>
+                <Head title="Story Not Found" />
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black">
+                    <div className="text-center text-white">
+                        <p className="mb-4">Story not found</p>
+                        <button
+                            onClick={() => router.visit(dashboard().url)}
+                            className="rounded bg-white px-4 py-2 text-black"
+                        >
+                            Go to Dashboard
+                        </button>
+                    </div>
+                </div>
+            </>
+        );
+    }
 
     return (
         <>
-            <Head title={`${story.author?.username ?? 'User'}'s Story`} />
+            <Head title={`${story?.author?.username ?? 'User'}'s Story`} />
 
             <StoryViewer
                 storyId={currentStoryId}

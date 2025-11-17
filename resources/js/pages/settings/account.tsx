@@ -66,7 +66,9 @@ export default function Account({
 
     const handleDownload = (exportId: number) => {
         // Use window.location to bypass Inertia and trigger a direct download
-        window.location.href = DataExportController.download.url(exportId);
+        const url = DataExportController.download.url(exportId);
+        // eslint-disable-next-line react-hooks/immutability
+        window.location.href = url;
     };
 
     const handleDelete = (exportId: number) => {

@@ -66,7 +66,7 @@ export default function Notifications({
                         }}
                         className="space-y-8"
                     >
-                        {({ processing, recentlySuccessful, errors }) => (
+                        {({ processing, recentlySuccessful, errors: _errors }) => ( // eslint-disable-line @typescript-eslint/no-unused-vars
                             <>
                                 <div className="space-y-8">
                                     {/* Social Notifications */}

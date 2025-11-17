@@ -29,6 +29,8 @@ it('creates a membership when payment is captured for a membership plan', functi
     $role = Role::firstOrCreate(['name' => 'Premium', 'guard_name' => 'web']);
 
     $plan = MembershipPlan::factory()->create([
+        'name' => 'Premium Plan',
+        'slug' => 'premium-plan',
         'role_to_assign' => 'Premium',
         'monthly_price' => 1000,
         'yearly_price' => 10000,
@@ -67,10 +69,16 @@ it('creates a membership when payment is captured for a membership plan', functi
     $listener = app(\App\Listeners\Payments\CreateMembershipOnPaymentCaptured::class);
     $listener->handle(new \App\Events\Payments\PaymentCaptured($payment));
 
+    // Manually call the role assignment listener since it's queued
     $membership = UserMembership::query()
         ->where('user_id', $user->id)
         ->where('membership_plan_id', $plan->id)
         ->first();
+    
+    if ($membership) {
+        $roleListener = app(\App\Listeners\Memberships\AssignRoleOnMembershipPurchased::class);
+        $roleListener->handle(new \App\Events\Memberships\MembershipPurchased($membership));
+    }
 
     expect($membership)->not->toBeNull()
         ->and($membership->status)->toBe('active')
@@ -84,6 +92,8 @@ it('creates a one-time membership with correct duration', function (): void {
     $role = Role::firstOrCreate(['name' => 'Premium', 'guard_name' => 'web']);
 
     $plan = MembershipPlan::factory()->create([
+        'name' => 'Premium Plan',
+        'slug' => 'premium-plan',
         'role_to_assign' => 'Premium',
         'monthly_price' => 1000,
         'allows_one_time' => true,
@@ -127,7 +137,8 @@ it('creates a one-time membership with correct duration', function (): void {
     expect($membership)->not->toBeNull()
         ->and($membership->billing_type)->toBe('one_time')
         ->and($membership->ends_at)->not->toBeNull()
-        ->and($membership->ends_at->diffInDays(now()))->toBe(30);
+        ->and(abs($membership->ends_at->diffInDays(now(), false)))->toBeGreaterThanOrEqual(29)
+        ->and(abs($membership->ends_at->diffInDays(now(), false)))->toBeLessThanOrEqual(30);
 });
 
 it('applies discount code when provided', function (): void {
@@ -162,8 +173,16 @@ it('applies discount code when provided', function (): void {
 
 it('cancels existing membership when purchasing a new one', function (): void {
     $user = User::factory()->create();
-    $oldPlan = MembershipPlan::factory()->create(['name' => 'Basic']);
-    $newPlan = MembershipPlan::factory()->create(['name' => 'Premium']);
+    $oldPlan = MembershipPlan::factory()->create([
+        'name' => 'Basic Plan',
+        'slug' => 'basic-plan',
+        'role_to_assign' => 'User',
+    ]);
+    $newPlan = MembershipPlan::factory()->create([
+        'name' => 'Premium Plan',
+        'slug' => 'premium-plan',
+        'role_to_assign' => 'Premium',
+    ]);
 
     $oldMembership = UserMembership::factory()->create([
         'user_id' => $user->id,

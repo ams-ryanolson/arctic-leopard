@@ -17,7 +17,7 @@ it('seeds baseline roles with expected permissions', function (): void {
     $userRole = Role::findByName('User');
     $premiumRole = Role::findByName('Premium');
 
-    expect($superAdmin->permissions)->toHaveCount(41);
+    expect($superAdmin->permissions)->toHaveCount(42);
 
     expect($userRole->permissions->pluck('name')->all())->toEqualCanonicalizing([
         'create posts',

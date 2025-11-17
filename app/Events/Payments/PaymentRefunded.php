@@ -8,22 +8,26 @@ class PaymentRefunded extends PaymentEvent
 {
     public function __construct(
         \App\Models\Payments\Payment $payment,
-        public PaymentRefund $refund
+        public ?PaymentRefund $refund = null
     ) {
         parent::__construct($payment);
     }
 
     /**
      * @return array{
-     *     id:int,
-     *     uuid:string,
-     *     amount:int,
-     *     currency:string,
-     *     status:string
-     * }
+     *     id:int|null,
+     *     uuid:string|null,
+     *     amount:int|null,
+     *     currency:string|null,
+     *     status:string|null
+     * }|null
      */
-    public function refundPayload(): array
+    public function refundPayload(): ?array
     {
+        if ($this->refund === null) {
+            return null;
+        }
+
         return [
             'id' => $this->refund->id,
             'uuid' => $this->refund->uuid,

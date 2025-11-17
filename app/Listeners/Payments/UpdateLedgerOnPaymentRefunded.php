@@ -17,6 +17,12 @@ class UpdateLedgerOnPaymentRefunded implements ShouldQueue
     {
         $payment = $event->payment->loadMissing(['payer', 'payee']);
         $refund = $event->refund;
+
+        // Skip ledger update if refund is null
+        if ($refund === null) {
+            return;
+        }
+
         $occurredAt = $refund->processed_at ?? now();
 
         $this->createEntry(

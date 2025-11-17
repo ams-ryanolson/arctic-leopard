@@ -86,8 +86,16 @@ test('two factor authentication enabled is logged', function () {
 
 test('membership upgrade is logged', function () {
     $user = User::factory()->create();
-    $oldPlan = MembershipPlan::factory()->create(['name' => 'Basic Plan']);
-    $newPlan = MembershipPlan::factory()->create(['name' => 'Premium Plan']);
+    $oldPlan = MembershipPlan::factory()->create([
+        'name' => 'Basic Plan',
+        'slug' => 'basic-plan',
+        'role_to_assign' => 'User',
+    ]);
+    $newPlan = MembershipPlan::factory()->create([
+        'name' => 'Premium Plan',
+        'slug' => 'premium-plan',
+        'role_to_assign' => 'Premium',
+    ]);
 
     $oldMembership = UserMembership::factory()->create([
         'user_id' => $user->id,

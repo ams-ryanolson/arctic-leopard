@@ -60,8 +60,7 @@ test('stories feature must be enabled to view stories', function (): void {
 });
 
 test('authenticated users with completed profile can create stories', function (): void {
-    \Illuminate\Support\Facades\Storage::fake('public');
-    \Illuminate\Support\Facades\Storage::disk('public')->put('stories/test.jpg', 'fake content');
+    \Illuminate\Support\Facades\Storage::fake('local');
 
     $user = User::factory()->create([
         'profile_completed_at' => now(),
@@ -69,11 +68,19 @@ test('authenticated users with completed profile can create stories', function (
 
     $this->actingAs($user);
 
+    // Step 1: Upload to temporary storage
+    $file = \Illuminate\Http\UploadedFile::fake()->image('test.jpg', 800, 1200);
+    $uploadResponse = $this->postJson('/uploads/tmp', [
+        'file' => $file,
+    ])->assertSuccessful();
+    
+    $identifier = $uploadResponse->json('id') ?? $uploadResponse->json('identifier');
+
+    // Step 2: Create story with identifier
     $response = $this->postJson(route('stories.store'), [
         'media' => [
             [
-                'disk' => 'public',
-                'path' => 'stories/test.jpg',
+                'identifier' => $identifier,
                 'mime_type' => 'image/jpeg',
                 'width' => 800,
                 'height' => 1200,
@@ -141,7 +148,13 @@ test('users can view a story they have permission to see', function (): void {
         ->has(StoryMedia::factory(), 'media')
         ->create([
             'audience' => StoryAudience::Public->value,
+            'published_at' => now()->subHour(),
+            'expires_at' => now()->addHours(23),
+            'is_subscriber_only' => false,
         ]);
+
+    // Refresh to ensure dates are saved
+    $story->refresh();
 
     $this->actingAs($viewer);
 
@@ -292,7 +305,13 @@ test('users can react to stories', function (): void {
         ->has(StoryMedia::factory(), 'media')
         ->create([
             'audience' => StoryAudience::Public->value,
+            'published_at' => now()->subHour(),
+            'expires_at' => now()->addHours(23),
+            'is_subscriber_only' => false,
         ]);
+
+    // Refresh to ensure dates are saved
+    $story->refresh();
 
     $this->actingAs($viewer);
 

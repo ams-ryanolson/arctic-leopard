@@ -23,19 +23,24 @@ test('story service returns empty array when feature is disabled', function (): 
 });
 
 test('story service can create a story', function (): void {
-    Storage::disk('public')->put('stories/test.jpg', 'fake content');
-
+    Storage::fake('local');
+    
     $user = User::factory()->create([
         'profile_completed_at' => now(),
     ]);
+
+    // Create a temporary upload first
+    $temporaryUploads = app(\App\Services\TemporaryUploadService::class);
+    $file = \Illuminate\Http\UploadedFile::fake()->image('test.jpg', 800, 1200);
+    $uploadData = $temporaryUploads->store($file);
+    $identifier = $uploadData['identifier'];
 
     $service = app(StoryService::class);
 
     $story = $service->createStory($user, [
         'media' => [
             [
-                'disk' => 'public',
-                'path' => 'stories/test.jpg',
+                'identifier' => $identifier,
                 'mime_type' => 'image/jpeg',
                 'width' => 800,
                 'height' => 1200,
@@ -60,12 +65,16 @@ test('story service can check if story can be viewed', function (): void {
     $story = Story::factory()
         ->for($author)
         ->published()
+        ->has(\App\Models\StoryMedia::factory(), 'media')
         ->create([
             'audience' => StoryAudience::Public->value,
             'published_at' => Carbon::now()->subHour(),
             'expires_at' => Carbon::now()->addHours(23),
+            'is_subscriber_only' => false,
         ]);
 
+    // Refresh and load relationships
+    $story->refresh();
     $story->load('user');
 
     $service = app(StoryService::class);

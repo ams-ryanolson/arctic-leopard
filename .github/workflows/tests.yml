@@ -59,8 +59,11 @@ jobs:
       - name: Generate Application Key
         run: php artisan key:generate
 
-      - name: Tests
-        run: php -d memory_limit=512M ./vendor/bin/pest
+      - name: Run Tests
+        run: php artisan test
         env:
           REDIS_HOST: 127.0.0.1
           QUEUE_CONNECTION: sync
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ":memory:"
+          APP_ENV: testing

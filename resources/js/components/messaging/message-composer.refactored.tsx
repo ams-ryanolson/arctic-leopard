@@ -81,7 +81,7 @@ export default function MessageComposer({
     const bodyCharacterCount = body.trim().length;
     const blockedNotice =
         blockedMessage ??
-        'This conversation is currently unavailable. One of you has restricted messaging, so new messages can't be sent.';
+        "This conversation is currently unavailable. One of you has restricted messaging, so new messages can't be sent.";
     const paymentMethods = [
         {
             id: 'card-1',

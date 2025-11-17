@@ -27,7 +27,8 @@ type AdminAdsShowProps = {
     };
 };
 
-export default function AdminAdsShow({ ad, report, dateRange }: AdminAdsShowProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default function AdminAdsShow({ ad, report, dateRange: _dateRange }: AdminAdsShowProps) {
     return (
         <AppLayout
             breadcrumbs={[

@@ -15,6 +15,7 @@ type StoriesShowProps = SharedData & {
 
 export default function StoriesShow({ story: initialStory, nextStoryId, previousStoryId }: StoriesShowProps) {
     // All hooks must be called before any conditional returns
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [currentStoryId, setCurrentStoryId] = useState(initialStory?.id ?? 0);
     const [story, setStory] = useState<StoryResponse | null>(initialStory ?? null);
 

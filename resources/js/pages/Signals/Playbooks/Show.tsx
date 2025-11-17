@@ -121,7 +121,7 @@ export default function SignalsPlaybooksShow({
                 user_liked: data.user_liked,
                 likes_count: data.likes_count,
             });
-        } catch (error) {
+        } catch {
             // Revert on error
             setArticle({
                 ...article,

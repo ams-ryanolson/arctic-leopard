@@ -159,7 +159,7 @@ export default function AdminAdsCreate() {
             })),
         };
 
-        post('/admin/ads', {
+        post('/admin/ads', payload, {
             preserveScroll: true,
             onSuccess: () => {
                 router.visit('/admin/ads');

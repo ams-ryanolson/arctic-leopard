@@ -52,7 +52,7 @@ type SettingsLayoutProps = PropsWithChildren;
 export default function SettingsLayout({ children }: SettingsLayoutProps) {
     const { features } = usePage<SharedData>().props;
     const navItems = useMemo(() => {
-        return sidebarNavItems.filter((item) => {
+        return sidebarNavItems.filter(() => {
             // Filter based on feature flags if needed
             return true;
         });

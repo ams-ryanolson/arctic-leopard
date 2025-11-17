@@ -373,7 +373,9 @@ export default function AnnouncementBar(propsIn?: {
 					'Emergency',
 					!propsIn?.isPreview && isAdmin && adminDismissKeys.emer
 						? ctaButton('Dismiss for me', undefined, () => {
-								try { localStorage.setItem(adminDismissKeys.emer!, '1'); } catch {}
+								try { localStorage.setItem(adminDismissKeys.emer!, '1'); } catch {
+								// Ignore localStorage errors (e.g., in private browsing mode)
+							}
 								setIsVisible(false);
 						  }, 'secondary')
 						: undefined,
@@ -385,7 +387,9 @@ export default function AnnouncementBar(propsIn?: {
 				emergency.message,
 				!propsIn?.isPreview && isAdmin && adminDismissKeys.emer
 					? ctaButton('Dismiss for me', undefined, () => {
-							try { localStorage.setItem(adminDismissKeys.emer!, '1'); } catch {}
+							try { localStorage.setItem(adminDismissKeys.emer!, '1'); } catch {
+								// Ignore localStorage errors (e.g., in private browsing mode)
+							}
 							setIsVisible(false);
 					  }, 'secondary')
 					: undefined,
@@ -408,7 +412,9 @@ export default function AnnouncementBar(propsIn?: {
 						? ctaButton(maintenance.cta_label ?? 'Learn more', maintenance.cta_url)
 						: !propsIn?.isPreview && isAdmin && adminDismissKeys.maint
 							? ctaButton('Dismiss for me', undefined, () => {
-									try { localStorage.setItem(adminDismissKeys.maint!, '1'); } catch {}
+									try { localStorage.setItem(adminDismissKeys.maint!, '1'); } catch {
+								// Ignore localStorage errors (e.g., in private browsing mode)
+							}
 									setIsVisible(false);
 							  }, 'secondary')
 							: undefined,
@@ -422,7 +428,9 @@ export default function AnnouncementBar(propsIn?: {
 					? ctaButton(maintenance.cta_label ?? 'Learn more', maintenance.cta_url, undefined, 'secondary')
 					: !propsIn?.isPreview && isAdmin && adminDismissKeys.maint
 						? ctaButton('Dismiss for me', undefined, () => {
-								try { localStorage.setItem(adminDismissKeys.maint!, '1'); } catch {}
+								try { localStorage.setItem(adminDismissKeys.maint!, '1'); } catch {
+								// Ignore localStorage errors (e.g., in private browsing mode)
+							}
 								setIsVisible(false);
 						  }, 'secondary')
 						: undefined,
@@ -452,7 +460,9 @@ export default function AnnouncementBar(propsIn?: {
 						? ctaButton('Dismiss', undefined, handleDismiss, 'secondary')
 						: !propsIn?.isPreview && isAdmin && adminDismissKeys.ann
 							? ctaButton('Dismiss for me', undefined, () => {
-									try { localStorage.setItem(adminDismissKeys.ann!, '1'); } catch {}
+									try { localStorage.setItem(adminDismissKeys.ann!, '1'); } catch {
+										// Ignore localStorage errors (e.g., in private browsing mode)
+									}
 									setIsVisible(false);
 							  }, 'secondary')
 							: undefined,

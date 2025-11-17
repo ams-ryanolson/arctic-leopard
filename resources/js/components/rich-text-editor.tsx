@@ -80,6 +80,7 @@ const placeCursorAtEnd = (element: HTMLElement): void => {
     selection.addRange(range);
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const formatActions = [
     { label: 'Bold', command: 'bold', icon: Bold },
     { label: 'Italic', command: 'italic', icon: Italic },
@@ -126,6 +127,7 @@ export default function RichTextEditor({ value, onChange, maxLength, placeholder
         onChange(lastHtmlRef.current);
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const runCommand = (command: string) => {
         if (!editorRef.current) {
             return;

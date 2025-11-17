@@ -145,8 +145,10 @@ type DashboardProps = SharedData & {
 
 export default function Dashboard() {
     const [selectedStoryId, setSelectedStoryId] = useState<number | null>(null);
-    const [_nextStoryId, setNextStoryId] = useState<number | null>(null); // eslint-disable-line @typescript-eslint/no-unused-vars
-    const [_previousStoryId, setPreviousStoryId] = useState<number | null>(null); // eslint-disable-line @typescript-eslint/no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_nextStoryId, setNextStoryId] = useState<number | null>(null);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_previousStoryId, setPreviousStoryId] = useState<number | null>(null);
 
     const {
         timeline,

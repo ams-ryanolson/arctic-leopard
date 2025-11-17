@@ -10,7 +10,9 @@
         "format": "prettier --write resources/",
         "format:check": "prettier --check resources/",
         "lint": "eslint . --fix",
-        "types": "tsc --noEmit"
+        "types": "tsc --noEmit",
+        "ci:lint": "./scripts/lint-ci.sh",
+        "ci:test": "./scripts/test-ci.sh"
     },
     "devDependencies": {
         "@eslint/js": "^9.19.0",

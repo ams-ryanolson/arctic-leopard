@@ -30,4 +30,3 @@ class PaymentItem extends Model
         return $this->belongsTo(Payment::class);
     }
 }
-

@@ -53,4 +53,3 @@ class PaymentMethod extends Model
         return $query->where('status', PaymentMethodStatus::Active);
     }
 }
-

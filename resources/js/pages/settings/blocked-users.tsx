@@ -8,8 +8,8 @@ import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import profileRoutes from '@/routes/profile';
 import usersRoutes from '@/routes/users';
-import { Head, Link, router } from '@inertiajs/react';
 import type { SharedData } from '@/types';
+import { Head, Link, router } from '@inertiajs/react';
 import { ShieldOff, UserMinus } from 'lucide-react';
 
 type BlockedUser = {
@@ -79,12 +79,13 @@ export default function BlockedUsersPage({ blocked }: BlockedUsersPageProps) {
                                 <ShieldOff className="size-5" />
                             </div>
                             <p className="mt-4">
-                                You haven&apos;t blocked anyone yet. When you block someone, they
-                                disappear from your feed, search, and notifications.
+                                You haven&apos;t blocked anyone yet. When you
+                                block someone, they disappear from your feed,
+                                search, and notifications.
                             </p>
                             <p className="mt-2 text-xs text-white/45">
-                                Spot something off? You can block directly from their profile or
-                                comment.
+                                Spot something off? You can block directly from
+                                their profile or comment.
                             </p>
                         </div>
                     ) : (
@@ -97,14 +98,20 @@ export default function BlockedUsersPage({ blocked }: BlockedUsersPageProps) {
                                 const initials =
                                     displayName
                                         .split(' ')
-                                        .map((segment) => segment.trim().charAt(0))
+                                        .map((segment) =>
+                                            segment.trim().charAt(0),
+                                        )
                                         .filter(Boolean)
                                         .slice(0, 2)
                                         .join('')
                                         .toUpperCase() || '??';
-                                const isProcessing = processingIds.includes(entry.id);
+                                const isProcessing = processingIds.includes(
+                                    entry.id,
+                                );
                                 const blockedLabel = entry.blocked_at
-                                    ? dateFormatter.format(new Date(entry.blocked_at))
+                                    ? dateFormatter.format(
+                                          new Date(entry.blocked_at),
+                                      )
                                     : '—';
 
                                 return (
@@ -131,7 +138,7 @@ export default function BlockedUsersPage({ blocked }: BlockedUsersPageProps) {
                                                         {displayName}
                                                     </p>
                                                     {entry.username && (
-                                                        <span className="text-xs uppercase tracking-[0.35em] text-white/45">
+                                                        <span className="text-xs tracking-[0.35em] text-white/45 uppercase">
                                                             @{entry.username}
                                                         </span>
                                                     )}
@@ -140,14 +147,18 @@ export default function BlockedUsersPage({ blocked }: BlockedUsersPageProps) {
                                                     Blocked on {blockedLabel}
                                                 </p>
                                                 <div className="flex flex-wrap items-center gap-2 text-xs text-white/60">
-                                                    <Badge className="rounded-full border-white/15 bg-white/10 text-[0.65rem] uppercase tracking-[0.3em] text-white/70">
-                                                        Followers {numberFormatter.format(entry.followers_count)}
+                                                    <Badge className="rounded-full border-white/15 bg-white/10 text-[0.65rem] tracking-[0.3em] text-white/70 uppercase">
+                                                        Followers{' '}
+                                                        {numberFormatter.format(
+                                                            entry.followers_count,
+                                                        )}
                                                     </Badge>
                                                     <Link
                                                         href={profileRoutes.show.url(
-                                                            entry.username ?? entry.id,
+                                                            entry.username ??
+                                                                entry.id,
                                                         )}
-                                                        className="text-xs uppercase tracking-[0.35em] text-white/50 underline-offset-4 hover:text-white hover:underline"
+                                                        className="text-xs tracking-[0.35em] text-white/50 uppercase underline-offset-4 hover:text-white hover:underline"
                                                     >
                                                         View profile
                                                     </Link>
@@ -160,12 +171,16 @@ export default function BlockedUsersPage({ blocked }: BlockedUsersPageProps) {
                                                 type="button"
                                                 variant="destructive"
                                                 className="rounded-full px-5"
-                                                onClick={() => handleUnblock(entry.id)}
+                                                onClick={() =>
+                                                    handleUnblock(entry.id)
+                                                }
                                                 disabled={isProcessing}
                                             >
                                                 <span className="flex items-center gap-2">
                                                     <UserMinus className="size-4" />
-                                                    {isProcessing ? 'Unblocking…' : 'Unblock'}
+                                                    {isProcessing
+                                                        ? 'Unblocking…'
+                                                        : 'Unblock'}
                                                 </span>
                                             </Button>
                                         </div>
@@ -179,5 +194,3 @@ export default function BlockedUsersPage({ blocked }: BlockedUsersPageProps) {
         </AppLayout>
     );
 }
-
-

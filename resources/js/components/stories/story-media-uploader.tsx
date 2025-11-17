@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Loader2, Trash2, UploadCloud, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { getCsrfToken } from '@/lib/csrf';
+import { cn } from '@/lib/utils';
+import { Loader2, Trash2, UploadCloud } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export type StoryUploadedMedia = {
     clientId: string;
@@ -62,9 +62,14 @@ export default function StoryMediaUploader({
     const dropRef = useRef<HTMLDivElement | null>(null);
     const [item, setItem] = useState<UploadItem | null>(null);
     const [isDragging, setIsDragging] = useState(false);
-    const [validationMessage, setValidationMessage] = useState<string | null>(null);
+    const [validationMessage, setValidationMessage] = useState<string | null>(
+        null,
+    );
 
-    const acceptAttribute = acceptedMimeTypes && acceptedMimeTypes.length ? acceptedMimeTypes.join(',') : undefined;
+    const acceptAttribute =
+        acceptedMimeTypes && acceptedMimeTypes.length
+            ? acceptedMimeTypes.join(',')
+            : undefined;
     const hasItem = item !== null && item.status !== 'idle';
 
     useEffect(() => {
@@ -74,7 +79,8 @@ export default function StoryMediaUploader({
         }
 
         setItem({
-            clientId: value.clientId ?? `uploaded-${value.identifier ?? Date.now()}`,
+            clientId:
+                value.clientId ?? `uploaded-${value.identifier ?? Date.now()}`,
             previewUrl: value.thumbnail_url ?? value.url ?? '',
             status: 'uploaded',
             progress: 100,
@@ -83,9 +89,20 @@ export default function StoryMediaUploader({
     }, [value]);
 
     const finalizeSuccess = useCallback(
-        (clientId: string, payload: UploadResponsePayload | null | undefined) => {
+        (
+            clientId: string,
+            payload: UploadResponsePayload | null | undefined,
+        ) => {
             if (!payload || typeof payload !== 'object') {
-                setItem((prev) => (prev?.clientId === clientId ? { ...prev, status: 'error', error: 'Invalid response' } : prev));
+                setItem((prev) =>
+                    prev?.clientId === clientId
+                        ? {
+                              ...prev,
+                              status: 'error',
+                              error: 'Invalid response',
+                          }
+                        : prev,
+                );
                 return;
             }
 
@@ -120,22 +137,19 @@ export default function StoryMediaUploader({
         [onChange],
     );
 
-    const finalizeError = useCallback(
-        (clientId: string, message: string) => {
-            setItem((prev) =>
-                prev?.clientId === clientId
-                    ? {
-                          ...prev,
-                          status: 'error',
-                          progress: 0,
-                          error: message,
-                          xhr: undefined,
-                      }
-                    : prev,
-            );
-        },
-        [],
-    );
+    const finalizeError = useCallback((clientId: string, message: string) => {
+        setItem((prev) =>
+            prev?.clientId === clientId
+                ? {
+                      ...prev,
+                      status: 'error',
+                      progress: 0,
+                      error: message,
+                      xhr: undefined,
+                  }
+                : prev,
+        );
+    }, []);
 
     const beginUpload = useCallback(
         (clientId: string, file: File) => {
@@ -164,7 +178,10 @@ export default function StoryMediaUploader({
                         prev?.clientId === clientId
                             ? {
                                   ...prev,
-                                  progress: Math.min((prev.progress ?? 0) + 5, 95),
+                                  progress: Math.min(
+                                      (prev.progress ?? 0) + 5,
+                                      95,
+                                  ),
                               }
                             : prev,
                     );
@@ -184,20 +201,25 @@ export default function StoryMediaUploader({
 
             xhr.onload = () => {
                 if (xhr.status >= 200 && xhr.status < 300) {
-                    const payload = xhr.response ?? (() => {
-                        try {
-                            return JSON.parse(xhr.responseText);
-                        } catch {
-                            return null;
-                        }
-                    })();
+                    const payload =
+                        xhr.response ??
+                        (() => {
+                            try {
+                                return JSON.parse(xhr.responseText);
+                            } catch {
+                                return null;
+                            }
+                        })();
 
                     if (payload && typeof payload === 'object') {
                         finalizeSuccess(clientId, payload);
                         return;
                     }
 
-                    finalizeError(clientId, 'Upload succeeded but response was malformed.');
+                    finalizeError(
+                        clientId,
+                        'Upload succeeded but response was malformed.',
+                    );
                     return;
                 }
 
@@ -211,7 +233,9 @@ export default function StoryMediaUploader({
 
                 const message =
                     errorPayload?.message ??
-                    (errorPayload?.errors ? Object.values(errorPayload.errors).flat().join(' ') : null) ??
+                    (errorPayload?.errors
+                        ? Object.values(errorPayload.errors).flat().join(' ')
+                        : null) ??
                     'Upload failed. Please try again.';
 
                 finalizeError(clientId, message);
@@ -257,7 +281,10 @@ export default function StoryMediaUploader({
                 return;
             }
 
-            const clientId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : String(Date.now());
+            const clientId =
+                typeof crypto !== 'undefined' && crypto.randomUUID
+                    ? crypto.randomUUID()
+                    : String(Date.now());
             beginUpload(clientId, file);
         },
         [beginUpload],
@@ -293,17 +320,23 @@ export default function StoryMediaUploader({
         [disabled, hasItem, handleFileSelect],
     );
 
-    const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-        event.preventDefault();
-        if (!disabled && !hasItem) {
-            setIsDragging(true);
-        }
-    }, [disabled, hasItem]);
+    const handleDragOver = useCallback(
+        (event: React.DragEvent<HTMLDivElement>) => {
+            event.preventDefault();
+            if (!disabled && !hasItem) {
+                setIsDragging(true);
+            }
+        },
+        [disabled, hasItem],
+    );
 
-    const handleDragLeave = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-        event.preventDefault();
-        setIsDragging(false);
-    }, []);
+    const handleDragLeave = useCallback(
+        (event: React.DragEvent<HTMLDivElement>) => {
+            event.preventDefault();
+            setIsDragging(false);
+        },
+        [],
+    );
 
     const handleRemove = useCallback(() => {
         if (item?.xhr) {
@@ -326,8 +359,14 @@ export default function StoryMediaUploader({
         inputRef.current?.click();
     }, [disabled, hasItem]);
 
-    const isImage = item?.response?.mime_type?.startsWith('image/') ?? item?.file?.type.startsWith('image/') ?? false;
-    const isVideo = item?.response?.mime_type?.startsWith('video/') ?? item?.file?.type.startsWith('video/') ?? false;
+    const isImage =
+        item?.response?.mime_type?.startsWith('image/') ??
+        item?.file?.type.startsWith('image/') ??
+        false;
+    const isVideo =
+        item?.response?.mime_type?.startsWith('video/') ??
+        item?.file?.type.startsWith('video/') ??
+        false;
 
     return (
         <div className={cn('relative', className)}>
@@ -339,8 +378,12 @@ export default function StoryMediaUploader({
                 onClick={handleClick}
                 className={cn(
                     'relative flex h-64 w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg border-2 border-dashed transition',
-                    isDragging ? 'border-amber-400 bg-amber-400/10' : 'border-white/20 bg-white/5',
-                    disabled || hasItem ? 'cursor-not-allowed opacity-50' : 'hover:border-white/40',
+                    isDragging
+                        ? 'border-amber-400 bg-amber-400/10'
+                        : 'border-white/20 bg-white/5',
+                    disabled || hasItem
+                        ? 'cursor-not-allowed opacity-50'
+                        : 'hover:border-white/40',
                 )}
             >
                 <input
@@ -356,7 +399,9 @@ export default function StoryMediaUploader({
                     <div className="flex flex-col items-center gap-2 text-white/70">
                         <UploadCloud className="size-8" />
                         <div className="text-center">
-                            <p className="text-sm font-medium">Click or drag to upload</p>
+                            <p className="text-sm font-medium">
+                                Click or drag to upload
+                            </p>
                             <p className="text-xs">Image or video (max 50MB)</p>
                         </div>
                     </div>
@@ -384,7 +429,9 @@ export default function StoryMediaUploader({
                             <div className="absolute inset-0 flex items-center justify-center bg-black/60">
                                 <div className="flex flex-col items-center gap-2">
                                     <Loader2 className="size-8 animate-spin text-white" />
-                                    <p className="text-sm text-white">{item.progress}%</p>
+                                    <p className="text-sm text-white">
+                                        {item.progress}%
+                                    </p>
                                 </div>
                             </div>
                         )}
@@ -392,8 +439,12 @@ export default function StoryMediaUploader({
                         {item.status === 'error' && (
                             <div className="absolute inset-0 flex items-center justify-center bg-red-900/60">
                                 <div className="flex flex-col items-center gap-2 text-center">
-                                    <p className="text-sm font-medium text-white">Upload failed</p>
-                                    <p className="text-xs text-white/80">{item.error}</p>
+                                    <p className="text-sm font-medium text-white">
+                                        Upload failed
+                                    </p>
+                                    <p className="text-xs text-white/80">
+                                        {item.error}
+                                    </p>
                                 </div>
                             </div>
                         )}
@@ -405,7 +456,7 @@ export default function StoryMediaUploader({
                                     e.stopPropagation();
                                     handleRemove();
                                 }}
-                                className="absolute right-2 top-2 rounded-full bg-black/60 p-2 text-white transition hover:bg-black/80"
+                                className="absolute top-2 right-2 rounded-full bg-black/60 p-2 text-white transition hover:bg-black/80"
                             >
                                 <Trash2 className="size-4" />
                             </button>
@@ -420,4 +471,3 @@ export default function StoryMediaUploader({
         </div>
     );
 }
-

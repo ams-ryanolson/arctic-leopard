@@ -44,5 +44,3 @@ class PostPurchase extends Model
         return $this->belongsTo(Payment::class);
     }
 }
-
-

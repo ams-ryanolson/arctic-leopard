@@ -1,4 +1,3 @@
-import AppLayout from '@/layouts/app-layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -8,6 +7,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
@@ -51,7 +51,9 @@ type CircleSpotlight = {
 const ScenePulseCard = ({ items }: { items: ScenePulseStat[] }) => (
     <Card className="border-white/10 bg-white/5 text-white">
         <CardHeader>
-            <CardTitle className="text-base font-semibold">Scene pulse</CardTitle>
+            <CardTitle className="text-base font-semibold">
+                Scene pulse
+            </CardTitle>
             <CardDescription className="text-white/60">
                 Real-time signal for your network tonight.
             </CardDescription>
@@ -66,10 +68,12 @@ const ScenePulseCard = ({ items }: { items: ScenePulseStat[] }) => (
                         <Icon className="size-4 text-amber-300" />
                     </div>
                     <div>
-                        <p className="text-xs uppercase tracking-[0.3em] text-white/50">
+                        <p className="text-xs tracking-[0.3em] text-white/50 uppercase">
                             {title}
                         </p>
-                        <p className="text-base font-semibold text-white">{value}</p>
+                        <p className="text-base font-semibold text-white">
+                            {value}
+                        </p>
                         <p className="text-xs text-white/60">{description}</p>
                     </div>
                 </div>
@@ -180,13 +184,16 @@ export default function Dashboard() {
 
             <div className="space-y-8">
                 <div className="flex flex-col gap-6 xl:grid xl:grid-cols-3">
-                    <section className="min-w- flex-1 space-y-6 col-span-2">
+                    <section className="min-w- col-span-2 flex-1 space-y-6">
                         <Card className="border-white/10 bg-white/5 text-white shadow-[0_24px_65px_-35px_rgba(249,115,22,0.45)]">
                             <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                                 <div>
-                                    <CardTitle className="text-lg font-semibold">Share a scene</CardTitle>
+                                    <CardTitle className="text-lg font-semibold">
+                                        Share a scene
+                                    </CardTitle>
                                     <CardDescription className="text-white/65">
-                                        Pulse an update, preview a drop, or lock in aftercare plans.
+                                        Pulse an update, preview a drop, or lock
+                                        in aftercare plans.
                                     </CardDescription>
                                 </div>
                                 <Badge className="rounded-full border-white/20 bg-white/10 px-3 py-1 text-white/70">
@@ -196,17 +203,17 @@ export default function Dashboard() {
                             <CardContent className="space-y-4">
                                 <textarea
                                     placeholder="Relive last night's ritual, tease an upcoming drop, or ask for a circle collab..."
-                                    className="min-h-[140px] w-full rounded-2xl border border-white/15 bg-black/30 px-5 py-4 text-sm text-white placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                                    className="min-h-[140px] w-full rounded-2xl border border-white/15 bg-black/30 px-5 py-4 text-sm text-white placeholder:text-white/40 focus:border-white/40 focus:ring-2 focus:ring-amber-500/20 focus:outline-none"
                                 />
                                 <div className="flex flex-wrap items-center justify-between gap-3">
                                     <div className="flex flex-wrap items-center gap-2 text-xs text-white/60">
-                                        <Badge className="rounded-full border-white/15 bg-white/10 px-2 py-0.5 text-[0.65rem] uppercase tracking-[0.3em] text-white/70">
+                                        <Badge className="rounded-full border-white/15 bg-white/10 px-2 py-0.5 text-[0.65rem] tracking-[0.3em] text-white/70 uppercase">
                                             Attach media
                                         </Badge>
-                                        <Badge className="rounded-full border-white/15 bg-white/10 px-2 py-0.5 text-[0.65rem] uppercase tracking-[0.3em] text-white/70">
+                                        <Badge className="rounded-full border-white/15 bg-white/10 px-2 py-0.5 text-[0.65rem] tracking-[0.3em] text-white/70 uppercase">
                                             Circle only
                                         </Badge>
-                                        <Badge className="rounded-full border-white/15 bg-white/10 px-2 py-0.5 text-[0.65rem] uppercase tracking-[0.3em] text-white/70">
+                                        <Badge className="rounded-full border-white/15 bg-white/10 px-2 py-0.5 text-[0.65rem] tracking-[0.3em] text-white/70 uppercase">
                                             Tip train
                                         </Badge>
                                     </div>
@@ -232,9 +239,12 @@ export default function Dashboard() {
 
                         <Card className="border-white/10 bg-white/5 text-white">
                             <CardHeader>
-                                <CardTitle className="text-lg font-semibold">Scene feed</CardTitle>
+                                <CardTitle className="text-lg font-semibold">
+                                    Scene feed
+                                </CardTitle>
                                 <CardDescription className="text-white/60">
-                                    Latest drops, circle updates, and monetized moments.
+                                    Latest drops, circle updates, and monetized
+                                    moments.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -244,12 +254,16 @@ export default function Dashboard() {
                                         className="rounded-3xl border border-white/10 bg-black/35 p-5"
                                     >
                                         <div className="flex flex-wrap items-center justify-between gap-3">
-                                            <h3 className="text-lg font-semibold text-white">{item.title}</h3>
-                                            <span className="text-xs uppercase tracking-[0.3em] text-white/50">
+                                            <h3 className="text-lg font-semibold text-white">
+                                                {item.title}
+                                            </h3>
+                                            <span className="text-xs tracking-[0.3em] text-white/50 uppercase">
                                                 {item.timestamp}
                                             </span>
                                         </div>
-                                        <p className="mt-3 text-sm text-white/70">{item.content}</p>
+                                        <p className="mt-3 text-sm text-white/70">
+                                            {item.content}
+                                        </p>
                                         {item.media.length > 0 && (
                                             <div className="mt-4 grid gap-3 sm:grid-cols-2">
                                                 {item.media.map((mediaUrl) => (
@@ -267,7 +281,10 @@ export default function Dashboard() {
                                             </div>
                                         )}
                                         <div className="mt-4 flex flex-wrap items-center gap-2">
-                                            <Button size="sm" className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-4 text-xs font-semibold">
+                                            <Button
+                                                size="sm"
+                                                className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-4 text-xs font-semibold"
+                                            >
                                                 Unlock Scene
                                             </Button>
                                             <Button
@@ -285,9 +302,12 @@ export default function Dashboard() {
 
                         <Card className="border-white/10 bg-white/5 text-white">
                             <CardHeader>
-                                <CardTitle className="text-base font-semibold">Creator toolkit</CardTitle>
+                                <CardTitle className="text-base font-semibold">
+                                    Creator toolkit
+                                </CardTitle>
                                 <CardDescription className="text-white/60">
-                                    Prompts to keep your earnings aligned with the feed vibe.
+                                    Prompts to keep your earnings aligned with
+                                    the feed vibe.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-3">
@@ -306,26 +326,34 @@ export default function Dashboard() {
                     <aside className="hidden w-full max-w-[320px] flex-col gap-4 lg:flex">
                         <Card className="border-white/10 bg-white/5 text-white shadow-[0_24px_65px_-35px_rgba(249,115,22,0.45)]">
                             <CardHeader>
-                                <CardTitle className="text-base font-semibold">Trending tags</CardTitle>
+                                <CardTitle className="text-base font-semibold">
+                                    Trending tags
+                                </CardTitle>
                                 <CardDescription className="text-white/60">
                                     What the scene is amplifying right now.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-3">
-                                {trendingTags.map(({ tag, heat, descriptor }) => (
-                                    <div
-                                        key={tag}
-                                        className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3"
-                                    >
-                                        <div className="flex items-center justify-between gap-2">
-                                            <p className="font-semibold text-white">{tag}</p>
-                                            <Badge className="rounded-full border-white/15 bg-white/10 px-2 py-0.5 text-[0.65rem] uppercase tracking-[0.3em] text-white/70">
-                                                {heat}
-                                            </Badge>
+                                {trendingTags.map(
+                                    ({ tag, heat, descriptor }) => (
+                                        <div
+                                            key={tag}
+                                            className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3"
+                                        >
+                                            <div className="flex items-center justify-between gap-2">
+                                                <p className="font-semibold text-white">
+                                                    {tag}
+                                                </p>
+                                                <Badge className="rounded-full border-white/15 bg-white/10 px-2 py-0.5 text-[0.65rem] tracking-[0.3em] text-white/70 uppercase">
+                                                    {heat}
+                                                </Badge>
+                                            </div>
+                                            <p className="mt-1 text-xs text-white/60">
+                                                {descriptor}
+                                            </p>
                                         </div>
-                                        <p className="mt-1 text-xs text-white/60">{descriptor}</p>
-                                    </div>
-                                ))}
+                                    ),
+                                )}
                             </CardContent>
                         </Card>
 
@@ -333,22 +361,32 @@ export default function Dashboard() {
 
                         <Card className="border-white/10 bg-white/5 text-white">
                             <CardHeader>
-                                <CardTitle className="text-base font-semibold">Circle spotlights</CardTitle>
+                                <CardTitle className="text-base font-semibold">
+                                    Circle spotlights
+                                </CardTitle>
                                 <CardDescription className="text-white/60">
                                     Rooms where your energy would pop.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-3">
-                                {circleSpotlights.map(({ name, members, status }) => (
-                                    <div
-                                        key={name}
-                                        className="rounded-2xl border border-white/10 bg-black/35 px-4 py-3"
-                                    >
-                                        <p className="text-sm font-semibold text-white">{name}</p>
-                                        <p className="text-xs text-white/55">{members}</p>
-                                        <p className="mt-1 text-xs text-amber-300">{status}</p>
-                                    </div>
-                                ))}
+                                {circleSpotlights.map(
+                                    ({ name, members, status }) => (
+                                        <div
+                                            key={name}
+                                            className="rounded-2xl border border-white/10 bg-black/35 px-4 py-3"
+                                        >
+                                            <p className="text-sm font-semibold text-white">
+                                                {name}
+                                            </p>
+                                            <p className="text-xs text-white/55">
+                                                {members}
+                                            </p>
+                                            <p className="mt-1 text-xs text-amber-300">
+                                                {status}
+                                            </p>
+                                        </div>
+                                    ),
+                                )}
                             </CardContent>
                             <div className="px-6 pb-6">
                                 <Button
@@ -362,7 +400,9 @@ export default function Dashboard() {
 
                         <Card className="border-white/10 bg-white/5 text-white">
                             <CardHeader>
-                                <CardTitle className="text-base font-semibold">Need-to-know</CardTitle>
+                                <CardTitle className="text-base font-semibold">
+                                    Need-to-know
+                                </CardTitle>
                                 <CardDescription className="text-white/60">
                                     Consent and safety updates from moderators.
                                 </CardDescription>
@@ -371,15 +411,24 @@ export default function Dashboard() {
                                 <ul className="space-y-3 text-sm text-white/75">
                                     <li>
                                         <span className="font-semibold">-</span>{' '}
-                                        Consensual kink week is live - tag scenes with <span className="text-white">#greenlight</span> to be featured on the welcome stream.
+                                        Consensual kink week is live - tag
+                                        scenes with{' '}
+                                        <span className="text-white">
+                                            #greenlight
+                                        </span>{' '}
+                                        to be featured on the welcome stream.
                                     </li>
                                     <li>
                                         <span className="font-semibold">-</span>{' '}
-                                        New alias controls let you mask your handle during traveler mode. Toggle it in settings before IRL dungeons.
+                                        New alias controls let you mask your
+                                        handle during traveler mode. Toggle it
+                                        in settings before IRL dungeons.
                                     </li>
                                     <li>
                                         <span className="font-semibold">-</span>{' '}
-                                        Verification queue is averaging 4 hours. Upload your documents early if you plan to go live tonight.
+                                        Verification queue is averaging 4 hours.
+                                        Upload your documents early if you plan
+                                        to go live tonight.
                                     </li>
                                 </ul>
                             </CardContent>
@@ -390,4 +439,3 @@ export default function Dashboard() {
         </AppLayout>
     );
 }
-

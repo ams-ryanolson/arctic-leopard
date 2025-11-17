@@ -6,6 +6,7 @@ use App\Events\UserBlocked;
 use App\Events\UserUnblocked;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
+
 use function activity;
 
 class LogUserBlockLifecycle implements ShouldQueue
@@ -29,5 +30,3 @@ class LogUserBlockLifecycle implements ShouldQueue
             ->log($event instanceof UserUnblocked ? 'user_unblocked' : 'user_blocked');
     }
 }
-
-

@@ -36,4 +36,3 @@ class EnsureProfileIsCompleted
         return redirect()->route('onboarding.start');
     }
 }
-

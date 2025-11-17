@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 import type { FeedMedia, FeedPost } from '@/types/feed';
@@ -44,25 +44,25 @@ export default function LightboxViewer({
     const [commentCount, setCommentCount] = useState(post?.comments_count ?? 0);
 
     useEffect(() => {
-         
         setCurrentIndex(startIndex);
     }, [startIndex, open]);
 
     useEffect(() => {
         if (post?.comments_count !== undefined) {
-             
             setCommentCount(post.comments_count);
         }
     }, [post?.comments_count]);
 
     useEffect(() => {
         if (!open) {
-             
             setIsCommentsOpen(false);
         }
     }, [open]);
 
-    const currentMedia = useMemo(() => media[currentIndex] ?? null, [media, currentIndex]);
+    const currentMedia = useMemo(
+        () => media[currentIndex] ?? null,
+        [media, currentIndex],
+    );
 
     const hasMultipleMedia = media.length > 1;
     const hasPost = Boolean(post);
@@ -124,13 +124,14 @@ export default function LightboxViewer({
                             View post media and comments
                             {post?.author?.display_name
                                 ? ` by ${post.author.display_name}`
-                                : ''}.
+                                : ''}
+                            .
                         </DialogPrimitive.Description>
                         <header className="flex items-center justify-between border-b border-white/10 bg-black/60 px-6 py-4 backdrop-blur-xl">
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center gap-2">
                                     <div className="size-2 rounded-full bg-gradient-to-br from-amber-400 via-rose-500 to-violet-600 shadow-[0_0_12px_rgba(249,115,22,0.6)]" />
-                                    <span className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-white/60 sm:text-xs">
+                                    <span className="text-[0.65rem] font-semibold tracking-[0.35em] text-white/60 uppercase sm:text-xs">
                                         Lightbox Viewer
                                     </span>
                                 </div>
@@ -148,7 +149,9 @@ export default function LightboxViewer({
                                         <CommentThreadTrigger
                                             postId={post.id}
                                             count={commentCount}
-                                            onOpen={() => setIsCommentsOpen(true)}
+                                            onOpen={() =>
+                                                setIsCommentsOpen(true)
+                                            }
                                             disabled={!open}
                                         />
                                     </div>
@@ -174,12 +177,21 @@ export default function LightboxViewer({
                                                     className="max-h-full max-w-full rounded-3xl border border-white/10 bg-black object-contain shadow-[0_35px_60px_-25px_rgba(0,0,0,0.8)]"
                                                     src={currentMedia.url}
                                                 >
-                                                    <track kind="captions" label="Captions" />
+                                                    <track
+                                                        kind="captions"
+                                                        label="Captions"
+                                                    />
                                                 </video>
                                             ) : (
                                                 <img
-                                                    src={currentMedia.url}
-                                                    alt={currentMedia.alt ?? 'Post media'}
+                                                    src={
+                                                        currentMedia.optimized_url ??
+                                                        currentMedia.url
+                                                    }
+                                                    alt={
+                                                        currentMedia.alt ??
+                                                        'Post media'
+                                                    }
                                                     loading="lazy"
                                                     className="max-h-full max-w-full rounded-3xl border border-white/10 bg-black object-contain shadow-[0_35px_60px_-25px_rgba(0,0,0,0.8)]"
                                                 />
@@ -195,17 +207,21 @@ export default function LightboxViewer({
                                             <button
                                                 type="button"
                                                 onClick={handlePrevious}
-                                                className="group absolute left-6 top-1/2 flex size-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/60 text-white/80 shadow-[0_15px_30px_-15px_rgba(0,0,0,0.5)] backdrop-blur-xl transition hover:border-white/30 hover:bg-white/10 hover:text-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white/40"
+                                                className="group absolute top-1/2 left-6 flex size-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/60 text-white/80 shadow-[0_15px_30px_-15px_rgba(0,0,0,0.5)] backdrop-blur-xl transition hover:border-white/30 hover:bg-white/10 hover:text-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white/40"
                                             >
-                                                <span className="sr-only">View previous media</span>
+                                                <span className="sr-only">
+                                                    View previous media
+                                                </span>
                                                 <ChevronLeft className="size-6 transition group-hover:scale-110" />
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={handleNext}
-                                                className="group absolute right-6 top-1/2 flex size-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/60 text-white/80 shadow-[0_15px_30px_-15px_rgba(0,0,0,0.5)] backdrop-blur-xl transition hover:border-white/30 hover:bg-white/10 hover:text-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white/40"
+                                                className="group absolute top-1/2 right-6 flex size-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/60 text-white/80 shadow-[0_15px_30px_-15px_rgba(0,0,0,0.5)] backdrop-blur-xl transition hover:border-white/30 hover:bg-white/10 hover:text-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white/40"
                                             >
-                                                <span className="sr-only">View next media</span>
+                                                <span className="sr-only">
+                                                    View next media
+                                                </span>
                                                 <ChevronRight className="size-6 transition group-hover:scale-110" />
                                             </button>
                                         </>
@@ -243,7 +259,7 @@ export default function LightboxViewer({
                             className="border-t border-white/10 bg-black/60 px-6 py-4 text-center backdrop-blur-xl"
                             aria-live="polite"
                         >
-                            <p className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-white/40 sm:text-xs">
+                            <p className="text-[0.65rem] font-semibold tracking-[0.35em] text-white/40 uppercase sm:text-xs">
                                 {media.length > 0
                                     ? `Viewing item ${currentIndex + 1} of ${media.length}`
                                     : 'No media'}

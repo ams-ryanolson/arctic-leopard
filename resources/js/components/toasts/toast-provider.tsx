@@ -1,14 +1,21 @@
-import { router } from '@inertiajs/react';
-import { PropsWithChildren, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ToastContext, {
     type ToastClientHandler,
     type ToastContextValue,
     type ToastInstance,
 } from '@/components/toasts/toast-context';
-import { acknowledgeToast, resolveToastAction } from '@/lib/toasts-client';
 import { useNotificationSubscription } from '@/hooks/use-notification-subscription';
 import { useToastSubscription } from '@/hooks/use-toast-subscription';
+import { acknowledgeToast, resolveToastAction } from '@/lib/toasts-client';
 import type { ToastPayload } from '@/types/toasts';
+import { router } from '@inertiajs/react';
+import {
+    PropsWithChildren,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
 
 type ToastProviderProps = PropsWithChildren<{
     initialToasts?: ToastPayload[];
@@ -72,7 +79,11 @@ function emitUnreadCount(count: number): void {
 }
 
 function emitNotificationReceived(notification: unknown): void {
-    if (typeof window === 'undefined' || notification === undefined || notification === null) {
+    if (
+        typeof window === 'undefined' ||
+        notification === undefined ||
+        notification === null
+    ) {
         return;
     }
 
@@ -93,9 +104,15 @@ export default function ToastProvider({
     const [toasts, setToasts] = useState<ToastInstance[]>(() =>
         initialToasts.map((toast) => normalizeToast(toast)),
     );
-    const [unreadCount, setUnreadCount] = useState<number>(() => normalizeCount(initialUnreadCount));
-    const [activeConversationId, setActiveConversationId] = useState<number | null>(null);
-    const messageUnreadCountRef = useRef<number>(normalizeCount(initialMessagingUnreadCount));
+    const [unreadCount, setUnreadCount] = useState<number>(() =>
+        normalizeCount(initialUnreadCount),
+    );
+    const [activeConversationId, setActiveConversationId] = useState<
+        number | null
+    >(null);
+    const messageUnreadCountRef = useRef<number>(
+        normalizeCount(initialMessagingUnreadCount),
+    );
     const handlers = useRef<Map<string, ToastClientHandler>>(new Map());
     const toastsRef = useRef<ToastInstance[]>(toasts);
 
@@ -111,19 +128,25 @@ export default function ToastProvider({
         emitUnreadCount(unreadCount);
     }, [unreadCount]);
 
-    const emitMessagingUnread = useCallback((count: number, source: 'provider' | 'page' | 'sidebar' = 'provider') => {
-        messageUnreadCountRef.current = count;
+    const emitMessagingUnread = useCallback(
+        (
+            count: number,
+            source: 'provider' | 'page' | 'sidebar' = 'provider',
+        ) => {
+            messageUnreadCountRef.current = count;
 
-        if (typeof window === 'undefined') {
-            return;
-        }
+            if (typeof window === 'undefined') {
+                return;
+            }
 
-        window.dispatchEvent(
-            new CustomEvent('messaging:unread-count', {
-                detail: { count, source },
-            }),
-        );
-    }, []);
+            window.dispatchEvent(
+                new CustomEvent('messaging:unread-count', {
+                    detail: { count, source },
+                }),
+            );
+        },
+        [],
+    );
 
     useEffect(() => {
         if (typeof window === 'undefined') {
@@ -133,19 +156,31 @@ export default function ToastProvider({
         emitMessagingUnread(messageUnreadCountRef.current, 'provider');
 
         const handler = (event: Event) => {
-            const detail = (event as CustomEvent<{ count?: number; source?: string }>).detail;
+            const detail = (
+                event as CustomEvent<{ count?: number; source?: string }>
+            ).detail;
 
-            if (!detail || detail.source === 'provider' || typeof detail.count !== 'number') {
+            if (
+                !detail ||
+                detail.source === 'provider' ||
+                typeof detail.count !== 'number'
+            ) {
                 return;
             }
 
             messageUnreadCountRef.current = detail.count;
         };
 
-        window.addEventListener('messaging:unread-count', handler as EventListener);
+        window.addEventListener(
+            'messaging:unread-count',
+            handler as EventListener,
+        );
 
         return () => {
-            window.removeEventListener('messaging:unread-count', handler as EventListener);
+            window.removeEventListener(
+                'messaging:unread-count',
+                handler as EventListener,
+            );
         };
     }, [emitMessagingUnread]);
 
@@ -155,24 +190,35 @@ export default function ToastProvider({
         }
 
         const handler = (event: Event) => {
-            const detail = (event as CustomEvent<{ id?: number | null }>).detail;
+            const detail = (event as CustomEvent<{ id?: number | null }>)
+                .detail;
             const candidate = detail?.id ?? null;
             setActiveConversationId(
-                typeof candidate === 'number' && Number.isFinite(candidate) ? candidate : null,
+                typeof candidate === 'number' && Number.isFinite(candidate)
+                    ? candidate
+                    : null,
             );
         };
 
-        window.addEventListener('messaging:active-conversation', handler as EventListener);
+        window.addEventListener(
+            'messaging:active-conversation',
+            handler as EventListener,
+        );
 
         return () => {
-            window.removeEventListener('messaging:active-conversation', handler as EventListener);
+            window.removeEventListener(
+                'messaging:active-conversation',
+                handler as EventListener,
+            );
         };
     }, []);
 
     const upsertToast = useCallback((payload: ToastPayload) => {
         setToasts((current) => {
             const candidate = normalizeToast(payload);
-            const existingIndex = current.findIndex((toast) => toast.id === candidate.id);
+            const existingIndex = current.findIndex(
+                (toast) => toast.id === candidate.id,
+            );
 
             if (existingIndex === -1) {
                 return [...current, candidate];
@@ -200,7 +246,9 @@ export default function ToastProvider({
             }
 
             const rawConversation =
-                payload.meta.conversation_id ?? payload.meta.conversationId ?? payload.meta.conversation;
+                payload.meta.conversation_id ??
+                payload.meta.conversationId ??
+                payload.meta.conversation;
 
             const parsedConversationId =
                 typeof rawConversation === 'number'
@@ -209,17 +257,26 @@ export default function ToastProvider({
                       ? Number.parseInt(rawConversation, 10)
                       : null;
 
-            if (parsedConversationId === null || !Number.isFinite(parsedConversationId)) {
+            if (
+                parsedConversationId === null ||
+                !Number.isFinite(parsedConversationId)
+            ) {
                 return false;
             }
 
-            return payload.category === 'messaging' && parsedConversationId === activeConversationId;
+            return (
+                payload.category === 'messaging' &&
+                parsedConversationId === activeConversationId
+            );
         },
         [activeConversationId],
     );
 
     const ingest = useCallback(
-        (payloads: ToastPayload[], options: { suppressMessagingIncrement?: boolean } = {}) => {
+        (
+            payloads: ToastPayload[],
+            options: { suppressMessagingIncrement?: boolean } = {},
+        ) => {
             const { suppressMessagingIncrement = false } = options;
 
             if (!payloads?.length) {
@@ -234,7 +291,10 @@ export default function ToastProvider({
                 }
 
                 upsertToast(payload);
-                if (payload.category === 'messaging' && !suppressMessagingIncrement) {
+                if (
+                    payload.category === 'messaging' &&
+                    !suppressMessagingIncrement
+                ) {
                     emitMessagingUnread(messageUnreadCountRef.current + 1);
                 }
             });
@@ -301,20 +361,35 @@ export default function ToastProvider({
         setToasts((current) =>
             current.map((toast) =>
                 toast.id === toastId
-                    ? { ...toast, status: 'processing', activeActionKey: null, error: null }
+                    ? {
+                          ...toast,
+                          status: 'processing',
+                          activeActionKey: null,
+                          error: null,
+                      }
                     : toast,
             ),
         );
 
         try {
             await acknowledgeToast(toastId);
-            setToasts((current) => current.filter((toast) => toast.id !== toastId));
+            setToasts((current) =>
+                current.filter((toast) => toast.id !== toastId),
+            );
         } catch (error) {
-            const message = extractMessage(error, 'Unable to dismiss notification.');
+            const message = extractMessage(
+                error,
+                'Unable to dismiss notification.',
+            );
             setToasts((current) =>
                 current.map((toast) =>
                     toast.id === toastId
-                        ? { ...toast, status: 'idle', activeActionKey: null, error: message }
+                        ? {
+                              ...toast,
+                              status: 'idle',
+                              activeActionKey: null,
+                              error: message,
+                          }
                         : toast,
                 ),
             );
@@ -322,29 +397,45 @@ export default function ToastProvider({
     }, []);
 
     const resolveAction = useCallback(
-        async (toastId: string, actionKey: string, input: Record<string, unknown> = {}) => {
-            const toast = toastsRef.current.find((entry) => entry.id === toastId);
+        async (
+            toastId: string,
+            actionKey: string,
+            input: Record<string, unknown> = {},
+        ) => {
+            const toast = toastsRef.current.find(
+                (entry) => entry.id === toastId,
+            );
 
             if (!toast) {
                 return;
             }
 
-            const action = toast.actions?.find((candidate) => candidate.key === actionKey);
+            const action = toast.actions?.find(
+                (candidate) => candidate.key === actionKey,
+            );
 
             if (!action) {
-                console.warn('Attempted to resolve unknown toast action.', { toastId, actionKey });
+                console.warn('Attempted to resolve unknown toast action.', {
+                    toastId,
+                    actionKey,
+                });
                 return;
             }
 
             const method = action.method ?? 'http.post';
             const resolvedInput =
-                input && Object.keys(input).length > 0 ? input : (action.payload ?? {});
+                input && Object.keys(input).length > 0
+                    ? input
+                    : (action.payload ?? {});
 
             if (method === 'client') {
                 const handler = handlers.current.get(action.key);
 
                 if (!handler) {
-                    console.warn('No client handler registered for toast action.', { toastId, actionKey });
+                    console.warn(
+                        'No client handler registered for toast action.',
+                        { toastId, actionKey },
+                    );
                     return;
                 }
 
@@ -352,7 +443,10 @@ export default function ToastProvider({
                     await handler(toast, action, resolvedInput);
                     await acknowledge(toastId);
                 } catch (error) {
-                    const message = extractMessage(error, 'Unable to complete action.');
+                    const message = extractMessage(
+                        error,
+                        'Unable to complete action.',
+                    );
                     setToasts((current) =>
                         current.map((candidate) =>
                             candidate.id === toastId
@@ -372,14 +466,20 @@ export default function ToastProvider({
 
             if (method === 'router.visit') {
                 if (!action.route) {
-                    console.warn('Toast action is missing a route target.', { toastId, actionKey });
+                    console.warn('Toast action is missing a route target.', {
+                        toastId,
+                        actionKey,
+                    });
                     return;
                 }
 
                 try {
                     await acknowledge(toastId);
                 } catch (error) {
-                    const message = extractMessage(error, 'Unable to dismiss notification.');
+                    const message = extractMessage(
+                        error,
+                        'Unable to dismiss notification.',
+                    );
                     setToasts((current) =>
                         current.map((candidate) =>
                             candidate.id === toastId
@@ -406,7 +506,10 @@ export default function ToastProvider({
 
             if (method.startsWith('inertia.')) {
                 if (!action.route) {
-                    console.warn('Toast action is missing a route target.', { toastId, actionKey });
+                    console.warn('Toast action is missing a route target.', {
+                        toastId,
+                        actionKey,
+                    });
                     return;
                 }
 
@@ -415,7 +518,10 @@ export default function ToastProvider({
                 try {
                     await acknowledge(toastId);
                 } catch (error) {
-                    const message = extractMessage(error, 'Unable to dismiss notification.');
+                    const message = extractMessage(
+                        error,
+                        'Unable to dismiss notification.',
+                    );
                     setToasts((current) =>
                         current.map((candidate) =>
                             candidate.id === toastId
@@ -432,15 +538,17 @@ export default function ToastProvider({
                     return;
                 }
 
-                router.visit(
-                    action.route,
-                    {
-                        method: requestMethod as 'get' | 'post' | 'put' | 'patch' | 'delete',
-                        data: resolvedInput,
-                        preserveScroll: true,
-                        preserveState: true,
-                    } as Parameters<typeof router.visit>[1],
-                );
+                router.visit(action.route, {
+                    method: requestMethod as
+                        | 'get'
+                        | 'post'
+                        | 'put'
+                        | 'patch'
+                        | 'delete',
+                    data: resolvedInput,
+                    preserveScroll: true,
+                    preserveState: true,
+                } as Parameters<typeof router.visit>[1]);
 
                 return;
             }
@@ -460,9 +568,14 @@ export default function ToastProvider({
 
             try {
                 await resolveToastAction(toastId, actionKey, resolvedInput);
-                setToasts((current) => current.filter((candidate) => candidate.id !== toastId));
+                setToasts((current) =>
+                    current.filter((candidate) => candidate.id !== toastId),
+                );
             } catch (error) {
-                const message = extractMessage(error, 'Unable to complete action.');
+                const message = extractMessage(
+                    error,
+                    'Unable to complete action.',
+                );
                 setToasts((current) =>
                     current.map((candidate) =>
                         candidate.id === toastId
@@ -480,13 +593,16 @@ export default function ToastProvider({
         [acknowledge],
     );
 
-    const registerClientAction = useCallback((actionKey: string, handler: ToastClientHandler) => {
-        handlers.current.set(actionKey, handler);
+    const registerClientAction = useCallback(
+        (actionKey: string, handler: ToastClientHandler) => {
+            handlers.current.set(actionKey, handler);
 
-        return () => {
-            handlers.current.delete(actionKey);
-        };
-    }, []);
+            return () => {
+                handlers.current.delete(actionKey);
+            };
+        },
+        [],
+    );
 
     const contextValue = useMemo<ToastContextValue>(
         () => ({
@@ -497,10 +613,21 @@ export default function ToastProvider({
             resolveAction,
             registerClientAction,
         }),
-        [acknowledge, ingest, resolveAction, registerClientAction, toasts, upsertToast],
+        [
+            acknowledge,
+            ingest,
+            resolveAction,
+            registerClientAction,
+            toasts,
+            upsertToast,
+        ],
     );
 
-    return <ToastContext.Provider value={contextValue}>{children}</ToastContext.Provider>;
+    return (
+        <ToastContext.Provider value={contextValue}>
+            {children}
+        </ToastContext.Provider>
+    );
 }
 
 export function useToastAutoDismiss(
@@ -532,4 +659,3 @@ export function useToastAutoDismiss(
         };
     }, [acknowledge, toast]);
 }
-

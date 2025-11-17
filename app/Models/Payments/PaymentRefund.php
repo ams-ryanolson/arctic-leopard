@@ -39,4 +39,3 @@ class PaymentRefund extends Model
         return $this->money($this->amount);
     }
 }
-

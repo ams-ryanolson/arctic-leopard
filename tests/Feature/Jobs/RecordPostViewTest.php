@@ -45,4 +45,3 @@ it('records a post view once per dedupe window', function (): void {
     expect($post->views_count)->toBe(1);
     expect(PostViewEvent::query()->count())->toBe(1);
 });
-

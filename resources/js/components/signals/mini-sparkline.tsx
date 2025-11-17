@@ -37,7 +37,12 @@ export function MiniSparkline({
             return { x, y };
         });
 
-        const linePath = points.map((point, index) => `${index === 0 ? 'M' : 'L'}${point.x},${point.y}`).join(' ');
+        const linePath = points
+            .map(
+                (point, index) =>
+                    `${index === 0 ? 'M' : 'L'}${point.x},${point.y}`,
+            )
+            .join(' ');
         const areaPath = `${linePath} L ${width},${height} L 0,${height} Z`;
 
         return { path: linePath, area: areaPath };
@@ -51,23 +56,26 @@ export function MiniSparkline({
             aria-label="Sparkline trend visualization"
         >
             <defs>
-                <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
+                <linearGradient
+                    id={gradientId}
+                    x1="0%"
+                    y1="0%"
+                    x2="0%"
+                    y2="100%"
+                >
                     <stop offset="5%" stopColor={fill} stopOpacity="0.7" />
                     <stop offset="95%" stopColor={fill} stopOpacity="0" />
                 </linearGradient>
             </defs>
             <path d={area} fill={`url(#${gradientId})`} />
-            <path d={path} fill="none" stroke={stroke} strokeWidth={2.2} strokeLinejoin="round" strokeLinecap="round" />
+            <path
+                d={path}
+                fill="none"
+                stroke={stroke}
+                strokeWidth={2.2}
+                strokeLinejoin="round"
+                strokeLinecap="round"
+            />
         </svg>
     );
 }
-
-
-
-
-
-
-
-
-
-

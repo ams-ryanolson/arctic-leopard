@@ -1,6 +1,11 @@
 import { type Paginated } from '@/types/feed';
 
-export type EventStatus = 'draft' | 'pending' | 'published' | 'cancelled' | 'archived';
+export type EventStatus =
+    | 'draft'
+    | 'pending'
+    | 'published'
+    | 'cancelled'
+    | 'archived';
 
 export type EventModality = 'in_person' | 'virtual' | 'hybrid';
 
@@ -51,7 +56,13 @@ export type EventMedia = {
     id: number;
     disk: string;
     path: string;
+    url: string | null;
     thumbnail_path: string | null;
+    thumbnail_url: string | null;
+    optimized_path: string | null;
+    optimized_url: string | null;
+    blur_path: string | null;
+    blur_url: string | null;
     media_type: 'image' | 'video' | string;
     title: string | null;
     caption: string | null;
@@ -177,7 +188,9 @@ const timeFormatter = new Intl.DateTimeFormat(undefined, {
     minute: '2-digit',
 });
 
-export function formatEventDateRange(event: Pick<Event, 'starts_at' | 'ends_at'>): string {
+export function formatEventDateRange(
+    event: Pick<Event, 'starts_at' | 'ends_at'>,
+): string {
     if (!event.starts_at) {
         return 'TBA';
     }
@@ -258,7 +271,9 @@ export function formatEventStatus(status: EventStatus): string {
 }
 
 export function formatEventLocation(location: EventLocation): string {
-    const parts = [location.city, location.region, location.country].filter(Boolean);
+    const parts = [location.city, location.region, location.country].filter(
+        Boolean,
+    );
 
     if (parts.length > 0) {
         return parts.join(', ');
@@ -267,7 +282,9 @@ export function formatEventLocation(location: EventLocation): string {
     return location.name ?? 'Location TBD';
 }
 
-export function eventStatusTone(status: EventStatus): 'success' | 'warning' | 'info' | 'danger' | 'muted' {
+export function eventStatusTone(
+    status: EventStatus,
+): 'success' | 'warning' | 'info' | 'danger' | 'muted' {
     switch (status) {
         case 'published':
             return 'success';
@@ -283,4 +300,3 @@ export function eventStatusTone(status: EventStatus): 'success' | 'warning' | 'i
             return 'info';
     }
 }
-

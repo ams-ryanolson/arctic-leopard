@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import AppLayout from '@/layouts/app-layout';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
+import AppLayout from '@/layouts/app-layout';
 import { getCsrfToken } from '@/lib/csrf';
 import {
     deleteAllNotifications,
@@ -15,16 +14,17 @@ import {
     markAllNotificationsRead,
     markNotificationRead,
 } from '@/lib/notifications-client';
-import profileRoutes from '@/routes/profile';
+import { cn } from '@/lib/utils';
 import notificationsRoutes from '@/routes/notifications';
+import profileRoutes from '@/routes/profile';
 import usersRoutes from '@/routes/users';
+import type { SharedData } from '@/types';
 import type {
     NotificationFilter,
     NotificationItem,
     NotificationPage,
     NotificationSubject,
 } from '@/types/notifications';
-import type { SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -37,9 +37,9 @@ import {
     Loader2,
     MailOpen,
     Sparkles,
+    Trash2,
     UserPlus,
     type LucideIcon,
-    Trash2,
 } from 'lucide-react';
 
 type NotificationsPageProps = SharedData & {
@@ -67,22 +67,40 @@ const accentStyles: Record<NotificationPresentation['accent'], string> = {
     emerald: 'border-emerald-500/35 bg-emerald-500/10',
 };
 
-function isPostSubject(subject: NotificationSubject): subject is Extract<NotificationSubject, { type: 'post' }> {
-    return typeof subject === 'object' && subject !== null && 'type' in subject && subject.type === 'post';
+function isPostSubject(
+    subject: NotificationSubject,
+): subject is Extract<NotificationSubject, { type: 'post' }> {
+    return (
+        typeof subject === 'object' &&
+        subject !== null &&
+        'type' in subject &&
+        subject.type === 'post'
+    );
 }
 
-function isUserSubject(subject: NotificationSubject): subject is Extract<NotificationSubject, { type: 'user' }> {
-    return typeof subject === 'object' && subject !== null && 'type' in subject && subject.type === 'user';
+function isUserSubject(
+    subject: NotificationSubject,
+): subject is Extract<NotificationSubject, { type: 'user' }> {
+    return (
+        typeof subject === 'object' &&
+        subject !== null &&
+        'type' in subject &&
+        subject.type === 'user'
+    );
 }
 
 function resolveActorName(notification: NotificationItem): string {
     return (
         notification.actor?.display_name ??
-        (notification.actor?.username ? `@${notification.actor.username}` : 'Someone')
+        (notification.actor?.username
+            ? `@${notification.actor.username}`
+            : 'Someone')
     );
 }
 
-function resolveNotificationPresentation(notification: NotificationItem): NotificationPresentation {
+function resolveNotificationPresentation(
+    notification: NotificationItem,
+): NotificationPresentation {
     const actorName = resolveActorName(notification);
     const subject = notification.subject;
     const postMeta =
@@ -90,47 +108,57 @@ function resolveNotificationPresentation(notification: NotificationItem): Notifi
             ? (notification.meta['post'] as Record<string, unknown> | undefined)
             : undefined;
     const postExcerpt =
-        postMeta && typeof postMeta === 'object' && 'excerpt' in postMeta && typeof postMeta.excerpt === 'string'
+        postMeta &&
+        typeof postMeta === 'object' &&
+        'excerpt' in postMeta &&
+        typeof postMeta.excerpt === 'string'
             ? postMeta.excerpt
             : null;
 
     if (notification.type === 'post-liked') {
         const authorUsername = isPostSubject(subject)
-            ? subject.author?.username ?? notification.actor?.username ?? null
-            : notification.actor?.username ?? null;
+            ? (subject.author?.username ?? notification.actor?.username ?? null)
+            : (notification.actor?.username ?? null);
 
         return {
             icon: Heart,
             title: `${actorName} liked your post`,
             description: postExcerpt,
             actionLabel: authorUsername ? 'View profile' : undefined,
-            actionHref: authorUsername ? profileRoutes.show.url({ username: authorUsername }) : undefined,
+            actionHref: authorUsername
+                ? profileRoutes.show.url({ username: authorUsername })
+                : undefined,
             accent: 'rose',
         };
     }
 
     if (notification.type === 'post-bookmarked') {
         const authorUsername = isPostSubject(subject)
-            ? subject.author?.username ?? notification.actor?.username ?? null
-            : notification.actor?.username ?? null;
+            ? (subject.author?.username ?? notification.actor?.username ?? null)
+            : (notification.actor?.username ?? null);
 
         return {
             icon: Bookmark,
             title: `${actorName} saved your post`,
             description: postExcerpt,
             actionLabel: authorUsername ? 'Go to profile' : undefined,
-            actionHref: authorUsername ? profileRoutes.show.url({ username: authorUsername }) : undefined,
+            actionHref: authorUsername
+                ? profileRoutes.show.url({ username: authorUsername })
+                : undefined,
             accent: 'violet',
         };
     }
 
     if (notification.type === 'user-follow-requested') {
-        const followerUsername = notification.actor?.username ?? (isUserSubject(subject) ? subject.id ?? null : null);
+        const followerUsername =
+            notification.actor?.username ??
+            (isUserSubject(subject) ? (subject.id ?? null) : null);
 
         return {
             icon: UserPlus,
             title: `${actorName} requested to follow you`,
-            description: 'Approve the request to let them see your follower-only updates.',
+            description:
+                'Approve the request to let them see your follower-only updates.',
             actionLabel: followerUsername ? 'Review profile' : undefined,
             actionHref: followerUsername
                 ? profileRoutes.show.url({
@@ -142,12 +170,15 @@ function resolveNotificationPresentation(notification: NotificationItem): Notifi
     }
 
     if (notification.type === 'user-followed') {
-        const followerUsername = notification.actor?.username ?? (isUserSubject(subject) ? subject.id ?? null : null);
+        const followerUsername =
+            notification.actor?.username ??
+            (isUserSubject(subject) ? (subject.id ?? null) : null);
 
         return {
             icon: UserPlus,
             title: `${actorName} is following you`,
-            description: 'Welcome them to your circle with a quick hello or share your latest drop.',
+            description:
+                'Welcome them to your circle with a quick hello or share your latest drop.',
             actionLabel: followerUsername ? 'View profile' : undefined,
             actionHref: followerUsername
                 ? profileRoutes.show.url({
@@ -159,12 +190,15 @@ function resolveNotificationPresentation(notification: NotificationItem): Notifi
     }
 
     if (notification.type === 'user-follow-request-approved') {
-        const creatorUsername = notification.actor?.username ?? (isUserSubject(subject) ? subject.id ?? null : null);
+        const creatorUsername =
+            notification.actor?.username ??
+            (isUserSubject(subject) ? (subject.id ?? null) : null);
 
         return {
             icon: CircleCheck,
             title: `${actorName} approved your follow request`,
-            description: 'You can now see everything they share with followers.',
+            description:
+                'You can now see everything they share with followers.',
             actionLabel: creatorUsername ? 'View profile' : undefined,
             actionHref: creatorUsername
                 ? profileRoutes.show.url({
@@ -185,7 +219,11 @@ function resolveNotificationPresentation(notification: NotificationItem): Notifi
 
 const EmptyState = ({ filter }: { filter: NotificationFilter }) => (
     <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-white/10 bg-black/30 px-10 py-16 text-center text-white/70">
-        {filter === 'unread' ? <MailOpen className="size-12 text-amber-300/60" /> : <Sparkles className="size-12 text-amber-300/60" />}
+        {filter === 'unread' ? (
+            <MailOpen className="size-12 text-amber-300/60" />
+        ) : (
+            <Sparkles className="size-12 text-amber-300/60" />
+        )}
         <h2 className="mt-6 text-2xl font-semibold text-white">
             {filter === 'unread' ? 'You are all caught up' : 'Keep connecting'}
         </h2>
@@ -220,7 +258,8 @@ export default function NotificationsIndex() {
         auth,
     } = usePage<NotificationsPageProps>().props;
 
-    const initialFilter: NotificationFilter = activeFilter === 'unread' ? 'unread' : 'all';
+    const initialFilter: NotificationFilter =
+        activeFilter === 'unread' ? 'unread' : 'all';
     const [filter, setFilter] = useState<NotificationFilter>(initialFilter);
     const [pages, setPages] = useState<NotificationPage[]>([notifications]);
     const [hasMore, setHasMore] = useState(
@@ -236,14 +275,18 @@ export default function NotificationsIndex() {
     const [localUnreadCount, setLocalUnreadCount] = useState(unreadCount);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const sentinelRef = useRef<HTMLDivElement | null>(null);
-    const [pendingFollowRequestIds, setPendingFollowRequestIds] = useState<string[]>([]);
+    const [pendingFollowRequestIds, setPendingFollowRequestIds] = useState<
+        string[]
+    >([]);
 
     const items = useMemo(() => pages.flatMap((page) => page.data), [pages]);
     const authUserId = auth?.user?.id ?? null;
 
     useEffect(() => {
         setPages([notifications]);
-        setHasMore(notifications.meta.current_page < notifications.meta.last_page);
+        setHasMore(
+            notifications.meta.current_page < notifications.meta.last_page,
+        );
         setIsLoadingMore(false);
         setErrorMessage(null);
         setPendingDeleteIds([]);
@@ -264,31 +307,40 @@ export default function NotificationsIndex() {
         emitUnreadCount(unreadCount);
     }, [unreadCount]);
 
-    const updatePendingState = useCallback((notificationId: string, pending: boolean) => {
-        setPendingReadIds((previous) => {
-            if (pending) {
-                return previous.includes(notificationId) ? previous : [...previous, notificationId];
-            }
+    const updatePendingState = useCallback(
+        (notificationId: string, pending: boolean) => {
+            setPendingReadIds((previous) => {
+                if (pending) {
+                    return previous.includes(notificationId)
+                        ? previous
+                        : [...previous, notificationId];
+                }
 
-            return previous.filter((id) => id !== notificationId);
-        });
-    }, []);
+                return previous.filter((id) => id !== notificationId);
+            });
+        },
+        [],
+    );
 
-    const applyReadState = useCallback((notificationId: string, readAt: string | null) => {
-        setPages((previous) =>
-            previous.map((page) => ({
-                ...page,
-                data: page.data.map((notification) =>
-                    notification.id === notificationId && notification.read_at === null
-                        ? {
-                              ...notification,
-                              read_at: readAt ?? new Date().toISOString(),
-                          }
-                        : notification,
-                ),
-            })),
-        );
-    }, []);
+    const applyReadState = useCallback(
+        (notificationId: string, readAt: string | null) => {
+            setPages((previous) =>
+                previous.map((page) => ({
+                    ...page,
+                    data: page.data.map((notification) =>
+                        notification.id === notificationId &&
+                        notification.read_at === null
+                            ? {
+                                  ...notification,
+                                  read_at: readAt ?? new Date().toISOString(),
+                              }
+                            : notification,
+                    ),
+                })),
+            );
+        },
+        [],
+    );
 
     const handleMarkNotificationRead = useCallback(
         async (notificationId: string) => {
@@ -308,7 +360,9 @@ export default function NotificationsIndex() {
                 emitUnreadCount(response.unread_count);
             } catch (error) {
                 console.error(error);
-                setErrorMessage('We could not mark that notification as read. Please try again.');
+                setErrorMessage(
+                    'We could not mark that notification as read. Please try again.',
+                );
             } finally {
                 updatePendingState(notificationId, false);
             }
@@ -317,9 +371,14 @@ export default function NotificationsIndex() {
     );
 
     const handleFollowRequestAction = useCallback(
-        async (notification: NotificationItem, action: 'accept' | 'decline') => {
+        async (
+            notification: NotificationItem,
+            action: 'accept' | 'decline',
+        ) => {
             if (authUserId === null || !notification.actor?.id) {
-                setErrorMessage('We could not process that follow request right now.');
+                setErrorMessage(
+                    'We could not process that follow request right now.',
+                );
                 return;
             }
 
@@ -329,20 +388,30 @@ export default function NotificationsIndex() {
                     : Number.parseInt(String(notification.actor.id), 10);
 
             if (!Number.isFinite(followerId)) {
-                setErrorMessage('We could not process that follow request right now.');
+                setErrorMessage(
+                    'We could not process that follow request right now.',
+                );
                 return;
             }
 
             const wasUnread = notification.read_at === null;
             const endpoint =
                 action === 'accept'
-                    ? usersRoutes.followRequests.accept.url([authUserId, followerId])
-                    : usersRoutes.followRequests.destroy.url([authUserId, followerId]);
+                    ? usersRoutes.followRequests.accept.url([
+                          authUserId,
+                          followerId,
+                      ])
+                    : usersRoutes.followRequests.destroy.url([
+                          authUserId,
+                          followerId,
+                      ]);
             const method = action === 'accept' ? 'POST' : 'DELETE';
             const csrfToken = getCsrfToken();
 
             setPendingFollowRequestIds((previous) =>
-                previous.includes(notification.id) ? previous : [...previous, notification.id],
+                previous.includes(notification.id)
+                    ? previous
+                    : [...previous, notification.id],
             );
             setErrorMessage(null);
 
@@ -357,9 +426,9 @@ export default function NotificationsIndex() {
                     credentials: 'include',
                 });
 
-                const payload = (await response.json().catch(() => null)) as
-                    | { message?: string }
-                    | null;
+                const payload = (await response.json().catch(() => null)) as {
+                    message?: string;
+                } | null;
 
                 if (!response.ok) {
                     const message =
@@ -374,7 +443,9 @@ export default function NotificationsIndex() {
                 setPages((previous) =>
                     previous.map((page) => ({
                         ...page,
-                        data: page.data.filter((item) => item.id !== notification.id),
+                        data: page.data.filter(
+                            (item) => item.id !== notification.id,
+                        ),
                     })),
                 );
 
@@ -433,7 +504,9 @@ export default function NotificationsIndex() {
             emitUnreadCount(response.unread_count);
         } catch (error) {
             console.error(error);
-            setErrorMessage('We could not mark notifications as read. Please try again.');
+            setErrorMessage(
+                'We could not mark notifications as read. Please try again.',
+            );
         } finally {
             setIsMarkingAll(false);
         }
@@ -448,7 +521,9 @@ export default function NotificationsIndex() {
             }
 
             setPendingDeleteIds((previous) =>
-                previous.includes(notificationId) ? previous : [...previous, notificationId],
+                previous.includes(notificationId)
+                    ? previous
+                    : [...previous, notificationId],
             );
             setErrorMessage(null);
 
@@ -458,7 +533,10 @@ export default function NotificationsIndex() {
                     previous
                         .map((page) => ({
                             ...page,
-                            data: page.data.filter((notification) => notification.id !== notificationId),
+                            data: page.data.filter(
+                                (notification) =>
+                                    notification.id !== notificationId,
+                            ),
                         }))
                         .filter((page) => page.data.length > 0),
                 );
@@ -466,9 +544,13 @@ export default function NotificationsIndex() {
                 emitUnreadCount(response.unread_count);
             } catch (error) {
                 console.error(error);
-                setErrorMessage('We could not delete that notification. Please try again.');
+                setErrorMessage(
+                    'We could not delete that notification. Please try again.',
+                );
             } finally {
-                setPendingDeleteIds((previous) => previous.filter((id) => id !== notificationId));
+                setPendingDeleteIds((previous) =>
+                    previous.filter((id) => id !== notificationId),
+                );
             }
         },
         [items],
@@ -492,7 +574,9 @@ export default function NotificationsIndex() {
             emitUnreadCount(response.unread_count);
         } catch (error) {
             console.error(error);
-            setErrorMessage('We could not clear your notifications. Please try again.');
+            setErrorMessage(
+                'We could not clear your notifications. Please try again.',
+            );
         } finally {
             setIsClearingAll(false);
         }
@@ -517,7 +601,9 @@ export default function NotificationsIndex() {
                     only: ['notifications', 'activeFilter', 'unreadCount'],
                     onError: (errors) => {
                         console.error(errors);
-                        setErrorMessage('We could not switch filters right now. Try again shortly.');
+                        setErrorMessage(
+                            'We could not switch filters right now. Try again shortly.',
+                        );
                     },
                 },
             );
@@ -532,7 +618,9 @@ export default function NotificationsIndex() {
             }
 
             const lastPage = pages[pages.length - 1];
-            const nextPageNumber = lastPage ? lastPage.meta.current_page + 1 : 1;
+            const nextPageNumber = lastPage
+                ? lastPage.meta.current_page + 1
+                : 1;
 
             setIsLoadingMore(true);
             setErrorMessage(null);
@@ -546,14 +634,21 @@ export default function NotificationsIndex() {
                 });
 
                 setPages((previous) => [...previous, nextPage]);
-                setHasMore(nextPage.meta.current_page < nextPage.meta.last_page);
+                setHasMore(
+                    nextPage.meta.current_page < nextPage.meta.last_page,
+                );
             } catch (error) {
-                if (error instanceof DOMException && error.name === 'AbortError') {
+                if (
+                    error instanceof DOMException &&
+                    error.name === 'AbortError'
+                ) {
                     return;
                 }
 
                 console.error(error);
-                setErrorMessage('We could not load additional notifications. Please retry.');
+                setErrorMessage(
+                    'We could not load additional notifications. Please retry.',
+                );
             } finally {
                 setIsLoadingMore(false);
             }
@@ -593,9 +688,9 @@ export default function NotificationsIndex() {
     useEffect(() => {
         let isMounted = true;
 
-    if (typeof window === 'undefined') {
-        return () => {};
-    }
+        if (typeof window === 'undefined') {
+            return () => {};
+        }
 
         const updateUnreadCount = async () => {
             try {
@@ -624,14 +719,16 @@ export default function NotificationsIndex() {
         }
 
         const handleReceived: EventListener = (event) => {
-            const custom = event as CustomEvent<{ id?: string | number } | undefined>;
+            const custom = event as CustomEvent<
+                { id?: string | number } | undefined
+            >;
             const detail = custom.detail ?? {};
             const notificationId =
                 typeof detail?.id === 'string'
                     ? detail.id
                     : typeof detail?.id === 'number'
-                        ? detail.id.toString()
-                        : undefined;
+                      ? detail.id.toString()
+                      : undefined;
 
             if (notificationId && itemIdsRef.current.has(notificationId)) {
                 return;
@@ -668,7 +765,10 @@ export default function NotificationsIndex() {
         window.addEventListener('notifications:received', handleReceived);
 
         return () => {
-            window.removeEventListener('notifications:received', handleReceived);
+            window.removeEventListener(
+                'notifications:received',
+                handleReceived,
+            );
         };
     }, [filter]);
 
@@ -696,16 +796,21 @@ export default function NotificationsIndex() {
             <div className="space-y-8">
                 <header className="flex flex-wrap items-start justify-between gap-4">
                     <div>
-                        <p className="text-xs uppercase tracking-[0.35em] text-white/45">Activity feed</p>
-                        <h1 className="mt-2 text-3xl font-semibold text-white">Notifications</h1>
+                        <p className="text-xs tracking-[0.35em] text-white/45 uppercase">
+                            Activity feed
+                        </p>
+                        <h1 className="mt-2 text-3xl font-semibold text-white">
+                            Notifications
+                        </h1>
                         <p className="mt-2 max-w-2xl text-sm text-white/60">
-                            Track the momentum around your posts and relationships. Likes, bookmarks, and follows surface
+                            Track the momentum around your posts and
+                            relationships. Likes, bookmarks, and follows surface
                             here instantly.
                         </p>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3">
-                        <div className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-white/60">
+                        <div className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-semibold tracking-[0.25em] text-white/60 uppercase">
                             {localUnreadCount} unread
                         </div>
                         <Button
@@ -713,9 +818,13 @@ export default function NotificationsIndex() {
                             size="sm"
                             onClick={handleMarkAllRead}
                             disabled={localUnreadCount === 0 || isMarkingAll}
-                            className="flex items-center gap-2 rounded-full border-white/20 bg-white/10 text-xs font-semibold uppercase tracking-[0.3em] text-white/70 hover:border-white/40 hover:bg-white/20 hover:text-white"
+                            className="flex items-center gap-2 rounded-full border-white/20 bg-white/10 text-xs font-semibold tracking-[0.3em] text-white/70 uppercase hover:border-white/40 hover:bg-white/20 hover:text-white"
                         >
-                            {isMarkingAll ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+                            {isMarkingAll ? (
+                                <Loader2 className="size-4 animate-spin" />
+                            ) : (
+                                <Check className="size-4" />
+                            )}
                             Mark all
                         </Button>
                     </div>
@@ -724,9 +833,13 @@ export default function NotificationsIndex() {
                         size="sm"
                         onClick={handleDeleteAllNotifications}
                         disabled={items.length === 0 || isClearingAll}
-                        className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 text-xs font-semibold uppercase tracking-[0.3em] text-white/60 transition hover:border-white/40 hover:bg-white/20 hover:text-white disabled:opacity-40"
+                        className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 text-xs font-semibold tracking-[0.3em] text-white/60 uppercase transition hover:border-white/40 hover:bg-white/20 hover:text-white disabled:opacity-40"
                     >
-                        {isClearingAll ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
+                        {isClearingAll ? (
+                            <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                            <Trash2 className="size-4" />
+                        )}
                         Clear all
                     </Button>
                 </header>
@@ -741,7 +854,7 @@ export default function NotificationsIndex() {
                                 onClick={() => handleFilterChange(option)}
                                 variant={isActive ? 'default' : 'ghost'}
                                 className={cn(
-                                    'rounded-full border border-white/15 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] transition',
+                                    'rounded-full border border-white/15 px-4 py-2 text-xs font-semibold tracking-[0.25em] uppercase transition',
                                     isActive
                                         ? 'border-amber-400/50 bg-gradient-to-r from-amber-400/90 via-rose-500/80 to-violet-500/80 text-white shadow-[0_20px_50px_-20px_rgba(249,115,22,0.65)]'
                                         : 'bg-white/5 text-white/70 hover:border-white/30 hover:bg-white/10 hover:text-white',
@@ -765,15 +878,27 @@ export default function NotificationsIndex() {
                 ) : (
                     <div className="space-y-3">
                         {items.map((notification) => {
-                        const presentation = resolveNotificationPresentation(notification);
-                        const followRequestPending = pendingFollowRequestIds.includes(notification.id);
+                            const presentation =
+                                resolveNotificationPresentation(notification);
+                            const followRequestPending =
+                                pendingFollowRequestIds.includes(
+                                    notification.id,
+                                );
                             const Icon = presentation.icon;
                             const isUnread = notification.read_at === null;
-                            const pending = pendingReadIds.includes(notification.id);
-                            const deleting = pendingDeleteIds.includes(notification.id);
-                            const createdAt = notification.created_at ? new Date(notification.created_at) : null;
+                            const pending = pendingReadIds.includes(
+                                notification.id,
+                            );
+                            const deleting = pendingDeleteIds.includes(
+                                notification.id,
+                            );
+                            const createdAt = notification.created_at
+                                ? new Date(notification.created_at)
+                                : null;
                             const timestamp = createdAt
-                                ? formatDistanceToNow(createdAt, { addSuffix: true })
+                                ? formatDistanceToNow(createdAt, {
+                                      addSuffix: true,
+                                  })
                                 : 'Just now';
 
                             return (
@@ -781,14 +906,18 @@ export default function NotificationsIndex() {
                                     key={notification.id}
                                     className={cn(
                                         'border bg-white/5 p-4 transition hover:border-white/20 hover:bg-white/10',
-                                        isUnread ? 'border-amber-400/45 bg-amber-400/10' : 'border-white/10',
+                                        isUnread
+                                            ? 'border-amber-400/45 bg-amber-400/10'
+                                            : 'border-white/10',
                                     )}
                                 >
                                     <div className="flex flex-wrap items-start gap-4">
                                         <div
                                             className={cn(
                                                 'flex size-12 items-center justify-center rounded-full border',
-                                                accentStyles[presentation.accent],
+                                                accentStyles[
+                                                    presentation.accent
+                                                ],
                                             )}
                                         >
                                             <Icon className="size-5 text-white" />
@@ -799,16 +928,20 @@ export default function NotificationsIndex() {
                                                     <div className="flex items-center gap-2">
                                                         <Badge
                                                             className={cn(
-                                                                'rounded-full border-white/20 bg-white/10 text-[0.65rem] uppercase tracking-[0.25em] text-white/60',
-                                                                presentation.accent !== 'stone'
+                                                                'rounded-full border-white/20 bg-white/10 text-[0.65rem] tracking-[0.25em] text-white/60 uppercase',
+                                                                presentation.accent !==
+                                                                    'stone'
                                                                     ? 'border-white/25 bg-white/15 text-white/80'
                                                                     : null,
                                                             )}
                                                         >
-                                                            {notification.type.replace('-', ' ')}
+                                                            {notification.type.replace(
+                                                                '-',
+                                                                ' ',
+                                                            )}
                                                         </Badge>
                                                         {isUnread ? (
-                                                            <span className="text-[0.65rem] uppercase tracking-[0.3em] text-amber-200">
+                                                            <span className="text-[0.65rem] tracking-[0.3em] text-amber-200 uppercase">
                                                                 New
                                                             </span>
                                                         ) : null}
@@ -818,29 +951,41 @@ export default function NotificationsIndex() {
                                                     </h3>
                                                     {presentation.description ? (
                                                         <p className="mt-1 text-sm text-white/70">
-                                                            {presentation.description}
+                                                            {
+                                                                presentation.description
+                                                            }
                                                         </p>
                                                     ) : null}
                                                 </div>
 
-                                                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-white/45">
+                                                <div className="flex items-center gap-2 text-xs tracking-[0.3em] text-white/45 uppercase">
                                                     <span>{timestamp}</span>
-                                                    {isUnread ? <span className="size-1.5 rounded-full bg-amber-300" /> : null}
+                                                    {isUnread ? (
+                                                        <span className="size-1.5 rounded-full bg-amber-300" />
+                                                    ) : null}
                                                 </div>
                                             </div>
 
                                             <div className="flex flex-wrap items-center gap-3">
-                                                {notification.type === 'user-follow-requested' ? (
+                                                {notification.type ===
+                                                'user-follow-requested' ? (
                                                     <>
                                                         <Button
                                                             size="sm"
                                                             variant="outline"
-                                                            className="rounded-full border border-emerald-400/30 bg-emerald-400/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-100 hover:border-emerald-400/40 hover:bg-emerald-400/25 hover:text-white"
-                                                            onClick={(event) => {
+                                                            className="rounded-full border border-emerald-400/30 bg-emerald-400/15 px-3 py-1 text-xs font-semibold tracking-[0.3em] text-emerald-100 uppercase hover:border-emerald-400/40 hover:bg-emerald-400/25 hover:text-white"
+                                                            onClick={(
+                                                                event,
+                                                            ) => {
                                                                 event.preventDefault();
-                                                                void handleFollowRequestAction(notification, 'accept');
+                                                                void handleFollowRequestAction(
+                                                                    notification,
+                                                                    'accept',
+                                                                );
                                                             }}
-                                                            disabled={followRequestPending}
+                                                            disabled={
+                                                                followRequestPending
+                                                            }
                                                         >
                                                             {followRequestPending ? (
                                                                 <Loader2 className="mr-2 size-4 animate-spin" />
@@ -852,12 +997,19 @@ export default function NotificationsIndex() {
                                                         <Button
                                                             size="sm"
                                                             variant="ghost"
-                                                            className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white/70 hover:border-white/30 hover:bg-white/15 hover:text-white"
-                                                            onClick={(event) => {
+                                                            className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-semibold tracking-[0.3em] text-white/70 uppercase hover:border-white/30 hover:bg-white/15 hover:text-white"
+                                                            onClick={(
+                                                                event,
+                                                            ) => {
                                                                 event.preventDefault();
-                                                                void handleFollowRequestAction(notification, 'decline');
+                                                                void handleFollowRequestAction(
+                                                                    notification,
+                                                                    'decline',
+                                                                );
                                                             }}
-                                                            disabled={followRequestPending}
+                                                            disabled={
+                                                                followRequestPending
+                                                            }
                                                         >
                                                             {followRequestPending ? (
                                                                 <Loader2 className="mr-2 size-4 animate-spin" />
@@ -872,41 +1024,57 @@ export default function NotificationsIndex() {
                                                     <Button
                                                         size="sm"
                                                         variant="ghost"
-                                                        className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white/70 hover:border-white/30 hover:bg-white/15 hover:text-white"
+                                                        className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-semibold tracking-[0.3em] text-white/70 uppercase hover:border-white/30 hover:bg-white/15 hover:text-white"
                                                         onClick={(event) => {
                                                             event.preventDefault();
-                                                            handleNotificationClick(notification, presentation.actionHref);
+                                                            handleNotificationClick(
+                                                                notification,
+                                                                presentation.actionHref,
+                                                            );
                                                         }}
                                                     >
-                                                        {presentation.actionLabel ?? 'Open'}
+                                                        {presentation.actionLabel ??
+                                                            'Open'}
                                                     </Button>
                                                 ) : null}
                                                 {isUnread ? (
                                                     <Button
                                                         size="sm"
                                                         variant="ghost"
-                                                        className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white/60 hover:border-white/30 hover:bg-white/10 hover:text-white"
+                                                        className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-semibold tracking-[0.3em] text-white/60 uppercase hover:border-white/30 hover:bg-white/10 hover:text-white"
                                                         onClick={(event) => {
                                                             event.preventDefault();
-                                                            void handleMarkNotificationRead(notification.id);
+                                                            void handleMarkNotificationRead(
+                                                                notification.id,
+                                                            );
                                                         }}
                                                         disabled={pending}
                                                     >
-                                                        {pending ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Check className="mr-2 size-4" />}
+                                                        {pending ? (
+                                                            <Loader2 className="mr-2 size-4 animate-spin" />
+                                                        ) : (
+                                                            <Check className="mr-2 size-4" />
+                                                        )}
                                                         Mark read
                                                     </Button>
                                                 ) : null}
                                                 <Button
                                                     size="sm"
                                                     variant="ghost"
-                                                    className="rounded-full border border-rose-400/25 bg-rose-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-rose-100/80 transition hover:border-rose-400/40 hover:bg-rose-500/20 hover:text-white"
+                                                    className="rounded-full border border-rose-400/25 bg-rose-500/10 px-3 py-1 text-xs font-semibold tracking-[0.3em] text-rose-100/80 uppercase transition hover:border-rose-400/40 hover:bg-rose-500/20 hover:text-white"
                                                     onClick={(event) => {
                                                         event.preventDefault();
-                                                        void handleDeleteNotification(notification.id);
+                                                        void handleDeleteNotification(
+                                                            notification.id,
+                                                        );
                                                     }}
                                                     disabled={deleting}
                                                 >
-                                                    {deleting ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Trash2 className="mr-2 size-4" />}
+                                                    {deleting ? (
+                                                        <Loader2 className="mr-2 size-4 animate-spin" />
+                                                    ) : (
+                                                        <Trash2 className="mr-2 size-4" />
+                                                    )}
                                                     Delete
                                                 </Button>
                                             </div>
@@ -921,7 +1089,9 @@ export default function NotificationsIndex() {
                         {isLoadingMore ? (
                             <div className="flex flex-col items-center gap-3 rounded-3xl border border-dashed border-white/10 bg-black/20 px-6 py-8 text-white/60">
                                 <Loader2 className="size-6 animate-spin text-white/70" />
-                                <span className="text-xs uppercase tracking-[0.3em]">Loading more</span>
+                                <span className="text-xs tracking-[0.3em] uppercase">
+                                    Loading more
+                                </span>
                             </div>
                         ) : null}
                     </div>
@@ -930,4 +1100,3 @@ export default function NotificationsIndex() {
         </AppLayout>
     );
 }
-

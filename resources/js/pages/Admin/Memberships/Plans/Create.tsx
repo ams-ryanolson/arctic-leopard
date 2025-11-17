@@ -1,14 +1,26 @@
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import adminRoutes from '@/routes/admin';
 import { Form, Head, router, useForm } from '@inertiajs/react';
-import { ArrowLeft, Loader2, Plus, Save, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Loader2, Plus, Save, X } from 'lucide-react';
 import { useState } from 'react';
 
 type Role = {
@@ -20,7 +32,9 @@ type AdminMembershipsCreateProps = {
     roles: Role[];
 };
 
-export default function AdminMembershipsPlansCreate({ roles }: AdminMembershipsCreateProps) {
+export default function AdminMembershipsPlansCreate({
+    roles,
+}: AdminMembershipsCreateProps) {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         slug: '',
@@ -73,8 +87,14 @@ export default function AdminMembershipsPlansCreate({ roles }: AdminMembershipsC
         <AppLayout
             breadcrumbs={[
                 { title: 'Admin', href: adminRoutes.dashboard().url },
-                { title: 'Memberships', href: adminRoutes.memberships.index().url },
-                { title: 'Create Plan', href: adminRoutes.memberships.create().url },
+                {
+                    title: 'Memberships',
+                    href: adminRoutes.memberships.index().url,
+                },
+                {
+                    title: 'Create Plan',
+                    href: adminRoutes.memberships.create().url,
+                },
             ]}
         >
             <Head title="Create Membership Plan" />
@@ -88,7 +108,9 @@ export default function AdminMembershipsPlansCreate({ roles }: AdminMembershipsC
                         </a>
                     </Button>
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-white">Create Membership Plan</h1>
+                        <h1 className="text-3xl font-bold tracking-tight text-white">
+                            Create Membership Plan
+                        </h1>
                         <p className="mt-2 text-sm text-white/70">
                             Create a new membership plan that users can purchase
                         </p>
@@ -99,82 +121,123 @@ export default function AdminMembershipsPlansCreate({ roles }: AdminMembershipsC
                     <div className="grid gap-6 lg:grid-cols-2">
                         <Card className="border-white/10 bg-white/5">
                             <CardHeader>
-                                <CardTitle className="text-white">Basic Information</CardTitle>
+                                <CardTitle className="text-white">
+                                    Basic Information
+                                </CardTitle>
                                 <CardDescription className="text-white/60">
                                     Core details about the membership plan
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="name" className="text-white">
+                                    <Label
+                                        htmlFor="name"
+                                        className="text-white"
+                                    >
                                         Name *
                                     </Label>
                                     <Input
                                         id="name"
                                         value={data.name}
-                                        onChange={(e) => setData('name', e.target.value)}
-                                        className="bg-white/5 border-white/10 text-white"
+                                        onChange={(e) =>
+                                            setData('name', e.target.value)
+                                        }
+                                        className="border-white/10 bg-white/5 text-white"
                                         placeholder="Premium"
                                     />
                                     {errors.name && (
-                                        <p className="text-sm text-red-400">{errors.name}</p>
+                                        <p className="text-sm text-red-400">
+                                            {errors.name}
+                                        </p>
                                     )}
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="slug" className="text-white">
+                                    <Label
+                                        htmlFor="slug"
+                                        className="text-white"
+                                    >
                                         Slug *
                                     </Label>
                                     <Input
                                         id="slug"
                                         value={data.slug}
-                                        onChange={(e) => setData('slug', e.target.value.toLowerCase().replace(/\s+/g, '-'))}
-                                        className="bg-white/5 border-white/10 text-white"
+                                        onChange={(e) =>
+                                            setData(
+                                                'slug',
+                                                e.target.value
+                                                    .toLowerCase()
+                                                    .replace(/\s+/g, '-'),
+                                            )
+                                        }
+                                        className="border-white/10 bg-white/5 text-white"
                                         placeholder="premium"
                                     />
                                     {errors.slug && (
-                                        <p className="text-sm text-red-400">{errors.slug}</p>
+                                        <p className="text-sm text-red-400">
+                                            {errors.slug}
+                                        </p>
                                     )}
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="description" className="text-white">
+                                    <Label
+                                        htmlFor="description"
+                                        className="text-white"
+                                    >
                                         Description
                                     </Label>
                                     <Textarea
                                         id="description"
                                         value={data.description}
-                                        onChange={(e) => setData('description', e.target.value)}
-                                        className="bg-white/5 border-white/10 text-white"
+                                        onChange={(e) =>
+                                            setData(
+                                                'description',
+                                                e.target.value,
+                                            )
+                                        }
+                                        className="border-white/10 bg-white/5 text-white"
                                         placeholder="Describe what this membership offers..."
                                         rows={4}
                                     />
                                     {errors.description && (
-                                        <p className="text-sm text-red-400">{errors.description}</p>
+                                        <p className="text-sm text-red-400">
+                                            {errors.description}
+                                        </p>
                                     )}
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="role_to_assign" className="text-white">
+                                    <Label
+                                        htmlFor="role_to_assign"
+                                        className="text-white"
+                                    >
                                         Role to Assign *
                                     </Label>
                                     <Select
                                         value={data.role_to_assign}
-                                        onValueChange={(value) => setData('role_to_assign', value)}
+                                        onValueChange={(value) =>
+                                            setData('role_to_assign', value)
+                                        }
                                     >
-                                        <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                                        <SelectTrigger className="border-white/10 bg-white/5 text-white">
                                             <SelectValue placeholder="Select a role" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {roles.map((role) => (
-                                                <SelectItem key={role.id} value={role.name}>
+                                                <SelectItem
+                                                    key={role.id}
+                                                    value={role.name}
+                                                >
                                                     {role.name}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
                                     {errors.role_to_assign && (
-                                        <p className="text-sm text-red-400">{errors.role_to_assign}</p>
+                                        <p className="text-sm text-red-400">
+                                            {errors.role_to_assign}
+                                        </p>
                                     )}
                                 </div>
                             </CardContent>
@@ -182,14 +245,20 @@ export default function AdminMembershipsPlansCreate({ roles }: AdminMembershipsC
 
                         <Card className="border-white/10 bg-white/5">
                             <CardHeader>
-                                <CardTitle className="text-white">Pricing</CardTitle>
+                                <CardTitle className="text-white">
+                                    Pricing
+                                </CardTitle>
                                 <CardDescription className="text-white/60">
-                                    Set pricing for monthly and yearly subscriptions
+                                    Set pricing for monthly and yearly
+                                    subscriptions
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="monthly_price" className="text-white">
+                                    <Label
+                                        htmlFor="monthly_price"
+                                        className="text-white"
+                                    >
                                         Monthly Price (cents) *
                                     </Label>
                                     <Input
@@ -197,20 +266,34 @@ export default function AdminMembershipsPlansCreate({ roles }: AdminMembershipsC
                                         type="number"
                                         min="0"
                                         value={data.monthly_price}
-                                        onChange={(e) => setData('monthly_price', e.target.value)}
-                                        className="bg-white/5 border-white/10 text-white"
+                                        onChange={(e) =>
+                                            setData(
+                                                'monthly_price',
+                                                e.target.value,
+                                            )
+                                        }
+                                        className="border-white/10 bg-white/5 text-white"
                                         placeholder="1000"
                                     />
                                     <p className="text-xs text-white/50">
-                                        ${(Number(data.monthly_price) / 100).toFixed(2)} per month
+                                        $
+                                        {(
+                                            Number(data.monthly_price) / 100
+                                        ).toFixed(2)}{' '}
+                                        per month
                                     </p>
                                     {errors.monthly_price && (
-                                        <p className="text-sm text-red-400">{errors.monthly_price}</p>
+                                        <p className="text-sm text-red-400">
+                                            {errors.monthly_price}
+                                        </p>
                                     )}
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="yearly_price" className="text-white">
+                                    <Label
+                                        htmlFor="yearly_price"
+                                        className="text-white"
+                                    >
                                         Yearly Price (cents) *
                                     </Label>
                                     <Input
@@ -218,33 +301,55 @@ export default function AdminMembershipsPlansCreate({ roles }: AdminMembershipsC
                                         type="number"
                                         min="0"
                                         value={data.yearly_price}
-                                        onChange={(e) => setData('yearly_price', e.target.value)}
-                                        className="bg-white/5 border-white/10 text-white"
+                                        onChange={(e) =>
+                                            setData(
+                                                'yearly_price',
+                                                e.target.value,
+                                            )
+                                        }
+                                        className="border-white/10 bg-white/5 text-white"
                                         placeholder="10000"
                                     />
                                     <p className="text-xs text-white/50">
-                                        ${(Number(data.yearly_price) / 100).toFixed(2)} per year (10x monthly = 2 months free)
+                                        $
+                                        {(
+                                            Number(data.yearly_price) / 100
+                                        ).toFixed(2)}{' '}
+                                        per year (10x monthly = 2 months free)
                                     </p>
                                     {errors.yearly_price && (
-                                        <p className="text-sm text-red-400">{errors.yearly_price}</p>
+                                        <p className="text-sm text-red-400">
+                                            {errors.yearly_price}
+                                        </p>
                                     )}
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="currency" className="text-white">
+                                    <Label
+                                        htmlFor="currency"
+                                        className="text-white"
+                                    >
                                         Currency *
                                     </Label>
                                     <Select
                                         value={data.currency}
-                                        onValueChange={(value) => setData('currency', value)}
+                                        onValueChange={(value) =>
+                                            setData('currency', value)
+                                        }
                                     >
-                                        <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                                        <SelectTrigger className="border-white/10 bg-white/5 text-white">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="USD">USD</SelectItem>
-                                            <SelectItem value="EUR">EUR</SelectItem>
-                                            <SelectItem value="GBP">GBP</SelectItem>
+                                            <SelectItem value="USD">
+                                                USD
+                                            </SelectItem>
+                                            <SelectItem value="EUR">
+                                                EUR
+                                            </SelectItem>
+                                            <SelectItem value="GBP">
+                                                GBP
+                                            </SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -253,21 +358,28 @@ export default function AdminMembershipsPlansCreate({ roles }: AdminMembershipsC
 
                         <Card className="border-white/10 bg-white/5">
                             <CardHeader>
-                                <CardTitle className="text-white">Features</CardTitle>
+                                <CardTitle className="text-white">
+                                    Features
+                                </CardTitle>
                                 <CardDescription className="text-white/60">
                                     Add features that come with this membership
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="feature_key" className="text-white">
+                                    <Label
+                                        htmlFor="feature_key"
+                                        className="text-white"
+                                    >
                                         Feature Key
                                     </Label>
                                     <Input
                                         id="feature_key"
                                         value={featureKey}
-                                        onChange={(e) => setFeatureKey(e.target.value)}
-                                        className="bg-white/5 border-white/10 text-white"
+                                        onChange={(e) =>
+                                            setFeatureKey(e.target.value)
+                                        }
+                                        className="border-white/10 bg-white/5 text-white"
                                         placeholder="premium_content_drops"
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter') {
@@ -278,14 +390,19 @@ export default function AdminMembershipsPlansCreate({ roles }: AdminMembershipsC
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="feature_value" className="text-white">
+                                    <Label
+                                        htmlFor="feature_value"
+                                        className="text-white"
+                                    >
                                         Feature Description
                                     </Label>
                                     <Input
                                         id="feature_value"
                                         value={featureValue}
-                                        onChange={(e) => setFeatureValue(e.target.value)}
-                                        className="bg-white/5 border-white/10 text-white"
+                                        onChange={(e) =>
+                                            setFeatureValue(e.target.value)
+                                        }
+                                        className="border-white/10 bg-white/5 text-white"
                                         placeholder="3 premium content drops every week"
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter') {
@@ -300,7 +417,10 @@ export default function AdminMembershipsPlansCreate({ roles }: AdminMembershipsC
                                     variant="outline"
                                     size="sm"
                                     onClick={addFeature}
-                                    disabled={!featureKey.trim() || !featureValue.trim()}
+                                    disabled={
+                                        !featureKey.trim() ||
+                                        !featureValue.trim()
+                                    }
                                 >
                                     <Plus className="mr-2 size-4" />
                                     Add Feature
@@ -308,28 +428,40 @@ export default function AdminMembershipsPlansCreate({ roles }: AdminMembershipsC
 
                                 {Object.keys(data.features).length > 0 && (
                                     <div className="space-y-2 pt-4">
-                                        <Label className="text-white">Current Features</Label>
+                                        <Label className="text-white">
+                                            Current Features
+                                        </Label>
                                         <div className="space-y-2">
-                                            {Object.entries(data.features).map(([key, value]) => (
-                                                <div
-                                                    key={key}
-                                                    className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2"
-                                                >
-                                                    <div className="flex-1">
-                                                        <p className="text-sm font-medium text-white">{key}</p>
-                                                        <p className="text-xs text-white/60">{value}</p>
-                                                    </div>
-                                                    <Button
-                                                        type="button"
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => removeFeature(key)}
-                                                        className="text-red-400 hover:text-red-300"
+                                            {Object.entries(data.features).map(
+                                                ([key, value]) => (
+                                                    <div
+                                                        key={key}
+                                                        className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2"
                                                     >
-                                                        <X className="size-4" />
-                                                    </Button>
-                                                </div>
-                                            ))}
+                                                        <div className="flex-1">
+                                                            <p className="text-sm font-medium text-white">
+                                                                {key}
+                                                            </p>
+                                                            <p className="text-xs text-white/60">
+                                                                {value}
+                                                            </p>
+                                                        </div>
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() =>
+                                                                removeFeature(
+                                                                    key,
+                                                                )
+                                                            }
+                                                            className="text-red-400 hover:text-red-300"
+                                                        >
+                                                            <X className="size-4" />
+                                                        </Button>
+                                                    </div>
+                                                ),
+                                            )}
                                         </div>
                                     </div>
                                 )}
@@ -338,9 +470,12 @@ export default function AdminMembershipsPlansCreate({ roles }: AdminMembershipsC
 
                         <Card className="border-white/10 bg-white/5">
                             <CardHeader>
-                                <CardTitle className="text-white">Settings</CardTitle>
+                                <CardTitle className="text-white">
+                                    Settings
+                                </CardTitle>
                                 <CardDescription className="text-white/60">
-                                    Configure plan availability and billing options
+                                    Configure plan availability and billing
+                                    options
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -348,9 +483,17 @@ export default function AdminMembershipsPlansCreate({ roles }: AdminMembershipsC
                                     <Checkbox
                                         id="is_active"
                                         checked={data.is_active}
-                                        onCheckedChange={(checked) => setData('is_active', checked === true)}
+                                        onCheckedChange={(checked) =>
+                                            setData(
+                                                'is_active',
+                                                checked === true,
+                                            )
+                                        }
                                     />
-                                    <Label htmlFor="is_active" className="text-white">
+                                    <Label
+                                        htmlFor="is_active"
+                                        className="text-white"
+                                    >
                                         Active
                                     </Label>
                                 </div>
@@ -359,9 +502,17 @@ export default function AdminMembershipsPlansCreate({ roles }: AdminMembershipsC
                                     <Checkbox
                                         id="is_public"
                                         checked={data.is_public}
-                                        onCheckedChange={(checked) => setData('is_public', checked === true)}
+                                        onCheckedChange={(checked) =>
+                                            setData(
+                                                'is_public',
+                                                checked === true,
+                                            )
+                                        }
                                     />
-                                    <Label htmlFor="is_public" className="text-white">
+                                    <Label
+                                        htmlFor="is_public"
+                                        className="text-white"
+                                    >
                                         Public (visible to users)
                                     </Label>
                                 </div>
@@ -370,9 +521,17 @@ export default function AdminMembershipsPlansCreate({ roles }: AdminMembershipsC
                                     <Checkbox
                                         id="allows_recurring"
                                         checked={data.allows_recurring}
-                                        onCheckedChange={(checked) => setData('allows_recurring', checked === true)}
+                                        onCheckedChange={(checked) =>
+                                            setData(
+                                                'allows_recurring',
+                                                checked === true,
+                                            )
+                                        }
                                     />
-                                    <Label htmlFor="allows_recurring" className="text-white">
+                                    <Label
+                                        htmlFor="allows_recurring"
+                                        className="text-white"
+                                    >
                                         Allow Recurring Billing
                                     </Label>
                                 </div>
@@ -381,16 +540,27 @@ export default function AdminMembershipsPlansCreate({ roles }: AdminMembershipsC
                                     <Checkbox
                                         id="allows_one_time"
                                         checked={data.allows_one_time}
-                                        onCheckedChange={(checked) => setData('allows_one_time', checked === true)}
+                                        onCheckedChange={(checked) =>
+                                            setData(
+                                                'allows_one_time',
+                                                checked === true,
+                                            )
+                                        }
                                     />
-                                    <Label htmlFor="allows_one_time" className="text-white">
+                                    <Label
+                                        htmlFor="allows_one_time"
+                                        className="text-white"
+                                    >
                                         Allow One-Time Purchase
                                     </Label>
                                 </div>
 
                                 {data.allows_one_time && (
                                     <div className="space-y-2">
-                                        <Label htmlFor="one_time_duration_days" className="text-white">
+                                        <Label
+                                            htmlFor="one_time_duration_days"
+                                            className="text-white"
+                                        >
                                             One-Time Duration (days)
                                         </Label>
                                         <Input
@@ -399,15 +569,24 @@ export default function AdminMembershipsPlansCreate({ roles }: AdminMembershipsC
                                             min="1"
                                             value={data.one_time_duration_days}
                                             onChange={(e) =>
-                                                setData('one_time_duration_days', Number.parseInt(e.target.value, 10))
+                                                setData(
+                                                    'one_time_duration_days',
+                                                    Number.parseInt(
+                                                        e.target.value,
+                                                        10,
+                                                    ),
+                                                )
                                             }
-                                            className="bg-white/5 border-white/10 text-white"
+                                            className="border-white/10 bg-white/5 text-white"
                                         />
                                     </div>
                                 )}
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="display_order" className="text-white">
+                                    <Label
+                                        htmlFor="display_order"
+                                        className="text-white"
+                                    >
                                         Display Order
                                     </Label>
                                     <Input
@@ -415,8 +594,16 @@ export default function AdminMembershipsPlansCreate({ roles }: AdminMembershipsC
                                         type="number"
                                         min="0"
                                         value={data.display_order}
-                                        onChange={(e) => setData('display_order', Number.parseInt(e.target.value, 10))}
-                                        className="bg-white/5 border-white/10 text-white"
+                                        onChange={(e) =>
+                                            setData(
+                                                'display_order',
+                                                Number.parseInt(
+                                                    e.target.value,
+                                                    10,
+                                                ),
+                                            )
+                                        }
+                                        className="border-white/10 bg-white/5 text-white"
                                     />
                                 </div>
                             </CardContent>
@@ -427,7 +614,11 @@ export default function AdminMembershipsPlansCreate({ roles }: AdminMembershipsC
                         <Button
                             type="button"
                             variant="outline"
-                            onClick={() => router.visit(adminRoutes.memberships.index().url)}
+                            onClick={() =>
+                                router.visit(
+                                    adminRoutes.memberships.index().url,
+                                )
+                            }
                         >
                             Cancel
                         </Button>
@@ -450,4 +641,3 @@ export default function AdminMembershipsPlansCreate({ roles }: AdminMembershipsC
         </AppLayout>
     );
 }
-

@@ -29,9 +29,7 @@ class RebuildTimelineJob implements ShouldQueue
 
     public int $tries = 3;
 
-    public function __construct(public int $userId)
-    {
-    }
+    public function __construct(public int $userId) {}
 
     public function handle(): void
     {

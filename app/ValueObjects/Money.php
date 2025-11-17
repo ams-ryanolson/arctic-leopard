@@ -107,4 +107,3 @@ class Money implements JsonSerializable
         }
     }
 }
-

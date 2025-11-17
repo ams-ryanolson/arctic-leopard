@@ -39,4 +39,3 @@ class PaymentItemFactory extends Factory
         ];
     }
 }
-

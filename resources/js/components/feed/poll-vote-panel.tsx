@@ -8,7 +8,11 @@ type PollVotePanelProps = {
     disabled?: boolean;
 };
 
-export default function PollVotePanel({ poll, onVote, disabled }: PollVotePanelProps) {
+export default function PollVotePanel({
+    poll,
+    onVote,
+    disabled,
+}: PollVotePanelProps) {
     if (!poll.options.length) {
         return null;
     }
@@ -39,12 +43,12 @@ export default function PollVotePanel({ poll, onVote, disabled }: PollVotePanelP
                         onClick={() => onVote?.(option.id)}
                     >
                         <span>{option.title}</span>
-                        <span className="text-xs text-white/50">{option.vote_count} votes</span>
+                        <span className="text-xs text-white/50">
+                            {option.vote_count} votes
+                        </span>
                     </Button>
                 ))}
             </div>
         </Card>
     );
 }
-
-

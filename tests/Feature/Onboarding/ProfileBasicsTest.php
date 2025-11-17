@@ -126,4 +126,3 @@ test('a user cannot select more than five interests', function (): void {
         ->assertRedirect(route('onboarding.profile'))
         ->assertSessionHasErrors('interests');
 });
-

@@ -31,4 +31,3 @@ trait GeneratesUuid
             : 'uuid';
     }
 }
-

@@ -58,5 +58,3 @@ Broadcast::channel('conversations.{conversation}', static function (User $user, 
         'role' => $participant->role,
     ];
 });
-
-

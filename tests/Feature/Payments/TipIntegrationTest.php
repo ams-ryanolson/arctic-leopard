@@ -3,7 +3,6 @@
 use App\Enums\Payments\LedgerDirection;
 use App\Enums\Payments\TipStatus;
 use App\Models\Payments\LedgerEntry;
-use App\Models\Payments\Tip;
 use App\Models\User;
 use App\Payments\Data\PaymentCaptureData;
 use App\Payments\Data\PaymentRefundData;
@@ -71,5 +70,3 @@ it('processes a tip through capture and refund lifecycle', function (): void {
     expect($refund->amount)->toBe(2500)
         ->and($tip->status)->toBe(TipStatus::Refunded);
 });
-
-

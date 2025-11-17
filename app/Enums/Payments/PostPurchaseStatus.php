@@ -14,4 +14,3 @@ enum PostPurchaseStatus: string
     case Cancelled = 'cancelled';
     case Failed = 'failed';
 }
-

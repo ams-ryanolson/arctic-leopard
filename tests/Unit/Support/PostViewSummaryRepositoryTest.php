@@ -41,7 +41,7 @@ it('produces view summaries for multiple posts within a date range', function ()
         'occurred_at' => Carbon::now()->addMinutes(30),
     ]);
 
-    $repository = new PostViewSummaryRepository();
+    $repository = new PostViewSummaryRepository;
 
     $summaries = $repository->summarize(
         [$postA->getKey(), $postB->getKey()],
@@ -73,4 +73,3 @@ it('produces view summaries for multiple posts within a date range', function ()
         ->and($summaryB['unique_guest_viewers'])->toBe(1)
         ->and($summaryB['countries'])->toBe([]);
 });
-

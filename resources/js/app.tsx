@@ -1,14 +1,14 @@
 import '../css/app.css';
 
-import { createInertiaApp } from '@inertiajs/react';
-import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-import { StrictMode, Suspense, lazy } from 'react';
-import { createRoot } from 'react-dom/client';
 import AppErrorBoundary from '@/components/errors/AppErrorBoundary';
 import { LightboxProvider } from '@/components/feed/lightbox-context';
 import ToastProvider from '@/components/toasts/toast-provider';
 import ToastViewport from '@/components/toasts/toast-viewport';
 import type { ToastPayload } from '@/types/toasts';
+import { createInertiaApp } from '@inertiajs/react';
+import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
+import { StrictMode, Suspense, lazy } from 'react';
+import { createRoot } from 'react-dom/client';
 
 import { initializeTheme } from './hooks/use-appearance';
 
@@ -28,17 +28,31 @@ createInertiaApp({
         ),
     setup({ el, App, props }) {
         const root = createRoot(el);
-        const initialToasts =
-            (props.initialPage?.props as { toasts?: ToastPayload[] } | undefined)?.toasts;
+        const initialToasts = (
+            props.initialPage?.props as { toasts?: ToastPayload[] } | undefined
+        )?.toasts;
         const authUserId =
-            (props.initialPage?.props as { auth?: { user?: { id?: number | null } } } | undefined)?.auth?.user
-                ?.id ?? null;
+            (
+                props.initialPage?.props as
+                    | { auth?: { user?: { id?: number | null } } }
+                    | undefined
+            )?.auth?.user?.id ?? null;
         const initialUnreadCount =
-            (props.initialPage?.props as { notifications?: { unread_count?: number | string | null } } | undefined)
-                ?.notifications?.unread_count ?? 0;
+            (
+                props.initialPage?.props as
+                    | {
+                          notifications?: {
+                              unread_count?: number | string | null;
+                          };
+                      }
+                    | undefined
+            )?.notifications?.unread_count ?? 0;
         const initialMessagingUnreadCount =
-            (props.initialPage?.props as { messaging?: { unread_count?: number | string | null } } | undefined)
-                ?.messaging?.unread_count ?? 0;
+            (
+                props.initialPage?.props as
+                    | { messaging?: { unread_count?: number | string | null } }
+                    | undefined
+            )?.messaging?.unread_count ?? 0;
 
         root.render(
             <StrictMode>
@@ -56,7 +70,9 @@ createInertiaApp({
                         initialToasts={initialToasts}
                         authUserId={authUserId}
                         initialUnreadCount={initialUnreadCount}
-                        initialMessagingUnreadCount={initialMessagingUnreadCount}
+                        initialMessagingUnreadCount={
+                            initialMessagingUnreadCount
+                        }
                     >
                         <LightboxProvider>
                             <App {...props} />

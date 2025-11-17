@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 
-@import "tw-animate-css";
+@import 'tw-animate-css';
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -183,9 +183,9 @@
         margin-bottom: 0.375rem;
     }
     .prose-invert {
-        color: rgba(255,255,255,0.86);
+        color: rgba(255, 255, 255, 0.86);
     }
-    .prose-invert :where(h1,h2,h3,h4) {
+    .prose-invert :where(h1, h2, h3, h4) {
         color: #fff;
     }
     .prose-invert :where(a) {

@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
 import StoryViewer from '@/components/stories/story-viewer';
-import { Head, router } from '@inertiajs/react';
-import { dashboard } from '@/routes';
-import type { SharedData } from '@/types';
-import type { StoryResponse } from '@/lib/story-client';
-import { show as storiesShow } from '@/routes/stories';
 import { getCsrfToken } from '@/lib/csrf';
+import type { StoryResponse } from '@/lib/story-client';
+import { dashboard } from '@/routes';
+import { show as storiesShow } from '@/routes/stories';
+import type { SharedData } from '@/types';
+import { Head, router } from '@inertiajs/react';
+import { useCallback, useEffect, useState } from 'react';
 
 type StoriesShowProps = SharedData & {
     story: StoryResponse;
@@ -13,11 +13,17 @@ type StoriesShowProps = SharedData & {
     previousStoryId?: number | null;
 };
 
-export default function StoriesShow({ story: initialStory, nextStoryId, previousStoryId }: StoriesShowProps) {
+export default function StoriesShow({
+    story: initialStory,
+    nextStoryId,
+    previousStoryId,
+}: StoriesShowProps) {
     // All hooks must be called before any conditional returns
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [currentStoryId, setCurrentStoryId] = useState(initialStory?.id ?? 0);
-    const [story, setStory] = useState<StoryResponse | null>(initialStory ?? null);
+    const [story, setStory] = useState<StoryResponse | null>(
+        initialStory ?? null,
+    );
 
     const handleNext = useCallback(() => {
         if (nextStoryId) {
@@ -53,7 +59,9 @@ export default function StoriesShow({ story: initialStory, nextStoryId, previous
                 headers: {
                     Accept: 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
-                    ...(getCsrfToken() ? { 'X-XSRF-TOKEN': getCsrfToken()! } : {}),
+                    ...(getCsrfToken()
+                        ? { 'X-XSRF-TOKEN': getCsrfToken()! }
+                        : {}),
                 },
             })
                 .then((response) => response.json())
@@ -101,4 +109,3 @@ export default function StoriesShow({ story: initialStory, nextStoryId, previous
         </>
     );
 }
-

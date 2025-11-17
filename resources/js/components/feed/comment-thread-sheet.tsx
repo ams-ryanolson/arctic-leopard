@@ -32,12 +32,3 @@ export default function CommentThreadSheet({
         </Sheet>
     );
 }
-
-
-
-
-
-
-
-
-

@@ -1,4 +1,3 @@
-import HeadingSmall from '@/components/heading-small';
 import VerificationFlow from '@/components/verification/VerificationFlow';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
@@ -41,27 +40,44 @@ export default function Verification({
                         <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-violet-500/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                         <div className="relative space-y-6">
                             <div className="flex items-start gap-4">
-                                <div className="flex items-center justify-center rounded-2xl bg-gradient-to-br from-violet-400/30 to-violet-500/20 border border-violet-400/40 p-3 shadow-[0_12px_30px_-18px_rgba(124,58,237,0.65)]">
+                                <div className="flex items-center justify-center rounded-2xl border border-violet-400/40 bg-gradient-to-br from-violet-400/30 to-violet-500/20 p-3 shadow-[0_12px_30px_-18px_rgba(124,58,237,0.65)]">
                                     <ShieldCheck className="h-6 w-6 text-violet-300" />
                                 </div>
                                 <div className="flex-1 space-y-3">
                                     <div>
-                                        <h1 className="text-2xl font-bold text-white mb-1">Identity Verification</h1>
-                                        <p className="text-sm text-white/70">Secured by Sumsub - Industry-leading identity verification</p>
+                                        <h1 className="mb-1 text-2xl font-bold text-white">
+                                            Identity Verification
+                                        </h1>
+                                        <p className="text-sm text-white/70">
+                                            Secured by Sumsub - Industry-leading
+                                            identity verification
+                                        </p>
                                     </div>
                                     <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 p-4 backdrop-blur-sm">
                                         <div className="flex items-start gap-3">
-                                            <div className="flex size-6 items-center justify-center rounded-lg bg-emerald-400/20 border border-emerald-400/40 mt-0.5 flex-shrink-0">
+                                            <div className="mt-0.5 flex size-6 flex-shrink-0 items-center justify-center rounded-lg border border-emerald-400/40 bg-emerald-400/20">
                                                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-300" />
                                             </div>
                                             <div className="flex-1 space-y-2">
-                                                <p className="text-sm font-semibold text-emerald-200">Bank-Level Security</p>
-                                                <p className="text-xs leading-relaxed text-emerald-200/90">
-                                                    Sumsub is trusted by major financial institutions, crypto exchanges, and platforms worldwide. 
-                                                    Your data is encrypted with end-to-end security, GDPR & SOC 2 compliant, and never stored on our servers. 
-                                                    We only see that your verification was successful—your personal documents remain completely private.
+                                                <p className="text-sm font-semibold text-emerald-200">
+                                                    Bank-Level Security
                                                 </p>
-                                                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-emerald-200/70 pt-1">
+                                                <p className="text-xs leading-relaxed text-emerald-200/90">
+                                                    Sumsub is trusted by major
+                                                    financial institutions,
+                                                    crypto exchanges, and
+                                                    platforms worldwide. Your
+                                                    data is encrypted with
+                                                    end-to-end security, GDPR &
+                                                    SOC 2 compliant, and never
+                                                    stored on our servers. We
+                                                    only see that your
+                                                    verification was
+                                                    successful—your personal
+                                                    documents remain completely
+                                                    private.
+                                                </p>
+                                                <div className="flex flex-wrap gap-x-4 gap-y-1 pt-1 text-xs text-emerald-200/70">
                                                     <span className="flex items-center gap-1.5">
                                                         <span className="size-1 rounded-full bg-emerald-400" />
                                                         SOC 2 Certified
@@ -95,4 +111,3 @@ export default function Verification({
         </AppLayout>
     );
 }
-

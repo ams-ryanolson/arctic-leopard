@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
 
-import AppLayout from '@/layouts/app-layout';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Head, Link, router } from '@inertiajs/react';
+import AppLayout from '@/layouts/app-layout';
 import profileRoutes from '@/routes/profile';
 import usersRoutes from '@/routes/users';
 import type { SharedData } from '@/types';
+import { Head, Link, router } from '@inertiajs/react';
 import { Loader2, ShieldOff, Undo2 } from 'lucide-react';
 
 type BlockedProfile = {
@@ -27,7 +27,11 @@ type BlockedPageProps = SharedData & {
     message: string;
 };
 
-export default function BlockedProfilePage({ user, blocked, message }: BlockedPageProps) {
+export default function BlockedProfilePage({
+    user,
+    blocked,
+    message,
+}: BlockedPageProps) {
     const [processing, setProcessing] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const displayName = user.display_name ?? user.username ?? 'This profile';
@@ -35,13 +39,15 @@ export default function BlockedProfilePage({ user, blocked, message }: BlockedPa
     const initials = useMemo(() => {
         const source = user.display_name ?? user.username ?? '??';
 
-        return source
-            .split(' ')
-            .map((segment) => segment.trim().charAt(0))
-            .filter(Boolean)
-            .slice(0, 2)
-            .join('')
-            .toUpperCase() || '??';
+        return (
+            source
+                .split(' ')
+                .map((segment) => segment.trim().charAt(0))
+                .filter(Boolean)
+                .slice(0, 2)
+                .join('')
+                .toUpperCase() || '??'
+        );
     }, [user.display_name, user.username]);
 
     const breadcrumbs = [
@@ -91,9 +97,11 @@ export default function BlockedProfilePage({ user, blocked, message }: BlockedPa
                     <div className="mx-auto flex size-24 items-center justify-center rounded-3xl border border-rose-500/40 bg-rose-500/10 text-rose-100 shadow-[0_45px_120px_-60px_rgba(244,63,94,0.45)]">
                         <ShieldOff className="size-10" />
                     </div>
-                    <h1 className="mt-6 text-3xl font-semibold tracking-tight">{displayName}</h1>
+                    <h1 className="mt-6 text-3xl font-semibold tracking-tight">
+                        {displayName}
+                    </h1>
                     {user.username && (
-                        <p className="mt-2 text-sm uppercase tracking-[0.35em] text-white/45">
+                        <p className="mt-2 text-sm tracking-[0.35em] text-white/45 uppercase">
                             @{user.username}
                         </p>
                     )}
@@ -101,7 +109,10 @@ export default function BlockedProfilePage({ user, blocked, message }: BlockedPa
                     <div className="mt-6 flex justify-center">
                         <Avatar className="size-20 border border-white/15">
                             {user.avatar_url ? (
-                                <AvatarImage src={user.avatar_url} alt={displayName} />
+                                <AvatarImage
+                                    src={user.avatar_url}
+                                    alt={displayName}
+                                />
                             ) : (
                                 <AvatarFallback className="bg-gradient-to-br from-amber-400/80 via-rose-500/80 to-violet-600/80 text-2xl font-semibold text-white">
                                     {initials}
@@ -113,13 +124,15 @@ export default function BlockedProfilePage({ user, blocked, message }: BlockedPa
                     <p className="mt-8 text-base text-white/70">{message}</p>
                     {blocked.profile_has_blocked_viewer && (
                         <p className="mt-3 text-sm text-white/50">
-                            This member has chosen to block you. You won&apos;t be able to view their
-                            content or interact with them unless they change their settings.
+                            This member has chosen to block you. You won&apos;t
+                            be able to view their content or interact with them
+                            unless they change their settings.
                         </p>
                     )}
                     {blocked.viewer_has_blocked && (
                         <p className="mt-3 text-sm text-white/55">
-                            You blocked this profile. You can manage blocked members from settings.
+                            You blocked this profile. You can manage blocked
+                            members from settings.
                         </p>
                     )}
 
@@ -145,7 +158,9 @@ export default function BlockedProfilePage({ user, blocked, message }: BlockedPa
                             variant="ghost"
                             className="rounded-full border-white/15 bg-white/5 px-5 text-white/80 hover:border-white/30 hover:bg-white/15 hover:text-white"
                         >
-                            <Link href="/settings/blocked-users">Manage blocked users</Link>
+                            <Link href="/settings/blocked-users">
+                                Manage blocked users
+                            </Link>
                         </Button>
                         {blocked.viewer_has_blocked && (
                             <Button
@@ -156,7 +171,9 @@ export default function BlockedProfilePage({ user, blocked, message }: BlockedPa
                                 disabled={processing}
                             >
                                 <span className="flex items-center gap-2">
-                                    {processing && <Loader2 className="size-4 animate-spin" />}
+                                    {processing && (
+                                        <Loader2 className="size-4 animate-spin" />
+                                    )}
                                     {processing ? 'Unblocking…' : 'Unblock'}
                                 </span>
                             </Button>
@@ -167,5 +184,3 @@ export default function BlockedProfilePage({ user, blocked, message }: BlockedPa
         </AppLayout>
     );
 }
-
-

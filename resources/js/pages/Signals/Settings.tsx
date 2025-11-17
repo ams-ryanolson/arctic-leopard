@@ -1,11 +1,26 @@
 import { PreferenceToggle } from '@/components/signals/preference-toggle';
 import { StatusBadge } from '@/components/signals/status-badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import { type HeaderAction, type HeaderFilter, type HeaderQuickAction } from '@/types';
+import {
+    type HeaderAction,
+    type HeaderFilter,
+    type HeaderQuickAction,
+} from '@/types';
 import { Head } from '@inertiajs/react';
-import { CheckCircle2, ClipboardCheck, ShieldAlert, ShieldCheck } from 'lucide-react';
+import {
+    CheckCircle2,
+    ClipboardCheck,
+    ShieldAlert,
+    ShieldCheck,
+} from 'lucide-react';
 
 type WelcomeStep = {
     title: string;
@@ -57,7 +72,12 @@ interface SettingsPageProps {
     automations: AutomationPreference[];
 }
 
-export default function SettingsPage({ welcome, profile, notifications, automations }: SettingsPageProps) {
+export default function SettingsPage({
+    welcome,
+    profile,
+    notifications,
+    automations,
+}: SettingsPageProps) {
     const headerActions: HeaderAction[] = [
         {
             id: 'upload-docs',
@@ -92,7 +112,8 @@ export default function SettingsPage({ welcome, profile, notifications, automati
         {
             id: 'review-compliance',
             title: 'Review compliance guide',
-            description: 'See how Signals uses your documents and how often to refresh them.',
+            description:
+                'See how Signals uses your documents and how often to refresh them.',
             icon: ClipboardCheck,
             badge: 'Guide',
             href: '/signals/overview',
@@ -100,7 +121,8 @@ export default function SettingsPage({ welcome, profile, notifications, automati
         {
             id: 'open-log',
             title: 'View change log',
-            description: 'Audit updates to settings, notifications, and automation toggles.',
+            description:
+                'Audit updates to settings, notifications, and automation toggles.',
             icon: CheckCircle2,
             badge: 'Audit',
             href: '/signals/settings',
@@ -124,8 +146,12 @@ export default function SettingsPage({ welcome, profile, notifications, automati
                 <section className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
                     <Card className="border-white/10 bg-white/5">
                         <CardHeader>
-                            <CardTitle className="text-2xl font-semibold">{welcome.headline}</CardTitle>
-                            <CardDescription className="text-white/60">{welcome.subheadline}</CardDescription>
+                            <CardTitle className="text-2xl font-semibold">
+                                {welcome.headline}
+                            </CardTitle>
+                            <CardDescription className="text-white/60">
+                                {welcome.subheadline}
+                            </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             {welcome.steps.map((step) => (
@@ -134,20 +160,25 @@ export default function SettingsPage({ welcome, profile, notifications, automati
                                     className="rounded-2xl border border-white/10 bg-black/25 px-4 py-4 text-sm transition hover:border-emerald-400/40 hover:bg-white/10"
                                 >
                                     <div className="flex items-center justify-between gap-3">
-                                        <p className="font-semibold text-white">{step.title}</p>
+                                        <p className="font-semibold text-white">
+                                            {step.title}
+                                        </p>
                                         <StatusBadge
                                             tone={
                                                 step.status === 'complete'
                                                     ? 'emerald'
-                                                    : step.status === 'in-progress'
-                                                        ? 'amber'
-                                                        : 'rose'
+                                                    : step.status ===
+                                                        'in-progress'
+                                                      ? 'amber'
+                                                      : 'rose'
                                             }
                                         >
                                             {step.status}
                                         </StatusBadge>
                                     </div>
-                                    <p className="mt-2 text-sm text-white/80">{step.description}</p>
+                                    <p className="mt-2 text-sm text-white/80">
+                                        {step.description}
+                                    </p>
                                 </div>
                             ))}
                         </CardContent>
@@ -155,29 +186,43 @@ export default function SettingsPage({ welcome, profile, notifications, automati
 
                     <Card className="border-white/10 bg-white/5">
                         <CardHeader>
-                            <CardTitle className="text-xl font-semibold">Profile & KYC</CardTitle>
+                            <CardTitle className="text-xl font-semibold">
+                                Profile & KYC
+                            </CardTitle>
                             <CardDescription className="text-white/60">
-                                Confirm entity details so payouts move without delay.
+                                Confirm entity details so payouts move without
+                                delay.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4 text-sm">
                             <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                                <p className="text-xs uppercase tracking-[0.3em] text-white/50">Legal entity</p>
-                                <p className="mt-1 font-semibold text-white">{profile.legalName}</p>
+                                <p className="text-xs tracking-[0.3em] text-white/50 uppercase">
+                                    Legal entity
+                                </p>
+                                <p className="mt-1 font-semibold text-white">
+                                    {profile.legalName}
+                                </p>
                                 <p className="text-xs text-white/60">
-                                    {profile.taxClassification} · Registered in {profile.country}
+                                    {profile.taxClassification} · Registered in{' '}
+                                    {profile.country}
                                 </p>
                             </div>
                             <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-xs uppercase tracking-[0.3em] text-white/50">KYC status</p>
+                                        <p className="text-xs tracking-[0.3em] text-white/50 uppercase">
+                                            KYC status
+                                        </p>
                                         <p className="mt-1 font-semibold text-white">
-                                            {profile.kycStatus === 'verified' ? 'Verified' : 'Requires update'}
+                                            {profile.kycStatus === 'verified'
+                                                ? 'Verified'
+                                                : 'Requires update'}
                                         </p>
                                         <p className="text-xs text-white/60">
                                             Refresh before{' '}
-                                            {new Date(profile.kycDue).toLocaleDateString(undefined, {
+                                            {new Date(
+                                                profile.kycDue,
+                                            ).toLocaleDateString(undefined, {
                                                 month: 'short',
                                                 day: 'numeric',
                                             })}
@@ -193,7 +238,9 @@ export default function SettingsPage({ welcome, profile, notifications, automati
                                 </div>
                             </div>
                             <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                                <p className="text-xs uppercase tracking-[0.3em] text-white/50">Contacts</p>
+                                <p className="text-xs tracking-[0.3em] text-white/50 uppercase">
+                                    Contacts
+                                </p>
                                 <div className="mt-3 space-y-3 text-xs text-white/70">
                                     {profile.contacts.map((contact) => (
                                         <div key={contact.email}>
@@ -213,23 +260,36 @@ export default function SettingsPage({ welcome, profile, notifications, automati
                 <section className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
                     <Card className="border-white/10 bg-white/5">
                         <CardHeader>
-                            <CardTitle className="text-xl font-semibold">Notification preferences</CardTitle>
+                            <CardTitle className="text-xl font-semibold">
+                                Notification preferences
+                            </CardTitle>
                             <CardDescription className="text-white/60">
-                                Decide where Signals alerts you about payout issues, chargebacks, and monetization surges.
+                                Decide where Signals alerts you about payout
+                                issues, chargebacks, and monetization surges.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             {notifications.map((preference) => (
-                                <div key={preference.id} className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                                <div
+                                    key={preference.id}
+                                    className="rounded-2xl border border-white/10 bg-black/25 p-4"
+                                >
                                     <div className="flex flex-wrap items-center justify-between gap-3">
                                         <div>
-                                            <p className="text-sm font-semibold text-white">{preference.label}</p>
-                                            <p className="text-xs text-white/60">{preference.description}</p>
-                                            <p className="mt-2 text-xs uppercase tracking-[0.3em] text-white/50">
-                                                Channels: {preference.channels.join(', ')}
+                                            <p className="text-sm font-semibold text-white">
+                                                {preference.label}
+                                            </p>
+                                            <p className="text-xs text-white/60">
+                                                {preference.description}
+                                            </p>
+                                            <p className="mt-2 text-xs tracking-[0.3em] text-white/50 uppercase">
+                                                Channels:{' '}
+                                                {preference.channels.join(', ')}
                                             </p>
                                         </div>
-                                        <PreferenceToggle active={preference.enabled} />
+                                        <PreferenceToggle
+                                            active={preference.enabled}
+                                        />
                                     </div>
                                 </div>
                             ))}
@@ -238,20 +298,32 @@ export default function SettingsPage({ welcome, profile, notifications, automati
 
                     <Card className="border-white/10 bg-white/5">
                         <CardHeader>
-                            <CardTitle className="text-xl font-semibold">Automation playbooks</CardTitle>
+                            <CardTitle className="text-xl font-semibold">
+                                Automation playbooks
+                            </CardTitle>
                             <CardDescription className="text-white/60">
-                                Toggle workflow recipes that keep supporters engaged and compliance tight.
+                                Toggle workflow recipes that keep supporters
+                                engaged and compliance tight.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             {automations.map((automation) => (
-                                <div key={automation.id} className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                                <div
+                                    key={automation.id}
+                                    className="rounded-2xl border border-white/10 bg-black/25 p-4"
+                                >
                                     <div className="flex items-center justify-between gap-3">
                                         <div>
-                                            <p className="text-sm font-semibold text-white">{automation.name}</p>
-                                            <p className="text-xs text-white/60">{automation.description}</p>
+                                            <p className="text-sm font-semibold text-white">
+                                                {automation.name}
+                                            </p>
+                                            <p className="text-xs text-white/60">
+                                                {automation.description}
+                                            </p>
                                         </div>
-                                        <PreferenceToggle active={automation.enabled} />
+                                        <PreferenceToggle
+                                            active={automation.enabled}
+                                        />
                                     </div>
                                 </div>
                             ))}
@@ -262,5 +334,3 @@ export default function SettingsPage({ welcome, profile, notifications, automati
         </AppLayout>
     );
 }
-
-

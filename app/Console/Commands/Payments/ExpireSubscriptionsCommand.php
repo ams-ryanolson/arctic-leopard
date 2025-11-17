@@ -8,7 +8,6 @@ use App\Services\Payments\SubscriptionService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Event;
 
 class ExpireSubscriptionsCommand extends Command
 {

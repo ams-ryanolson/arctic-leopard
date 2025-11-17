@@ -62,4 +62,3 @@ class WalletTransaction extends Model
         return $this->money($balance);
     }
 }
-

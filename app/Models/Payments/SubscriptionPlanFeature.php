@@ -24,4 +24,3 @@ class SubscriptionPlanFeature extends Model
         return $this->belongsTo(SubscriptionPlan::class, 'subscription_plan_id');
     }
 }
-

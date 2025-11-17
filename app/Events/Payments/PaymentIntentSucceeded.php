@@ -2,7 +2,4 @@
 
 namespace App\Events\Payments;
 
-class PaymentIntentSucceeded extends PaymentIntentEvent
-{
-}
-
+class PaymentIntentSucceeded extends PaymentIntentEvent {}

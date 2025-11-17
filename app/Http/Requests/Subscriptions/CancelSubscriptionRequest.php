@@ -30,4 +30,3 @@ class CancelSubscriptionRequest extends FormRequest
         ]);
     }
 }
-

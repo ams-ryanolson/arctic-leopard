@@ -20,4 +20,3 @@ interface SubscriptionGatewayContract
 
     public function resumeSubscription(SubscriptionResumeData $data): SubscriptionResponse;
 }
-

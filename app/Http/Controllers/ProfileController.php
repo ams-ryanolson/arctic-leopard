@@ -7,13 +7,13 @@ use App\Models\User;
 use App\Services\Cache\TimelineCacheService;
 use App\Services\Feed\FeedService;
 use App\Services\Payments\EntitlementService;
+use App\Support\Feed\FeedFilters;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Inertia\ScrollMetadata;
-use App\Support\Feed\FeedFilters;
 
 class ProfileController extends Controller
 {
@@ -25,9 +25,7 @@ class ProfileController extends Controller
         private readonly TimelineCacheService $timelineCache,
         private readonly EntitlementService $entitlements,
         private readonly FeedService $feedService,
-    )
-    {
-    }
+    ) {}
 
     public function show(Request $request, string $username): Response
     {
@@ -190,4 +188,3 @@ class ProfileController extends Controller
         ];
     }
 }
-

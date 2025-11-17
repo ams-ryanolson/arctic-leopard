@@ -2,7 +2,15 @@ export type ToastLevel = 'info' | 'success' | 'warning' | 'danger';
 
 export type ToastCategory = 'notification' | 'cta' | 'modal' | 'messaging';
 
-export type ToastActionMethod = 'client' | 'inertia.post' | 'inertia.put' | 'inertia.delete' | 'router.visit' | 'http.post' | 'http.put' | 'http.delete';
+export type ToastActionMethod =
+    | 'client'
+    | 'inertia.post'
+    | 'inertia.put'
+    | 'inertia.delete'
+    | 'router.visit'
+    | 'http.post'
+    | 'http.put'
+    | 'http.delete';
 
 export type ToastAction = {
     key: string;
@@ -25,6 +33,3 @@ export type ToastPayload = {
     timeoutSeconds?: number | null;
     meta?: Record<string, unknown>;
 };
-
-
-

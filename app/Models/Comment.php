@@ -13,8 +13,9 @@ class Comment extends Model
 {
     /** @use HasFactory<\Database\Factories\CommentFactory> */
     use HasFactory;
-    use SoftDeletes;
+
     use Likeable;
+    use SoftDeletes;
 
     /**
      * @var list<string>

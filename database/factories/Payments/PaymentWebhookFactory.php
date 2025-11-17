@@ -40,4 +40,3 @@ class PaymentWebhookFactory extends Factory
         ];
     }
 }
-

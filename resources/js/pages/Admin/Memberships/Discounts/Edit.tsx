@@ -1,9 +1,21 @@
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import adminRoutes from '@/routes/admin';
@@ -35,7 +47,10 @@ type AdminDiscountsEditProps = {
     plans: Plan[];
 };
 
-export default function AdminDiscountsEdit({ discount, plans }: AdminDiscountsEditProps) {
+export default function AdminDiscountsEdit({
+    discount,
+    plans,
+}: AdminDiscountsEditProps) {
     const { data, setData, patch, processing, errors, transform } = useForm({
         code: discount.code,
         description: discount.description || '',
@@ -50,16 +65,17 @@ export default function AdminDiscountsEdit({ discount, plans }: AdminDiscountsEd
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         // Transform data before submission - ensure numeric values
         transform((current) => ({
             ...current,
             discount_value: Number.parseInt(String(current.discount_value), 10),
-            max_uses: current.max_uses && String(current.max_uses).trim() !== '' 
-                ? Number.parseInt(String(current.max_uses), 10) 
-                : null,
+            max_uses:
+                current.max_uses && String(current.max_uses).trim() !== ''
+                    ? Number.parseInt(String(current.max_uses), 10)
+                    : null,
         }));
-        
+
         patch(adminRoutes.memberships.discounts.update(discount.id).url, {
             preserveScroll: true,
             onSuccess: () => {
@@ -75,9 +91,19 @@ export default function AdminDiscountsEdit({ discount, plans }: AdminDiscountsEd
         <AppLayout
             breadcrumbs={[
                 { title: 'Admin', href: adminRoutes.dashboard().url },
-                { title: 'Memberships', href: adminRoutes.memberships.index().url },
-                { title: 'Discounts', href: adminRoutes.memberships.discounts.index().url },
-                { title: discount.code, href: adminRoutes.memberships.discounts.edit(discount.id).url },
+                {
+                    title: 'Memberships',
+                    href: adminRoutes.memberships.index().url,
+                },
+                {
+                    title: 'Discounts',
+                    href: adminRoutes.memberships.discounts.index().url,
+                },
+                {
+                    title: discount.code,
+                    href: adminRoutes.memberships.discounts.edit(discount.id)
+                        .url,
+                },
             ]}
         >
             <Head title={`Edit ${discount.code}`} />
@@ -91,7 +117,9 @@ export default function AdminDiscountsEdit({ discount, plans }: AdminDiscountsEd
                         </a>
                     </Button>
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-white">Edit Discount Code</h1>
+                        <h1 className="text-3xl font-bold tracking-tight text-white">
+                            Edit Discount Code
+                        </h1>
                         <p className="mt-2 text-sm text-white/70">
                             Update discount code details and settings
                         </p>
@@ -102,70 +130,117 @@ export default function AdminDiscountsEdit({ discount, plans }: AdminDiscountsEd
                     <div className="grid gap-6 lg:grid-cols-2">
                         <Card className="border-white/10 bg-white/5">
                             <CardHeader>
-                                <CardTitle className="text-white">Basic Information</CardTitle>
+                                <CardTitle className="text-white">
+                                    Basic Information
+                                </CardTitle>
                                 <CardDescription className="text-white/60">
                                     Core details about the discount code
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="code" className="text-white">
+                                    <Label
+                                        htmlFor="code"
+                                        className="text-white"
+                                    >
                                         Code *
                                     </Label>
                                     <Input
                                         id="code"
                                         value={data.code}
-                                        onChange={(e) => setData('code', e.target.value.toUpperCase())}
-                                        className="bg-white/5 border-white/10 text-white"
+                                        onChange={(e) =>
+                                            setData(
+                                                'code',
+                                                e.target.value.toUpperCase(),
+                                            )
+                                        }
+                                        className="border-white/10 bg-white/5 text-white"
                                     />
                                     {errors.code && (
-                                        <p className="text-sm text-red-400">{errors.code}</p>
+                                        <p className="text-sm text-red-400">
+                                            {errors.code}
+                                        </p>
                                     )}
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="description" className="text-white">
+                                    <Label
+                                        htmlFor="description"
+                                        className="text-white"
+                                    >
                                         Description
                                     </Label>
                                     <Textarea
                                         id="description"
                                         value={data.description}
-                                        onChange={(e) => setData('description', e.target.value)}
-                                        className="bg-white/5 border-white/10 text-white"
+                                        onChange={(e) =>
+                                            setData(
+                                                'description',
+                                                e.target.value,
+                                            )
+                                        }
+                                        className="border-white/10 bg-white/5 text-white"
                                         rows={3}
                                     />
                                     {errors.description && (
-                                        <p className="text-sm text-red-400">{errors.description}</p>
+                                        <p className="text-sm text-red-400">
+                                            {errors.description}
+                                        </p>
                                     )}
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="membership_plan_id" className="text-white">
+                                    <Label
+                                        htmlFor="membership_plan_id"
+                                        className="text-white"
+                                    >
                                         Applies To
                                     </Label>
                                     <Select
-                                        value={data.membership_plan_id ? String(data.membership_plan_id) : 'all'}
+                                        value={
+                                            data.membership_plan_id
+                                                ? String(
+                                                      data.membership_plan_id,
+                                                  )
+                                                : 'all'
+                                        }
                                         onValueChange={(value) =>
-                                            setData('membership_plan_id', value === 'all' ? null : Number.parseInt(value, 10))
+                                            setData(
+                                                'membership_plan_id',
+                                                value === 'all'
+                                                    ? null
+                                                    : Number.parseInt(
+                                                          value,
+                                                          10,
+                                                      ),
+                                            )
                                         }
                                     >
-                                        <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                                        <SelectTrigger className="border-white/10 bg-white/5 text-white">
                                             <SelectValue placeholder="All Plans" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="all">All Plans</SelectItem>
+                                            <SelectItem value="all">
+                                                All Plans
+                                            </SelectItem>
                                             {plans.map((plan) => (
-                                                <SelectItem key={plan.id} value={String(plan.id)}>
+                                                <SelectItem
+                                                    key={plan.id}
+                                                    value={String(plan.id)}
+                                                >
                                                     {plan.name}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
                                     <p className="text-xs text-white/50">
-                                        Leave empty to apply to all membership plans
+                                        Leave empty to apply to all membership
+                                        plans
                                     </p>
                                     {errors.membership_plan_id && (
-                                        <p className="text-sm text-red-400">{errors.membership_plan_id}</p>
+                                        <p className="text-sm text-red-400">
+                                            {errors.membership_plan_id}
+                                        </p>
                                     )}
                                 </div>
                             </CardContent>
@@ -173,35 +248,51 @@ export default function AdminDiscountsEdit({ discount, plans }: AdminDiscountsEd
 
                         <Card className="border-white/10 bg-white/5">
                             <CardHeader>
-                                <CardTitle className="text-white">Discount Details</CardTitle>
+                                <CardTitle className="text-white">
+                                    Discount Details
+                                </CardTitle>
                                 <CardDescription className="text-white/60">
                                     Set the discount amount and type
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="discount_type" className="text-white">
+                                    <Label
+                                        htmlFor="discount_type"
+                                        className="text-white"
+                                    >
                                         Discount Type *
                                     </Label>
                                     <Select
                                         value={data.discount_type}
-                                        onValueChange={(value) => setData('discount_type', value)}
+                                        onValueChange={(value) =>
+                                            setData('discount_type', value)
+                                        }
                                     >
-                                        <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                                        <SelectTrigger className="border-white/10 bg-white/5 text-white">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="percentage">Percentage</SelectItem>
-                                            <SelectItem value="fixed_amount">Fixed Amount (cents)</SelectItem>
+                                            <SelectItem value="percentage">
+                                                Percentage
+                                            </SelectItem>
+                                            <SelectItem value="fixed_amount">
+                                                Fixed Amount (cents)
+                                            </SelectItem>
                                         </SelectContent>
                                     </Select>
                                     {errors.discount_type && (
-                                        <p className="text-sm text-red-400">{errors.discount_type}</p>
+                                        <p className="text-sm text-red-400">
+                                            {errors.discount_type}
+                                        </p>
                                     )}
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="discount_value" className="text-white">
+                                    <Label
+                                        htmlFor="discount_value"
+                                        className="text-white"
+                                    >
                                         Discount Value *
                                     </Label>
                                     <Input
@@ -209,8 +300,16 @@ export default function AdminDiscountsEdit({ discount, plans }: AdminDiscountsEd
                                         type="number"
                                         min="1"
                                         value={data.discount_value}
-                                        onChange={(e) => setData('discount_value', Number.parseInt(e.target.value, 10))}
-                                        className="bg-white/5 border-white/10 text-white"
+                                        onChange={(e) =>
+                                            setData(
+                                                'discount_value',
+                                                Number.parseInt(
+                                                    e.target.value,
+                                                    10,
+                                                ),
+                                            )
+                                        }
+                                        className="border-white/10 bg-white/5 text-white"
                                     />
                                     <p className="text-xs text-white/50">
                                         {data.discount_type === 'percentage'
@@ -218,12 +317,17 @@ export default function AdminDiscountsEdit({ discount, plans }: AdminDiscountsEd
                                             : 'Enter amount in cents (e.g., 500 for $5.00)'}
                                     </p>
                                     {errors.discount_value && (
-                                        <p className="text-sm text-red-400">{errors.discount_value}</p>
+                                        <p className="text-sm text-red-400">
+                                            {errors.discount_value}
+                                        </p>
                                     )}
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="max_uses" className="text-white">
+                                    <Label
+                                        htmlFor="max_uses"
+                                        className="text-white"
+                                    >
                                         Max Uses
                                     </Label>
                                     <Input
@@ -232,16 +336,27 @@ export default function AdminDiscountsEdit({ discount, plans }: AdminDiscountsEd
                                         min="1"
                                         value={data.max_uses}
                                         onChange={(e) =>
-                                            setData('max_uses', e.target.value ? Number.parseInt(e.target.value, 10) : null)
+                                            setData(
+                                                'max_uses',
+                                                e.target.value
+                                                    ? Number.parseInt(
+                                                          e.target.value,
+                                                          10,
+                                                      )
+                                                    : null,
+                                            )
                                         }
-                                        className="bg-white/5 border-white/10 text-white"
+                                        className="border-white/10 bg-white/5 text-white"
                                         placeholder="Unlimited"
                                     />
                                     <p className="text-xs text-white/50">
-                                        Leave empty for unlimited uses. Current usage: {discount.used_count}
+                                        Leave empty for unlimited uses. Current
+                                        usage: {discount.used_count}
                                     </p>
                                     {errors.max_uses && (
-                                        <p className="text-sm text-red-400">{errors.max_uses}</p>
+                                        <p className="text-sm text-red-400">
+                                            {errors.max_uses}
+                                        </p>
                                     )}
                                 </div>
                             </CardContent>
@@ -249,41 +364,57 @@ export default function AdminDiscountsEdit({ discount, plans }: AdminDiscountsEd
 
                         <Card className="border-white/10 bg-white/5">
                             <CardHeader>
-                                <CardTitle className="text-white">Validity Period</CardTitle>
+                                <CardTitle className="text-white">
+                                    Validity Period
+                                </CardTitle>
                                 <CardDescription className="text-white/60">
                                     Set when the discount is active
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="starts_at" className="text-white">
+                                    <Label
+                                        htmlFor="starts_at"
+                                        className="text-white"
+                                    >
                                         Start Date *
                                     </Label>
                                     <Input
                                         id="starts_at"
                                         type="date"
                                         value={data.starts_at}
-                                        onChange={(e) => setData('starts_at', e.target.value)}
-                                        className="bg-white/5 border-white/10 text-white"
+                                        onChange={(e) =>
+                                            setData('starts_at', e.target.value)
+                                        }
+                                        className="border-white/10 bg-white/5 text-white"
                                     />
                                     {errors.starts_at && (
-                                        <p className="text-sm text-red-400">{errors.starts_at}</p>
+                                        <p className="text-sm text-red-400">
+                                            {errors.starts_at}
+                                        </p>
                                     )}
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="ends_at" className="text-white">
+                                    <Label
+                                        htmlFor="ends_at"
+                                        className="text-white"
+                                    >
                                         End Date *
                                     </Label>
                                     <Input
                                         id="ends_at"
                                         type="date"
                                         value={data.ends_at}
-                                        onChange={(e) => setData('ends_at', e.target.value)}
-                                        className="bg-white/5 border-white/10 text-white"
+                                        onChange={(e) =>
+                                            setData('ends_at', e.target.value)
+                                        }
+                                        className="border-white/10 bg-white/5 text-white"
                                     />
                                     {errors.ends_at && (
-                                        <p className="text-sm text-red-400">{errors.ends_at}</p>
+                                        <p className="text-sm text-red-400">
+                                            {errors.ends_at}
+                                        </p>
                                     )}
                                 </div>
 
@@ -291,9 +422,17 @@ export default function AdminDiscountsEdit({ discount, plans }: AdminDiscountsEd
                                     <Checkbox
                                         id="is_active"
                                         checked={data.is_active}
-                                        onCheckedChange={(checked) => setData('is_active', checked === true)}
+                                        onCheckedChange={(checked) =>
+                                            setData(
+                                                'is_active',
+                                                checked === true,
+                                            )
+                                        }
                                     />
-                                    <Label htmlFor="is_active" className="text-white">
+                                    <Label
+                                        htmlFor="is_active"
+                                        className="text-white"
+                                    >
                                         Active
                                     </Label>
                                 </div>
@@ -305,7 +444,12 @@ export default function AdminDiscountsEdit({ discount, plans }: AdminDiscountsEd
                         <Button
                             type="button"
                             variant="outline"
-                            onClick={() => router.visit(adminRoutes.memberships.discounts.index().url)}
+                            onClick={() =>
+                                router.visit(
+                                    adminRoutes.memberships.discounts.index()
+                                        .url,
+                                )
+                            }
                         >
                             Cancel
                         </Button>
@@ -328,4 +472,3 @@ export default function AdminDiscountsEdit({ discount, plans }: AdminDiscountsEd
         </AppLayout>
     );
 }
-

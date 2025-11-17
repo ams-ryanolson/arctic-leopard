@@ -161,5 +161,3 @@ class UserBlockService
             ->pluck('id');
     }
 }
-
-

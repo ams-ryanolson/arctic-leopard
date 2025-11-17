@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\Payments\PaymentSubscriptionStatus;
 use App\Enums\PostAudience;
 use App\Enums\PostType;
-use App\Enums\Payments\PaymentSubscriptionStatus;
 use App\Events\PostAudienceChanged;
 use App\Events\PostDeleted as PostDeletedEvent;
 use Illuminate\Database\Eloquent\Builder;
@@ -23,6 +23,7 @@ class Post extends Model
 {
     /** @use HasFactory<\Database\Factories\PostFactory> */
     use HasFactory;
+
     use Likeable;
     use SoftDeletes;
 
@@ -273,7 +274,7 @@ class Post extends Model
      */
     public function scopeVisibleTo(Builder $query, ?User $viewer): Builder
     {
-        $userModel = new User();
+        $userModel = new User;
         $followTable = config('follow.followables_table', 'followables');
         $followUserKey = config('follow.user_foreign_key', 'user_id');
         $subscriptionsTable = 'payment_subscriptions';

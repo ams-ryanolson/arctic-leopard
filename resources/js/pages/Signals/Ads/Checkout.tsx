@@ -14,7 +14,10 @@ type SignalsAdsCheckoutProps = {
     };
 };
 
-export default function SignalsAdsCheckout({ ad, intent }: SignalsAdsCheckoutProps) {
+export default function SignalsAdsCheckout({
+    ad,
+    intent,
+}: SignalsAdsCheckoutProps) {
     return (
         <AppLayout
             breadcrumbs={[
@@ -28,16 +31,22 @@ export default function SignalsAdsCheckout({ ad, intent }: SignalsAdsCheckoutPro
 
             <div className="space-y-8 text-white">
                 <header>
-                    <h1 className="text-2xl font-semibold tracking-tight">Checkout</h1>
-                    <p className="text-sm text-white/65">Complete your ad purchase.</p>
+                    <h1 className="text-2xl font-semibold tracking-tight">
+                        Checkout
+                    </h1>
+                    <p className="text-sm text-white/65">
+                        Complete your ad purchase.
+                    </p>
                 </header>
 
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center text-white/70">
                     <p>Checkout form for {ad.name} coming soon...</p>
-                    <p className="mt-2 text-sm">Amount: ${(intent.amount / 100).toFixed(2)} {intent.currency}</p>
+                    <p className="mt-2 text-sm">
+                        Amount: ${(intent.amount / 100).toFixed(2)}{' '}
+                        {intent.currency}
+                    </p>
                 </div>
             </div>
         </AppLayout>
     );
 }
-

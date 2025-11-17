@@ -1,4 +1,10 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import {
+    createContext,
+    useCallback,
+    useContext,
+    useMemo,
+    useState,
+} from 'react';
 
 import type { FeedMedia, FeedPost } from '@/types/feed';
 
@@ -46,7 +52,8 @@ export function LightboxProvider({ children }: { children: React.ReactNode }) {
                 open: true,
                 media,
                 startIndex:
-                    options?.startIndex !== undefined && options.startIndex < media.length
+                    options?.startIndex !== undefined &&
+                    options.startIndex < media.length
                         ? options.startIndex
                         : 0,
                 post: options?.post ?? null,
@@ -63,38 +70,44 @@ export function LightboxProvider({ children }: { children: React.ReactNode }) {
         }));
     }, []);
 
-    const handleOpenChange = useCallback((nextOpen: boolean) => {
-        if (!nextOpen) {
-            closeLightbox();
-        } else {
-            setState((previous) => ({
-                ...previous,
-                open: true,
-            }));
-        }
-    }, [closeLightbox]);
+    const handleOpenChange = useCallback(
+        (nextOpen: boolean) => {
+            if (!nextOpen) {
+                closeLightbox();
+            } else {
+                setState((previous) => ({
+                    ...previous,
+                    open: true,
+                }));
+            }
+        },
+        [closeLightbox],
+    );
 
-    const handleCommentCountChange = useCallback((postId: number, total: number) => {
-        setState((previous) => {
-            if (previous.post && previous.post.id === postId) {
-                const nextPost: FeedPost = {
-                    ...previous.post,
-                    comments_count: total,
-                };
+    const handleCommentCountChange = useCallback(
+        (postId: number, total: number) => {
+            setState((previous) => {
+                if (previous.post && previous.post.id === postId) {
+                    const nextPost: FeedPost = {
+                        ...previous.post,
+                        comments_count: total,
+                    };
+
+                    previous.onCommentCountChange?.(total);
+
+                    return {
+                        ...previous,
+                        post: nextPost,
+                    };
+                }
 
                 previous.onCommentCountChange?.(total);
 
-                return {
-                    ...previous,
-                    post: nextPost,
-                };
-            }
-
-            previous.onCommentCountChange?.(total);
-
-            return previous;
-        });
-    }, []);
+                return previous;
+            });
+        },
+        [],
+    );
 
     const contextValue = useMemo<LightboxContextValue>(
         () => ({
@@ -125,7 +138,9 @@ export function useLightbox(): LightboxContextValue {
 
     if (!context) {
         if (import.meta.env?.DEV) {
-            console.warn('useLightbox called outside LightboxProvider. Returning no-op handlers.');
+            console.warn(
+                'useLightbox called outside LightboxProvider. Returning no-op handlers.',
+            );
         }
 
         return {
@@ -137,4 +152,3 @@ export function useLightbox(): LightboxContextValue {
 
     return context;
 }
-

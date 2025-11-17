@@ -1,13 +1,22 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useCallback, useState } from 'react';
 
-import { Button } from '@/components/ui/button';
 import { COVER_GRADIENT_STYLE } from '@/components/cover-gradient';
+import { Button } from '@/components/ui/button';
 import OnboardingLayout from '@/layouts/onboarding-layout';
+import { getCsrfToken } from '@/lib/csrf';
 import onboardingRoutes from '@/routes/onboarding';
 import usersRoutes from '@/routes/users';
-import { getCsrfToken } from '@/lib/csrf';
-import { ArrowLeft, ArrowRight, Banknote, Gift, Loader2, ShieldCheck, Sparkles, UsersRound } from 'lucide-react';
+import {
+    ArrowLeft,
+    ArrowRight,
+    Banknote,
+    Gift,
+    Loader2,
+    ShieldCheck,
+    Sparkles,
+    UsersRound,
+} from 'lucide-react';
 
 type SuggestedUser = {
     id: number;
@@ -23,23 +32,46 @@ type FollowSuggestionsProps = {
     suggestedUsers: SuggestedUser[];
 };
 
-export default function FollowSuggestions({ suggestedUsers }: FollowSuggestionsProps) {
-    const [followStates, setFollowStates] = useState<Record<number, { isFollowing: boolean; isPending: boolean; isProcessing: boolean }>>({});
+export default function FollowSuggestions({
+    suggestedUsers,
+}: FollowSuggestionsProps) {
+    const [followStates, setFollowStates] = useState<
+        Record<
+            number,
+            { isFollowing: boolean; isPending: boolean; isProcessing: boolean }
+        >
+    >({});
     const [isFinishing, setIsFinishing] = useState(false);
 
     const getFollowState = useCallback(
         (userId: number) => {
-            return followStates[userId] ?? { isFollowing: false, isPending: false, isProcessing: false };
+            return (
+                followStates[userId] ?? {
+                    isFollowing: false,
+                    isPending: false,
+                    isProcessing: false,
+                }
+            );
         },
         [followStates],
     );
 
-    const updateFollowState = useCallback((userId: number, updates: Partial<{ isFollowing: boolean; isPending: boolean; isProcessing: boolean }>) => {
-        setFollowStates((prev) => ({
-            ...prev,
-            [userId]: { ...getFollowState(userId), ...updates },
-        }));
-    }, [getFollowState]);
+    const updateFollowState = useCallback(
+        (
+            userId: number,
+            updates: Partial<{
+                isFollowing: boolean;
+                isPending: boolean;
+                isProcessing: boolean;
+            }>,
+        ) => {
+            setFollowStates((prev) => ({
+                ...prev,
+                [userId]: { ...getFollowState(userId), ...updates },
+            }));
+        },
+        [getFollowState],
+    );
 
     const handleFollowClick = useCallback(
         async (user: SuggestedUser) => {
@@ -48,7 +80,10 @@ export default function FollowSuggestions({ suggestedUsers }: FollowSuggestionsP
                 return;
             }
 
-            const method = currentState.isFollowing || currentState.isPending ? 'DELETE' : 'POST';
+            const method =
+                currentState.isFollowing || currentState.isPending
+                    ? 'DELETE'
+                    : 'POST';
             const endpoint =
                 method === 'POST'
                     ? usersRoutes.follow.store.url(user.id)
@@ -83,11 +118,13 @@ export default function FollowSuggestions({ suggestedUsers }: FollowSuggestionsP
 
                 if (!response.ok || payload === null) {
                     const message =
-                        payload?.message ?? 'We could not update follow settings. Please try again.';
+                        payload?.message ??
+                        'We could not update follow settings. Please try again.';
                     throw new Error(message);
                 }
 
-                const accepted = Boolean(payload.accepted) || payload.status === 'following';
+                const accepted =
+                    Boolean(payload.accepted) || payload.status === 'following';
                 const pending = Boolean(payload.pending) && !accepted;
 
                 updateFollowState(user.id, {
@@ -138,17 +175,20 @@ export default function FollowSuggestions({ suggestedUsers }: FollowSuggestionsP
                 <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_bottom,_rgba(59,130,246,0.18),_transparent_65%)]" />
 
                 <div className="relative space-y-4">
-                    <div className="flex items-center gap-2 text-xs uppercase tracking-[0.35em] text-white/50">
+                    <div className="flex items-center gap-2 text-xs tracking-[0.35em] text-white/50 uppercase">
                         <UsersRound className="size-4" />
                         Suggested profiles
                     </div>
                     <p className="text-sm text-white/70">
-                        Discover creators and community members to follow. These suggestions are based on active profiles in the community.
+                        Discover creators and community members to follow. These
+                        suggestions are based on active profiles in the
+                        community.
                     </p>
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         {suggestedUsers.map((user) => {
                             const state = getFollowState(user.id);
-                            const isFollowing = state.isFollowing || state.isPending;
+                            const isFollowing =
+                                state.isFollowing || state.isPending;
 
                             return (
                                 <div
@@ -167,7 +207,8 @@ export default function FollowSuggestions({ suggestedUsers }: FollowSuggestionsP
                                             <div
                                                 className="h-full w-full"
                                                 style={{
-                                                    backgroundImage: COVER_GRADIENT_STYLE,
+                                                    backgroundImage:
+                                                        COVER_GRADIENT_STYLE,
                                                 }}
                                             />
                                         )}
@@ -185,7 +226,9 @@ export default function FollowSuggestions({ suggestedUsers }: FollowSuggestionsP
                                                 />
                                             ) : (
                                                 <div className="flex size-16 items-center justify-center rounded-3xl border-4 border-black/50 bg-gradient-to-br from-amber-500/80 via-rose-500/80 to-violet-600/80 text-lg font-semibold text-white">
-                                                    {user.display_name.charAt(0).toUpperCase()}
+                                                    {user.display_name
+                                                        .charAt(0)
+                                                        .toUpperCase()}
                                                 </div>
                                             )}
                                         </div>
@@ -197,7 +240,9 @@ export default function FollowSuggestions({ suggestedUsers }: FollowSuggestionsP
                                                     {user.display_name}
                                                 </h3>
                                                 {user.pronouns && (
-                                                    <p className="text-xs text-white/60">{user.pronouns}</p>
+                                                    <p className="text-xs text-white/60">
+                                                        {user.pronouns}
+                                                    </p>
                                                 )}
                                             </div>
                                             {user.bio && (
@@ -213,7 +258,11 @@ export default function FollowSuggestions({ suggestedUsers }: FollowSuggestionsP
                                                 handleFollowClick(user);
                                             }}
                                             disabled={state.isProcessing}
-                                            variant={isFollowing ? 'secondary' : 'default'}
+                                            variant={
+                                                isFollowing
+                                                    ? 'secondary'
+                                                    : 'default'
+                                            }
                                             size="sm"
                                             className="mt-4 w-full rounded-full border border-white/20 bg-white/10 text-xs text-white transition hover:bg-white/15 disabled:opacity-50"
                                         >
@@ -232,7 +281,7 @@ export default function FollowSuggestions({ suggestedUsers }: FollowSuggestionsP
                 <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_bottom,_rgba(147,51,234,0.12),_transparent_65%)]" />
 
                 <div className="relative space-y-5">
-                    <div className="flex items-center gap-2 text-xs uppercase tracking-[0.35em] text-white/50">
+                    <div className="flex items-center gap-2 text-xs tracking-[0.35em] text-white/50 uppercase">
                         <Sparkles className="size-4 text-amber-300" />
                         Optional: Creator tools
                     </div>
@@ -242,7 +291,10 @@ export default function FollowSuggestions({ suggestedUsers }: FollowSuggestionsP
                             Unlock tips, subscriptions & wishlist gifts
                         </h3>
                         <p className="text-sm leading-relaxed text-white/70">
-                            Set up creator tools to start earning. Complete verification, add payout details, create subscription tiers, and curate a wishlist—all at your own pace.
+                            Set up creator tools to start earning. Complete
+                            verification, add payout details, create
+                            subscription tiers, and curate a wishlist—all at
+                            your own pace.
                         </p>
                     </div>
 
@@ -251,31 +303,40 @@ export default function FollowSuggestions({ suggestedUsers }: FollowSuggestionsP
                             <div className="rounded-xl border border-white/15 bg-white/10 p-2.5">
                                 <ShieldCheck className="size-5 text-amber-400" />
                             </div>
-                            <p className="text-xs font-medium text-white">Verification</p>
+                            <p className="text-xs font-medium text-white">
+                                Verification
+                            </p>
                         </div>
                         <div className="flex flex-col items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-4 py-4 text-center backdrop-blur">
                             <div className="rounded-xl border border-white/15 bg-white/10 p-2.5">
                                 <Banknote className="size-5 text-emerald-400" />
                             </div>
-                            <p className="text-xs font-medium text-white">Payouts</p>
+                            <p className="text-xs font-medium text-white">
+                                Payouts
+                            </p>
                         </div>
                         <div className="flex flex-col items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-4 py-4 text-center backdrop-blur">
                             <div className="rounded-xl border border-white/15 bg-white/10 p-2.5">
                                 <Sparkles className="size-5 text-rose-400" />
                             </div>
-                            <p className="text-xs font-medium text-white">Subscriptions</p>
+                            <p className="text-xs font-medium text-white">
+                                Subscriptions
+                            </p>
                         </div>
                         <div className="flex flex-col items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-4 py-4 text-center backdrop-blur">
                             <div className="rounded-xl border border-white/15 bg-white/10 p-2.5">
                                 <Gift className="size-5 text-violet-400" />
                             </div>
-                            <p className="text-xs font-medium text-white">Wishlist</p>
+                            <p className="text-xs font-medium text-white">
+                                Wishlist
+                            </p>
                         </div>
                     </div>
 
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <p className="text-xs text-white/60">
-                            You can finish onboarding now and set up creator tools later from your dashboard.
+                            You can finish onboarding now and set up creator
+                            tools later from your dashboard.
                         </p>
                         <Button
                             asChild
@@ -305,14 +366,18 @@ export default function FollowSuggestions({ suggestedUsers }: FollowSuggestionsP
                         <Button
                             onClick={() => {
                                 setIsFinishing(true);
-                                router.post('/onboarding/finish', {}, {
-                                    onFinish: () => {
-                                        setIsFinishing(false);
+                                router.post(
+                                    '/onboarding/finish',
+                                    {},
+                                    {
+                                        onFinish: () => {
+                                            setIsFinishing(false);
+                                        },
                                     },
-                                });
+                                );
                             }}
                             disabled={isFinishing}
-                            className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-br from-amber-400 via-rose-500 to-violet-600 px-6 py-3 text-sm font-semibold text-white shadow-[0_24px_55px_-28px_rgba(249,115,22,0.6)] transition hover:scale-[1.01] disabled:opacity-60 disabled:cursor-not-allowed"
+                            className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-br from-amber-400 via-rose-500 to-violet-600 px-6 py-3 text-sm font-semibold text-white shadow-[0_24px_55px_-28px_rgba(249,115,22,0.6)] transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             {isFinishing ? (
                                 <>

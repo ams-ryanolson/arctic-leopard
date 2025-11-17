@@ -6,7 +6,6 @@ use App\Models\Conversation;
 use App\Models\ConversationParticipant;
 use App\Models\Message;
 use App\Models\User;
-use App\Services\Messaging\MessageAnalyticsService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -169,7 +168,7 @@ class ConversationService
                     continue;
                 }
 
-                    $this->attachParticipant($conversation, $user, 'member');
+                $this->attachParticipant($conversation, $user, 'member');
             }
 
             $this->refreshParticipantMetrics($conversation);

@@ -1,6 +1,6 @@
+import { cn } from '@/lib/utils';
 import { Link } from '@inertiajs/react';
 import { LucideIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 type ActionBannerTone = 'emerald' | 'amber' | 'rose' | 'sky';
 
@@ -48,7 +48,7 @@ export function ActionBanner({
             </div>
             <p className="text-sm text-white/80">{description}</p>
             {href ? (
-                <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/70">
+                <span className="inline-flex items-center gap-2 text-xs font-semibold tracking-[0.3em] text-white/70 uppercase">
                     {actionLabel}
                     <span aria-hidden>→</span>
                 </span>
@@ -66,5 +66,3 @@ export function ActionBanner({
 
     return content;
 }
-
-

@@ -47,12 +47,20 @@ type UpgradePageProps = {
     currentMembership: CurrentMembership;
 };
 
-export default function Upgrade({ plans, currentMembership }: UpgradePageProps) {
-    const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('monthly');
+export default function Upgrade({
+    plans,
+    currentMembership,
+}: UpgradePageProps) {
+    const [billingInterval, setBillingInterval] = useState<
+        'monthly' | 'yearly'
+    >('monthly');
     const { auth } = usePage<SharedData>().props;
     const user = auth?.user;
     const userRoles = user?.roles?.map((role) => role.name) ?? [];
-    const isAdmin = userRoles.includes('Admin') || userRoles.includes('Super Admin') || userRoles.includes('Moderator');
+    const isAdmin =
+        userRoles.includes('Admin') ||
+        userRoles.includes('Super Admin') ||
+        userRoles.includes('Moderator');
 
     const formatPrice = (cents: number, currency: string = 'USD'): string => {
         return new Intl.NumberFormat('en-US', {
@@ -66,7 +74,10 @@ export default function Upgrade({ plans, currentMembership }: UpgradePageProps) 
     };
 
     const isCurrentPlan = (plan: MembershipPlan): boolean => {
-        return currentMembership?.plan.id === plan.id && currentMembership.status === 'active';
+        return (
+            currentMembership?.plan.id === plan.id &&
+            currentMembership.status === 'active'
+        );
     };
 
     const isDisabled = (plan: MembershipPlan): boolean => {
@@ -117,12 +128,16 @@ export default function Upgrade({ plans, currentMembership }: UpgradePageProps) 
                             Unlock deeper access to the scene
                         </div>
 
-                        <h1 className="text-4xl font-semibold leading-tight md:text-5xl">
-                            Connect deeper with exclusive content, community access, and real-world events.
+                        <h1 className="text-4xl leading-tight font-semibold md:text-5xl">
+                            Connect deeper with exclusive content, community
+                            access, and real-world events.
                         </h1>
 
                         <p className="text-lg text-white/70 md:text-xl">
-                            Upgrade your membership to unlock premium features, support creators in the community, and get priority access to exclusive content, circles, and IRL gatherings. Switch or cancel anytime.
+                            Upgrade your membership to unlock premium features,
+                            support creators in the community, and get priority
+                            access to exclusive content, circles, and IRL
+                            gatherings. Switch or cancel anytime.
                         </p>
 
                         <div className="flex flex-wrap items-center gap-4">
@@ -143,25 +158,33 @@ export default function Upgrade({ plans, currentMembership }: UpgradePageProps) 
 
                     <div className="relative overflow-hidden rounded-3xl border border-white/15 bg-gradient-to-br from-amber-500/25 via-rose-500/20 to-indigo-500/25 p-1">
                         <div className="rounded-[1.65rem] bg-neutral-950/95 p-6">
-                            <span className="text-sm font-semibold uppercase tracking-[0.3em] text-white/60">
+                            <span className="text-sm font-semibold tracking-[0.3em] text-white/60 uppercase">
                                 What you get
                             </span>
                             <ul className="mt-6 space-y-4 text-sm text-white/80">
                                 <li className="flex items-start gap-3">
                                     <Sparkles className="mt-0.5 size-4 text-amber-300" />
-                                    Exclusive paywalled content from creators you follow, plus access to premium archives and behind-the-scenes content.
+                                    Exclusive paywalled content from creators
+                                    you follow, plus access to premium archives
+                                    and behind-the-scenes content.
                                 </li>
                                 <li className="flex items-start gap-3">
                                     <Sparkles className="mt-0.5 size-4 text-amber-300" />
-                                    Priority access to events, circles, and real-world meetups. Get first dibs on tickets and exclusive circle memberships.
+                                    Priority access to events, circles, and
+                                    real-world meetups. Get first dibs on
+                                    tickets and exclusive circle memberships.
                                 </li>
                                 <li className="flex items-start gap-3">
                                     <Sparkles className="mt-0.5 size-4 text-amber-300" />
-                                    Enhanced discovery features, advanced Radar filters, and the ability to hide ads for a cleaner experience.
+                                    Enhanced discovery features, advanced Radar
+                                    filters, and the ability to hide ads for a
+                                    cleaner experience.
                                 </li>
                                 <li className="flex items-start gap-3">
                                     <Sparkles className="mt-0.5 size-4 text-amber-300" />
-                                    Directly support the creators building this community—your membership helps fund new content and features.
+                                    Directly support the creators building this
+                                    community—your membership helps fund new
+                                    content and features.
                                 </li>
                             </ul>
                         </div>
@@ -176,11 +199,15 @@ export default function Upgrade({ plans, currentMembership }: UpgradePageProps) 
                                     <Crown className="size-5 text-amber-400" />
                                     <div>
                                         <p className="font-semibold text-white">
-                                            Current Membership: {currentMembership.plan.name}
+                                            Current Membership:{' '}
+                                            {currentMembership.plan.name}
                                         </p>
                                         {currentMembership.ends_at && (
                                             <p className="text-sm text-white/60">
-                                                Expires {new Date(currentMembership.ends_at).toLocaleDateString()}
+                                                Expires{' '}
+                                                {new Date(
+                                                    currentMembership.ends_at,
+                                                ).toLocaleDateString()}
                                             </p>
                                         )}
                                     </div>
@@ -193,26 +220,40 @@ export default function Upgrade({ plans, currentMembership }: UpgradePageProps) 
                 <section>
                     <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                         <div>
-                            <h2 className="text-2xl font-semibold md:text-3xl">Choose your membership</h2>
+                            <h2 className="text-2xl font-semibold md:text-3xl">
+                                Choose your membership
+                            </h2>
                             <p className="text-white/65">
-                                All plans include creator tipping, event RSVPs, and traveller mode access.
+                                All plans include creator tipping, event RSVPs,
+                                and traveller mode access.
                             </p>
                         </div>
                         <div className="flex items-center gap-2">
                             <Button
-                                variant={billingInterval === 'monthly' ? 'default' : 'outline'}
+                                variant={
+                                    billingInterval === 'monthly'
+                                        ? 'default'
+                                        : 'outline'
+                                }
                                 size="sm"
                                 onClick={() => setBillingInterval('monthly')}
                             >
                                 Monthly
                             </Button>
                             <Button
-                                variant={billingInterval === 'yearly' ? 'default' : 'outline'}
+                                variant={
+                                    billingInterval === 'yearly'
+                                        ? 'default'
+                                        : 'outline'
+                                }
                                 size="sm"
                                 onClick={() => setBillingInterval('yearly')}
                             >
                                 Yearly
-                                <Badge variant="secondary" className="ml-2 bg-emerald-500/20 text-emerald-400">
+                                <Badge
+                                    variant="secondary"
+                                    className="ml-2 bg-emerald-500/20 text-emerald-400"
+                                >
                                     Save 2 months
                                 </Badge>
                             </Button>
@@ -221,7 +262,10 @@ export default function Upgrade({ plans, currentMembership }: UpgradePageProps) 
 
                     <div className="mt-8 grid gap-6 lg:grid-cols-3">
                         {plans.map((plan) => {
-                            const price = billingInterval === 'yearly' ? plan.yearly_price : plan.monthly_price;
+                            const price =
+                                billingInterval === 'yearly'
+                                    ? plan.yearly_price
+                                    : plan.monthly_price;
                             const isCurrent = isCurrentPlan(plan);
 
                             return (
@@ -235,7 +279,9 @@ export default function Upgrade({ plans, currentMembership }: UpgradePageProps) 
                                 >
                                     <CardHeader className="space-y-3">
                                         <div className="flex items-center justify-between gap-3">
-                                            <CardTitle className="text-xl font-semibold">{plan.name}</CardTitle>
+                                            <CardTitle className="text-xl font-semibold">
+                                                {plan.name}
+                                            </CardTitle>
                                             {isCurrent && (
                                                 <Badge className="border-white/20 bg-amber-500/80 text-neutral-950">
                                                     Current
@@ -243,7 +289,8 @@ export default function Upgrade({ plans, currentMembership }: UpgradePageProps) 
                                             )}
                                         </div>
                                         <CardDescription className="text-white/65">
-                                            {plan.description || 'Premium membership tier'}
+                                            {plan.description ||
+                                                'Premium membership tier'}
                                         </CardDescription>
                                     </CardHeader>
 
@@ -251,30 +298,50 @@ export default function Upgrade({ plans, currentMembership }: UpgradePageProps) 
                                         <div>
                                             <div className="flex items-baseline gap-2">
                                                 <span className="text-4xl font-semibold text-white">
-                                                    {formatPrice(price, plan.currency)}
+                                                    {formatPrice(
+                                                        price,
+                                                        plan.currency,
+                                                    )}
                                                 </span>
                                                 <span className="text-sm text-white/60">
-                                                    / {billingInterval === 'yearly' ? 'year' : 'month'}
+                                                    /{' '}
+                                                    {billingInterval ===
+                                                    'yearly'
+                                                        ? 'year'
+                                                        : 'month'}
                                                 </span>
                                             </div>
                                             {billingInterval === 'yearly' && (
                                                 <p className="mt-2 text-sm text-white/55">
-                                                    Save {formatPrice(plan.monthly_price * 12 - plan.yearly_price, plan.currency)}{' '}
+                                                    Save{' '}
+                                                    {formatPrice(
+                                                        plan.monthly_price *
+                                                            12 -
+                                                            plan.yearly_price,
+                                                        plan.currency,
+                                                    )}{' '}
                                                     vs monthly
                                                 </p>
                                             )}
                                         </div>
 
-                                        {plan.features && Object.keys(plan.features).length > 0 && (
-                                            <ul className="space-y-3 text-sm text-white/80">
-                                                {Object.entries(plan.features).map(([key, value]) => (
-                                                    <li key={key} className="flex items-start gap-2">
-                                                        <CheckCircle2 className="mt-0.5 size-4 text-emerald-300" />
-                                                        <span>{value}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        )}
+                                        {plan.features &&
+                                            Object.keys(plan.features).length >
+                                                0 && (
+                                                <ul className="space-y-3 text-sm text-white/80">
+                                                    {Object.entries(
+                                                        plan.features,
+                                                    ).map(([key, value]) => (
+                                                        <li
+                                                            key={key}
+                                                            className="flex items-start gap-2"
+                                                        >
+                                                            <CheckCircle2 className="mt-0.5 size-4 text-emerald-300" />
+                                                            <span>{value}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            )}
                                     </CardContent>
 
                                     <CardFooter>
@@ -292,10 +359,15 @@ export default function Upgrade({ plans, currentMembership }: UpgradePageProps) 
                                             </Button>
                                         ) : (
                                             <Button
-                                                onClick={() => handlePurchase(plan)}
+                                                onClick={() =>
+                                                    handlePurchase(plan)
+                                                }
                                                 className="w-full rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-indigo-500 text-white hover:from-amber-300 hover:via-rose-400 hover:to-indigo-400"
                                             >
-                                                {currentMembership ? 'Upgrade to' : 'Start with'} {plan.name}
+                                                {currentMembership
+                                                    ? 'Upgrade to'
+                                                    : 'Start with'}{' '}
+                                                {plan.name}
                                             </Button>
                                         )}
                                     </CardFooter>
@@ -308,4 +380,3 @@ export default function Upgrade({ plans, currentMembership }: UpgradePageProps) 
         </AppLayout>
     );
 }
-

@@ -15,9 +15,7 @@ class FlushTimelinesOnBlock implements ShouldQueue
 
     public string $queue = 'timelines';
 
-    public function __construct(private TimelineCacheService $timelineCache)
-    {
-    }
+    public function __construct(private TimelineCacheService $timelineCache) {}
 
     public function handle(UserBlocked $event): void
     {

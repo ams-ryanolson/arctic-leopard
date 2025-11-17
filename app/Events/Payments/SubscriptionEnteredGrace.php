@@ -2,7 +2,4 @@
 
 namespace App\Events\Payments;
 
-class SubscriptionEnteredGrace extends SubscriptionEvent
-{
-}
-
+class SubscriptionEnteredGrace extends SubscriptionEvent {}

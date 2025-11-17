@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\MessageResource;
 use App\Models\Conversation;
 use App\Models\ConversationParticipant;
-use App\Models\Message;
 use App\Models\User;
 use App\Services\Messaging\ConversationService;
 use Illuminate\Auth\Access\AuthorizationException;

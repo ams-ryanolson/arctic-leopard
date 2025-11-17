@@ -1,3 +1,5 @@
+import InputError from '@/components/input-error';
+import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogContent,
@@ -6,14 +8,12 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import InputError from '@/components/input-error';
-import { useForm } from '@inertiajs/react';
-import { useState, useCallback } from 'react';
-import { Lightbulb } from 'lucide-react';
 import { suggest as circlesSuggest } from '@/routes/circles';
+import { useForm } from '@inertiajs/react';
+import { Lightbulb } from 'lucide-react';
+import { useCallback, useState } from 'react';
 
 type SuggestCircleDialogProps = {
     trigger?: React.ReactNode;
@@ -59,7 +59,7 @@ export function SuggestCircleDialog({
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 {trigger ?? (
-                    <Button className="rounded-full bg-white px-6 text-xs font-semibold uppercase tracking-[0.35em] text-black">
+                    <Button className="rounded-full bg-white px-6 text-xs font-semibold tracking-[0.35em] text-black uppercase">
                         Suggest a circle
                     </Button>
                 )}
@@ -71,7 +71,8 @@ export function SuggestCircleDialog({
                         Suggest a new circle
                     </DialogTitle>
                     <DialogDescription className="text-sm text-white/60">
-                        Have an idea for a circle that doesn't exist yet? Share it with us and we'll review it.
+                        Have an idea for a circle that doesn't exist yet? Share
+                        it with us and we'll review it.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -98,21 +99,27 @@ export function SuggestCircleDialog({
                             onChange={(event) =>
                                 form.setData('description', event.target.value)
                             }
-                            className="flex min-h-[120px] w-full rounded-2xl border border-white/20 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-white/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="flex min-h-[120px] w-full rounded-2xl border border-white/20 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-white/40 focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:ring-offset-0 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                             placeholder="Describe what this circle would be about, who it's for, and what kind of community it would foster..."
                             rows={5}
                         />
                         <InputError message={form.errors.description} />
                     </div>
 
-                    <div className="rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4 space-y-2">
-                        <p className="text-sm font-medium text-amber-100 flex items-center gap-2">
+                    <div className="space-y-2 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4">
+                        <p className="flex items-center gap-2 text-sm font-medium text-amber-100">
                             <Lightbulb className="size-4" />
                             Important notes
                         </p>
-                        <ul className="text-xs text-amber-100/80 space-y-1.5 list-disc list-inside">
-                            <li>Circles are meant to be groups of people and should not be too specific</li>
-                            <li>We reserve the right to modify the name to match the site's standards</li>
+                        <ul className="list-inside list-disc space-y-1.5 text-xs text-amber-100/80">
+                            <li>
+                                Circles are meant to be groups of people and
+                                should not be too specific
+                            </li>
+                            <li>
+                                We reserve the right to modify the name to match
+                                the site's standards
+                            </li>
                         </ul>
                     </div>
 
@@ -132,7 +139,9 @@ export function SuggestCircleDialog({
                             disabled={form.processing}
                             className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-5 text-xs font-semibold text-white shadow-[0_18px_40px_-20px_rgba(249,115,22,0.6)] transition-all hover:scale-[1.02] hover:shadow-[0_22px_50px_-20px_rgba(249,115,22,0.7)]"
                         >
-                            {form.processing ? 'Submitting...' : 'Submit suggestion'}
+                            {form.processing
+                                ? 'Submitting...'
+                                : 'Submit suggestion'}
                         </Button>
                     </div>
                 </div>
@@ -140,7 +149,3 @@ export function SuggestCircleDialog({
         </Dialog>
     );
 }
-
-
-
-

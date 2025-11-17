@@ -36,13 +36,16 @@ export default function Security() {
                         </div>
                         <div className="relative space-y-6 p-6 sm:p-8">
                             <div className="flex items-center gap-3">
-                                <div className="flex items-center justify-center rounded-xl bg-gradient-to-br from-amber-400/30 to-amber-500/20 border border-amber-400/40 p-3 shadow-[0_12px_30px_-18px_rgba(249,115,22,0.65)]">
+                                <div className="flex items-center justify-center rounded-xl border border-amber-400/40 bg-gradient-to-br from-amber-400/30 to-amber-500/20 p-3 shadow-[0_12px_30px_-18px_rgba(249,115,22,0.65)]">
                                     <Lock className="h-5 w-5 text-amber-300" />
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-semibold text-white">Update password</h2>
+                                    <h2 className="text-xl font-semibold text-white">
+                                        Update password
+                                    </h2>
                                     <p className="text-sm text-white/65">
-                                        Ensure your account is using a long, random password to stay secure
+                                        Ensure your account is using a long,
+                                        random password to stay secure
                                     </p>
                                 </div>
                             </div>
@@ -69,11 +72,18 @@ export default function Security() {
                                 }}
                                 className="space-y-6"
                             >
-                                {({ errors, processing, recentlySuccessful }) => (
+                                {({
+                                    errors,
+                                    processing,
+                                    recentlySuccessful,
+                                }) => (
                                     <>
-                                        <div className="rounded-2xl border border-white/10 bg-black/40 p-5 space-y-5">
+                                        <div className="space-y-5 rounded-2xl border border-white/10 bg-black/40 p-5">
                                             <div className="grid gap-2">
-                                                <Label htmlFor="current_password" className="text-sm font-medium text-white">
+                                                <Label
+                                                    htmlFor="current_password"
+                                                    className="text-sm font-medium text-white"
+                                                >
                                                     Current password
                                                 </Label>
                                                 <Input
@@ -85,12 +95,17 @@ export default function Security() {
                                                     placeholder="Enter your current password"
                                                 />
                                                 <InputError
-                                                    message={errors.current_password}
+                                                    message={
+                                                        errors.current_password
+                                                    }
                                                 />
                                             </div>
 
                                             <div className="grid gap-2">
-                                                <Label htmlFor="password" className="text-sm font-medium text-white">
+                                                <Label
+                                                    htmlFor="password"
+                                                    className="text-sm font-medium text-white"
+                                                >
                                                     New password
                                                 </Label>
                                                 <Input
@@ -101,11 +116,16 @@ export default function Security() {
                                                     autoComplete="new-password"
                                                     placeholder="Enter your new password"
                                                 />
-                                                <InputError message={errors.password} />
+                                                <InputError
+                                                    message={errors.password}
+                                                />
                                             </div>
 
                                             <div className="grid gap-2">
-                                                <Label htmlFor="password_confirmation" className="text-sm font-medium text-white">
+                                                <Label
+                                                    htmlFor="password_confirmation"
+                                                    className="text-sm font-medium text-white"
+                                                >
                                                     Confirm password
                                                 </Label>
                                                 <Input
@@ -116,7 +136,9 @@ export default function Security() {
                                                     placeholder="Confirm your new password"
                                                 />
                                                 <InputError
-                                                    message={errors.password_confirmation}
+                                                    message={
+                                                        errors.password_confirmation
+                                                    }
                                                 />
                                             </div>
                                         </div>
@@ -126,9 +148,11 @@ export default function Security() {
                                                 type="submit"
                                                 disabled={processing}
                                                 data-test="update-password-button"
-                                                className="rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-2.5 text-sm font-semibold text-white shadow-[0_4px_12px_-4px_rgba(16,185,129,0.4)] transition-all hover:scale-[1.02] hover:shadow-[0_6px_16px_-4px_rgba(16,185,129,0.5)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                                                className="rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-2.5 text-sm font-semibold text-white shadow-[0_4px_12px_-4px_rgba(16,185,129,0.4)] transition-all hover:scale-[1.02] hover:shadow-[0_6px_16px_-4px_rgba(16,185,129,0.5)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
                                             >
-                                                {processing ? 'Saving...' : 'Update password'}
+                                                {processing
+                                                    ? 'Saving...'
+                                                    : 'Update password'}
                                             </Button>
 
                                             <Transition
@@ -141,7 +165,7 @@ export default function Security() {
                                                 leaveTo="opacity-0 scale-95"
                                             >
                                                 <div className="flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-4 py-2">
-                                                    <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                                                    <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
                                                     <p className="text-sm font-medium text-emerald-300">
                                                         Saved
                                                     </p>
@@ -161,20 +185,25 @@ export default function Security() {
                         </div>
                         <div className="relative space-y-6 p-6 sm:p-8">
                             <div className="flex items-center gap-3">
-                                <div className="flex items-center justify-center rounded-xl bg-gradient-to-br from-violet-400/30 to-violet-500/20 border border-violet-400/40 p-3 shadow-[0_12px_30px_-18px_rgba(124,58,237,0.65)]">
+                                <div className="flex items-center justify-center rounded-xl border border-violet-400/40 bg-gradient-to-br from-violet-400/30 to-violet-500/20 p-3 shadow-[0_12px_30px_-18px_rgba(124,58,237,0.65)]">
                                     <Shield className="h-5 w-5 text-violet-300" />
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-semibold text-white">Two-Factor Authentication</h2>
+                                    <h2 className="text-xl font-semibold text-white">
+                                        Two-Factor Authentication
+                                    </h2>
                                     <p className="text-sm text-white/65">
-                                        Add an extra layer of security to your account
+                                        Add an extra layer of security to your
+                                        account
                                     </p>
                                 </div>
                             </div>
                             <div className="rounded-2xl border border-white/10 bg-black/40 p-5">
                                 <p className="mb-4 text-sm leading-relaxed text-white/70">
-                                    Two-factor authentication adds an additional layer of security to your account by requiring
-                                    a verification code in addition to your password.
+                                    Two-factor authentication adds an additional
+                                    layer of security to your account by
+                                    requiring a verification code in addition to
+                                    your password.
                                 </p>
                                 <Button
                                     asChild
@@ -192,4 +221,3 @@ export default function Security() {
         </AppLayout>
     );
 }
-

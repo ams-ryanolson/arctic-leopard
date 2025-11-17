@@ -1,3 +1,6 @@
+import InputError from '@/components/input-error';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Dialog,
     DialogContent,
@@ -6,10 +9,8 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
     Select,
     SelectContent,
@@ -17,10 +18,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import InputError from '@/components/input-error';
+import { cn } from '@/lib/utils';
 import eventsRoutes from '@/routes/events';
-import { useForm } from '@inertiajs/react';
-import { type PropsWithChildren, useCallback, useMemo, useState } from 'react';
 import {
     type EventModality,
     type EventTag,
@@ -28,7 +27,8 @@ import {
     formatEventModality,
     formatEventType,
 } from '@/types/events';
-import { cn } from '@/lib/utils';
+import { useForm } from '@inertiajs/react';
+import { type PropsWithChildren, useCallback, useMemo, useState } from 'react';
 
 type EventSubmissionDialogProps = {
     tags: EventTag[];
@@ -124,17 +124,14 @@ export function EventSubmissionDialog({
             tags: selectedTags,
         }));
 
-        form.post(
-            eventsRoutes.store().url,
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    setOpen(false);
-                    setSelectedTags([]);
-                    form.reset();
-                },
+        form.post(eventsRoutes.store().url, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setOpen(false);
+                setSelectedTags([]);
+                form.reset();
             },
-        );
+        });
     }, [form, selectedTags, setOpen]);
 
     const modalityIsVirtual = form.data.modality === 'virtual';
@@ -153,7 +150,7 @@ export function EventSubmissionDialog({
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 {trigger ?? (
-                    <Button className="rounded-full bg-white px-6 text-xs font-semibold uppercase tracking-[0.35em] text-black">
+                    <Button className="rounded-full bg-white px-6 text-xs font-semibold tracking-[0.35em] text-black uppercase">
                         Suggest an event
                     </Button>
                 )}
@@ -308,7 +305,10 @@ export function EventSubmissionDialog({
                                 type="datetime-local"
                                 value={form.data.starts_at}
                                 onChange={(event) =>
-                                    form.setData('starts_at', event.target.value)
+                                    form.setData(
+                                        'starts_at',
+                                        event.target.value,
+                                    )
                                 }
                                 className="rounded-2xl border-white/20 bg-black/40 text-sm text-white focus-visible:ring-amber-400/40"
                             />
@@ -317,7 +317,10 @@ export function EventSubmissionDialog({
 
                         <div className="space-y-2">
                             <Label htmlFor="event-ends">
-                                Ends <span className="text-white/40">(optional)</span>
+                                Ends{' '}
+                                <span className="text-white/40">
+                                    (optional)
+                                </span>
                             </Label>
                             <Input
                                 id="event-ends"
@@ -357,9 +360,7 @@ export function EventSubmissionDialog({
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="event-city">
-                                City / Region
-                            </Label>
+                            <Label htmlFor="event-city">City / Region</Label>
                             <Input
                                 id="event-city"
                                 value={form.data.location_city}
@@ -382,9 +383,7 @@ export function EventSubmissionDialog({
 
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="space-y-2">
-                            <Label htmlFor="event-country">
-                                Country code
-                            </Label>
+                            <Label htmlFor="event-country">Country code</Label>
                             <Input
                                 id="event-country"
                                 value={form.data.location_country}
@@ -402,7 +401,9 @@ export function EventSubmissionDialog({
                                     modalityIsVirtual && 'opacity-60',
                                 )}
                             />
-                            <InputError message={form.errors.location_country} />
+                            <InputError
+                                message={form.errors.location_country}
+                            />
                         </div>
 
                         <div className="space-y-2">
@@ -421,7 +422,9 @@ export function EventSubmissionDialog({
                                 placeholder="https://"
                                 className="rounded-2xl border-white/20 bg-black/40 text-white placeholder:text-white/40 focus-visible:ring-amber-400/40"
                             />
-                            <InputError message={form.errors.virtual_meeting_url} />
+                            <InputError
+                                message={form.errors.virtual_meeting_url}
+                            />
                         </div>
                     </div>
 
@@ -460,7 +463,9 @@ export function EventSubmissionDialog({
                     <div className="space-y-2">
                         <Label htmlFor="event-notes">
                             Additional context for admins
-                            <span className="ml-1 text-white/45">(optional)</span>
+                            <span className="ml-1 text-white/45">
+                                (optional)
+                            </span>
                         </Label>
                         <textarea
                             id="event-notes"
@@ -487,7 +492,9 @@ export function EventSubmissionDialog({
                             </p>
                             <ul className="mt-2 list-disc space-y-1 pl-4 text-white/70">
                                 <li>Includes a vetted host or venue.</li>
-                                <li>Has clear consent & safety expectations.</li>
+                                <li>
+                                    Has clear consent & safety expectations.
+                                </li>
                                 <li>Offers a plan for community follow-up.</li>
                             </ul>
                         </div>
@@ -496,7 +503,7 @@ export function EventSubmissionDialog({
                                 type="button"
                                 disabled={form.processing}
                                 onClick={handleSubmit}
-                                className="rounded-full bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-500 px-8 text-sm font-semibold uppercase tracking-[0.35em] text-white shadow-[0_35px_90px_-50px_rgba(16,185,129,0.65)] transition hover:scale-[1.02]"
+                                className="rounded-full bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-500 px-8 text-sm font-semibold tracking-[0.35em] text-white uppercase shadow-[0_35px_90px_-50px_rgba(16,185,129,0.65)] transition hover:scale-[1.02]"
                             >
                                 Submit for review
                             </Button>
@@ -504,7 +511,7 @@ export function EventSubmissionDialog({
                                 type="button"
                                 variant="ghost"
                                 onClick={() => setOpen(false)}
-                                className="rounded-full border border-white/15 bg-white/10 px-6 text-xs font-semibold uppercase tracking-[0.35em] text-white/70 hover:border-white/25 hover:bg-white/15 hover:text-white"
+                                className="rounded-full border border-white/15 bg-white/10 px-6 text-xs font-semibold tracking-[0.35em] text-white/70 uppercase hover:border-white/25 hover:bg-white/15 hover:text-white"
                             >
                                 Cancel
                             </Button>
@@ -515,4 +522,3 @@ export function EventSubmissionDialog({
         </Dialog>
     );
 }
-

@@ -65,4 +65,3 @@ class PostViewEvent extends Model
         return $this->belongsTo(User::class, 'viewer_id');
     }
 }
-

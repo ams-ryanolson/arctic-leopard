@@ -2,7 +2,4 @@
 
 namespace App\Events\Payments;
 
-class SubscriptionExpired extends SubscriptionEvent
-{
-}
-
+class SubscriptionExpired extends SubscriptionEvent {}

@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import InputError from '@/components/input-error';
-import { LocationAutocomplete, type LocationSuggestion } from '@/components/location-autocomplete';
+import {
+    LocationAutocomplete,
+    type LocationSuggestion,
+} from '@/components/location-autocomplete';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -10,11 +13,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
+import { cn } from '@/lib/utils';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
 import { Head, useForm, type InertiaFormProps } from '@inertiajs/react';
-import { cn } from '@/lib/utils';
-import { AtSign, CalendarDays, Check, Circle, Eye, EyeOff, LocateFixed, MapPin, Sparkles, UserRound } from 'lucide-react';
+import {
+    AtSign,
+    CalendarDays,
+    Check,
+    Circle,
+    Eye,
+    EyeOff,
+    LocateFixed,
+    MapPin,
+    Sparkles,
+    UserRound,
+} from 'lucide-react';
 
 type Step = 'account' | 'profile' | 'review';
 
@@ -37,7 +51,13 @@ const stepMeta: Record<Step, { title: string; subtitle: string }> = {
 
 const fieldsPerStep: Record<Step, Array<keyof RegistrationFormData>> = {
     account: ['username', 'email', 'password', 'password_confirmation'],
-    profile: ['birthdate', 'location_city', 'location_country', 'location_latitude', 'location_longitude'],
+    profile: [
+        'birthdate',
+        'location_city',
+        'location_country',
+        'location_latitude',
+        'location_longitude',
+    ],
     review: ['accepted_terms', 'accepted_privacy'],
 };
 
@@ -98,7 +118,12 @@ const passwordMeetsRequirements = (value: string): boolean => {
 
     const checklist = evaluatePassword(value);
 
-    return checklist.length && checklist.uppercase && checklist.number && checklist.symbol;
+    return (
+        checklist.length &&
+        checklist.uppercase &&
+        checklist.number &&
+        checklist.symbol
+    );
 };
 
 const formatList = (items: string[]): string => {
@@ -133,23 +158,45 @@ export default function Register() {
         accepted_privacy: false,
     });
 
-    const [usernameStatus, setUsernameStatus] = useState<UsernameFeedback>({ state: 'idle', suggestions: [] });
-    const [emailStatus, setEmailStatus] = useState<EmailFeedback>({ state: 'idle', suggestions: [] });
+    const [usernameStatus, setUsernameStatus] = useState<UsernameFeedback>({
+        state: 'idle',
+        suggestions: [],
+    });
+    const [emailStatus, setEmailStatus] = useState<EmailFeedback>({
+        state: 'idle',
+        suggestions: [],
+    });
     const [lastCheckedUsername, setLastCheckedUsername] = useState('');
     const [lastCheckedEmail, setLastCheckedEmail] = useState('');
     const [manualStep, setManualStep] = useState<Step>('account');
-    const [locationStatus, setLocationStatus] = useState<'idle' | 'locating' | 'acquired' | 'denied'>(
-        form.data.location_latitude && form.data.location_longitude ? 'acquired' : 'idle',
+    const [locationStatus, setLocationStatus] = useState<
+        'idle' | 'locating' | 'acquired' | 'denied'
+    >(
+        form.data.location_latitude && form.data.location_longitude
+            ? 'acquired'
+            : 'idle',
     );
     const [locationError, setLocationError] = useState<string | null>(null);
     const [locationQuery, setLocationQuery] = useState('');
 
-    const buildLocationLabel = (city: string, region: string, country: string): string =>
-        [city, region, country].filter(Boolean).join(', ');
+    const buildLocationLabel = (
+        city: string,
+        region: string,
+        country: string,
+    ): string => [city, region, country].filter(Boolean).join(', ');
 
     const locationDisplay = useMemo(
-        () => buildLocationLabel(form.data.location_city, form.data.location_region, form.data.location_country),
-        [form.data.location_city, form.data.location_region, form.data.location_country],
+        () =>
+            buildLocationLabel(
+                form.data.location_city,
+                form.data.location_region,
+                form.data.location_country,
+            ),
+        [
+            form.data.location_city,
+            form.data.location_region,
+            form.data.location_country,
+        ],
     );
 
     useEffect(() => {
@@ -181,7 +228,9 @@ export default function Register() {
         setLocationError(null);
     };
 
-    const checkUsernameAvailability = async (rawValue: string): Promise<UsernameFeedback['state']> => {
+    const checkUsernameAvailability = async (
+        rawValue: string,
+    ): Promise<UsernameFeedback['state']> => {
         const username = rawValue.trim();
 
         if (username === '') {
@@ -192,7 +241,8 @@ export default function Register() {
 
         if (
             username === lastCheckedUsername &&
-            (usernameStatus.state === 'available' || usernameStatus.state === 'unavailable')
+            (usernameStatus.state === 'available' ||
+                usernameStatus.state === 'unavailable')
         ) {
             return usernameStatus.state;
         }
@@ -200,11 +250,14 @@ export default function Register() {
         setUsernameStatus({ state: 'checking', suggestions: [] });
 
         try {
-            const response = await fetch(`/username/check?${new URLSearchParams({ username })}`, {
-                headers: {
-                    Accept: 'application/json',
+            const response = await fetch(
+                `/username/check?${new URLSearchParams({ username })}`,
+                {
+                    headers: {
+                        Accept: 'application/json',
+                    },
                 },
-            });
+            );
 
             if (response.status === 422) {
                 const body = await response.json();
@@ -221,7 +274,10 @@ export default function Register() {
                 throw new Error('Username check failed');
             }
 
-            const data = (await response.json()) as { available: boolean; suggestions?: string[] };
+            const data = (await response.json()) as {
+                available: boolean;
+                suggestions?: string[];
+            };
             setLastCheckedUsername(username);
 
             if (data.available) {
@@ -234,10 +290,13 @@ export default function Register() {
                 return 'available';
             }
 
-            const suggestions = Array.isArray(data.suggestions) ? data.suggestions : [];
+            const suggestions = Array.isArray(data.suggestions)
+                ? data.suggestions
+                : [];
             setUsernameStatus({
                 state: 'unavailable',
-                message: 'That username is already taken. Try one of these options.',
+                message:
+                    'That username is already taken. Try one of these options.',
                 suggestions,
             });
 
@@ -263,7 +322,10 @@ export default function Register() {
             return;
         }
 
-        if (usernameStatus.state !== 'idle' && nextValue.trim() !== lastCheckedUsername) {
+        if (
+            usernameStatus.state !== 'idle' &&
+            nextValue.trim() !== lastCheckedUsername
+        ) {
             setUsernameStatus({ state: 'idle', suggestions: [] });
         }
     };
@@ -278,7 +340,9 @@ export default function Register() {
         void checkUsernameAvailability(suggestion);
     };
 
-    const checkEmailAvailability = async (rawValue: string): Promise<EmailFeedback['state']> => {
+    const checkEmailAvailability = async (
+        rawValue: string,
+    ): Promise<EmailFeedback['state']> => {
         const email = rawValue.trim().toLowerCase();
 
         if (email === '') {
@@ -289,7 +353,8 @@ export default function Register() {
 
         if (
             email === lastCheckedEmail &&
-            (emailStatus.state === 'available' || emailStatus.state === 'unavailable')
+            (emailStatus.state === 'available' ||
+                emailStatus.state === 'unavailable')
         ) {
             return emailStatus.state;
         }
@@ -297,11 +362,14 @@ export default function Register() {
         setEmailStatus({ state: 'checking', suggestions: [] });
 
         try {
-            const response = await fetch(`/email/check?${new URLSearchParams({ email })}`, {
-                headers: {
-                    Accept: 'application/json',
+            const response = await fetch(
+                `/email/check?${new URLSearchParams({ email })}`,
+                {
+                    headers: {
+                        Accept: 'application/json',
+                    },
                 },
-            });
+            );
 
             if (response.status === 422) {
                 const body = await response.json();
@@ -319,7 +387,10 @@ export default function Register() {
                 throw new Error('Email check failed');
             }
 
-            const data = (await response.json()) as { available: boolean; suggestions?: string[] };
+            const data = (await response.json()) as {
+                available: boolean;
+                suggestions?: string[];
+            };
             setLastCheckedEmail(email);
 
             if (data.available) {
@@ -332,10 +403,13 @@ export default function Register() {
                 return 'available';
             }
 
-            const suggestions = Array.isArray(data.suggestions) ? data.suggestions : [];
+            const suggestions = Array.isArray(data.suggestions)
+                ? data.suggestions
+                : [];
             setEmailStatus({
                 state: 'unavailable',
-                message: 'That email is already taken. Try one of these options.',
+                message:
+                    'That email is already taken. Try one of these options.',
                 suggestions,
             });
 
@@ -361,7 +435,10 @@ export default function Register() {
             return;
         }
 
-        if (emailStatus.state !== 'idle' && nextValue.trim().toLowerCase() !== lastCheckedEmail) {
+        if (
+            emailStatus.state !== 'idle' &&
+            nextValue.trim().toLowerCase() !== lastCheckedEmail
+        ) {
             setEmailStatus({ state: 'idle', suggestions: [] });
         }
     };
@@ -382,11 +459,23 @@ export default function Register() {
             return null;
         }
 
-        if (errorKeys.some((key) => fieldsPerStep.account.includes(key as keyof RegistrationFormData))) {
+        if (
+            errorKeys.some((key) =>
+                fieldsPerStep.account.includes(
+                    key as keyof RegistrationFormData,
+                ),
+            )
+        ) {
             return 'account';
         }
 
-        if (errorKeys.some((key) => fieldsPerStep.profile.includes(key as keyof RegistrationFormData))) {
+        if (
+            errorKeys.some((key) =>
+                fieldsPerStep.profile.includes(
+                    key as keyof RegistrationFormData,
+                ),
+            )
+        ) {
             return 'profile';
         }
 
@@ -394,7 +483,10 @@ export default function Register() {
     }, [form.errors]);
 
     const currentStep = errorStep ?? manualStep;
-    const currentStepIndex = useMemo(() => stepOrder.indexOf(currentStep), [currentStep]);
+    const currentStepIndex = useMemo(
+        () => stepOrder.indexOf(currentStep),
+        [currentStep],
+    );
     const isLastStep = currentStep === 'review';
 
     const isOldEnough = useMemo(() => {
@@ -486,7 +578,10 @@ export default function Register() {
             }
 
             const trimmedUsername = form.data.username.trim();
-            if (trimmedUsername !== '' && usernameStatus.state !== 'available') {
+            if (
+                trimmedUsername !== '' &&
+                usernameStatus.state !== 'available'
+            ) {
                 const result = await checkUsernameAvailability(trimmedUsername);
 
                 if (result !== 'available') {
@@ -535,9 +630,12 @@ export default function Register() {
                             <Sparkles className="size-5" />
                         </div>
                         <div>
-                            <p className="text-sm font-semibold tracking-tight text-white">Creator onboarding</p>
+                            <p className="text-sm font-semibold tracking-tight text-white">
+                                Creator onboarding
+                            </p>
                             <p className="text-xs text-white/70">
-                                Secure sign-up, location-aware discovery, and consent-first safety baked into every step.
+                                Secure sign-up, location-aware discovery, and
+                                consent-first safety baked into every step.
                             </p>
                         </div>
                     </div>
@@ -562,10 +660,14 @@ export default function Register() {
                                 emailStatus={emailStatus}
                                 onUsernameChange={handleUsernameChange}
                                 onUsernameBlur={handleUsernameBlur}
-                                onUsernameSuggestionSelect={handleUsernameSuggestionSelect}
+                                onUsernameSuggestionSelect={
+                                    handleUsernameSuggestionSelect
+                                }
                                 onEmailChange={handleEmailChange}
                                 onEmailBlur={handleEmailBlur}
-                                onEmailSuggestionSelect={handleEmailSuggestionSelect}
+                                onEmailSuggestionSelect={
+                                    handleEmailSuggestionSelect
+                                }
                             />
                         )}
                         {currentStep === 'profile' && (
@@ -577,7 +679,9 @@ export default function Register() {
                                 setLocationError={setLocationError}
                                 isOldEnough={isOldEnough}
                                 locationQuery={locationQuery}
-                                onLocationQueryChange={handleLocationQueryChange}
+                                onLocationQueryChange={
+                                    handleLocationQueryChange
+                                }
                                 onLocationSelect={handleLocationSelect}
                             />
                         )}
@@ -596,7 +700,9 @@ export default function Register() {
                             type="button"
                             variant="ghost"
                             onClick={goToPreviousStep}
-                            disabled={currentStep === 'account' || form.processing}
+                            disabled={
+                                currentStep === 'account' || form.processing
+                            }
                         >
                             Back
                         </Button>
@@ -609,12 +715,16 @@ export default function Register() {
                                     onClick={() => {
                                         void handleNext();
                                     }}
-                                    disabled={!canAdvance(currentStep) || form.processing}
+                                    disabled={
+                                        !canAdvance(currentStep) ||
+                                        form.processing
+                                    }
                                     className={cn(
                                         'transition',
-                                        canAdvance(currentStep) && !form.processing
+                                        canAdvance(currentStep) &&
+                                            !form.processing
                                             ? 'bg-gradient-to-br from-amber-400 via-rose-500 to-violet-600 text-white shadow-[0_20px_45px_-25px_rgba(249,115,22,0.6)] hover:scale-[1.01]'
-                                            : 'opacity-60'
+                                            : 'opacity-60',
                                     )}
                                 >
                                     Continue
@@ -628,9 +738,11 @@ export default function Register() {
                                         'px-6 transition',
                                         canAdvance('review') && !form.processing
                                             ? 'bg-gradient-to-br from-amber-400 via-rose-500 to-violet-600 text-white shadow-[0_20px_45px_-25px_rgba(249,115,22,0.6)] hover:scale-[1.01]'
-                                            : 'opacity-60'
+                                            : 'opacity-60',
                                     )}
-                                    disabled={!canAdvance('review') || form.processing}
+                                    disabled={
+                                        !canAdvance('review') || form.processing
+                                    }
                                     data-test="register-user-button"
                                 >
                                     {form.processing && <Spinner />}
@@ -638,13 +750,19 @@ export default function Register() {
                                 </Button>
                             )}
 
-                            {currentStep === 'profile' && !isOldEnough && form.data.birthdate && (
-                                <p className="text-xs font-medium text-amber-300">You must be 18 or older to continue.</p>
-                            )}
                             {currentStep === 'profile' &&
-                                (!form.data.location_latitude || !form.data.location_longitude) && (
+                                !isOldEnough &&
+                                form.data.birthdate && (
+                                    <p className="text-xs font-medium text-amber-300">
+                                        You must be 18 or older to continue.
+                                    </p>
+                                )}
+                            {currentStep === 'profile' &&
+                                (!form.data.location_latitude ||
+                                    !form.data.location_longitude) && (
                                     <p className="text-xs text-white/60">
-                                        Share or select a location to unlock regional discovery.
+                                        Share or select a location to unlock
+                                        regional discovery.
                                     </p>
                                 )}
                         </div>
@@ -700,13 +818,16 @@ function AccountStep({
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmation, setShowConfirmation] = useState(false);
 
-    const passwordChecklist = useMemo(() => evaluatePassword(form.data.password), [form.data.password]);
+    const passwordChecklist = useMemo(
+        () => evaluatePassword(form.data.password),
+        [form.data.password],
+    );
 
     const missingRequirements = useMemo(
         () =>
-            (Object.keys(passwordChecklist) as Array<keyof PasswordChecklist>).filter(
-                (key) => !passwordChecklist[key],
-            ),
+            (
+                Object.keys(passwordChecklist) as Array<keyof PasswordChecklist>
+            ).filter((key) => !passwordChecklist[key]),
         [passwordChecklist],
     );
 
@@ -727,7 +848,9 @@ function AccountStep({
             };
         }
 
-        const missingLabels = missingRequirements.map((key) => passwordRequirementLabels[key].toLowerCase());
+        const missingLabels = missingRequirements.map((key) =>
+            passwordRequirementLabels[key].toLowerCase(),
+        );
         const level = missingRequirements.length >= 3 ? 'weak' : 'medium';
         const label =
             missingRequirements.length === 1
@@ -749,70 +872,84 @@ function AccountStep({
 
     return (
         <div className="space-y-6 text-left">
-                            <div className="grid gap-2">
+            <div className="grid gap-2">
                 <Label htmlFor="username">Username</Label>
-                                <Input
+                <Input
                     id="username"
                     value={form.data.username}
                     onChange={(event) => onUsernameChange(event.target.value)}
                     onBlur={onUsernameBlur}
                     placeholder="Your handle"
-                                    autoFocus
+                    autoFocus
                     autoComplete="username"
                 />
                 <p className="text-xs text-white/60">
-                    This is how others will find you. Only letters, numbers, periods, hyphens, and underscores.
+                    This is how others will find you. Only letters, numbers,
+                    periods, hyphens, and underscores.
                 </p>
                 {usernameStatus.state === 'checking' && (
-                    <p className="text-xs text-white/60">Checking availability…</p>
+                    <p className="text-xs text-white/60">
+                        Checking availability…
+                    </p>
                 )}
                 {usernameStatus.state === 'available' && (
                     <p className="text-xs font-medium text-emerald-300">
-                        {usernameStatus.message ?? 'This username is available.'}
+                        {usernameStatus.message ??
+                            'This username is available.'}
                     </p>
                 )}
                 {usernameStatus.state === 'unavailable' && (
                     <div className="space-y-2">
                         <p className="text-xs font-medium text-rose-300">
-                            {usernameStatus.message ?? 'That username is already taken. Try one of these options.'}
+                            {usernameStatus.message ??
+                                'That username is already taken. Try one of these options.'}
                         </p>
                         {usernameStatus.suggestions.length > 0 && (
                             <div className="flex flex-wrap gap-2">
-                                {usernameStatus.suggestions.map((suggestion) => (
-                                    <button
-                                        key={suggestion}
-                                        type="button"
-                                        onClick={() => onUsernameSuggestionSelect(suggestion)}
-                                        className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/80 transition hover:border-white/40 hover:bg-white/15"
-                                    >
-                                        {suggestion}
-                                    </button>
-                                ))}
+                                {usernameStatus.suggestions.map(
+                                    (suggestion) => (
+                                        <button
+                                            key={suggestion}
+                                            type="button"
+                                            onClick={() =>
+                                                onUsernameSuggestionSelect(
+                                                    suggestion,
+                                                )
+                                            }
+                                            className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/80 transition hover:border-white/40 hover:bg-white/15"
+                                        >
+                                            {suggestion}
+                                        </button>
+                                    ),
+                                )}
                             </div>
                         )}
                     </div>
                 )}
                 {usernameStatus.state === 'error' && (
                     <p className="text-xs font-medium text-amber-300">
-                        {usernameStatus.message ?? 'We could not verify that username. Please try again.'}
+                        {usernameStatus.message ??
+                            'We could not verify that username. Please try again.'}
                     </p>
                 )}
                 <InputError message={form.errors.username} />
-                            </div>
+            </div>
 
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
+            <div className="grid gap-2">
+                <Label htmlFor="email">Email address</Label>
+                <Input
+                    id="email"
+                    type="email"
                     value={form.data.email}
                     onChange={(event) => onEmailChange(event.target.value)}
                     onBlur={onEmailBlur}
                     placeholder="you@realkink.men"
-                                    autoComplete="email"
+                    autoComplete="email"
                 />
                 {emailStatus.state === 'checking' && (
-                    <p className="text-xs text-white/60">Checking email availability…</p>
+                    <p className="text-xs text-white/60">
+                        Checking email availability…
+                    </p>
                 )}
                 {emailStatus.state === 'available' && (
                     <p className="text-xs font-medium text-emerald-300">
@@ -822,7 +959,8 @@ function AccountStep({
                 {emailStatus.state === 'unavailable' && (
                     <div className="space-y-2">
                         <p className="text-xs font-medium text-rose-300">
-                            {emailStatus.message ?? 'That email is already registered. Try one of these options.'}
+                            {emailStatus.message ??
+                                'That email is already registered. Try one of these options.'}
                         </p>
                         {emailStatus.suggestions.length > 0 && (
                             <div className="flex flex-wrap gap-2">
@@ -830,7 +968,9 @@ function AccountStep({
                                     <button
                                         key={suggestion}
                                         type="button"
-                                        onClick={() => onEmailSuggestionSelect(suggestion)}
+                                        onClick={() =>
+                                            onEmailSuggestionSelect(suggestion)
+                                        }
                                         className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/80 transition hover:border-white/40 hover:bg-white/15"
                                     >
                                         {suggestion}
@@ -842,75 +982,114 @@ function AccountStep({
                 )}
                 {emailStatus.state === 'error' && (
                     <p className="text-xs font-medium text-amber-300">
-                        {emailStatus.message ?? 'We could not verify that email. Please try again.'}
+                        {emailStatus.message ??
+                            'We could not verify that email. Please try again.'}
                     </p>
                 )}
                 <InputError message={form.errors.email} />
-                            </div>
+            </div>
 
             <div className="grid gap-5">
-                            <div className="grid gap-2">
-                                <Label htmlFor="password">Password</Label>
+                <div className="grid gap-2">
+                    <Label htmlFor="password">Password</Label>
                     <div className="relative">
-                                <Input
-                                    id="password"
+                        <Input
+                            id="password"
                             type={showPassword ? 'text' : 'password'}
                             value={form.data.password}
-                            onChange={(event) => form.setData('password', event.target.value)}
+                            onChange={(event) =>
+                                form.setData('password', event.target.value)
+                            }
                             placeholder="Create a password"
-                                    autoComplete="new-password"
+                            autoComplete="new-password"
                         />
                         <button
                             type="button"
                             onClick={() => setShowPassword((value) => !value)}
                             className="absolute inset-y-0 right-0 flex items-center px-3 text-white/60 transition hover:text-white"
-                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                            aria-label={
+                                showPassword ? 'Hide password' : 'Show password'
+                            }
                         >
-                            {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                            {showPassword ? (
+                                <EyeOff className="size-4" />
+                            ) : (
+                                <Eye className="size-4" />
+                            )}
                         </button>
                     </div>
                     <div className="relative mt-2 h-2 overflow-hidden rounded-full bg-white/10">
                         <div
                             className={cn('h-full transition-all', {
-                                'w-1/3 bg-rose-500/70': passwordStrength.level === 'weak',
-                                'w-2/3 bg-amber-400/70': passwordStrength.level === 'medium',
-                                'w-full bg-emerald-400/80': passwordStrength.level === 'strong',
+                                'w-1/3 bg-rose-500/70':
+                                    passwordStrength.level === 'weak',
+                                'w-2/3 bg-amber-400/70':
+                                    passwordStrength.level === 'medium',
+                                'w-full bg-emerald-400/80':
+                                    passwordStrength.level === 'strong',
                             })}
                         />
                     </div>
-                    <p className="text-xs text-white/60">{passwordStrength.label}</p>
+                    <p className="text-xs text-white/60">
+                        {passwordStrength.label}
+                    </p>
                     <div className="mt-3 grid gap-1">
-                        {(Object.entries(passwordRequirementLabels) as Array<
-                            [keyof PasswordChecklist, string]
-                        >).map(([key, requirementLabel]) => (
-                            <RequirementIndicator key={key} met={passwordChecklist[key]} label={requirementLabel} />
+                        {(
+                            Object.entries(passwordRequirementLabels) as Array<
+                                [keyof PasswordChecklist, string]
+                            >
+                        ).map(([key, requirementLabel]) => (
+                            <RequirementIndicator
+                                key={key}
+                                met={passwordChecklist[key]}
+                                label={requirementLabel}
+                            />
                         ))}
                     </div>
                     <InputError message={form.errors.password} />
-                            </div>
+                </div>
 
-                            <div className="grid gap-2">
-                    <Label htmlFor="password_confirmation">Confirm password</Label>
+                <div className="grid gap-2">
+                    <Label htmlFor="password_confirmation">
+                        Confirm password
+                    </Label>
                     <div className="relative">
-                                <Input
-                                    id="password_confirmation"
+                        <Input
+                            id="password_confirmation"
                             type={showConfirmation ? 'text' : 'password'}
                             value={form.data.password_confirmation}
-                            onChange={(event) => form.setData('password_confirmation', event.target.value)}
+                            onChange={(event) =>
+                                form.setData(
+                                    'password_confirmation',
+                                    event.target.value,
+                                )
+                            }
                             placeholder="Repeat password"
-                                    autoComplete="new-password"
+                            autoComplete="new-password"
                         />
                         <button
                             type="button"
-                            onClick={() => setShowConfirmation((value) => !value)}
+                            onClick={() =>
+                                setShowConfirmation((value) => !value)
+                            }
                             className="absolute inset-y-0 right-0 flex items-center px-3 text-white/60 transition hover:text-white"
-                            aria-label={showConfirmation ? 'Hide password confirmation' : 'Show password confirmation'}
+                            aria-label={
+                                showConfirmation
+                                    ? 'Hide password confirmation'
+                                    : 'Show password confirmation'
+                            }
                         >
-                            {showConfirmation ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                            {showConfirmation ? (
+                                <EyeOff className="size-4" />
+                            ) : (
+                                <Eye className="size-4" />
+                            )}
                         </button>
                     </div>
                     {!passwordsMatch && (
-                        <p className="text-xs font-medium text-rose-300">Passwords do not match.</p>
+                        <p className="text-xs font-medium text-rose-300">
+                            Passwords do not match.
+                        </p>
                     )}
                     <InputError message={form.errors.password_confirmation} />
                 </div>
@@ -932,7 +1111,9 @@ function ProfileStep({
 }: {
     form: RegistrationFormInstance;
     locationStatus: 'idle' | 'locating' | 'acquired' | 'denied';
-    setLocationStatus: (status: 'idle' | 'locating' | 'acquired' | 'denied') => void;
+    setLocationStatus: (
+        status: 'idle' | 'locating' | 'acquired' | 'denied',
+    ) => void;
     locationError: string | null;
     setLocationError: (value: string | null) => void;
     isOldEnough: boolean;
@@ -1008,7 +1189,9 @@ function ProfileStep({
     const handleUseCurrentLocation = () => {
         if (!('geolocation' in navigator)) {
             setLocationStatus('denied');
-            setLocationError('Geolocation is not supported by your browser. Try searching instead.');
+            setLocationError(
+                'Geolocation is not supported by your browser. Try searching instead.',
+            );
             setAutoLocationActive(false);
             return;
         }
@@ -1024,7 +1207,9 @@ function ProfileStep({
 
                 setIsReverseGeocoding(true);
                 try {
-                    const url = new URL('https://nominatim.openstreetmap.org/reverse');
+                    const url = new URL(
+                        'https://nominatim.openstreetmap.org/reverse',
+                    );
                     url.searchParams.set('format', 'json');
                     url.searchParams.set('lat', latitude);
                     url.searchParams.set('lon', longitude);
@@ -1034,7 +1219,8 @@ function ProfileStep({
                         headers: { Accept: 'application/json' },
                     });
 
-                    const data: { address?: Record<string, string> } = await response.json();
+                    const data: { address?: Record<string, string> } =
+                        await response.json();
                     const address = data.address ?? {};
                     const city =
                         address.city ??
@@ -1043,19 +1229,24 @@ function ProfileStep({
                         address.hamlet ??
                         address.municipality ??
                         '';
-                    const region = address.state ?? address.region ?? address.county ?? '';
+                    const region =
+                        address.state ?? address.region ?? address.county ?? '';
                     const country = address.country ?? '';
 
                     if (!city || !country) {
                         setLocationStatus('acquired');
-                        setLocationError('We found your coordinates but need you to confirm the city and country manually.');
+                        setLocationError(
+                            'We found your coordinates but need you to confirm the city and country manually.',
+                        );
                         setAutoLocationActive(false);
                         return;
                     }
 
                     onLocationSelect({
                         id: 'current-location',
-                        label: [city, region, country].filter(Boolean).join(', '),
+                        label: [city, region, country]
+                            .filter(Boolean)
+                            .join(', '),
                         city,
                         region,
                         country,
@@ -1065,7 +1256,9 @@ function ProfileStep({
                 } catch (error) {
                     console.error(error);
                     setLocationStatus('acquired');
-                    setLocationError('We saved your coordinates, but could not determine the city name. Try searching manually.');
+                    setLocationError(
+                        'We saved your coordinates, but could not determine the city name. Try searching manually.',
+                    );
                     setAutoLocationActive(false);
                 } finally {
                     setIsReverseGeocoding(false);
@@ -1074,7 +1267,9 @@ function ProfileStep({
             (error) => {
                 console.error(error);
                 setLocationStatus('denied');
-                setLocationError('We could not access your location. Try a manual search instead.');
+                setLocationError(
+                    'We could not access your location. Try a manual search instead.',
+                );
                 setAutoLocationActive(false);
             },
             {
@@ -1084,7 +1279,10 @@ function ProfileStep({
         );
     };
 
-    const highlightShareButton = autoLocationActive || locationStatus === 'locating' || isReverseGeocoding;
+    const highlightShareButton =
+        autoLocationActive ||
+        locationStatus === 'locating' ||
+        isReverseGeocoding;
 
     return (
         <div className="space-y-6 text-left">
@@ -1101,19 +1299,20 @@ function ProfileStep({
                         autoComplete="bday"
                         className={cn(
                             'cursor-pointer pr-12',
-                            isCalendarOpen && 'border-white/40 ring-4 ring-amber-500/20',
+                            isCalendarOpen &&
+                                'border-white/40 ring-4 ring-amber-500/20',
                         )}
                     />
                     <CalendarDays
                         className={cn(
-                            'pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-white/50 transition',
+                            'pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2 text-white/50 transition',
                             isCalendarOpen && 'text-white',
                         )}
                     />
 
                     {isCalendarOpen && (
-                        <div className="absolute left-0 right-0 z-40 mt-3 rounded-3xl border border-white/12 bg-[#0b0811]/95 p-6 text-white shadow-[0_55px_120px_-40px_rgba(249,115,22,0.55)] backdrop-blur-xl">
-                            <p className="text-xs font-medium uppercase tracking-[0.35em] text-white/40">
+                        <div className="absolute right-0 left-0 z-40 mt-3 rounded-3xl border border-white/12 bg-[#0b0811]/95 p-6 text-white shadow-[0_55px_120px_-40px_rgba(249,115,22,0.55)] backdrop-blur-xl">
+                            <p className="text-xs font-medium tracking-[0.35em] text-white/40 uppercase">
                                 Choose Date
                             </p>
                             <Calendar
@@ -1121,7 +1320,12 @@ function ProfileStep({
                                 selected={birthdate}
                                 onSelect={(value) => {
                                     setBirthdate(value ?? undefined);
-                                    form.setData('birthdate', value ? value.toISOString().slice(0, 10) : '');
+                                    form.setData(
+                                        'birthdate',
+                                        value
+                                            ? value.toISOString().slice(0, 10)
+                                            : '',
+                                    );
                                     if (value) {
                                         setIsCalendarOpen(false);
                                     }
@@ -1136,26 +1340,31 @@ function ProfileStep({
                                 classNames={{
                                     months: 'flex flex-col items-center gap-6',
                                     month: 'space-y-4',
-                                    caption: 'flex w-full flex-col gap-4 text-left text-white',
+                                    caption:
+                                        'flex w-full flex-col gap-4 text-left text-white',
                                     caption_label: 'hidden',
                                     caption_dropdowns: 'flex gap-3',
                                     dropdown:
-                                        'flex-1 appearance-none rounded-xl border border-white/15 !bg-white/10 px-3 py-2 pr-9 text-sm font-semibold !text-white focus:outline-none focus-visible:border-white/60 focus-visible:ring-4 focus-visible:ring-amber-500/30 bg-[url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%23ffffff\' stroke-width=\'1.5\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'M6 9l6 6 6-6\'/%3E%3C/svg%3E")] bg-[length:14px_14px] bg-[right_0.75rem_center] bg-no-repeat',
+                                        "flex-1 appearance-none rounded-xl border border-white/15 !bg-white/10 px-3 py-2 pr-9 text-sm font-semibold !text-white focus:outline-none focus-visible:border-white/60 focus-visible:ring-4 focus-visible:ring-amber-500/30 bg-[url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")] bg-[length:14px_14px] bg-[right_0.75rem_center] bg-no-repeat",
                                     dropdown_month: 'flex-1',
                                     dropdown_year: 'flex-1',
                                     nav: 'hidden',
                                     nav_button: 'hidden',
                                     nav_button_previous: 'hidden',
                                     nav_button_next: 'hidden',
-                                    head_row: 'flex w-full justify-center text-xs text-white/80',
-                                    head_cell: 'w-10 font-semibold uppercase tracking-[0.35em] text-center text-white/70',
+                                    head_row:
+                                        'flex w-full justify-center text-xs text-white/80',
+                                    head_cell:
+                                        'w-10 font-semibold uppercase tracking-[0.35em] text-center text-white/70',
                                     row: 'flex w-full justify-center',
                                     cell: 'relative flex h-11 w-11 items-center justify-center rounded-full text-sm transition focus-within:relative focus-within:z-20',
                                     day: 'size-11 p-0 font-medium text-white transition hover:bg-white/25 hover:text-black',
                                     day_selected:
                                         'bg-white text-black shadow-[0_22px_50px_-20px_rgba(249,115,22,0.55)] ring-2 ring-rose-400/70 font-semibold',
-                                    day_disabled: 'text-white/35 hover:bg-transparent hover:text-white/35',
-                                    day_outside: 'text-white/35 hover:bg-transparent hover:text-white/35',
+                                    day_disabled:
+                                        'text-white/35 hover:bg-transparent hover:text-white/35',
+                                    day_outside:
+                                        'text-white/35 hover:bg-transparent hover:text-white/35',
                                 }}
                                 showOutsideDays
                             />
@@ -1164,16 +1373,21 @@ function ProfileStep({
                 </div>
                 <InputError message={form.errors.birthdate} />
                 <p className="text-xs text-white/60">
-                    You must be at least 18 years old to join Real Kink Men. Your exact birthdate stays private.
+                    You must be at least 18 years old to join Real Kink Men.
+                    Your exact birthdate stays private.
                 </p>
                 {!isOldEnough && form.data.birthdate && (
-                    <p className="text-xs font-medium text-amber-300">You must be 18 or older to continue.</p>
+                    <p className="text-xs font-medium text-amber-300">
+                        You must be 18 or older to continue.
+                    </p>
                 )}
             </div>
 
             <div className="space-y-4">
                 <div className="grid gap-2">
-                    <Label htmlFor="location_search">Where are you based?</Label>
+                    <Label htmlFor="location_search">
+                        Where are you based?
+                    </Label>
                     <LocationAutocomplete
                         value={locationQuery}
                         onChange={(value) => {
@@ -1185,26 +1399,39 @@ function ProfileStep({
                             onLocationSelect(suggestion);
                             setAutoLocationActive(false);
                         }}
-                        error={form.errors.location_city || form.errors.location_country || undefined}
+                        error={
+                            form.errors.location_city ||
+                            form.errors.location_country ||
+                            undefined
+                        }
                         status={locationStatus}
                         autoActive={autoLocationActive}
                     />
-                    <InputError message={form.errors.location_city || form.errors.location_country} />
+                    <InputError
+                        message={
+                            form.errors.location_city ||
+                            form.errors.location_country
+                        }
+                    />
                     <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-white/60">
                         <Button
                             type="button"
                             variant="ghost"
                             size="sm"
                             onClick={handleUseCurrentLocation}
-                            disabled={locationStatus === 'locating' || isReverseGeocoding}
+                            disabled={
+                                locationStatus === 'locating' ||
+                                isReverseGeocoding
+                            }
                             className={cn(
-                                'group inline-flex items-center gap-2 rounded-full px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] transition',
+                                'group inline-flex items-center gap-2 rounded-full px-5 py-2 text-xs font-semibold tracking-[0.35em] uppercase transition',
                                 highlightShareButton
                                     ? 'bg-gradient-to-br from-amber-400 via-rose-500 to-violet-600 text-black shadow-[0_20px_45px_-28px_rgba(249,115,22,0.5)] hover:scale-[1.01]'
                                     : 'border border-white/15 bg-white/5 text-white/80 hover:border-white/30 hover:text-white',
                             )}
                         >
-                            {locationStatus === 'locating' || isReverseGeocoding ? (
+                            {locationStatus === 'locating' ||
+                            isReverseGeocoding ? (
                                 <Spinner className="text-black" />
                             ) : (
                                 <LocateFixed
@@ -1216,20 +1443,40 @@ function ProfileStep({
                                     )}
                                 />
                             )}
-                            <span className={highlightShareButton ? 'text-black' : undefined}>
+                            <span
+                                className={
+                                    highlightShareButton
+                                        ? 'text-black'
+                                        : undefined
+                                }
+                            >
                                 Share my current location
                             </span>
                         </Button>
-                        <span>Help us surface kink houses, events, and creators near you. You can update this later.</span>
+                        <span>
+                            Help us surface kink houses, events, and creators
+                            near you. You can update this later.
+                        </span>
                     </div>
                     {locationError && (
-                        <p className="text-xs font-medium text-amber-300">{locationError}</p>
+                        <p className="text-xs font-medium text-amber-300">
+                            {locationError}
+                        </p>
                     )}
                 </div>
 
-                <input type="hidden" name="location_latitude" value={form.data.location_latitude} />
-                <input type="hidden" name="location_longitude" value={form.data.location_longitude} />
-                {(form.errors.location_latitude || form.errors.location_longitude) && (
+                <input
+                    type="hidden"
+                    name="location_latitude"
+                    value={form.data.location_latitude}
+                />
+                <input
+                    type="hidden"
+                    name="location_longitude"
+                    value={form.data.location_longitude}
+                />
+                {(form.errors.location_latitude ||
+                    form.errors.location_longitude) && (
                     <p className="text-xs font-medium text-amber-300">
                         Select a location from the list to lock in coordinates.
                     </p>
@@ -1279,20 +1526,23 @@ function ReviewStep({
         },
     ];
 
-    const statusPills: Array<{ label: string; tone: 'positive' | 'warning' | 'muted' }> = [
+    const statusPills: Array<{
+        label: string;
+        tone: 'positive' | 'warning' | 'muted';
+    }> = [
         isOldEnough
             ? { label: '18+ confirmed', tone: 'positive' }
             : { label: 'Age requirement not met', tone: 'warning' },
         locationStatus === 'acquired'
             ? { label: 'Location locked in', tone: 'positive' }
             : locationStatus === 'locating'
-                ? { label: 'Locating…', tone: 'muted' }
-                : locationStatus === 'denied'
-                    ? { label: 'Location access denied', tone: 'warning' }
-                    : { label: 'Location pending selection', tone: 'muted' },
+              ? { label: 'Locating…', tone: 'muted' }
+              : locationStatus === 'denied'
+                ? { label: 'Location access denied', tone: 'warning' }
+                : { label: 'Location pending selection', tone: 'muted' },
     ];
 
-    const pillStyles: Record<typeof statusPills[number]['tone'], string> = {
+    const pillStyles: Record<(typeof statusPills)[number]['tone'], string> = {
         positive: 'border-emerald-400/40 bg-emerald-500/15 text-emerald-200',
         warning: 'border-amber-400/40 bg-amber-500/15 text-amber-200',
         muted: 'border-white/20 bg-white/10 text-white/70',
@@ -1304,9 +1554,12 @@ function ReviewStep({
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(249,115,22,0.35),_transparent_55%)] opacity-70" />
 
                 <div className="relative">
-                    <h3 className="text-lg font-semibold tracking-tight text-white">Review &amp; amplify</h3>
+                    <h3 className="text-lg font-semibold tracking-tight text-white">
+                        Review &amp; amplify
+                    </h3>
                     <p className="mt-2 text-sm text-white/70">
-                        Confirm your essentials before we send the verification link. You can hop back and tweak anything if needed.
+                        Confirm your essentials before we send the verification
+                        link. You can hop back and tweak anything if needed.
                     </p>
 
                     <div className="mt-6 grid gap-4 text-sm sm:grid-cols-2">
@@ -1315,21 +1568,23 @@ function ReviewStep({
                                 key={item.label}
                                 className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 shadow-[0_18px_45px_-38px_rgba(249,115,22,0.6)]"
                             >
-                                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.35em] text-white/45">
+                                <div className="flex items-center gap-2 text-xs tracking-[0.35em] text-white/45 uppercase">
                                     {item.icon}
                                     {item.label}
                                 </div>
-                                <div className="mt-2 text-sm font-semibold text-white">{item.value}</div>
+                                <div className="mt-2 text-sm font-semibold text-white">
+                                    {item.value}
+                                </div>
                             </div>
                         ))}
-                            </div>
+                    </div>
 
                     <div className="mt-6 flex flex-wrap gap-3">
                         {statusPills.map((pill) => (
                             <span
                                 key={pill.label}
                                 className={cn(
-                                    'rounded-full border px-3 py-1 text-xs font-medium uppercase tracking-[0.3em]',
+                                    'rounded-full border px-3 py-1 text-xs font-medium tracking-[0.3em] uppercase',
                                     pillStyles[pill.tone],
                                 )}
                             >
@@ -1338,12 +1593,15 @@ function ReviewStep({
                         ))}
                     </div>
                 </div>
-                        </div>
+            </div>
 
             <div className="rounded-3xl border border-white/10 bg-black/30 p-6 text-white shadow-[0_40px_90px_-45px_rgba(0,0,0,0.65)]">
-                <h4 className="text-base font-semibold text-white">Final consent</h4>
+                <h4 className="text-base font-semibold text-white">
+                    Final consent
+                </h4>
                 <p className="mt-1 text-sm text-white/65">
-                    These agreements make sure everyone on Real Kink Men plays by the same rules and respects the scene.
+                    These agreements make sure everyone on Real Kink Men plays
+                    by the same rules and respects the scene.
                 </p>
 
                 <div className="mt-5 space-y-4">
@@ -1351,11 +1609,16 @@ function ReviewStep({
                         <Checkbox
                             id="accepted_terms"
                             checked={form.data.accepted_terms}
-                            onCheckedChange={(checked) => form.setData('accepted_terms', Boolean(checked))}
+                            onCheckedChange={(checked) =>
+                                form.setData('accepted_terms', Boolean(checked))
+                            }
                         />
-                        <Label htmlFor="accepted_terms" className="text-sm font-medium text-white/85">
+                        <Label
+                            htmlFor="accepted_terms"
+                            className="text-sm font-medium text-white/85"
+                        >
                             I agree to the{' '}
-                            <TextLink href="/terms" className="text-white">
+                            <TextLink href="/legal/terms" className="text-white">
                                 Terms of Service
                             </TextLink>
                             .
@@ -1367,11 +1630,19 @@ function ReviewStep({
                         <Checkbox
                             id="accepted_privacy"
                             checked={form.data.accepted_privacy}
-                            onCheckedChange={(checked) => form.setData('accepted_privacy', Boolean(checked))}
+                            onCheckedChange={(checked) =>
+                                form.setData(
+                                    'accepted_privacy',
+                                    Boolean(checked),
+                                )
+                            }
                         />
-                        <Label htmlFor="accepted_privacy" className="text-sm font-medium text-white/85">
+                        <Label
+                            htmlFor="accepted_privacy"
+                            className="text-sm font-medium text-white/85"
+                        >
                             I agree to the{' '}
-                            <TextLink href="/privacy" className="text-white">
+                            <TextLink href="/legal/privacy" className="text-white">
                                 Privacy Policy
                             </TextLink>
                             .
@@ -1381,9 +1652,11 @@ function ReviewStep({
                 </div>
 
                 <p className="mt-4 text-xs text-white/60">
-                    After you submit, we’ll email a verification link. Confirm within 24 hours to unlock onboarding and start curating your vibe.
+                    After you submit, we’ll email a verification link. Confirm
+                    within 24 hours to unlock onboarding and start curating your
+                    vibe.
                 </p>
             </div>
-                        </div>
+        </div>
     );
 }

@@ -14,4 +14,3 @@ trait HasPayable
         return $this->morphTo();
     }
 }
-

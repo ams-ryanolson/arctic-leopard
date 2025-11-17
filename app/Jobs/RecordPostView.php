@@ -34,8 +34,7 @@ class RecordPostView implements ShouldQueue
         public array $context,
         public Carbon $occurredAt,
         public int $dedupeTtlSeconds = 120,
-    ) {
-    }
+    ) {}
 
     public function handle(): void
     {
@@ -74,4 +73,3 @@ class RecordPostView implements ShouldQueue
         ]);
     }
 }
-

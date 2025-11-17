@@ -13,4 +13,3 @@ enum PaymentMethodStatus: string
     case Expired = 'expired';
     case Suspended = 'suspended';
 }
-

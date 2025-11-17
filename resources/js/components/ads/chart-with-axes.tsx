@@ -20,7 +20,11 @@ interface ChartWithAxesProps {
     formatYValue?: (value: number) => string;
 }
 
-const palette = ['rgba(249, 115, 22, 0.85)', 'rgba(56, 189, 248, 0.85)', 'rgba(190, 242, 100, 0.85)'];
+const palette = [
+    'rgba(249, 115, 22, 0.85)',
+    'rgba(56, 189, 248, 0.85)',
+    'rgba(190, 242, 100, 0.85)',
+];
 
 const PADDING = {
     top: 20,
@@ -47,7 +51,9 @@ export function ChartWithAxes({
         }
 
         const maxPoints = Math.max(...series.map((item) => item.values.length));
-        const flattened = series.flatMap((item) => item.values.map((value) => value.value));
+        const flattened = series.flatMap((item) =>
+            item.values.map((value) => value.value),
+        );
         const min = Math.min(...flattened);
         const max = Math.max(...flattened);
         const range = max - min || 1;
@@ -56,15 +62,20 @@ export function ChartWithAxes({
         // Calculate Y-axis tick values
         const tickCount = 5;
         const tickStep = range / (tickCount - 1);
-        const yTicks = Array.from({ length: tickCount }, (_, i) => min + tickStep * i);
+        const yTicks = Array.from(
+            { length: tickCount },
+            (_, i) => min + tickStep * i,
+        );
 
         return {
             series: series.map((item, seriesIndex) => {
-                const color = item.color ?? palette[seriesIndex % palette.length];
+                const color =
+                    item.color ?? palette[seriesIndex % palette.length];
                 const points = item.values.map((value, index) => {
                     const x = PADDING.left + index * step;
                     const normalized = (value.value - min) / range;
-                    const y = PADDING.top + chartHeight - normalized * chartHeight;
+                    const y =
+                        PADDING.top + chartHeight - normalized * chartHeight;
 
                     return {
                         ...value,
@@ -73,7 +84,12 @@ export function ChartWithAxes({
                     };
                 });
 
-                const path = points.map((point, index) => `${index === 0 ? 'M' : 'L'}${point.x},${point.y}`).join(' ');
+                const path = points
+                    .map(
+                        (point, index) =>
+                            `${index === 0 ? 'M' : 'L'}${point.x},${point.y}`,
+                    )
+                    .join(' ');
 
                 return {
                     name: item.name,
@@ -94,9 +110,20 @@ export function ChartWithAxes({
 
     return (
         <div className="relative">
-            <svg viewBox={`0 0 ${width} ${height}`} className="w-full" role="img" aria-label="Chart with axes">
+            <svg
+                viewBox={`0 0 ${width} ${height}`}
+                className="w-full"
+                role="img"
+                aria-label="Chart with axes"
+            >
                 <defs>
-                    <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
+                    <linearGradient
+                        id={gradientId}
+                        x1="0%"
+                        y1="0%"
+                        x2="0%"
+                        y2="100%"
+                    >
                         <stop offset="5%" stopColor="rgba(255,255,255,0.16)" />
                         <stop offset="95%" stopColor="rgba(255,255,255,0)" />
                     </linearGradient>
@@ -119,8 +146,11 @@ export function ChartWithAxes({
 
                 {/* Y-axis ticks and labels */}
                 {computedSeries.yTicks.map((tickValue, index) => {
-                    const normalized = (tickValue - computedSeries.min) / (computedSeries.max - computedSeries.min || 1);
-                    const y = PADDING.top + chartHeight - normalized * chartHeight;
+                    const normalized =
+                        (tickValue - computedSeries.min) /
+                        (computedSeries.max - computedSeries.min || 1);
+                    const y =
+                        PADDING.top + chartHeight - normalized * chartHeight;
 
                     return (
                         <g key={index}>
@@ -171,10 +201,16 @@ export function ChartWithAxes({
 
                 {/* X-axis date labels (show every 5th label to avoid crowding) */}
                 {series[0]?.values.map((point, index) => {
-                    if (index % 5 !== 0 && index !== series[0].values.length - 1) {
+                    if (
+                        index % 5 !== 0 &&
+                        index !== series[0].values.length - 1
+                    ) {
                         return null;
                     }
-                    const x = PADDING.left + (index / Math.max(series[0].values.length - 1, 1)) * chartWidth;
+                    const x =
+                        PADDING.left +
+                        (index / Math.max(series[0].values.length - 1, 1)) *
+                            chartWidth;
                     return (
                         <g key={index}>
                             <line
@@ -233,4 +269,3 @@ export function ChartWithAxes({
         </div>
     );
 }
-

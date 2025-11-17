@@ -94,5 +94,3 @@ it('resumes a cancelled subscription', function (): void {
     ])->assertOk()
         ->assertJsonPath('status', PaymentSubscriptionStatus::Active->value);
 });
-
-

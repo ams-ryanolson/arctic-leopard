@@ -72,4 +72,3 @@ export type ProfilePayload = {
     wishlist: WishlistItem[];
     feed: FeedItem[];
 };
-

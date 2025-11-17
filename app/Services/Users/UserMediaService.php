@@ -3,28 +3,20 @@
 namespace App\Services\Users;
 
 use App\Models\User;
+use App\Services\Media\MediaProcessingService;
+use App\Services\Media\Processors\AvatarProcessor;
+use App\Services\Media\Processors\BrandingImageProcessor;
+use App\Services\Media\Processors\CoverProcessor;
 use App\Services\TemporaryUploadService;
 use Illuminate\Support\Facades\Storage;
-use Intervention\Image\Drivers\Gd\Driver;
-use Intervention\Image\ImageManager;
 use Throwable;
 
 class UserMediaService
 {
-    private const AVATAR_SIZE = 400;
-
-    private const COVER_HEIGHT = 600;
-
-    private const BLUR_SIZE = 20;
-
     public function __construct(
         private TemporaryUploadService $temporaryUploads,
+        private MediaProcessingService $mediaProcessing,
     ) {}
-
-    private function imageManager(): ImageManager
-    {
-        return new ImageManager(new Driver);
-    }
 
     /**
      * Update user avatar from temporary upload
@@ -32,11 +24,12 @@ class UserMediaService
     public function updateAvatar(User $user, string $identifier): ?string
     {
         $disk = config('filesystems.default');
+        $baseDirectory = sprintf('users/%d', $user->getKey());
 
         // Promote file from temporary to permanent storage
         $promotedPath = $this->temporaryUploads->promote(
             $identifier,
-            sprintf('users/%d', $user->getKey()),
+            $baseDirectory,
             'avatar',
             'public',
         );
@@ -48,14 +41,20 @@ class UserMediaService
         $originalPath = $promotedPath;
         $optimizedPath = null;
 
-        // Process avatar image
+        // Process avatar image using unified MediaProcessingService
         try {
-            $processed = $this->processAvatar($disk, $promotedPath, $user->getKey());
+            $processor = new AvatarProcessor($baseDirectory, 'avatar');
+            $processed = $this->mediaProcessing->processImage($disk, $promotedPath, $processor);
             $optimizedPath = $processed['optimized_path'];
 
             // Use optimized path as the main path
             $promotedPath = $optimizedPath ?? $promotedPath;
         } catch (Throwable $e) {
+            \Log::warning('UserMediaService: Avatar processing failed', [
+                'user_id' => $user->getKey(),
+                'path' => $promotedPath,
+                'error' => $e->getMessage(),
+            ]);
             // If processing fails, use original
             $promotedPath = $originalPath;
         }
@@ -74,11 +73,12 @@ class UserMediaService
     public function updateCover(User $user, string $identifier): ?string
     {
         $disk = config('filesystems.default');
+        $baseDirectory = sprintf('users/%d', $user->getKey());
 
         // Promote file from temporary to permanent storage
         $promotedPath = $this->temporaryUploads->promote(
             $identifier,
-            sprintf('users/%d', $user->getKey()),
+            $baseDirectory,
             'cover',
             'public',
         );
@@ -90,14 +90,20 @@ class UserMediaService
         $originalPath = $promotedPath;
         $optimizedPath = null;
 
-        // Process cover image
+        // Process cover image using unified MediaProcessingService
         try {
-            $processed = $this->processCover($disk, $promotedPath, $user->getKey());
+            $processor = new CoverProcessor($baseDirectory, 'cover');
+            $processed = $this->mediaProcessing->processImage($disk, $promotedPath, $processor);
             $optimizedPath = $processed['optimized_path'];
 
             // Use optimized path as the main path
             $promotedPath = $optimizedPath ?? $promotedPath;
         } catch (Throwable $e) {
+            \Log::warning('UserMediaService: Cover processing failed', [
+                'user_id' => $user->getKey(),
+                'path' => $promotedPath,
+                'error' => $e->getMessage(),
+            ]);
             // If processing fails, use original
             $promotedPath = $originalPath;
         }
@@ -111,105 +117,33 @@ class UserMediaService
     }
 
     /**
-     * Process avatar image: optimize and resize
-     *
-     * @return array{optimized_path: string|null}
-     */
-    private function processAvatar(string $disk, string $path, int $userId): array
-    {
-        $storage = Storage::disk($disk);
-        $imageContents = $storage->get($path);
-
-        if (! is_string($imageContents)) {
-            throw new \RuntimeException('Unable to read image file');
-        }
-
-        $imageManager = $this->imageManager();
-        $image = $imageManager->read($imageContents);
-
-        // Resize to square avatar (crop center if needed)
-        $image = $image->cover(self::AVATAR_SIZE, self::AVATAR_SIZE);
-
-        $baseDir = sprintf('users/%d', $userId);
-        $baseName = 'avatar';
-
-        // Optimize: Convert to WebP with quality 85
-        $optimizedPath = sprintf('%s/%s-optimized.webp', $baseDir, $baseName);
-        $optimized = $image->toWebp(85);
-        $storage->put($optimizedPath, $optimized->toString(), ['visibility' => 'public']);
-
-        return [
-            'optimized_path' => $optimizedPath,
-        ];
-    }
-
-    /**
-     * Process cover image: optimize and resize
-     *
-     * @return array{optimized_path: string|null}
-     */
-    private function processCover(string $disk, string $path, int $userId): array
-    {
-        $storage = Storage::disk($disk);
-        $imageContents = $storage->get($path);
-
-        if (! is_string($imageContents)) {
-            throw new \RuntimeException('Unable to read image file');
-        }
-
-        $imageManager = $this->imageManager();
-        $image = $imageManager->read($imageContents);
-
-        // Resize cover to max height while maintaining aspect ratio
-        $image = $image->scaleDown(height: self::COVER_HEIGHT);
-
-        $baseDir = sprintf('users/%d', $userId);
-        $baseName = 'cover';
-
-        // Optimize: Convert to WebP with quality 85
-        $optimizedPath = sprintf('%s/%s-optimized.webp', $baseDir, $baseName);
-        $optimized = $image->toWebp(85);
-        $storage->put($optimizedPath, $optimized->toString(), ['visibility' => 'public']);
-
-        return [
-            'optimized_path' => $optimizedPath,
-        ];
-    }
-
-    /**
      * Process branding image: optimize
      *
      * @return array{optimized_path: string|null}
      */
     public function processBrandingImage(string $disk, string $path, string $logoType): array
     {
-        $storage = Storage::disk($disk);
-        $imageContents = $storage->get($path);
-
-        if (! is_string($imageContents)) {
-            throw new \RuntimeException('Unable to read image file');
-        }
-
-        $imageManager = $this->imageManager();
-        $image = $imageManager->read($imageContents);
-
-        // For favicon/app_icon, ensure square format
-        if (in_array($logoType, ['favicon', 'app_icon'], true)) {
-            $size = $logoType === 'favicon' ? 32 : 512;
-            $image = $image->cover($size, $size);
-        }
-
         $baseDir = 'branding';
         $baseName = pathinfo($path, PATHINFO_FILENAME);
 
-        // Optimize: Convert to WebP with quality 90 (higher for branding)
-        $optimizedPath = sprintf('%s/%s-optimized.webp', $baseDir, $baseName);
-        $optimized = $image->toWebp(90);
-        $storage->put($optimizedPath, $optimized->toString(), ['visibility' => 'public']);
+        try {
+            $processor = new BrandingImageProcessor($baseDir, $baseName, $logoType);
+            $processed = $this->mediaProcessing->processImage($disk, $path, $processor);
 
-        return [
-            'optimized_path' => $optimizedPath,
-        ];
+            return [
+                'optimized_path' => $processed['optimized_path'],
+            ];
+        } catch (Throwable $e) {
+            \Log::warning('UserMediaService: Branding image processing failed', [
+                'path' => $path,
+                'logo_type' => $logoType,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'optimized_path' => null,
+            ];
+        }
     }
 
     private function deleteMedia(?string $path): void

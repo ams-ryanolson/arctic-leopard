@@ -1,4 +1,3 @@
-import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -7,6 +6,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import AppLayout from '@/layouts/app-layout';
 import admin from '@/routes/admin';
 import { Head, Link } from '@inertiajs/react';
 
@@ -66,11 +66,17 @@ export default function AdminDashboard({
 
             <div className="space-y-8 text-white">
                 <section className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[0_20px_60px_-45px_rgba(249,115,22,0.35)]">
-                    <p className="text-xs uppercase tracking-[0.35em] text-white/50">Admin Control Center</p>
+                    <p className="text-xs tracking-[0.35em] text-white/50 uppercase">
+                        Admin Control Center
+                    </p>
                     <h1 className="mt-3 text-3xl font-semibold">
-                        {welcome?.name ? `Welcome back, ${welcome.name}` : 'Welcome back'}
+                        {welcome?.name
+                            ? `Welcome back, ${welcome.name}`
+                            : 'Welcome back'}
                     </h1>
-                    <p className="mt-4 max-w-2xl text-sm text-white/70">{welcome.message}</p>
+                    <p className="mt-4 max-w-2xl text-sm text-white/70">
+                        {welcome.message}
+                    </p>
                 </section>
 
                 <section className="grid gap-4 md:grid-cols-3">
@@ -80,13 +86,17 @@ export default function AdminDashboard({
                             className="border-white/10 bg-white/5 text-white shadow-[0_24px_65px_-45px_rgba(14,116,144,0.35)]"
                         >
                             <CardHeader>
-                                <CardDescription className="text-xs uppercase tracking-[0.35em] text-white/55">
+                                <CardDescription className="text-xs tracking-[0.35em] text-white/55 uppercase">
                                     {stat.label}
                                 </CardDescription>
-                                <CardTitle className="text-2xl font-semibold text-white">{stat.value}</CardTitle>
+                                <CardTitle className="text-2xl font-semibold text-white">
+                                    {stat.value}
+                                </CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-xs text-emerald-200">{stat.trend}</p>
+                                <p className="text-xs text-emerald-200">
+                                    {stat.trend}
+                                </p>
                             </CardContent>
                         </Card>
                     ))}
@@ -96,9 +106,12 @@ export default function AdminDashboard({
                     <Card className="border-white/10 bg-white/5 text-white">
                         <CardHeader className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
                             <div>
-                                <CardTitle className="text-lg font-semibold">Recent activity</CardTitle>
+                                <CardTitle className="text-lg font-semibold">
+                                    Recent activity
+                                </CardTitle>
                                 <CardDescription className="text-white/65">
-                                    What moderators and systems surfaced in the last day.
+                                    What moderators and systems surfaced in the
+                                    last day.
                                 </CardDescription>
                             </div>
                             <Button
@@ -116,12 +129,16 @@ export default function AdminDashboard({
                                     className="rounded-2xl border border-white/10 bg-black/35 px-5 py-4 transition hover:border-amber-400/40 hover:bg-white/10"
                                 >
                                     <div className="flex flex-wrap items-center justify-between gap-2">
-                                        <h3 className="text-base font-semibold text-white">{item.title}</h3>
-                                        <span className="text-xs uppercase tracking-[0.3em] text-white/50">
+                                        <h3 className="text-base font-semibold text-white">
+                                            {item.title}
+                                        </h3>
+                                        <span className="text-xs tracking-[0.3em] text-white/50 uppercase">
                                             {item.timestamp}
                                         </span>
                                     </div>
-                                    <p className="mt-3 text-sm text-white/70">{item.summary}</p>
+                                    <p className="mt-3 text-sm text-white/70">
+                                        {item.summary}
+                                    </p>
                                 </div>
                             ))}
                         </CardContent>
@@ -129,7 +146,9 @@ export default function AdminDashboard({
 
                     <Card className="border-white/10 bg-white/5 text-white">
                         <CardHeader>
-                            <CardTitle className="text-lg font-semibold">Quick links</CardTitle>
+                            <CardTitle className="text-lg font-semibold">
+                                Quick links
+                            </CardTitle>
                             <CardDescription className="text-white/65">
                                 Jump straight into the queues that need eyes.
                             </CardDescription>
@@ -150,7 +169,7 @@ export default function AdminDashboard({
                                         {link.description}
                                     </p>
                                     {link.disabled ? (
-                                        <span className="mt-3 inline-flex rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[0.65rem] uppercase tracking-[0.3em] text-white/40">
+                                        <span className="mt-3 inline-flex rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[0.65rem] tracking-[0.3em] text-white/40 uppercase">
                                             Coming soon
                                         </span>
                                     ) : (
@@ -168,9 +187,3 @@ export default function AdminDashboard({
         </AppLayout>
     );
 }
-
-
-
-
-
-

@@ -23,4 +23,3 @@ class TouchPaymentMethodOnUse implements ShouldQueue
         ])->save();
     }
 }
-

@@ -3,8 +3,8 @@
 namespace App\Services\Payments;
 
 use App\Enums\Payments\PaymentStatus;
-use App\Enums\Payments\PaymentType;
 use App\Enums\Payments\PaymentSubscriptionStatus;
+use App\Enums\Payments\PaymentType;
 use App\Models\Payments\Payment;
 use App\Models\Payments\PaymentSubscription;
 use App\Models\Payments\Tip;
@@ -201,5 +201,3 @@ class AdminReportingService
         return [$from, $to];
     }
 }
-
-

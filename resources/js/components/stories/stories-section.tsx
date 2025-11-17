@@ -1,10 +1,10 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+import { create as storiesCreate } from '@/routes/stories';
+import { Link } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { Link } from '@inertiajs/react';
-import { cn } from '@/lib/utils';
-import { create as storiesCreate, show as storiesShow } from '@/routes/stories';
 
 type StoryItem = {
     id: number;
@@ -22,7 +22,10 @@ type StoriesSectionProps = {
     onStoryClick?: (storyId: number) => void;
 };
 
-export default function StoriesSection({ stories = [], onStoryClick }: StoriesSectionProps) {
+export default function StoriesSection({
+    stories = [],
+    onStoryClick,
+}: StoriesSectionProps) {
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(false);
@@ -32,7 +35,8 @@ export default function StoriesSection({ stories = [], onStoryClick }: StoriesSe
             return;
         }
 
-        const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+        const { scrollLeft, scrollWidth, clientWidth } =
+            scrollContainerRef.current;
         const isAtStart = scrollLeft <= 0;
         const isAtEnd = scrollLeft + clientWidth >= scrollWidth - 1; // -1 for rounding errors
 
@@ -71,7 +75,10 @@ export default function StoriesSection({ stories = [], onStoryClick }: StoriesSe
 
         const scrollAmount = 300;
         const currentScroll = scrollContainerRef.current.scrollLeft;
-        const newScroll = direction === 'left' ? currentScroll - scrollAmount : currentScroll + scrollAmount;
+        const newScroll =
+            direction === 'left'
+                ? currentScroll - scrollAmount
+                : currentScroll + scrollAmount;
 
         scrollContainerRef.current.scrollTo({
             left: newScroll,
@@ -91,7 +98,7 @@ export default function StoriesSection({ stories = [], onStoryClick }: StoriesSe
                             onClick={() => {
                                 handleScroll('left');
                             }}
-                            className="absolute left-0 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/20 bg-black/60 p-2 text-white/80 backdrop-blur-sm transition hover:bg-black/80 hover:text-white"
+                            className="absolute top-1/2 left-0 z-10 -translate-y-1/2 rounded-full border border-white/20 bg-black/60 p-2 text-white/80 backdrop-blur-sm transition hover:bg-black/80 hover:text-white"
                             aria-label="Scroll left"
                         >
                             <svg
@@ -101,7 +108,12 @@ export default function StoriesSection({ stories = [], onStoryClick }: StoriesSe
                                 viewBox="0 0 24 24"
                                 xmlns="http://www.w3.org/2000/svg"
                             >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15 19l-7-7 7-7"
+                                />
                             </svg>
                         </button>
                     )}
@@ -110,7 +122,7 @@ export default function StoriesSection({ stories = [], onStoryClick }: StoriesSe
                             onClick={() => {
                                 handleScroll('right');
                             }}
-                            className="absolute right-0 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/20 bg-black/60 p-2 text-white/80 backdrop-blur-sm transition hover:bg-black/80 hover:text-white"
+                            className="absolute top-1/2 right-0 z-10 -translate-y-1/2 rounded-full border border-white/20 bg-black/60 p-2 text-white/80 backdrop-blur-sm transition hover:bg-black/80 hover:text-white"
                             aria-label="Scroll right"
                         >
                             <svg
@@ -120,7 +132,12 @@ export default function StoriesSection({ stories = [], onStoryClick }: StoriesSe
                                 viewBox="0 0 24 24"
                                 xmlns="http://www.w3.org/2000/svg"
                             >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M9 5l7 7-7 7"
+                                />
                             </svg>
                         </button>
                     )}
@@ -128,7 +145,7 @@ export default function StoriesSection({ stories = [], onStoryClick }: StoriesSe
                     {/* Stories container */}
                     <div
                         ref={scrollContainerRef}
-                        className="flex gap-3 overflow-x-auto px-4 md:px-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                        className="flex gap-3 overflow-x-auto px-4 [-ms-overflow-style:none] [scrollbar-width:none] md:px-8 [&::-webkit-scrollbar]:hidden"
                     >
                         {/* Mobile: Circular avatars */}
                         <div className="flex gap-4 md:hidden">
@@ -142,17 +159,22 @@ export default function StoriesSection({ stories = [], onStoryClick }: StoriesSe
                                         <Plus className="size-6 text-white/60" />
                                     </div>
                                 </div>
-                                <span className="max-w-[80px] truncate text-xs text-white/70">Your story</span>
+                                <span className="max-w-[80px] truncate text-xs text-white/70">
+                                    Your story
+                                </span>
                             </Link>
 
-                                {/* Story items - Mobile */}
-                                {stories.map((story) => (
-                                    <button
-                                        key={story.id}
-                                        onClick={() => story.first_story_id && onStoryClick?.(story.first_story_id)}
-                                        disabled={!story.first_story_id}
-                                        className="group flex shrink-0 flex-col items-center gap-2 transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
-                                    >
+                            {/* Story items - Mobile */}
+                            {stories.map((story) => (
+                                <button
+                                    key={story.id}
+                                    onClick={() =>
+                                        story.first_story_id &&
+                                        onStoryClick?.(story.first_story_id)
+                                    }
+                                    disabled={!story.first_story_id}
+                                    className="group flex shrink-0 flex-col items-center gap-2 transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
                                     <div className="relative">
                                         <div
                                             className={cn(
@@ -163,19 +185,27 @@ export default function StoriesSection({ stories = [], onStoryClick }: StoriesSe
                                             )}
                                         >
                                             <Avatar className="size-16 border-2 border-black">
-                                                <AvatarImage src={story.avatar_url ?? undefined} alt={story.username} />
+                                                <AvatarImage
+                                                    src={
+                                                        story.avatar_url ??
+                                                        undefined
+                                                    }
+                                                    alt={story.username}
+                                                />
                                                 <AvatarFallback className="bg-white/10 text-white/70">
                                                     {story.username[0].toUpperCase()}
                                                 </AvatarFallback>
                                             </Avatar>
                                         </div>
                                         {story.story_count > 1 && (
-                                            <div className="absolute -bottom-1 -right-1 flex size-5 items-center justify-center rounded-full border-2 border-black bg-amber-500 text-[10px] font-semibold text-black">
+                                            <div className="absolute -right-1 -bottom-1 flex size-5 items-center justify-center rounded-full border-2 border-black bg-amber-500 text-[10px] font-semibold text-black">
                                                 {story.story_count}
                                             </div>
                                         )}
                                     </div>
-                                    <span className="max-w-[80px] truncate text-xs text-white/70">{story.username}</span>
+                                    <span className="max-w-[80px] truncate text-xs text-white/70">
+                                        {story.username}
+                                    </span>
                                 </button>
                             ))}
                         </div>
@@ -193,14 +223,17 @@ export default function StoriesSection({ stories = [], onStoryClick }: StoriesSe
                                 </span>
                             </Link>
 
-                                {/* Story items - Desktop */}
-                                {stories.map((story) => (
-                                    <button
-                                        key={story.id}
-                                        onClick={() => story.first_story_id && onStoryClick?.(story.first_story_id)}
-                                        disabled={!story.first_story_id}
-                                        className="group relative flex h-[200px] w-[120px] shrink-0 flex-col overflow-hidden rounded-xl transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
-                                    >
+                            {/* Story items - Desktop */}
+                            {stories.map((story) => (
+                                <button
+                                    key={story.id}
+                                    onClick={() =>
+                                        story.first_story_id &&
+                                        onStoryClick?.(story.first_story_id)
+                                    }
+                                    disabled={!story.first_story_id}
+                                    className="group relative flex h-[200px] w-[120px] shrink-0 flex-col overflow-hidden rounded-xl transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
+                                >
                                     {/* Border gradient for new stories */}
                                     <div
                                         className={cn(
@@ -214,7 +247,9 @@ export default function StoriesSection({ stories = [], onStoryClick }: StoriesSe
                                             {/* Story preview image */}
                                             {story.latest_story_preview && (
                                                 <img
-                                                    src={story.latest_story_preview}
+                                                    src={
+                                                        story.latest_story_preview
+                                                    }
                                                     alt={`${story.username}'s story`}
                                                     className="h-full w-full object-cover"
                                                 />
@@ -224,10 +259,16 @@ export default function StoriesSection({ stories = [], onStoryClick }: StoriesSe
                                             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-8" />
 
                                             {/* User avatar in top corner */}
-                                            <div className="absolute left-2 top-2">
+                                            <div className="absolute top-2 left-2">
                                                 <Avatar className="size-8 border-2 border-black/50">
-                                                    <AvatarImage src={story.avatar_url ?? undefined} alt={story.username} />
-                                                    <AvatarFallback className="bg-white/10 text-white/70 text-xs">
+                                                    <AvatarImage
+                                                        src={
+                                                            story.avatar_url ??
+                                                            undefined
+                                                        }
+                                                        alt={story.username}
+                                                    />
+                                                    <AvatarFallback className="bg-white/10 text-xs text-white/70">
                                                         {story.username[0].toUpperCase()}
                                                     </AvatarFallback>
                                                 </Avatar>
@@ -235,13 +276,13 @@ export default function StoriesSection({ stories = [], onStoryClick }: StoriesSe
 
                                             {/* Story count badge */}
                                             {story.story_count > 1 && (
-                                                <div className="absolute right-2 top-2 flex size-5 items-center justify-center rounded-full border-2 border-black/50 bg-amber-500 text-[10px] font-semibold text-black">
+                                                <div className="absolute top-2 right-2 flex size-5 items-center justify-center rounded-full border-2 border-black/50 bg-amber-500 text-[10px] font-semibold text-black">
                                                     {story.story_count}
                                                 </div>
                                             )}
 
                                             {/* Username at bottom */}
-                                            <div className="absolute bottom-2 left-2 right-2">
+                                            <div className="absolute right-2 bottom-2 left-2">
                                                 <span className="block truncate text-xs font-semibold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                                                     {story.username}
                                                 </span>
@@ -257,4 +298,3 @@ export default function StoriesSection({ stories = [], onStoryClick }: StoriesSe
         </Card>
     );
 }
-

@@ -1,12 +1,23 @@
-import AccountController from '@/actions/App/Http/Controllers/Settings/AccountController';
 import DataExportController from '@/actions/App/Http/Controllers/Settings/DataExportController';
 import DeleteUser from '@/components/delete-user';
+import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { type BreadcrumbItem } from '@/types';
 import { Form, Head, Link, router } from '@inertiajs/react';
-import { Button } from '@/components/ui/button';
-import { Download, ShieldCheck, AlertTriangle, Database, FileDown, Shield, Clock, CheckCircle2, Loader2, XCircle, Trash2 } from 'lucide-react';
+import {
+    AlertTriangle,
+    CheckCircle2,
+    Clock,
+    Database,
+    Download,
+    FileDown,
+    Loader2,
+    Shield,
+    ShieldCheck,
+    Trash2,
+    XCircle,
+} from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -72,7 +83,11 @@ export default function Account({
     };
 
     const handleDelete = (exportId: number) => {
-        if (confirm('Are you sure you want to delete this export? This action cannot be undone.')) {
+        if (
+            confirm(
+                'Are you sure you want to delete this export? This action cannot be undone.',
+            )
+        ) {
             router.delete(DataExportController.destroy.url(exportId), {
                 preserveScroll: true,
             });
@@ -91,11 +106,13 @@ export default function Account({
                         </div>
                         <div className="relative space-y-6 p-6 sm:p-8">
                             <div className="flex items-center gap-3">
-                                <div className="flex items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400/30 to-emerald-500/20 border border-emerald-400/40 p-3 shadow-[0_12px_30px_-18px_rgba(16,185,129,0.65)]">
+                                <div className="flex items-center justify-center rounded-xl border border-emerald-400/40 bg-gradient-to-br from-emerald-400/30 to-emerald-500/20 p-3 shadow-[0_12px_30px_-18px_rgba(16,185,129,0.65)]">
                                     <FileDown className="h-5 w-5 text-emerald-300" />
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-semibold text-white">Data export</h2>
+                                    <h2 className="text-xl font-semibold text-white">
+                                        Data export
+                                    </h2>
                                     <p className="text-sm text-white/65">
                                         Download a copy of your account data
                                     </p>
@@ -104,9 +121,12 @@ export default function Account({
 
                             <div className="rounded-2xl border border-white/10 bg-black/40 p-5">
                                 <p className="mb-4 text-sm leading-relaxed text-white/70">
-                                    You can request a download of all your account data, including your profile information,
-                                    posts, messages, and media files. The export will be generated as a ZIP file and you
-                                    will be notified when it's ready for download.
+                                    You can request a download of all your
+                                    account data, including your profile
+                                    information, posts, messages, and media
+                                    files. The export will be generated as a ZIP
+                                    file and you will be notified when it's
+                                    ready for download.
                                 </p>
                                 <Form
                                     {...DataExportController.export.form()}
@@ -118,10 +138,12 @@ export default function Account({
                                         <Button
                                             type="submit"
                                             disabled={processing}
-                                            className="rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_12px_-4px_rgba(16,185,129,0.4)] transition-all hover:scale-[1.02] hover:shadow-[0_6px_16px_-4px_rgba(16,185,129,0.5)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                                            className="rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_12px_-4px_rgba(16,185,129,0.4)] transition-all hover:scale-[1.02] hover:shadow-[0_6px_16px_-4px_rgba(16,185,129,0.5)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
                                         >
                                             <Download className="mr-2 h-4 w-4" />
-                                            {processing ? 'Requesting export...' : 'Request data export'}
+                                            {processing
+                                                ? 'Requesting export...'
+                                                : 'Request data export'}
                                         </Button>
                                     )}
                                 </Form>
@@ -136,13 +158,16 @@ export default function Account({
                             </div>
                             <div className="relative space-y-6 p-6 sm:p-8">
                                 <div className="flex items-center gap-3">
-                                    <div className="flex items-center justify-center rounded-xl bg-gradient-to-br from-blue-400/30 to-blue-500/20 border border-blue-400/40 p-3 shadow-[0_12px_30px_-18px_rgba(59,130,246,0.65)]">
+                                    <div className="flex items-center justify-center rounded-xl border border-blue-400/40 bg-gradient-to-br from-blue-400/30 to-blue-500/20 p-3 shadow-[0_12px_30px_-18px_rgba(59,130,246,0.65)]">
                                         <Database className="h-5 w-5 text-blue-300" />
                                     </div>
                                     <div>
-                                        <h2 className="text-xl font-semibold text-white">Export history</h2>
+                                        <h2 className="text-xl font-semibold text-white">
+                                            Export history
+                                        </h2>
                                         <p className="text-sm text-white/65">
-                                            View and download your previous data exports
+                                            View and download your previous data
+                                            exports
                                         </p>
                                     </div>
                                 </div>
@@ -168,12 +193,19 @@ export default function Account({
                                                             <XCircle className="h-4 w-4 text-rose-400" />
                                                         )}
                                                         <span className="text-sm font-medium text-white">
-                                                            Export from {formatDate(exportItem.created_at)}
+                                                            Export from{' '}
+                                                            {formatDate(
+                                                                exportItem.created_at,
+                                                            )}
                                                         </span>
                                                     </div>
                                                     <div className="flex items-center gap-4 text-xs text-white/60">
                                                         {exportItem.file_size && (
-                                                            <span>{formatFileSize(exportItem.file_size)}</span>
+                                                            <span>
+                                                                {formatFileSize(
+                                                                    exportItem.file_size,
+                                                                )}
+                                                            </span>
                                                         )}
                                                         {exportItem.is_pending && (
                                                             <span className="flex items-center gap-1 text-amber-400">
@@ -185,24 +217,32 @@ export default function Account({
                                                                 Processing...
                                                             </span>
                                                         )}
-                                                        {exportItem.is_completed && exportItem.is_expired && (
-                                                            <span className="flex items-center gap-1 text-amber-400">
-                                                                <Clock className="h-3 w-3" />
-                                                                Expired
-                                                            </span>
-                                                        )}
-                                                        {exportItem.is_completed && !exportItem.is_expired && exportItem.is_downloaded && (
-                                                            <span className="flex items-center gap-1 text-emerald-400">
-                                                                <CheckCircle2 className="h-3 w-3" />
-                                                                Downloaded
-                                                            </span>
-                                                        )}
-                                                        {exportItem.is_completed && !exportItem.is_expired && !exportItem.is_downloaded && (
-                                                            <span className="flex items-center gap-1 text-blue-400">
-                                                                <Clock className="h-3 w-3" />
-                                                                Expires {formatDate(exportItem.expires_at)}
-                                                            </span>
-                                                        )}
+                                                        {exportItem.is_completed &&
+                                                            exportItem.is_expired && (
+                                                                <span className="flex items-center gap-1 text-amber-400">
+                                                                    <Clock className="h-3 w-3" />
+                                                                    Expired
+                                                                </span>
+                                                            )}
+                                                        {exportItem.is_completed &&
+                                                            !exportItem.is_expired &&
+                                                            exportItem.is_downloaded && (
+                                                                <span className="flex items-center gap-1 text-emerald-400">
+                                                                    <CheckCircle2 className="h-3 w-3" />
+                                                                    Downloaded
+                                                                </span>
+                                                            )}
+                                                        {exportItem.is_completed &&
+                                                            !exportItem.is_expired &&
+                                                            !exportItem.is_downloaded && (
+                                                                <span className="flex items-center gap-1 text-blue-400">
+                                                                    <Clock className="h-3 w-3" />
+                                                                    Expires{' '}
+                                                                    {formatDate(
+                                                                        exportItem.expires_at,
+                                                                    )}
+                                                                </span>
+                                                            )}
                                                         {exportItem.is_failed && (
                                                             <span className="flex items-center gap-1 text-rose-400">
                                                                 Failed
@@ -211,17 +251,26 @@ export default function Account({
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    {exportItem.is_completed && !exportItem.is_expired && (
-                                                        <Button
-                                                            onClick={() => handleDownload(exportItem.id)}
-                                                            className="rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-[0_4px_12px_-4px_rgba(16,185,129,0.4)] transition-all hover:scale-[1.02] hover:shadow-[0_6px_16px_-4px_rgba(16,185,129,0.5)]"
-                                                        >
-                                                            <Download className="mr-2 h-3.5 w-3.5" />
-                                                            Download
-                                                        </Button>
-                                                    )}
+                                                    {exportItem.is_completed &&
+                                                        !exportItem.is_expired && (
+                                                            <Button
+                                                                onClick={() =>
+                                                                    handleDownload(
+                                                                        exportItem.id,
+                                                                    )
+                                                                }
+                                                                className="rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-[0_4px_12px_-4px_rgba(16,185,129,0.4)] transition-all hover:scale-[1.02] hover:shadow-[0_6px_16px_-4px_rgba(16,185,129,0.5)]"
+                                                            >
+                                                                <Download className="mr-2 h-3.5 w-3.5" />
+                                                                Download
+                                                            </Button>
+                                                        )}
                                                     <Button
-                                                        onClick={() => handleDelete(exportItem.id)}
+                                                        onClick={() =>
+                                                            handleDelete(
+                                                                exportItem.id,
+                                                            )
+                                                        }
                                                         variant="outline"
                                                         className="rounded-full border-white/15 bg-white/10 px-4 py-2 text-xs font-semibold text-white hover:border-rose-500/40 hover:bg-rose-500/20 hover:text-rose-50"
                                                     >
@@ -243,52 +292,59 @@ export default function Account({
                         </div>
                         <div className="relative space-y-6 p-6 sm:p-8">
                             <div className="flex items-center gap-3">
-                                <div className="flex items-center justify-center rounded-xl bg-gradient-to-br from-violet-400/30 to-violet-500/20 border border-violet-400/40 p-3 shadow-[0_12px_30px_-18px_rgba(124,58,237,0.65)]">
+                                <div className="flex items-center justify-center rounded-xl border border-violet-400/40 bg-gradient-to-br from-violet-400/30 to-violet-500/20 p-3 shadow-[0_12px_30px_-18px_rgba(124,58,237,0.65)]">
                                     <Shield className="h-5 w-5 text-violet-300" />
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-semibold text-white">ID Verification</h2>
+                                    <h2 className="text-xl font-semibold text-white">
+                                        ID Verification
+                                    </h2>
                                     <p className="text-sm text-white/65">
                                         Verify your identity using Veriff
                                     </p>
                                 </div>
                             </div>
-                            <div className="rounded-2xl border border-white/10 bg-black/40 p-5 space-y-4">
-                            {verificationStatus === 'verified' ? (
-                                <>
-                                    <div className="flex items-center gap-2 text-emerald-400">
-                                        <ShieldCheck className="h-5 w-5" />
-                                        <p className="text-sm font-semibold text-white">
-                                            Your identity has been verified
+                            <div className="space-y-4 rounded-2xl border border-white/10 bg-black/40 p-5">
+                                {verificationStatus === 'verified' ? (
+                                    <>
+                                        <div className="flex items-center gap-2 text-emerald-400">
+                                            <ShieldCheck className="h-5 w-5" />
+                                            <p className="text-sm font-semibold text-white">
+                                                Your identity has been verified
+                                            </p>
+                                        </div>
+                                        <p className="text-sm text-white/70">
+                                            Your account has been verified
+                                            through Veriff. This helps ensure
+                                            the safety and authenticity of our
+                                            community.
                                         </p>
-                                    </div>
-                                    <p className="text-sm text-white/70">
-                                        Your account has been verified through Veriff. This helps ensure the safety and
-                                        authenticity of our community.
-                                    </p>
-                                </>
-                            ) : (
-                                <>
-                                    <div className="flex items-center gap-2">
-                                        <AlertTriangle className="h-5 w-5 text-amber-400" />
-                                        <p className="text-sm font-semibold text-white">
-                                            Identity verification required
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="flex items-center gap-2">
+                                            <AlertTriangle className="h-5 w-5 text-amber-400" />
+                                            <p className="text-sm font-semibold text-white">
+                                                Identity verification required
+                                            </p>
+                                        </div>
+                                        <p className="text-sm text-white/70">
+                                            Verify your identity to access
+                                            additional features and help
+                                            maintain a safe community.
+                                            Verification is handled securely
+                                            through Veriff.
                                         </p>
-                                    </div>
-                                    <p className="text-sm text-white/70">
-                                        Verify your identity to access additional features and help maintain a safe
-                                        community. Verification is handled securely through Veriff.
-                                    </p>
-                                    <Button
-                                        asChild
-                                        className="rounded-full bg-gradient-to-r from-violet-500 to-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_12px_-4px_rgba(124,58,237,0.4)] transition-all hover:scale-[1.02] hover:shadow-[0_6px_16px_-4px_rgba(124,58,237,0.5)]"
-                                    >
-                                        <Link href="/settings/account/verification">
-                                            Start verification
-                                        </Link>
-                                    </Button>
-                                </>
-                            )}
+                                        <Button
+                                            asChild
+                                            className="rounded-full bg-gradient-to-r from-violet-500 to-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_12px_-4px_rgba(124,58,237,0.4)] transition-all hover:scale-[1.02] hover:shadow-[0_6px_16px_-4px_rgba(124,58,237,0.5)]"
+                                        >
+                                            <Link href="/settings/account/verification">
+                                                Start verification
+                                            </Link>
+                                        </Button>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -307,4 +363,3 @@ export default function Account({
         </AppLayout>
     );
 }
-

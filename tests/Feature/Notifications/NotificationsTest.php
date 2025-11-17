@@ -12,6 +12,7 @@ use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Testing\AssertableInertia as Assert;
+
 use function Pest\Laravel\actingAs;
 
 uses(RefreshDatabase::class);
@@ -227,4 +228,3 @@ it('marks all notifications as read', function (): void {
 
     expect($user->unreadNotifications()->count())->toBe(0);
 });
-

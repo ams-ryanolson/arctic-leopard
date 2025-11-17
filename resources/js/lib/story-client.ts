@@ -1,5 +1,5 @@
-import { router } from '@inertiajs/react';
 import { stories } from '@/routes';
+import { router } from '@inertiajs/react';
 
 export type StoryItem = {
     id: number;
@@ -18,6 +18,7 @@ export type StoriesResponse = {
 export type StoryMedia = {
     id: number;
     url: string | null;
+    optimized_url: string | null;
     thumbnail_url: string | null;
     blur_url: string | null;
     is_blurred: boolean;
@@ -112,7 +113,9 @@ export async function fetchStories(): Promise<StoriesResponse> {
                 only: ['stories'],
                 onSuccess: (page) => {
                     resolve({
-                        data: (page.props as { stories?: StoryItem[] }).stories ?? [],
+                        data:
+                            (page.props as { stories?: StoryItem[] }).stories ??
+                            [],
                     });
                 },
                 onError: (errors) => {
@@ -126,23 +129,21 @@ export async function fetchStories(): Promise<StoriesResponse> {
 /**
  * Create a new story.
  */
-export async function createStory(data: CreateStoryData): Promise<StoryResponse> {
+export async function createStory(
+    data: CreateStoryData,
+): Promise<StoryResponse> {
     return new Promise((resolve, reject) => {
-        router.post(
-            stories().url,
-            data,
-            {
-                preserveState: false,
-                preserveScroll: false,
-                onSuccess: (page) => {
-                    // The response should contain the created story
-                    resolve(page.props as unknown as StoryResponse);
-                },
-                onError: (errors) => {
-                    reject(errors);
-                },
+        router.post(stories().url, data, {
+            preserveState: false,
+            preserveScroll: false,
+            onSuccess: (page) => {
+                // The response should contain the created story
+                resolve(page.props as unknown as StoryResponse);
             },
-        );
+            onError: (errors) => {
+                reject(errors);
+            },
+        });
     });
 }
 
@@ -193,7 +194,10 @@ export async function deleteStory(storyId: number): Promise<void> {
 /**
  * Toggle a reaction on a story.
  */
-export async function toggleReaction(storyId: number, emoji: string): Promise<ReactionResponse> {
+export async function toggleReaction(
+    storyId: number,
+    emoji: string,
+): Promise<ReactionResponse> {
     return new Promise((resolve, reject) => {
         router.post(
             stories(storyId).url + '/reactions',
@@ -215,7 +219,9 @@ export async function toggleReaction(storyId: number, emoji: string): Promise<Re
 /**
  * Get story analytics.
  */
-export async function getStoryAnalytics(storyId: number): Promise<AnalyticsResponse> {
+export async function getStoryAnalytics(
+    storyId: number,
+): Promise<AnalyticsResponse> {
     return new Promise((resolve, reject) => {
         router.get(
             stories(storyId).url + '/analytics',
@@ -233,4 +239,3 @@ export async function getStoryAnalytics(storyId: number): Promise<AnalyticsRespo
         );
     });
 }
-

@@ -19,6 +19,9 @@ export type Attachment = {
     url: string | null;
     filename: string;
     thumbnail_url?: string | null;
+    optimized_path?: string | null;
+    optimized_url?: string | null;
+    blur_url?: string | null;
     disk?: string | null;
     mime_type?: string | null;
     size?: number | null;
@@ -92,5 +95,3 @@ export type PresenceMember = {
     avatar?: string | null;
     role?: string | null;
 };
-
-

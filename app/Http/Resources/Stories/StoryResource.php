@@ -41,6 +41,7 @@ class StoryResource extends JsonResource
             $media = [
                 'id' => $this->media->id,
                 'url' => $preview['url'],
+                'optimized_url' => $preview['optimized_url'] ?? null,
                 'thumbnail_url' => $preview['thumbnail_url'],
                 'blur_url' => $preview['blur_url'],
                 'is_blurred' => $preview['is_blurred'] ?? false,

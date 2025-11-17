@@ -1,13 +1,13 @@
+import { EventRsvpToggle } from '@/components/events/event-rsvp-toggle';
+import { EventStatusBadge } from '@/components/events/event-status-badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useInitials } from '@/hooks/use-initials';
 import { cn } from '@/lib/utils';
 import eventsRoutes from '@/routes/events';
-import { Link } from '@inertiajs/react';
-import {
-    EventStatusBadge,
-} from '@/components/events/event-status-badge';
-import { EventRsvpToggle } from '@/components/events/event-rsvp-toggle';
 import {
     type Event,
     formatEventDateRange,
@@ -15,9 +15,7 @@ import {
     formatEventModality,
     formatEventType,
 } from '@/types/events';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useInitials } from '@/hooks/use-initials';
+import { Link } from '@inertiajs/react';
 import { memo } from 'react';
 
 type EventCardProps = {
@@ -67,10 +65,10 @@ export const EventCard = memo(function EventCard({
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/40" />
 
                     <div className="absolute top-4 left-4 flex flex-wrap items-center gap-2">
-                        <Badge className="rounded-full border-white/25 bg-white/15 text-[0.65rem] uppercase tracking-[0.35em] text-white shadow-[0_16px_45px_-25px_rgba(59,130,246,0.45)]">
+                        <Badge className="rounded-full border-white/25 bg-white/15 text-[0.65rem] tracking-[0.35em] text-white uppercase shadow-[0_16px_45px_-25px_rgba(59,130,246,0.45)]">
                             {formatEventModality(event.modality)}
                         </Badge>
-                        <Badge className="rounded-full border-white/20 bg-black/30 text-[0.65rem] uppercase tracking-[0.3em] text-white/80">
+                        <Badge className="rounded-full border-white/20 bg-black/30 text-[0.65rem] tracking-[0.3em] text-white/80 uppercase">
                             {formatEventType(event.type)}
                         </Badge>
                     </div>
@@ -86,7 +84,10 @@ export const EventCard = memo(function EventCard({
                             <Avatar className="size-10 border-2 border-white/40 bg-white/20 text-white shadow-[0_18px_55px_-28px_rgba(249,115,22,0.6)]">
                                 <AvatarImage
                                     src={showManager.avatar_url ?? undefined}
-                                    alt={showManager.display_name ?? showManager.username}
+                                    alt={
+                                        showManager.display_name ??
+                                        showManager.username
+                                    }
                                 />
                                 <AvatarFallback>
                                     {getInitials(
@@ -103,16 +104,18 @@ export const EventCard = memo(function EventCard({
             <CardContent className="space-y-4 p-5">
                 <div className="space-y-2">
                     <div className="flex items-center justify-between gap-2">
-                        <h3 className="text-lg font-semibold text-white group-hover:text-orange-300 transition-colors">
+                        <h3 className="text-lg font-semibold text-white transition-colors group-hover:text-orange-300">
                             <Link
-                                href={eventsRoutes.show({ event: event.slug }).url}
+                                href={
+                                    eventsRoutes.show({ event: event.slug }).url
+                                }
                                 className="hover:underline"
                             >
                                 {event.title}
                             </Link>
                         </h3>
                     </div>
-                    <p className="text-xs uppercase tracking-[0.35em] text-white/60">
+                    <p className="text-xs tracking-[0.35em] text-white/60 uppercase">
                         {formatEventDateRange(event)}
                     </p>
                 </div>
@@ -123,7 +126,7 @@ export const EventCard = memo(function EventCard({
                     </p>
                 )}
 
-                <p className="text-sm leading-relaxed text-white/75 line-clamp-2">
+                <p className="line-clamp-2 text-sm leading-relaxed text-white/75">
                     {event.description.slice(0, 140)}
                     {event.description.length > 140 && '…'}
                 </p>
@@ -168,7 +171,7 @@ export const EventCard = memo(function EventCard({
                             )}
                         </p>
                         {event.viewer_rsvp && (
-                            <p className="text-emerald-300 font-medium">
+                            <p className="font-medium text-emerald-300">
                                 You're{' '}
                                 {event.viewer_rsvp.status === 'going'
                                     ? 'going'
@@ -181,9 +184,11 @@ export const EventCard = memo(function EventCard({
                         asChild
                         variant="outline"
                         size="sm"
-                        className="rounded-full border-white/20 bg-white/5 text-xs font-semibold uppercase tracking-[0.3em] text-white/75 hover:border-white/40 hover:bg-white/15 hover:text-white"
+                        className="rounded-full border-white/20 bg-white/5 text-xs font-semibold tracking-[0.3em] text-white/75 uppercase hover:border-white/40 hover:bg-white/15 hover:text-white"
                     >
-                        <Link href={eventsRoutes.show({ event: event.slug }).url}>
+                        <Link
+                            href={eventsRoutes.show({ event: event.slug }).url}
+                        >
                             Details
                         </Link>
                     </Button>
@@ -211,4 +216,3 @@ export function EventCardSkeleton() {
         </Card>
     );
 }
-

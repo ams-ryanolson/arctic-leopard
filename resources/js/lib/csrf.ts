@@ -4,7 +4,9 @@ export function getCsrfToken(): string | undefined {
     }
 
     const prefix = 'XSRF-TOKEN=';
-    const entry = document.cookie.split('; ').find((row) => row.startsWith(prefix));
+    const entry = document.cookie
+        .split('; ')
+        .find((row) => row.startsWith(prefix));
 
     if (!entry) {
         return undefined;
@@ -18,12 +20,3 @@ export function getCsrfToken(): string | undefined {
         return value;
     }
 }
-
-
-
-
-
-
-
-
-

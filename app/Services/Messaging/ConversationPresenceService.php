@@ -6,7 +6,6 @@ use App\Models\Conversation;
 use App\Models\User;
 use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Collection;
 
 class ConversationPresenceService
 {
@@ -79,7 +78,7 @@ class ConversationPresenceService
         $now = Carbon::now();
 
         return collect($entries)
-            ->filter(function (array $entry) use ($now): bool {
+            ->filter(function (array $entry): bool {
                 $expiresAt = isset($entry['expires_at']) ? Carbon::parse($entry['expires_at']) : null;
 
                 return $expiresAt === null || $expiresAt->isFuture();

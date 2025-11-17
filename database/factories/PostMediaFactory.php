@@ -61,7 +61,7 @@ class PostMediaFactory extends Factory
         return [
             'post_id' => Post::factory(),
             'disk' => 'public',
-            'path' => 'media/' . Str::uuid() . '.jpg',
+            'path' => 'media/'.Str::uuid().'.jpg',
             'thumbnail_path' => null,
             'mime_type' => 'image/jpeg',
             'position' => 0,
@@ -83,8 +83,8 @@ class PostMediaFactory extends Factory
         return [
             'post_id' => Post::factory(),
             'disk' => 'public',
-            'path' => 'media/' . Str::uuid() . '.mp4',
-            'thumbnail_path' => 'media/' . Str::uuid() . '.jpg',
+            'path' => 'media/'.Str::uuid().'.mp4',
+            'thumbnail_path' => 'media/'.Str::uuid().'.jpg',
             'mime_type' => 'video/mp4',
             'position' => 0,
             'width' => 1920,

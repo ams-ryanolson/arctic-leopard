@@ -15,8 +15,5 @@ class UserFollowAccepted
         public User $follower,
         public User $followed,
         public bool $wasPendingRequest = false,
-    ) {
-    }
+    ) {}
 }
-
-

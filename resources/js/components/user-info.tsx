@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { cn } from '@/lib/utils';
 import { useInitials } from '@/hooks/use-initials';
+import { cn } from '@/lib/utils';
 import { type User } from '@/types';
 
 export function UserInfo({
@@ -23,7 +23,8 @@ export function UserInfo({
         ((user as Record<string, string>).avatar_path?.length ?? 0) > 0
             ? ((user as Record<string, string>).avatar_path as string)
             : null);
-    const displayName = user.display_name ?? user.name ?? user.username ?? 'Member';
+    const displayName =
+        user.display_name ?? user.name ?? user.username ?? 'Member';
 
     return (
         <div className={cn('flex min-w-0 items-center gap-3', className)}>
@@ -36,7 +37,8 @@ export function UserInfo({
             <div
                 className={cn(
                     'grid flex-1 text-left text-sm leading-tight',
-                    collapseDetailsOnSidebar && 'group-data-[collapsible=icon]:hidden',
+                    collapseDetailsOnSidebar &&
+                        'group-data-[collapsible=icon]:hidden',
                 )}
             >
                 <span className="truncate font-medium">{displayName}</span>

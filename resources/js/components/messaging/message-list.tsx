@@ -1,9 +1,9 @@
-import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import MessageItem from './message-item';
+import { Loader2 } from 'lucide-react';
 import DateSeparator from './date-separator';
+import MessageItem from './message-item';
 import { isSameDay } from './message-utils';
-import type { Message, ActiveConversation } from './types';
+import type { ActiveConversation, Message } from './types';
 
 type MessageListProps = {
     messages: Message[];
@@ -16,7 +16,15 @@ type MessageListProps = {
     onLoadOlder: () => void;
     onToggleReactions: (messageId: number) => void;
     onReply: (message: Message) => void;
-    onReactionChange: (messageId: number, summary: Array<{ emoji: string; variant?: string | null; count: number; reacted: boolean }>) => void;
+    onReactionChange: (
+        messageId: number,
+        summary: Array<{
+            emoji: string;
+            variant?: string | null;
+            count: number;
+            reacted: boolean;
+        }>,
+    ) => void;
     onTipRequestAccept: (messageId: number) => void;
     onTipRequestDecline: (messageId: number) => void;
     scrollContainerRef: React.RefObject<HTMLDivElement | null>;
@@ -42,7 +50,7 @@ export default function MessageList({
 }: MessageListProps) {
     return (
         <div
-            className="flex-1 min-h-0 overflow-y-auto px-6 py-5"
+            className="min-h-0 flex-1 overflow-y-auto px-6 py-5"
             ref={scrollContainerRef}
             onScroll={onScroll}
         >
@@ -51,7 +59,7 @@ export default function MessageList({
                     <Button
                         size="sm"
                         variant="ghost"
-                        className="border border-white/10 bg-black/30 text-xs uppercase tracking-[0.3em] text-white/60 hover:border-white/30 hover:bg-black/40"
+                        className="border border-white/10 bg-black/30 text-xs tracking-[0.3em] text-white/60 uppercase hover:border-white/30 hover:bg-black/40"
                         onClick={onLoadOlder}
                         disabled={isLoadingOlder}
                     >
@@ -86,37 +94,63 @@ export default function MessageList({
                         </svg>
                     </div>
                     <div className="space-y-1">
-                        <p className="text-base font-semibold text-white/70">No messages yet</p>
-                        <p className="text-sm text-white/50">Be the first to send a message and start the conversation.</p>
+                        <p className="text-base font-semibold text-white/70">
+                            No messages yet
+                        </p>
+                        <p className="text-sm text-white/50">
+                            Be the first to send a message and start the
+                            conversation.
+                        </p>
                     </div>
                 </div>
             ) : (
                 <div className="flex min-h-0 flex-col gap-0.5">
                     {messages.map((message, index) => {
-                        const isOwnMessage = message.author?.id === viewerId || message.author === null;
-                        const showAuthor = conversation?.is_group && !isOwnMessage;
+                        const isOwnMessage =
+                            message.author?.id === viewerId ||
+                            message.author === null;
+                        const showAuthor =
+                            conversation?.is_group && !isOwnMessage;
                         const referencedMessage =
-                            message.reply_to_id !== undefined && message.reply_to_id !== null
-                                ? messages.find((candidate) => candidate.id === message.reply_to_id)
+                            message.reply_to_id !== undefined &&
+                            message.reply_to_id !== null
+                                ? messages.find(
+                                      (candidate) =>
+                                          candidate.id === message.reply_to_id,
+                                  )
                                 : undefined;
-                        
+
                         // Group consecutive messages from same sender (show avatar only on first message or when author changes)
-                        const prevMessage = index > 0 ? messages[index - 1] : null;
-                        const isFirstInGroup = 
-                            !prevMessage || 
+                        const prevMessage =
+                            index > 0 ? messages[index - 1] : null;
+                        const isFirstInGroup =
+                            !prevMessage ||
                             prevMessage.author?.id !== message.author?.id ||
-                            (prevMessage.created_at && message.created_at && 
-                             new Date(message.created_at).getTime() - new Date(prevMessage.created_at).getTime() > 5 * 60 * 1000); // 5 minutes gap
+                            (prevMessage.created_at &&
+                                message.created_at &&
+                                new Date(message.created_at).getTime() -
+                                    new Date(prevMessage.created_at).getTime() >
+                                    5 * 60 * 1000); // 5 minutes gap
 
                         // Check if we need to show a date separator
-                        const shouldShowDateSeparator = 
-                            !prevMessage || 
-                            !isSameDay(prevMessage.created_at, message.created_at);
+                        const shouldShowDateSeparator =
+                            !prevMessage ||
+                            !isSameDay(
+                                prevMessage.created_at,
+                                message.created_at,
+                            );
 
                         return (
                             <>
                                 {shouldShowDateSeparator && (
-                                    <DateSeparator key={`date-${message.id}`} date={message.created_at ?? message.updated_at ?? ''} />
+                                    <DateSeparator
+                                        key={`date-${message.id}`}
+                                        date={
+                                            message.created_at ??
+                                            message.updated_at ??
+                                            ''
+                                        }
+                                    />
                                 )}
                                 <MessageItem
                                     key={message.id}
@@ -125,8 +159,12 @@ export default function MessageList({
                                     showAuthor={showAuthor}
                                     showAvatar={isFirstInGroup}
                                     referencedMessage={referencedMessage}
-                                    expandedReactionsMessageId={expandedReactionsMessageId}
-                                    tipRequestActionMessageId={tipRequestActionMessageId}
+                                    expandedReactionsMessageId={
+                                        expandedReactionsMessageId
+                                    }
+                                    tipRequestActionMessageId={
+                                        tipRequestActionMessageId
+                                    }
                                     onToggleReactions={onToggleReactions}
                                     onReply={onReply}
                                     onReactionChange={onReactionChange}
@@ -141,4 +179,3 @@ export default function MessageList({
         </div>
     );
 }
-

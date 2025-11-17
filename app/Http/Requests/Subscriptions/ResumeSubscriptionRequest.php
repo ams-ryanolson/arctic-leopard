@@ -22,4 +22,3 @@ class ResumeSubscriptionRequest extends FormRequest
         ];
     }
 }
-

@@ -5,6 +5,7 @@ use App\Services\TemporaryUploadService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
+
 use function Pest\Laravel\actingAs;
 
 beforeEach(function (): void {
@@ -83,5 +84,3 @@ it('rejects missing or expired temporary uploads', function (): void {
         ])
         ->assertSessionHasErrors('avatar_upload_id');
 });
-
-

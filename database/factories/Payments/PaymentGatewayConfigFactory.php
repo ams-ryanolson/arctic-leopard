@@ -35,4 +35,3 @@ class PaymentGatewayConfigFactory extends Factory
         ];
     }
 }
-

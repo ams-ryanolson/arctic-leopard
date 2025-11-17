@@ -53,12 +53,3 @@ export type NotificationPage = {
 };
 
 export type NotificationFilter = 'all' | 'unread';
-
-
-
-
-
-
-
-
-

@@ -8,7 +8,13 @@ interface RadialGaugeProps {
     highlight?: string;
 }
 
-export function RadialGauge({ value, max = 100, size = 120, label, highlight = 'rgba(56,189,248,0.9)' }: RadialGaugeProps) {
+export function RadialGauge({
+    value,
+    max = 100,
+    size = 120,
+    label,
+    highlight = 'rgba(56,189,248,0.9)',
+}: RadialGaugeProps) {
     const { circumference, dashOffset } = useMemo(() => {
         const normalizedValue = Math.max(0, Math.min(value / max, 1));
         const radius = (size - 12) / 2;
@@ -23,7 +29,11 @@ export function RadialGauge({ value, max = 100, size = 120, label, highlight = '
     const radius = (size - 12) / 2;
 
     return (
-        <svg viewBox={`0 0 ${size} ${size}`} role="img" aria-label={`Gauge showing ${value} of ${max}`}>
+        <svg
+            viewBox={`0 0 ${size} ${size}`}
+            role="img"
+            aria-label={`Gauge showing ${value} of ${max}`}
+        >
             <circle
                 cx={center}
                 cy={center}
@@ -71,13 +81,3 @@ export function RadialGauge({ value, max = 100, size = 120, label, highlight = '
         </svg>
     );
 }
-
-
-
-
-
-
-
-
-
-

@@ -63,4 +63,3 @@ class SubscriptionPlan extends Model
         return $query->where('is_public', true);
     }
 }
-

@@ -2,14 +2,12 @@
 
 namespace App\Services\Messaging;
 
-use App\Models\ConversationParticipant;
 use App\Models\Message;
 use App\Models\MessageReaction;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
-use Illuminate\Support\Carbon;
 
 class MessageReactionService
 {

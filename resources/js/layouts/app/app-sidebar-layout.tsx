@@ -1,10 +1,11 @@
+import AgeConsentModal from '@/components/age-consent-modal';
 import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
-import { MobileBottomNav } from '@/components/mobile-bottom-nav';
-import AgeConsentModal from '@/components/age-consent-modal';
 import CookiesBanner from '@/components/cookies-banner';
+import { MobileBottomNav } from '@/components/mobile-bottom-nav';
+import { cn } from '@/lib/utils';
 import {
     type BreadcrumbItem,
     type HeaderAction,
@@ -12,7 +13,6 @@ import {
     type HeaderQuickAction,
     type HeaderSupportLink,
 } from '@/types';
-import { cn } from '@/lib/utils';
 import { type PropsWithChildren, type ReactNode } from 'react';
 
 interface AppSidebarLayoutProps {
@@ -53,7 +53,8 @@ export default function AppSidebarLayout({
                 <div
                     className={cn(
                         'relative flex min-h-screen flex-col',
-                        hideHeader && 'h-[calc(100svh-16px)] min-h-0 overflow-hidden',
+                        hideHeader &&
+                            'h-[calc(100svh-16px)] min-h-0 overflow-hidden',
                     )}
                 >
                     {!hideHeader ? (
@@ -66,7 +67,7 @@ export default function AppSidebarLayout({
                             toolbar={headerToolbar}
                         />
                     ) : (
-                        <div className="sticky top-0 z-40 border-b border-white/10 bg-black/45 px-3 py-3 text-sm uppercase tracking-[0.35em] text-white/60 backdrop-blur-2xl sm:px-4 md:px-8">
+                        <div className="sticky top-0 z-40 border-b border-white/10 bg-black/45 px-3 py-3 text-sm tracking-[0.35em] text-white/60 uppercase backdrop-blur-2xl sm:px-4 md:px-8">
                             Messages
                         </div>
                     )}
@@ -79,8 +80,9 @@ export default function AppSidebarLayout({
                     >
                         <div
                             className={cn(
-                                'mx-auto w-full max-w-6xl px-3 pb-24 pt-4 sm:px-4 sm:pb-16 sm:pt-6 md:px-8 md:pt-8',
-                                hideHeader && 'flex h-full min-h-0 flex-col pb-24 sm:pb-16',
+                                'mx-auto w-full max-w-6xl px-3 pt-4 pb-24 sm:px-4 sm:pt-6 sm:pb-16 md:px-8 md:pt-8',
+                                hideHeader &&
+                                    'flex h-full min-h-0 flex-col pb-24 sm:pb-16',
                                 contentClassName,
                             )}
                         >
@@ -95,4 +97,3 @@ export default function AppSidebarLayout({
         </AppShell>
     );
 }
-

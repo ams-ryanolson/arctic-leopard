@@ -17,7 +17,7 @@ final class SubscriptionCancelData
     }
 
     /**
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      */
     public static function fromArray(array $attributes): self
     {
@@ -40,4 +40,3 @@ final class SubscriptionCancelData
         ];
     }
 }
-

@@ -27,4 +27,3 @@ class LogPaymentLifecycle implements ShouldQueue
             ->log(sprintf('Payment %s transitioned to %s', $payment->uuid, $payment->status->value));
     }
 }
-

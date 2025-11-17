@@ -28,4 +28,3 @@ class UserFollowedNotification extends DatabaseNotification
         ];
     }
 }
-

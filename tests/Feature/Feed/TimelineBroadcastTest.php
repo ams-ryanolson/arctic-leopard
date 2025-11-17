@@ -63,5 +63,3 @@ it('broadcasts timeline entries when a rebuild occurs', function (): void {
             && $event->post->getKey() === $post->getKey();
     });
 });
-
-

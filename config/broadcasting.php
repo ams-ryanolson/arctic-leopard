@@ -26,7 +26,7 @@ return [
     |
     */
 
-'connections' => [
+    'connections' => [
 
         'pusher' => [
             'driver' => 'pusher',
@@ -77,5 +77,3 @@ return [
     ],
 
 ];
-
-

@@ -1,6 +1,6 @@
-import notificationsRoutes from '@/routes/notifications';
 import { getCsrfToken } from '@/lib/csrf';
 import { FeedRequestError } from '@/lib/feed-client';
+import notificationsRoutes from '@/routes/notifications';
 import type { NotificationPage } from '@/types/notifications';
 
 type FetchNotificationsOptions = {
@@ -65,12 +65,11 @@ async function parseJsonResponse<T>(response: Response): Promise<T> {
 
         const message =
             (typeof problem === 'object' &&
-                problem !== null &&
-                'message' in problem &&
-                typeof (problem as { message: unknown }).message === 'string'
+            problem !== null &&
+            'message' in problem &&
+            typeof (problem as { message: unknown }).message === 'string'
                 ? (problem as { message: string }).message
-                : undefined) ??
-            `Request failed with status ${response.status}`;
+                : undefined) ?? `Request failed with status ${response.status}`;
 
         throw new FeedRequestError(message, response.status, problem);
     }
@@ -81,12 +80,7 @@ async function parseJsonResponse<T>(response: Response): Promise<T> {
 export async function fetchNotificationsPage(
     options: FetchNotificationsOptions = {},
 ): Promise<NotificationPage> {
-    const {
-        page = 1,
-        filter,
-        pageName = 'notifications',
-        signal,
-    } = options;
+    const { page = 1, filter, pageName = 'notifications', signal } = options;
 
     const query: Record<string, unknown> = {
         [pageName]: page,
@@ -111,7 +105,9 @@ export async function fetchNotificationsPage(
     return parseJsonResponse<NotificationPage>(response);
 }
 
-export async function markNotificationRead(notificationId: string): Promise<MarkReadResponse> {
+export async function markNotificationRead(
+    notificationId: string,
+): Promise<MarkReadResponse> {
     const formData = new URLSearchParams({
         _method: 'PATCH',
     });
@@ -156,7 +152,9 @@ export async function fetchUnreadNotificationCount(): Promise<number> {
     return payload.count;
 }
 
-export async function deleteNotification(notificationId: string): Promise<DeleteResponse> {
+export async function deleteNotification(
+    notificationId: string,
+): Promise<DeleteResponse> {
     const response = await fetch(
         notificationsRoutes.destroy.url({
             notification: notificationId,
@@ -180,4 +178,3 @@ export async function deleteAllNotifications(): Promise<DeleteAllResponse> {
 
     return parseJsonResponse<DeleteAllResponse>(response);
 }
-

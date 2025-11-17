@@ -1,14 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import AppLayout from '@/layouts/app-layout';
-import TimelineEntryCard from '@/components/feed/timeline-entry-card';
 import CommentThreadSheet from '@/components/feed/comment-thread-sheet';
 import FeedLoadingPlaceholder from '@/components/feed/feed-loading-placeholder';
-import {
-    Alert,
-    AlertDescription,
-    AlertTitle,
-} from '@/components/ui/alert';
+import TimelineEntryCard from '@/components/feed/timeline-entry-card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -17,20 +12,21 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import AppLayout from '@/layouts/app-layout';
 import {
+    bookmarkPost,
     FeedRequestError,
     fetchBookmarksPage,
     likePost,
-    unlikePost,
-    bookmarkPost,
-    unbookmarkPost,
     purchasePost,
+    unbookmarkPost,
+    unlikePost,
 } from '@/lib/feed-client';
+import { index as bookmarksIndex } from '@/routes/bookmarks';
 import type { SharedData } from '@/types';
 import type { FeedPost, TimelineEntry, TimelinePayload } from '@/types/feed';
 import { Head, usePage } from '@inertiajs/react';
 import { AlertCircle } from 'lucide-react';
-import { index as bookmarksIndex } from '@/routes/bookmarks';
 
 type BookmarksPageProps = SharedData & {
     bookmarks: TimelinePayload;
@@ -39,10 +35,8 @@ type BookmarksPageProps = SharedData & {
 };
 
 export default function BookmarksIndex() {
-    const {
-        bookmarks,
-        bookmarksPageName,
-    } = usePage<BookmarksPageProps>().props;
+    const { bookmarks, bookmarksPageName } =
+        usePage<BookmarksPageProps>().props;
 
     const [pages, setPages] = useState<TimelinePayload[]>([bookmarks]);
     const [hasMore, setHasMore] = useState(
@@ -54,7 +48,9 @@ export default function BookmarksIndex() {
     const [pendingLikes, setPendingLikes] = useState<number[]>([]);
     const [pendingPurchases, setPendingPurchases] = useState<number[]>([]);
     const [pendingBookmarks, setPendingBookmarks] = useState<number[]>([]);
-    const [activeCommentPost, setActiveCommentPost] = useState<FeedPost | null>(null);
+    const [activeCommentPost, setActiveCommentPost] = useState<FeedPost | null>(
+        null,
+    );
     const [isCommentSheetOpen, setIsCommentSheetOpen] = useState(false);
     const sentinelRef = useRef<HTMLDivElement | null>(null);
 
@@ -66,19 +62,24 @@ export default function BookmarksIndex() {
         [pages],
     );
 
-    const sanitizeTimelinePayload = useCallback((payload: TimelinePayload): TimelinePayload => {
-        const filtered = payload.data.filter((entry) => entry.post !== null);
-        const removed = payload.data.length - filtered.length;
+    const sanitizeTimelinePayload = useCallback(
+        (payload: TimelinePayload): TimelinePayload => {
+            const filtered = payload.data.filter(
+                (entry) => entry.post !== null,
+            );
+            const removed = payload.data.length - filtered.length;
 
-        return {
-            ...payload,
-            data: filtered,
-            meta: {
-                ...payload.meta,
-                total: Math.max(0, payload.meta.total - removed),
-            },
-        };
-    }, []);
+            return {
+                ...payload,
+                data: filtered,
+                meta: {
+                    ...payload.meta,
+                    total: Math.max(0, payload.meta.total - removed),
+                },
+            };
+        },
+        [],
+    );
 
     useEffect(() => {
         const normalized = sanitizeTimelinePayload(bookmarks);
@@ -108,32 +109,44 @@ export default function BookmarksIndex() {
     const markLikePending = useCallback((postId: number, pending: boolean) => {
         setPendingLikes((previous) => {
             if (pending) {
-                return previous.includes(postId) ? previous : [...previous, postId];
+                return previous.includes(postId)
+                    ? previous
+                    : [...previous, postId];
             }
 
             return previous.filter((id) => id !== postId);
         });
     }, []);
 
-    const markPurchasePending = useCallback((postId: number, pending: boolean) => {
-        setPendingPurchases((previous) => {
-            if (pending) {
-                return previous.includes(postId) ? previous : [...previous, postId];
-            }
+    const markPurchasePending = useCallback(
+        (postId: number, pending: boolean) => {
+            setPendingPurchases((previous) => {
+                if (pending) {
+                    return previous.includes(postId)
+                        ? previous
+                        : [...previous, postId];
+                }
 
-            return previous.filter((id) => id !== postId);
-        });
-    }, []);
+                return previous.filter((id) => id !== postId);
+            });
+        },
+        [],
+    );
 
-    const markBookmarkPending = useCallback((postId: number, pending: boolean) => {
-        setPendingBookmarks((previous) => {
-            if (pending) {
-                return previous.includes(postId) ? previous : [...previous, postId];
-            }
+    const markBookmarkPending = useCallback(
+        (postId: number, pending: boolean) => {
+            setPendingBookmarks((previous) => {
+                if (pending) {
+                    return previous.includes(postId)
+                        ? previous
+                        : [...previous, postId];
+                }
 
-            return previous.filter((id) => id !== postId);
-        });
-    }, []);
+                return previous.filter((id) => id !== postId);
+            });
+        },
+        [],
+    );
 
     const updatePostInPages = useCallback((nextPost: FeedPost) => {
         setPages((previous) =>
@@ -153,7 +166,9 @@ export default function BookmarksIndex() {
             pages
                 .flatMap((page) => page.data)
                 .map((entry) => entry.post)
-                .find((post): post is FeedPost => Boolean(post && post.id === postId)) ?? null,
+                .find((post): post is FeedPost =>
+                    Boolean(post && post.id === postId),
+                ) ?? null,
         [pages],
     );
 
@@ -218,7 +233,9 @@ export default function BookmarksIndex() {
                     0,
                     targetPost.bookmark_count + (currentlyBookmarked ? -1 : 1),
                 ),
-                bookmark_id: currentlyBookmarked ? null : targetPost.bookmark_id,
+                bookmark_id: currentlyBookmarked
+                    ? null
+                    : targetPost.bookmark_id,
             };
 
             updatePostInPages(optimisticPost);
@@ -343,8 +360,7 @@ export default function BookmarksIndex() {
 
         setIsLoadingMore(true);
         try {
-            const currentPage =
-                pages[pages.length - 1]?.meta.current_page ?? 1;
+            const currentPage = pages[pages.length - 1]?.meta.current_page ?? 1;
             const nextPage = currentPage + 1;
 
             const payload = await fetchBookmarksPage({
@@ -437,9 +453,7 @@ export default function BookmarksIndex() {
 
     return (
         <AppLayout
-            breadcrumbs={[
-                { title: 'Bookmarks', href: bookmarksIndex() },
-            ]}
+            breadcrumbs={[{ title: 'Bookmarks', href: bookmarksIndex() }]}
         >
             <Head title="Bookmarks" />
 
@@ -448,7 +462,8 @@ export default function BookmarksIndex() {
                     <div className="space-y-1">
                         <h1 className="text-2xl font-semibold">Saved scenes</h1>
                         <p className="text-sm text-white/60">
-                            Your bookmarked posts stay protected here for quick access.
+                            Your bookmarked posts stay protected here for quick
+                            access.
                         </p>
                     </div>
 
@@ -464,9 +479,12 @@ export default function BookmarksIndex() {
 
                 <Card className="border-white/10 bg-white/5">
                     <CardHeader>
-                        <CardTitle className="text-base font-semibold">Bookmarked feed</CardTitle>
+                        <CardTitle className="text-base font-semibold">
+                            Bookmarked feed
+                        </CardTitle>
                         <CardDescription className="text-white/60">
-                            Revisit the scenes, tutorials, and drops you saved for later.
+                            Revisit the scenes, tutorials, and drops you saved
+                            for later.
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -489,7 +507,8 @@ export default function BookmarksIndex() {
 
                         {entries.length === 0 ? (
                             <Card className="border border-dashed border-white/15 bg-white/5 p-6 text-center text-sm text-white/70">
-                                You have not saved any posts yet. Tap the bookmark icon on a post to keep it here.
+                                You have not saved any posts yet. Tap the
+                                bookmark icon on a post to keep it here.
                             </Card>
                         ) : (
                             entries.map((entry) => {
@@ -529,4 +548,3 @@ export default function BookmarksIndex() {
         </AppLayout>
     );
 }
-

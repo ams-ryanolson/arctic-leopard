@@ -16,4 +16,3 @@ enum PaymentIntentStatus: string
     case Cancelled = 'cancelled';
     case Failed = 'failed';
 }
-

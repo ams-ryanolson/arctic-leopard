@@ -94,6 +94,7 @@ class SumsubService
                             'user_id' => $user->getKey(),
                             'applicant_id' => $applicantId,
                         ]);
+
                         return $applicantId;
                     }
 
@@ -105,6 +106,7 @@ class SumsubService
                                 'user_id' => $user->getKey(),
                                 'applicant_id' => $applicantId,
                             ]);
+
                             return $applicantId;
                         }
                     } catch (\Exception $e) {
@@ -141,7 +143,7 @@ class SumsubService
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            
+
             throw $e;
         }
     }
@@ -180,7 +182,7 @@ class SumsubService
     public function getApplicantByExternalUserId(string $externalUserId): ?string
     {
         // Sumsub API format: /resources/applicants/-/one?externalUserId={id}
-        $response = $this->makeRequest('GET', "/resources/applicants/-/one?externalUserId=".urlencode($externalUserId));
+        $response = $this->makeRequest('GET', '/resources/applicants/-/one?externalUserId='.urlencode($externalUserId));
 
         if (! $response->successful()) {
             if ($response->status() === 404) {
@@ -265,18 +267,18 @@ class SumsubService
         $parsedUrl = parse_url($endpoint);
         $path = $parsedUrl['path'] ?? $endpoint;
         $query = $parsedUrl['query'] ?? null;
-        
+
         // Ensure path starts with /
         $path = '/'.ltrim($path, '/');
-        
+
         // Reconstruct path with query for signature (if query exists)
         $pathForSignature = $query !== null ? $path.'?'.$query : $path;
-        
+
         // Build full URL
         $url = rtrim($this->baseUrl, '/').$path.($query !== null ? '?'.$query : '');
-        
+
         $timestamp = time();
-        
+
         // Sort JSON payload keys to ensure consistent ordering for signature
         $body = '';
         if (! empty($payload)) {
@@ -289,7 +291,7 @@ class SumsubService
             });
             $body = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         }
-        
+
         $signature = $this->createSignature($method, $pathForSignature, $timestamp, $body);
 
         // Comprehensive logging for debugging
@@ -340,18 +342,18 @@ class SumsubService
      * Create HMAC signature for Sumsub API request.
      * Signature format: timestamp + METHOD + path_with_query + body
      * Based on Sumsub Postman collection: https://github.com/SumSubstance/AppTokenUsageExamples
-     * 
+     *
      * Note: hash_hmac already returns hex-encoded string by default
      */
     private function createSignature(string $method, string $path, int $timestamp, string $body): string
     {
         $methodUpper = Str::upper($method);
         $timestampStr = (string) $timestamp;
-        
+
         // Format: timestamp + METHOD + path + body
         // This matches the Postman collection's format: stamp + method.toUpperCase() + url + body
         $data = $timestampStr.$methodUpper.$path.$body;
-        
+
         Log::info('SumsubService::createSignature - Signature generation', [
             'method' => $method,
             'method_upper' => $methodUpper,
@@ -366,17 +368,17 @@ class SumsubService
             'secret_key_length' => strlen($this->secretKey),
             'secret_key_preview' => substr($this->secretKey, 0, 10).'...'.substr($this->secretKey, -10),
         ]);
-        
+
         // Based on the Postman collection, Sumsub uses the secret key as-is (raw)
         // No base64 or hex decoding is needed
         $signature = hash_hmac('sha256', $data, $this->secretKey);
-        
+
         Log::info('SumsubService::createSignature - Signature created', [
             'signature' => $signature,
             'signature_length' => strlen($signature),
             'secret_key_length' => strlen($this->secretKey),
         ]);
-        
+
         return $signature;
     }
 }

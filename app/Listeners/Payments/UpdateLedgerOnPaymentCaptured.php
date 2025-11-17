@@ -63,4 +63,3 @@ class UpdateLedgerOnPaymentCaptured implements ShouldQueue
         ]);
     }
 }
-

@@ -2,14 +2,13 @@
 
 namespace App\Jobs;
 
+use App\Enums\Payments\PaymentSubscriptionStatus;
 use App\Enums\PostAudience;
 use App\Enums\TimelineVisibilitySource;
-use App\Enums\Payments\PaymentSubscriptionStatus;
 use App\Events\TimelineEntryBroadcast;
+use App\Models\Payments\PaymentSubscription;
 use App\Models\Post;
 use App\Models\Timeline;
-use App\Models\User;
-use App\Models\Payments\PaymentSubscription;
 use App\Services\Cache\TimelineCacheService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Collection;
@@ -29,9 +28,7 @@ class TimelineFanOutJob implements ShouldQueue
 
     public int $tries = 3;
 
-    public function __construct(public int $postId)
-    {
-    }
+    public function __construct(public int $postId) {}
 
     public function handle(): void
     {

@@ -1,4 +1,3 @@
-import { useRef, useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import {
@@ -9,6 +8,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Loader2, Square, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 type VideoRecorderProps = {
     onRecorded: (blob: Blob) => void;
@@ -30,8 +30,12 @@ export default function VideoRecorder({
     const [recordingTime, setRecordingTime] = useState(0);
     const [videoBlob, setVideoBlob] = useState<Blob | null>(null);
     const [videoUrl, setVideoUrl] = useState<string | null>(null);
-    const [availableCameras, setAvailableCameras] = useState<MediaDeviceInfo[]>([]);
-    const [selectedCameraId, setSelectedCameraId] = useState<string | null>(null);
+    const [availableCameras, setAvailableCameras] = useState<MediaDeviceInfo[]>(
+        [],
+    );
+    const [selectedCameraId, setSelectedCameraId] = useState<string | null>(
+        null,
+    );
     const [error, setError] = useState<string | null>(null);
 
     const videoRecorderRef = useRef<MediaRecorder | null>(null);
@@ -51,7 +55,9 @@ export default function VideoRecorder({
     const getAvailableCameras = useCallback(async () => {
         try {
             const devices = await navigator.mediaDevices.enumerateDevices();
-            const videoInputs = devices.filter((device) => device.kind === 'videoinput');
+            const videoInputs = devices.filter(
+                (device) => device.kind === 'videoinput',
+            );
             setAvailableCameras(videoInputs);
 
             if (videoInputs.length > 0 && !selectedCameraId) {
@@ -59,12 +65,16 @@ export default function VideoRecorder({
             }
 
             if (videoInputs.length === 0) {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                });
                 stream.getTracks().forEach((track) => track.stop());
-                const devicesAfterPermission = await navigator.mediaDevices.enumerateDevices();
-                const videoInputsAfterPermission = devicesAfterPermission.filter(
-                    (device) => device.kind === 'videoinput',
-                );
+                const devicesAfterPermission =
+                    await navigator.mediaDevices.enumerateDevices();
+                const videoInputsAfterPermission =
+                    devicesAfterPermission.filter(
+                        (device) => device.kind === 'videoinput',
+                    );
                 setAvailableCameras(videoInputsAfterPermission);
                 if (videoInputsAfterPermission.length > 0) {
                     setSelectedCameraId(videoInputsAfterPermission[0].deviceId);
@@ -116,7 +126,8 @@ export default function VideoRecorder({
             });
 
             if (!window.MediaRecorder) {
-                const errorMsg = 'Video recording is not supported in this browser.';
+                const errorMsg =
+                    'Video recording is not supported in this browser.';
                 setError(errorMsg);
                 onError?.(errorMsg);
                 stream.getTracks().forEach((track) => track.stop());
@@ -126,7 +137,9 @@ export default function VideoRecorder({
             let mimeType = 'video/webm';
             if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')) {
                 mimeType = 'video/webm;codecs=vp9,opus';
-            } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')) {
+            } else if (
+                MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')
+            ) {
                 mimeType = 'video/webm;codecs=vp8,opus';
             } else if (MediaRecorder.isTypeSupported('video/webm')) {
                 mimeType = 'video/webm';
@@ -168,7 +181,8 @@ export default function VideoRecorder({
                 if (currentSessionId !== sessionIdRef.current) {
                     return;
                 }
-                const errorMsg = 'An error occurred while recording. Please try again.';
+                const errorMsg =
+                    'An error occurred while recording. Please try again.';
                 setError(errorMsg);
                 onError?.(errorMsg);
                 setIsRecording(false);
@@ -179,7 +193,9 @@ export default function VideoRecorder({
                     videoRecordingIntervalRef.current = undefined;
                 }
                 if (videoStreamRef.current) {
-                    videoStreamRef.current.getTracks().forEach((track) => track.stop());
+                    videoStreamRef.current
+                        .getTracks()
+                        .forEach((track) => track.stop());
                     videoStreamRef.current = null;
                 }
                 if (videoPreviewRef.current) {
@@ -199,7 +215,8 @@ export default function VideoRecorder({
 
                     if (videoChunksRef.current.length === 0) {
                         if (recordingTime > 0) {
-                            const errorMsg = 'No video was recorded. Please try again.';
+                            const errorMsg =
+                                'No video was recorded. Please try again.';
                             setError(errorMsg);
                             onError?.(errorMsg);
                         }
@@ -209,10 +226,14 @@ export default function VideoRecorder({
                         return;
                     }
 
-                    const totalSize = videoChunksRef.current.reduce((sum, chunk) => sum + chunk.size, 0);
+                    const totalSize = videoChunksRef.current.reduce(
+                        (sum, chunk) => sum + chunk.size,
+                        0,
+                    );
                     if (totalSize === 0) {
                         if (recordingTime > 0) {
-                            const errorMsg = 'No video data was recorded. Please try again.';
+                            const errorMsg =
+                                'No video data was recorded. Please try again.';
                             setError(errorMsg);
                             onError?.(errorMsg);
                         }
@@ -222,11 +243,14 @@ export default function VideoRecorder({
                         return;
                     }
 
-                    const blob = new Blob(videoChunksRef.current, { type: mediaRecorder.mimeType });
+                    const blob = new Blob(videoChunksRef.current, {
+                        type: mediaRecorder.mimeType,
+                    });
 
                     if (blob.size === 0) {
                         if (recordingTime > 0) {
-                            const errorMsg = 'No video data was recorded. Please try again.';
+                            const errorMsg =
+                                'No video data was recorded. Please try again.';
                             setError(errorMsg);
                             onError?.(errorMsg);
                         }
@@ -257,7 +281,9 @@ export default function VideoRecorder({
             await new Promise((resolve) => setTimeout(resolve, 100));
 
             if (mediaRecorder.state !== 'recording') {
-                throw new Error(`MediaRecorder did not start recording. State: ${mediaRecorder.state}`);
+                throw new Error(
+                    `MediaRecorder did not start recording. State: ${mediaRecorder.state}`,
+                );
             }
 
             setIsInitializing(false);
@@ -273,7 +299,10 @@ export default function VideoRecorder({
                     }
                     return next;
                 });
-                if (videoRecorderRef.current && videoRecorderRef.current.state === 'recording') {
+                if (
+                    videoRecorderRef.current &&
+                    videoRecorderRef.current.state === 'recording'
+                ) {
                     try {
                         videoRecorderRef.current.requestData();
                     } catch {
@@ -292,7 +321,14 @@ export default function VideoRecorder({
             setIsRecording(false);
             cleanup();
         }
-    }, [isRecording, selectedCameraId, maxDuration, stopVideoRecording, recordingTime, onError]);
+    }, [
+        isRecording,
+        selectedCameraId,
+        maxDuration,
+        stopVideoRecording,
+        recordingTime,
+        onError,
+    ]);
 
     // Store startVideoRecording in a ref to avoid dependency issues
     const startVideoRecordingRef = useRef(startVideoRecording);
@@ -335,19 +371,25 @@ export default function VideoRecorder({
 
     // Auto-start recording if autoStart is true
     useEffect(() => {
-        if (!autoStart || isRecording || videoBlob || hasStartedRef.current || availableCameras.length === 0) {
+        if (
+            !autoStart ||
+            isRecording ||
+            videoBlob ||
+            hasStartedRef.current ||
+            availableCameras.length === 0
+        ) {
             return;
         }
-        
+
         hasStartedRef.current = true;
         setIsInitializing(true);
-        
+
         const timer = setTimeout(() => {
             if (startVideoRecordingRef.current) {
                 void startVideoRecordingRef.current();
             }
         }, 200);
-        
+
         return () => {
             clearTimeout(timer);
         };
@@ -384,7 +426,10 @@ export default function VideoRecorder({
                 recorder.ondataavailable = null;
                 recorder.onstop = null;
                 recorder.onerror = null;
-                if (recorder.state === 'recording' || recorder.state === 'paused') {
+                if (
+                    recorder.state === 'recording' ||
+                    recorder.state === 'paused'
+                ) {
                     recorder.stop();
                 }
             }
@@ -412,22 +457,34 @@ export default function VideoRecorder({
                 </p>
             )}
             {isInitializing && !isRecording ? (
-                <div className="relative aspect-video overflow-hidden rounded-2xl border border-white/10 bg-black flex items-center justify-center">
+                <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-black">
                     <div className="flex flex-col items-center justify-center gap-4">
                         <Loader2 className="h-8 w-8 animate-spin text-rose-500" />
-                        <span className="text-sm text-white/70">Preparing video recorder...</span>
+                        <span className="text-sm text-white/70">
+                            Preparing video recorder...
+                        </span>
                         {availableCameras.length === 0 && (
-                            <span className="text-xs text-white/50">Requesting camera access...</span>
+                            <span className="text-xs text-white/50">
+                                Requesting camera access...
+                            </span>
                         )}
                     </div>
                 </div>
             ) : !isRecording && !videoBlob && availableCameras.length > 1 ? (
                 <div className="space-y-3">
                     <div className="flex items-center gap-3">
-                        <Label htmlFor="camera-select" className="text-sm text-white/70">
+                        <Label
+                            htmlFor="camera-select"
+                            className="text-sm text-white/70"
+                        >
                             Camera:
                         </Label>
-                        <Select value={selectedCameraId ?? ''} onValueChange={(value) => setSelectedCameraId(value)}>
+                        <Select
+                            value={selectedCameraId ?? ''}
+                            onValueChange={(value) =>
+                                setSelectedCameraId(value)
+                            }
+                        >
                             <SelectTrigger
                                 id="camera-select"
                                 className="flex-1 rounded-2xl border-white/20 bg-black/40 text-sm text-white focus:ring-amber-400/40"
@@ -441,7 +498,8 @@ export default function VideoRecorder({
                                         value={camera.deviceId}
                                         className="text-sm text-white/80 focus:bg-white/10 focus:text-white"
                                     >
-                                        {camera.label || `Camera ${availableCameras.indexOf(camera) + 1}`}
+                                        {camera.label ||
+                                            `Camera ${availableCameras.indexOf(camera) + 1}`}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -461,9 +519,10 @@ export default function VideoRecorder({
                     {/* Timer overlay at top */}
                     <div className="absolute inset-x-0 top-4 flex justify-center">
                         <div className="flex items-center gap-2 rounded-full border border-white/20 bg-black/60 px-4 py-2 backdrop-blur-sm">
-                            <div className="size-3 rounded-full bg-rose-500 animate-pulse" />
-                            <span className="text-sm font-mono font-semibold text-white">
-                                {formatRecordingTime(recordingTime)} / {maxDurationFormatted}
+                            <div className="size-3 animate-pulse rounded-full bg-rose-500" />
+                            <span className="font-mono text-sm font-semibold text-white">
+                                {formatRecordingTime(recordingTime)} /{' '}
+                                {maxDurationFormatted}
                             </span>
                         </div>
                     </div>
@@ -482,7 +541,7 @@ export default function VideoRecorder({
                             <Button
                                 type="button"
                                 onClick={stopVideoRecording}
-                                className="flex size-12 items-center justify-center rounded-full border-2 border-rose-500/80 bg-rose-500/90 text-white shadow-lg backdrop-blur-sm transition hover:bg-rose-500 hover:border-rose-500"
+                                className="flex size-12 items-center justify-center rounded-full border-2 border-rose-500/80 bg-rose-500/90 text-white shadow-lg backdrop-blur-sm transition hover:border-rose-500 hover:bg-rose-500"
                                 aria-label="Stop recording"
                             >
                                 <Square className="h-5 w-5 fill-white" />
@@ -493,7 +552,11 @@ export default function VideoRecorder({
             ) : videoBlob && videoUrl ? (
                 <div className="space-y-3">
                     <div className="relative aspect-video overflow-hidden rounded-2xl border border-white/10 bg-black">
-                        <video src={videoUrl} controls className="h-full w-full object-cover" />
+                        <video
+                            src={videoUrl}
+                            controls
+                            className="h-full w-full object-cover"
+                        />
                     </div>
                     <div className="flex items-center justify-center gap-3">
                         <Button
@@ -511,4 +574,3 @@ export default function VideoRecorder({
         </div>
     );
 }
-

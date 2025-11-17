@@ -10,9 +10,18 @@ type ConversationHeaderProps = {
     showBackButton?: boolean;
 };
 
-export default function ConversationHeader({ conversation, presenceMembers, onBack, showBackButton = false }: ConversationHeaderProps) {
-    const participants = conversation.participants.filter((participant) => !participant.is_viewer);
-    const participantNames = participants.map((participant) => participant.display_name ?? participant.username).join(' • ');
+export default function ConversationHeader({
+    conversation,
+    presenceMembers,
+    onBack,
+    showBackButton = false,
+}: ConversationHeaderProps) {
+    const participants = conversation.participants.filter(
+        (participant) => !participant.is_viewer,
+    );
+    const participantNames = participants
+        .map((participant) => participant.display_name ?? participant.username)
+        .join(' • ');
 
     return (
         <div className="border-b border-white/10 bg-white/2.5 px-4 py-3 backdrop-blur-sm sm:px-6 sm:py-4">
@@ -30,9 +39,13 @@ export default function ConversationHeader({ conversation, presenceMembers, onBa
                         </Button>
                     )}
                     <div className="flex min-w-0 flex-1 flex-col">
-                        <h2 className="truncate text-base font-semibold text-white sm:text-lg">{conversation.title}</h2>
+                        <h2 className="truncate text-base font-semibold text-white sm:text-lg">
+                            {conversation.title}
+                        </h2>
                         <div className="flex items-center gap-2">
-                            <p className="truncate text-xs text-white/60">{participantNames}</p>
+                            <p className="truncate text-xs text-white/60">
+                                {participantNames}
+                            </p>
                             {presenceMembers.length > 0 && (
                                 <>
                                     <span className="text-white/30">•</span>
@@ -51,17 +64,25 @@ export default function ConversationHeader({ conversation, presenceMembers, onBa
                 {presenceMembers.length > 0 && (
                     <div className="flex shrink-0 items-center gap-2">
                         {presenceMembers.slice(0, 5).map((member) => {
-                            const initials = (member.name ?? '??').slice(0, 2).toUpperCase();
+                            const initials = (member.name ?? '??')
+                                .slice(0, 2)
+                                .toUpperCase();
 
                             return (
                                 <div key={member.id} className="relative">
                                     <Avatar className="border-2 border-white/20 ring-2 ring-black/40">
-                                        <AvatarImage src={member.avatar ?? undefined} alt={member.name ?? 'Active participant'} />
+                                        <AvatarImage
+                                            src={member.avatar ?? undefined}
+                                            alt={
+                                                member.name ??
+                                                'Active participant'
+                                            }
+                                        />
                                         <AvatarFallback className="bg-gradient-to-br from-amber-500/20 to-amber-600/30 text-xs font-semibold text-amber-200">
                                             {initials}
                                         </AvatarFallback>
                                     </Avatar>
-                                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-black/40 bg-emerald-400"></span>
+                                    <span className="absolute right-0 bottom-0 h-3 w-3 rounded-full border-2 border-black/40 bg-emerald-400"></span>
                                 </div>
                             );
                         })}
@@ -76,4 +97,3 @@ export default function ConversationHeader({ conversation, presenceMembers, onBa
         </div>
     );
 }
-

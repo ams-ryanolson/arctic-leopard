@@ -48,7 +48,8 @@ export function useNotificationSubscription(
             handlerRef.current?.(payload);
         };
 
-        const notificationEvent = '.Illuminate\\Notifications\\Events\\BroadcastNotificationCreated';
+        const notificationEvent =
+            '.Illuminate\\Notifications\\Events\\BroadcastNotificationCreated';
 
         if (typeof channel.notification === 'function') {
             channel.notification(handleNotification);
@@ -62,5 +63,3 @@ export function useNotificationSubscription(
         };
     }, [enabled, userId]);
 }
-
-

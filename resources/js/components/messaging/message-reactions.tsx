@@ -1,9 +1,8 @@
 import { useCallback, useMemo, useState } from 'react';
-import { SmilePlus } from 'lucide-react';
 
-import messagesRoutes from '@/routes/messages';
 import { getCsrfToken } from '@/lib/csrf';
 import { cn } from '@/lib/utils';
+import messagesRoutes from '@/routes/messages';
 
 type ReactionSummary = {
     emoji: string;
@@ -20,12 +19,18 @@ type MessageReactionsProps = {
 
 const REACTION_PICKER = ['❤️', '🔥', '👏', '😍', '😂', '😮'];
 
-export default function MessageReactions({ messageId, reactions, onChange }: MessageReactionsProps) {
+export default function MessageReactions({
+    messageId,
+    reactions,
+    onChange,
+}: MessageReactionsProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const current = useMemo(
         () =>
             reactions.map((reaction) => ({
-                key: reaction.variant ? `${reaction.emoji}-${reaction.variant}` : reaction.emoji,
+                key: reaction.variant
+                    ? `${reaction.emoji}-${reaction.variant}`
+                    : reaction.emoji,
                 ...reaction,
             })),
         [reactions],
@@ -42,26 +47,35 @@ export default function MessageReactions({ messageId, reactions, onChange }: Mes
             const csrfToken = getCsrfToken();
 
             try {
-                const response = await fetch(messagesRoutes.reactions.store.url({ message: messageId }), {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Accept: 'application/json',
-                        ...(csrfToken ? { 'X-CSRF-TOKEN': csrfToken, 'X-XSRF-TOKEN': csrfToken } : {}),
+                const response = await fetch(
+                    messagesRoutes.reactions.store.url({ message: messageId }),
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Accept: 'application/json',
+                            ...(csrfToken
+                                ? {
+                                      'X-CSRF-TOKEN': csrfToken,
+                                      'X-XSRF-TOKEN': csrfToken,
+                                  }
+                                : {}),
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                            emoji,
+                            variant,
+                        }),
                     },
-                    credentials: 'include',
-                    body: JSON.stringify({
-                        emoji,
-                        variant,
-                    }),
-                });
+                );
 
                 if (!response.ok) {
                     throw new Error('Unable to update reactions at this time.');
                 }
 
                 const payload = await response.json().catch(() => ({}));
-                const summary = (payload?.reactions as ReactionSummary[] | undefined) ?? [];
+                const summary =
+                    (payload?.reactions as ReactionSummary[] | undefined) ?? [];
 
                 onChange?.(summary);
             } catch (error) {
@@ -81,7 +95,9 @@ export default function MessageReactions({ messageId, reactions, onChange }: Mes
                         key={reaction.key}
                         type="button"
                         disabled={isSubmitting}
-                        onClick={() => toggleReaction(reaction.emoji, reaction.variant)}
+                        onClick={() =>
+                            toggleReaction(reaction.emoji, reaction.variant)
+                        }
                         className={cn(
                             'flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-sm transition-all duration-150',
                             reaction.reacted
@@ -91,7 +107,9 @@ export default function MessageReactions({ messageId, reactions, onChange }: Mes
                         aria-pressed={reaction.reacted}
                     >
                         <span className="text-base">{reaction.emoji}</span>
-                        <span className="text-xs font-semibold">{reaction.count}</span>
+                        <span className="text-xs font-semibold">
+                            {reaction.count}
+                        </span>
                     </button>
                 ))}
                 <div className="flex items-center gap-1 rounded-full border border-dashed border-white/20 bg-white/5 px-2 py-1">
@@ -99,7 +117,7 @@ export default function MessageReactions({ messageId, reactions, onChange }: Mes
                         <button
                             key={emoji}
                             type="button"
-                            className="rounded-full p-1.5 text-base text-white/70 transition-all duration-150 hover:bg-white/10 hover:scale-110 hover:text-white"
+                            className="rounded-full p-1.5 text-base text-white/70 transition-all duration-150 hover:scale-110 hover:bg-white/10 hover:text-white"
                             onClick={() => toggleReaction(emoji)}
                             disabled={isSubmitting}
                             aria-label={`React with ${emoji}`}
@@ -112,4 +130,3 @@ export default function MessageReactions({ messageId, reactions, onChange }: Mes
         </div>
     );
 }
-

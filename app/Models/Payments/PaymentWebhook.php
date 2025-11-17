@@ -30,4 +30,3 @@ class PaymentWebhook extends Model
         return $query->where('status', PaymentWebhookStatus::Pending);
     }
 }
-

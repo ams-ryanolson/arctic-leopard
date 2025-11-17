@@ -1,11 +1,21 @@
 import { MiniSparkline } from '@/components/signals/mini-sparkline';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
-import { type HeaderAction, type HeaderFilter, type HeaderQuickAction } from '@/types';
+import {
+    type HeaderAction,
+    type HeaderFilter,
+    type HeaderQuickAction,
+} from '@/types';
 import { Head } from '@inertiajs/react';
-import { useMemo } from 'react';
 import { Globe, Group, Radar, Users } from 'lucide-react';
+import { useMemo } from 'react';
 
 type GrowthSeries = {
     name: string;
@@ -45,7 +55,12 @@ interface AudiencePageProps {
     moderationLoad: ModerationMetric[];
 }
 
-export default function AudiencePage({ growth, engagementScatter, circleLoad, moderationLoad }: AudiencePageProps) {
+export default function AudiencePage({
+    growth,
+    engagementScatter,
+    circleLoad,
+    moderationLoad,
+}: AudiencePageProps) {
     const headerActions: HeaderAction[] = [
         {
             id: 'launch-pulse',
@@ -80,7 +95,8 @@ export default function AudiencePage({ growth, engagementScatter, circleLoad, mo
         {
             id: 'create-welcome-flow',
             title: 'Create welcome flow',
-            description: 'Personalize first week experience for new circle members.',
+            description:
+                'Personalize first week experience for new circle members.',
             icon: Globe,
             badge: 'Growth',
             href: '/signals/settings?view=automations',
@@ -95,7 +111,10 @@ export default function AudiencePage({ growth, engagementScatter, circleLoad, mo
         },
     ];
 
-    const maxMembers = useMemo(() => Math.max(...circleLoad.map((circle) => circle.members)), [circleLoad]);
+    const maxMembers = useMemo(
+        () => Math.max(...circleLoad.map((circle) => circle.members)),
+        [circleLoad],
+    );
 
     return (
         <AppLayout
@@ -114,24 +133,40 @@ export default function AudiencePage({ growth, engagementScatter, circleLoad, mo
                 <section className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
                     <Card className="border-white/10 bg-white/5">
                         <CardHeader>
-                            <CardTitle className="text-2xl font-semibold">Growth trajectories</CardTitle>
+                            <CardTitle className="text-2xl font-semibold">
+                                Growth trajectories
+                            </CardTitle>
                             <CardDescription className="text-white/60">
-                                Follow weekly velocity across follower and active-member segments.
+                                Follow weekly velocity across follower and
+                                active-member segments.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             {growth.series.map((series, index) => (
-                                <div key={series.name} className="rounded-2xl border border-white/10 bg-black/30 p-4">
+                                <div
+                                    key={series.name}
+                                    className="rounded-2xl border border-white/10 bg-black/30 p-4"
+                                >
                                     <div className="flex items-center justify-between">
-                                        <p className="text-sm font-semibold text-white">{series.name}</p>
-                                        <span className="text-xs uppercase tracking-[0.25em] text-white/50">
+                                        <p className="text-sm font-semibold text-white">
+                                            {series.name}
+                                        </p>
+                                        <span className="text-xs tracking-[0.25em] text-white/50 uppercase">
                                             {growth.labels.at(-1)}
                                         </span>
                                     </div>
                                     <MiniSparkline
                                         values={series.values}
-                                        stroke={index === 0 ? 'rgba(56,189,248,0.9)' : 'rgba(167,243,208,0.9)'}
-                                        fill={index === 0 ? 'rgba(56,189,248,0.25)' : 'rgba(16,185,129,0.22)'}
+                                        stroke={
+                                            index === 0
+                                                ? 'rgba(56,189,248,0.9)'
+                                                : 'rgba(167,243,208,0.9)'
+                                        }
+                                        fill={
+                                            index === 0
+                                                ? 'rgba(56,189,248,0.25)'
+                                                : 'rgba(16,185,129,0.22)'
+                                        }
                                         className="mt-3 h-16 w-full"
                                     />
                                 </div>
@@ -141,9 +176,12 @@ export default function AudiencePage({ growth, engagementScatter, circleLoad, mo
 
                     <Card className="border-white/10 bg-white/5">
                         <CardHeader>
-                            <CardTitle className="text-xl font-semibold">Engagement scatter</CardTitle>
+                            <CardTitle className="text-xl font-semibold">
+                                Engagement scatter
+                            </CardTitle>
                             <CardDescription className="text-white/60">
-                                High energy circles plotted by responsiveness and session volume.
+                                High energy circles plotted by responsiveness
+                                and session volume.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -165,7 +203,7 @@ export default function AudiencePage({ growth, engagementScatter, circleLoad, mo
                                     ))}
                                 </div>
                             </div>
-                            <div className="mt-3 flex items-center justify-between text-xs uppercase tracking-[0.3em] text-white/40">
+                            <div className="mt-3 flex items-center justify-between text-xs tracking-[0.3em] text-white/40 uppercase">
                                 <span>Responsiveness</span>
                                 <span>Session velocity</span>
                             </div>
@@ -176,23 +214,34 @@ export default function AudiencePage({ growth, engagementScatter, circleLoad, mo
                 <section className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
                     <Card className="border-white/10 bg-white/5">
                         <CardHeader>
-                            <CardTitle className="text-xl font-semibold">Circle load</CardTitle>
+                            <CardTitle className="text-xl font-semibold">
+                                Circle load
+                            </CardTitle>
                             <CardDescription className="text-white/60">
-                                Capacity and staffing overview to avoid moderator burnout.
+                                Capacity and staffing overview to avoid
+                                moderator burnout.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             {circleLoad.map((circle) => (
-                                <div key={circle.name} className="rounded-2xl border border-white/10 bg-black/30 p-4">
+                                <div
+                                    key={circle.name}
+                                    className="rounded-2xl border border-white/10 bg-black/30 p-4"
+                                >
                                     <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
                                         <div>
-                                            <p className="font-semibold text-white">{circle.name}</p>
+                                            <p className="font-semibold text-white">
+                                                {circle.name}
+                                            </p>
                                             <p className="text-xs text-white/60">
-                                                {circle.members.toLocaleString()} members · {circle.moderators} moderators
+                                                {circle.members.toLocaleString()}{' '}
+                                                members · {circle.moderators}{' '}
+                                                moderators
                                             </p>
                                         </div>
-                                        <span className="text-xs uppercase tracking-[0.3em] text-white/50">
-                                            {(circle.capacity * 100).toFixed(0)}% capacity
+                                        <span className="text-xs tracking-[0.3em] text-white/50 uppercase">
+                                            {(circle.capacity * 100).toFixed(0)}
+                                            % capacity
                                         </span>
                                     </div>
                                     <div className="mt-3 h-3 overflow-hidden rounded-full bg-white/10">
@@ -205,15 +254,27 @@ export default function AudiencePage({ growth, engagementScatter, circleLoad, mo
                                                       ? 'bg-amber-300/80'
                                                       : 'bg-emerald-300/80',
                                             )}
-                                            style={{ width: `${circle.capacity * 100}%` }}
+                                            style={{
+                                                width: `${circle.capacity * 100}%`,
+                                            }}
                                         />
                                     </div>
                                     <div className="mt-2 flex items-center justify-between text-xs text-white/60">
                                         <span>
                                             Moderators per 100 members:{' '}
-                                            {(circle.moderators / (circle.members / 100)).toFixed(1)}
+                                            {(
+                                                circle.moderators /
+                                                (circle.members / 100)
+                                            ).toFixed(1)}
                                         </span>
-                                        <span>Peak load: {Math.round((circle.members / maxMembers) * 100)}th percentile</span>
+                                        <span>
+                                            Peak load:{' '}
+                                            {Math.round(
+                                                (circle.members / maxMembers) *
+                                                    100,
+                                            )}
+                                            th percentile
+                                        </span>
                                     </div>
                                 </div>
                             ))}
@@ -222,21 +283,34 @@ export default function AudiencePage({ growth, engagementScatter, circleLoad, mo
 
                     <Card className="border-white/10 bg-white/5">
                         <CardHeader>
-                            <CardTitle className="text-xl font-semibold">Moderation radar</CardTitle>
+                            <CardTitle className="text-xl font-semibold">
+                                Moderation radar
+                            </CardTitle>
                             <CardDescription className="text-white/60">
-                                Core stability metrics versus operational thresholds.
+                                Core stability metrics versus operational
+                                thresholds.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             {moderationLoad.map((metric) => {
-                                const ratio = Math.min(metric.value / metric.threshold, 1);
+                                const ratio = Math.min(
+                                    metric.value / metric.threshold,
+                                    1,
+                                );
                                 return (
-                                    <div key={metric.name} className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                                    <div
+                                        key={metric.name}
+                                        className="rounded-2xl border border-white/10 bg-black/25 p-4"
+                                    >
                                         <div className="flex items-center justify-between text-sm">
-                                            <p className="font-semibold text-white">{metric.name}</p>
+                                            <p className="font-semibold text-white">
+                                                {metric.name}
+                                            </p>
                                             <span className="text-white/70">
                                                 {metric.value}
-                                                {metric.unit ? ` ${metric.unit}` : ''}
+                                                {metric.unit
+                                                    ? ` ${metric.unit}`
+                                                    : ''}
                                             </span>
                                         </div>
                                         <div className="mt-3 h-3 overflow-hidden rounded-full bg-white/10">
@@ -249,12 +323,16 @@ export default function AudiencePage({ growth, engagementScatter, circleLoad, mo
                                                           ? 'bg-amber-400/80'
                                                           : 'bg-emerald-300/80',
                                                 )}
-                                                style={{ width: `${Math.min(ratio * 100, 100)}%` }}
+                                                style={{
+                                                    width: `${Math.min(ratio * 100, 100)}%`,
+                                                }}
                                             />
                                         </div>
                                         <p className="mt-2 text-xs text-white/60">
                                             Threshold {metric.threshold}
-                                            {metric.unit ? ` ${metric.unit}` : ''}
+                                            {metric.unit
+                                                ? ` ${metric.unit}`
+                                                : ''}
                                         </p>
                                     </div>
                                 );
@@ -266,5 +344,3 @@ export default function AudiencePage({ growth, engagementScatter, circleLoad, mo
         </AppLayout>
     );
 }
-
-

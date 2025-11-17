@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { router } from '@inertiajs/react';
 import { ExternalLink } from 'lucide-react';
 import { useCallback } from 'react';
-import { router } from '@inertiajs/react';
 
 type AdCreative = {
     id: number;
@@ -43,13 +43,16 @@ export default function SidebarAd({ ad, size = 'large' }: SidebarAdProps) {
                 {
                     preserveState: true,
                     preserveScroll: true,
-                }
+                },
             );
 
             // Track and redirect
-            window.open(`/api/ads/${ad.ad_id}/track?creative_id=${ad.id}&placement=${ad.placement}`, '_blank');
+            window.open(
+                `/api/ads/${ad.ad_id}/track?creative_id=${ad.id}&placement=${ad.placement}`,
+                '_blank',
+            );
         },
-        [ad]
+        [ad],
     );
 
     if (!ad) {
@@ -63,18 +66,22 @@ export default function SidebarAd({ ad, size = 'large' }: SidebarAdProps) {
     };
 
     return (
-        <Card className="border-white/10 bg-white/5 text-white overflow-hidden">
+        <Card className="overflow-hidden border-white/10 bg-white/5 text-white">
             <CardHeader className="p-0">
                 {ad.asset_type === 'image' && ad.asset_url && (
-                    <div className={`relative ${sizeClasses[size]} w-full overflow-hidden`}>
+                    <div
+                        className={`relative ${sizeClasses[size]} w-full overflow-hidden`}
+                    >
                         <img
                             src={ad.asset_url}
                             alt={ad.headline || 'Advertisement'}
                             className="h-full w-full object-cover"
                         />
                         {ad.headline && (
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-end p-4">
-                                <p className="text-sm font-semibold text-white">{ad.headline}</p>
+                            <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4">
+                                <p className="text-sm font-semibold text-white">
+                                    {ad.headline}
+                                </p>
                             </div>
                         )}
                     </div>
@@ -87,14 +94,22 @@ export default function SidebarAd({ ad, size = 'large' }: SidebarAdProps) {
                 )}
             </CardHeader>
             {(ad.headline || ad.body_text || ad.cta_text) && (
-                <CardContent className="p-4 space-y-2">
-                    {ad.headline && <h3 className="text-sm font-semibold text-white">{ad.headline}</h3>}
-                    {ad.body_text && <p className="text-xs text-white/70 line-clamp-2">{ad.body_text}</p>}
+                <CardContent className="space-y-2 p-4">
+                    {ad.headline && (
+                        <h3 className="text-sm font-semibold text-white">
+                            {ad.headline}
+                        </h3>
+                    )}
+                    {ad.body_text && (
+                        <p className="line-clamp-2 text-xs text-white/70">
+                            {ad.body_text}
+                        </p>
+                    )}
                     {ad.cta_text && (
                         <a
                             href={ad.cta_url}
                             onClick={handleClick}
-                            className="inline-flex items-center gap-1 text-xs font-medium text-amber-400 hover:text-amber-300 transition-colors"
+                            className="inline-flex items-center gap-1 text-xs font-medium text-amber-400 transition-colors hover:text-amber-300"
                         >
                             {ad.cta_text}
                             <ExternalLink className="size-3" />
@@ -107,7 +122,7 @@ export default function SidebarAd({ ad, size = 'large' }: SidebarAdProps) {
                     <a
                         href={ad.cta_url}
                         onClick={handleClick}
-                        className="inline-flex items-center justify-center w-full gap-2 rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white hover:bg-white/20 transition-colors"
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/20"
                     >
                         {ad.cta_text}
                         <ExternalLink className="size-4" />
@@ -117,4 +132,3 @@ export default function SidebarAd({ ad, size = 'large' }: SidebarAdProps) {
         </Card>
     );
 }
-

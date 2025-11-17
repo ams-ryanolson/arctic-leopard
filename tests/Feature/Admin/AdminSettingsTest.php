@@ -384,7 +384,7 @@ it('allows admin to upload branding asset', function (): void {
             'file' => $file,
         ])
         ->assertSuccessful();
-    
+
     $identifier = $uploadResponse->json('id') ?? $uploadResponse->json('identifier');
 
     // Step 2: Send identifier to branding upload endpoint
@@ -409,7 +409,7 @@ it('allows admin to upload branding asset', function (): void {
     $urlParts = explode('/', $data['url']);
     $filename = end($urlParts);
     // Try both public disk and the default disk
-    $exists = Storage::disk('public')->exists('branding/'.$filename) 
+    $exists = Storage::disk('public')->exists('branding/'.$filename)
         || Storage::disk(config('filesystems.default'))->exists('branding/'.$filename);
     expect($exists)->toBeTrue();
 
@@ -443,7 +443,7 @@ it('maps logo types to correct setting keys', function (): void {
                 'file' => $file,
             ])
             ->assertSuccessful();
-        
+
         $identifier = $uploadResponse->json('id') ?? $uploadResponse->json('identifier');
 
         // Step 2: Send identifier to branding upload endpoint

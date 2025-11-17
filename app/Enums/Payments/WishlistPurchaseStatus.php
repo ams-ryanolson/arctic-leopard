@@ -14,4 +14,3 @@ enum WishlistPurchaseStatus: string
     case Cancelled = 'cancelled';
     case Failed = 'failed';
 }
-

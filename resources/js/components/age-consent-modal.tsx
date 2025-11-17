@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { usePage } from '@inertiajs/react';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { ShieldCheck, AlertTriangle, Check, ExternalLink } from 'lucide-react';
+import { AlertTriangle, Check, ExternalLink, ShieldCheck } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
 type AgeConsentModalProps = {
     open?: boolean;
@@ -34,7 +34,9 @@ export default function AgeConsentModal({
 
     const readCookie = (name: string): string | null => {
         if (typeof document === 'undefined') return null;
-        const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+        const match = document.cookie.match(
+            new RegExp('(^| )' + name + '=([^;]+)'),
+        );
         return match ? decodeURIComponent(match[2]) : null;
     };
 
@@ -102,9 +104,7 @@ export default function AgeConsentModal({
     }
 
     const siteLogo =
-        (site?.logo?.url as string) ||
-        (site?.logo?.dark_url as string) ||
-        '';
+        (site?.logo?.url as string) || (site?.logo?.dark_url as string) || '';
     const siteName = (site?.name as string) || 'This site';
 
     return (
@@ -123,7 +123,7 @@ export default function AgeConsentModal({
                     'relative mx-4 w-full max-w-2xl overflow-hidden rounded-2xl border border-white/10',
                     'bg-gradient-to-b from-neutral-950/95 via-neutral-950/90 to-black/85',
                     'shadow-[0_40px_120px_-40px_rgba(249,115,22,0.45)] ring-1 ring-white/10',
-                    'animate-in fade-in zoom-in-95 duration-200',
+                    'animate-in duration-200 zoom-in-95 fade-in',
                 )}
             >
                 <div className="pointer-events-none absolute -inset-1 -z-10">
@@ -137,38 +137,58 @@ export default function AgeConsentModal({
                         <ShieldCheck className="size-7 text-amber-300" />
                     </div>
                     <div className="min-w-0">
-                        <h2 className="truncate text-lg font-semibold text-white">Age of Consent</h2>
-                        <p className="truncate text-[13px] text-white/60">{siteName}</p>
+                        <h2 className="truncate text-lg font-semibold text-white">
+                            Age of Consent
+                        </h2>
+                        <p className="truncate text-[13px] text-white/60">
+                            {siteName}
+                        </p>
                     </div>
                     {siteLogo ? (
                         <div className="ml-auto">
-                            <img src={siteLogo} alt={`${siteName} logo`} className="h-7 w-auto opacity-90" />
+                            <img
+                                src={siteLogo}
+                                alt={`${siteName} logo`}
+                                className="h-7 w-auto opacity-90"
+                            />
                         </div>
                     ) : null}
                 </div>
 
-                <div className="px-6 pb-6 pt-5">
-                    <p className="text-[15px] leading-7 text-white/90">{defaultText}</p>
+                <div className="px-6 pt-5 pb-6">
+                    <p className="text-[15px] leading-7 text-white/90">
+                        {defaultText}
+                    </p>
                     <div className="mt-4 space-y-2 rounded-xl border border-white/10 bg-white/[0.03] p-3">
                         <div className="flex items-start gap-2 text-[13px] text-white/80">
                             <AlertTriangle className="mt-0.5 size-4 text-amber-300" />
                             <span>
-                                By continuing, you confirm you are of legal age in your jurisdiction.
+                                By continuing, you confirm you are of legal age
+                                in your jurisdiction.
                             </span>
                         </div>
                         <div className="flex items-start gap-2 text-[13px] text-white/80">
                             <Check className="mt-0.5 size-4 text-emerald-300" />
                             <span>
                                 You agree to our{' '}
-                                <a href="/terms" className="text-amber-300 underline underline-offset-2 hover:text-amber-200">
+                                <a
+                                    href="/terms"
+                                    className="text-amber-300 underline underline-offset-2 hover:text-amber-200"
+                                >
                                     Terms
                                 </a>
                                 ,{' '}
-                                <a href="/privacy" className="text-amber-300 underline underline-offset-2 hover:text-amber-200">
+                                <a
+                                    href="/privacy"
+                                    className="text-amber-300 underline underline-offset-2 hover:text-amber-200"
+                                >
                                     Privacy Policy
                                 </a>{' '}
                                 and{' '}
-                                <a href="/guidelines" className="text-amber-300 underline underline-offset-2 hover:text-amber-200">
+                                <a
+                                    href="/guidelines"
+                                    className="text-amber-300 underline underline-offset-2 hover:text-amber-200"
+                                >
                                     Community Guidelines
                                 </a>
                                 .
@@ -177,9 +197,14 @@ export default function AgeConsentModal({
                     </div>
                     <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.02] p-3">
                         <p className="text-[12px] leading-6 text-white/60">
-                            Why this matters: protecting minors from adult content is a shared responsibility. Age prompts help ensure legal
-                            compliance and a safer community experience. Learn more from{' '}
-                            <a href="/guidelines" className="text-amber-300 underline underline-offset-2 hover:text-amber-200">
+                            Why this matters: protecting minors from adult
+                            content is a shared responsibility. Age prompts help
+                            ensure legal compliance and a safer community
+                            experience. Learn more from{' '}
+                            <a
+                                href="/guidelines"
+                                className="text-amber-300 underline underline-offset-2 hover:text-amber-200"
+                            >
                                 our guidelines
                             </a>
                             .
@@ -196,7 +221,9 @@ export default function AgeConsentModal({
                                 <ExternalLink className="size-3.5" />
                                 Take me out
                             </Button>
-                        ) : <span />}
+                        ) : (
+                            <span />
+                        )}
                         <div className="flex items-center gap-2">
                             <Button
                                 className="bg-gradient-to-r from-amber-500/90 via-rose-500/80 to-indigo-500/80 text-white shadow-[0_12px_30px_-18px_rgba(249,115,22,0.45)]"
@@ -211,5 +238,3 @@ export default function AgeConsentModal({
         </div>
     );
 }
-
-

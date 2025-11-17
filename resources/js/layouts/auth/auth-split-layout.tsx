@@ -2,8 +2,8 @@ import AppLogoIcon from '@/components/app-logo-icon';
 import { home } from '@/routes';
 import { type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { type PropsWithChildren } from 'react';
 import { Flame, MessageCircle, ShieldCheck } from 'lucide-react';
+import { type PropsWithChildren } from 'react';
 
 interface AuthLayoutProps {
     title?: string;
@@ -21,17 +21,20 @@ export default function AuthSplitLayout({
     const highlights = [
         {
             title: 'Consent-First Spaces',
-            description: 'Verified onboarding and layered privacy controls in every interaction.',
+            description:
+                'Verified onboarding and layered privacy controls in every interaction.',
             icon: ShieldCheck,
         },
         {
             title: 'Creator-Driven Monetization',
-            description: 'Stack subscriptions, tips, and premium scenes without platform friction.',
+            description:
+                'Stack subscriptions, tips, and premium scenes without platform friction.',
             icon: Flame,
         },
         {
             title: 'Intimate Communities',
-            description: 'DMs, kink circles, and aftercare threads to keep your scene connected.',
+            description:
+                'DMs, kink circles, and aftercare threads to keep your scene connected.',
             icon: MessageCircle,
         },
     ];
@@ -59,7 +62,7 @@ export default function AuthSplitLayout({
                                 <AppLogoIcon className="size-6 fill-current text-white" />
                             </div>
                             <div className="text-left leading-tight">
-                                <p className="text-sm uppercase tracking-[0.4em] text-white/60">
+                                <p className="text-sm tracking-[0.4em] text-white/60 uppercase">
                                     {brandName}
                                 </p>
                                 <p className="text-[1.45rem] font-semibold tracking-tight text-white">
@@ -69,28 +72,41 @@ export default function AuthSplitLayout({
                         </Link>
 
                         <div className="space-y-8">
-                            <h2 className="text-4xl font-semibold leading-tight tracking-tight text-white">
-                                Enter the underground network where gay kink creators own the spotlight.
+                            <h2 className="text-4xl leading-tight font-semibold tracking-tight text-white">
+                                Enter the underground network where gay kink
+                                creators own the spotlight.
                             </h2>
                             <p className="max-w-xl text-base leading-relaxed text-white/70">
-                                Build paywalled experiences, run tip trains, and keep your circles close with consent
-                                systems, privacy shields, and community tooling designed for raw expression.
+                                Build paywalled experiences, run tip trains, and
+                                keep your circles close with consent systems,
+                                privacy shields, and community tooling designed
+                                for raw expression.
                             </p>
                             <ul className="grid gap-5 text-sm text-white/75">
-                                {highlights.map(({ title: itemTitle, description: itemDescription, icon: Icon }) => (
-                                    <li
-                                        key={itemTitle}
-                                        className="flex gap-4 rounded-3xl border border-white/15 bg-white/5 p-5 backdrop-blur"
-                                    >
-                                        <div className="flex size-10 items-center justify-center rounded-xl bg-white/10 text-white">
-                                            <Icon className="size-5" />
-                                        </div>
-                                        <div>
-                                            <p className="font-semibold text-white">{itemTitle}</p>
-                                            <p className="mt-1 text-white/70">{itemDescription}</p>
-                                        </div>
-                                    </li>
-                                ))}
+                                {highlights.map(
+                                    ({
+                                        title: itemTitle,
+                                        description: itemDescription,
+                                        icon: Icon,
+                                    }) => (
+                                        <li
+                                            key={itemTitle}
+                                            className="flex gap-4 rounded-3xl border border-white/15 bg-white/5 p-5 backdrop-blur"
+                                        >
+                                            <div className="flex size-10 items-center justify-center rounded-xl bg-white/10 text-white">
+                                                <Icon className="size-5" />
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-white">
+                                                    {itemTitle}
+                                                </p>
+                                                <p className="mt-1 text-white/70">
+                                                    {itemDescription}
+                                                </p>
+                                            </div>
+                                        </li>
+                                    ),
+                                )}
                             </ul>
                         </div>
 
@@ -99,7 +115,7 @@ export default function AuthSplitLayout({
                                 <p className="text-lg font-medium text-white">
                                     &ldquo;{quote.message}&rdquo;
                                 </p>
-                                <p className="mt-4 text-xs uppercase tracking-[0.35em] text-white/40">
+                                <p className="mt-4 text-xs tracking-[0.35em] text-white/40 uppercase">
                                     {quote.author}
                                 </p>
                             </div>
@@ -122,8 +138,9 @@ export default function AuthSplitLayout({
                                 </span>
                             </Link>
                             <p className="text-sm leading-relaxed text-white/65">
-                                Claim your creator throne, launch premium scenes, and keep the aftercare flowing from
-                                one fetish-forward control room.
+                                Claim your creator throne, launch premium
+                                scenes, and keep the aftercare flowing from one
+                                fetish-forward control room.
                             </p>
                         </div>
 
@@ -133,13 +150,15 @@ export default function AuthSplitLayout({
                                     {title}
                                 </h1>
                                 {description && (
-                                    <p className="text-sm leading-relaxed text-white/70">{description}</p>
+                                    <p className="text-sm leading-relaxed text-white/70">
+                                        {description}
+                                    </p>
                                 )}
                             </div>
                             <div className="mt-8 space-y-6">{children}</div>
                         </div>
 
-                        <div className="flex items-center justify-center gap-2 text-xs uppercase tracking-[0.3em] text-white/50">
+                        <div className="flex items-center justify-center gap-2 text-xs tracking-[0.3em] text-white/50 uppercase">
                             <span className="size-1.5 rounded-full bg-amber-400" />
                             <span>Safe · Verified · Fetish Sovereign</span>
                         </div>

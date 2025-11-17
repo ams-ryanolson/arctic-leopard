@@ -4,9 +4,9 @@ namespace App\Services\Payments;
 
 use App\Enums\Payments\PaymentSubscriptionStatus;
 use App\Enums\Payments\PostPurchaseStatus;
+use App\Models\Payments\PaymentSubscription;
 use App\Models\Post;
 use App\Models\PostPurchase;
-use App\Models\Payments\PaymentSubscription;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -83,4 +83,3 @@ class EntitlementService
             });
     }
 }
-

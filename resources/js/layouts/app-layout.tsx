@@ -1,5 +1,5 @@
-import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
 import AnnouncementBar from '@/components/announcement-bar';
+import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
 import {
     type BreadcrumbItem,
     type HeaderAction,

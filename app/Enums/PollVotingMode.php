@@ -18,4 +18,3 @@ enum PollVotingMode: string
         );
     }
 }
-

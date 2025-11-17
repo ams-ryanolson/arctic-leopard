@@ -52,5 +52,3 @@ it('allows a user to unlike a post', function (): void {
     expect($post->fresh()->likes_count)->toBe(0);
     expect($user->hasLiked($post))->toBeFalse();
 });
-
-

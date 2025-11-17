@@ -1,9 +1,15 @@
-import { type ReactNode } from 'react';
-import { Head, Link } from '@inertiajs/react';
 import AnnouncementBar from '@/components/announcement-bar';
+import { Head, Link } from '@inertiajs/react';
 import { Users } from 'lucide-react';
+import { type ReactNode } from 'react';
 
-export default function LegalLayout({ children, title }: { children: ReactNode; title?: string }) {
+export default function LegalLayout({
+    children,
+    title,
+}: {
+    children: ReactNode;
+    title?: string;
+}) {
     return (
         <div className="relative flex min-h-screen flex-col overflow-hidden bg-neutral-950 text-white">
             {title && <Head title={title} />}
@@ -23,7 +29,7 @@ export default function LegalLayout({ children, title }: { children: ReactNode; 
                             <Users className="size-5" />
                         </div>
                         <div className="leading-tight">
-                            <p className="text-[0.65rem] uppercase tracking-[0.35em] text-white/60 sm:text-xs">
+                            <p className="text-[0.65rem] tracking-[0.35em] text-white/60 uppercase sm:text-xs">
                                 Real Kink Men
                             </p>
                             <p className="text-sm font-semibold tracking-tight text-white">
@@ -32,17 +38,42 @@ export default function LegalLayout({ children, title }: { children: ReactNode; 
                         </div>
                     </div>
                     <nav className="hidden items-center gap-6 text-xs md:flex">
-                        <Link href="/legal/terms" className="text-white/70 transition-colors hover:text-white">Terms</Link>
-                        <Link href="/legal/privacy" className="text-white/70 transition-colors hover:text-white">Privacy</Link>
-                        <Link href="/legal/guidelines" className="text-white/70 transition-colors hover:text-white">Guidelines</Link>
-                        <Link href="/legal/cookies" className="text-white/70 transition-colors hover:text-white">Cookies</Link>
-                        <Link href="/legal/dmca" className="text-white/70 transition-colors hover:text-white">DMCA</Link>
+                        <Link
+                            href="/legal/terms"
+                            className="text-white/70 transition-colors hover:text-white"
+                        >
+                            Terms
+                        </Link>
+                        <Link
+                            href="/legal/privacy"
+                            className="text-white/70 transition-colors hover:text-white"
+                        >
+                            Privacy
+                        </Link>
+                        <Link
+                            href="/legal/guidelines"
+                            className="text-white/70 transition-colors hover:text-white"
+                        >
+                            Guidelines
+                        </Link>
+                        <Link
+                            href="/legal/cookies"
+                            className="text-white/70 transition-colors hover:text-white"
+                        >
+                            Cookies
+                        </Link>
+                        <Link
+                            href="/legal/dmca"
+                            className="text-white/70 transition-colors hover:text-white"
+                        >
+                            DMCA
+                        </Link>
                     </nav>
                 </div>
             </header>
 
             {/* Content */}
-            <main className="mx-auto w-full max-w-7xl flex-1 px-5 pb-20 pt-4 sm:px-8 md:px-12">
+            <main className="mx-auto w-full max-w-7xl flex-1 px-5 pt-4 pb-20 sm:px-8 md:px-12">
                 {children}
             </main>
 
@@ -50,17 +81,31 @@ export default function LegalLayout({ children, title }: { children: ReactNode; 
             <footer className="mt-auto border-t border-white/10 bg-black/40 px-5 py-8 text-sm text-white/60 sm:px-6 md:px-12">
                 <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-4 text-center md:flex-row md:text-left">
                     <p className="text-balance">
-                        © {new Date().getFullYear()} Real Kink Men. Fetish-forward. Consent-centered.
+                        © {new Date().getFullYear()} Real Kink Men.
+                        Fetish-forward. Consent-centered.
                     </p>
-                    <div className="flex items-center justify-center gap-6 text-[0.7rem] uppercase tracking-[0.3em] text-white/50 sm:text-xs">
-                        <Link href="/legal/privacy" className="transition-colors hover:text-white">Privacy</Link>
-                        <Link href="/legal/cookies" className="transition-colors hover:text-white">Cookies</Link>
-                        <Link href="/legal/terms" className="transition-colors hover:text-white">Terms</Link>
+                    <div className="flex items-center justify-center gap-6 text-[0.7rem] tracking-[0.3em] text-white/50 uppercase sm:text-xs">
+                        <Link
+                            href="/legal/privacy"
+                            className="transition-colors hover:text-white"
+                        >
+                            Privacy
+                        </Link>
+                        <Link
+                            href="/legal/cookies"
+                            className="transition-colors hover:text-white"
+                        >
+                            Cookies
+                        </Link>
+                        <Link
+                            href="/legal/terms"
+                            className="transition-colors hover:text-white"
+                        >
+                            Terms
+                        </Link>
                     </div>
                 </div>
             </footer>
         </div>
     );
 }
-
-

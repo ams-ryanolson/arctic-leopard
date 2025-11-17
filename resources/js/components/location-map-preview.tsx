@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
+import { useEffect, useRef, useState } from 'react';
 
 type LocationMapPreviewProps = {
     latitude: string | number;
@@ -14,7 +14,9 @@ function getTileCoordinates(lat: number, lon: number, zoom: number) {
     const xTile = Math.floor(((lon + 180) / 360) * n);
     const latRad = (lat * Math.PI) / 180;
     const yTile = Math.floor(
-        ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * n,
+        ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) /
+            2) *
+            n,
     );
     return { x: xTile, y: yTile };
 }
@@ -71,7 +73,12 @@ export function LocationMapPreview({
     const { x: xTile, y: yTile } = getTileCoordinates(lat, lon, zoom);
 
     // Calculate which tiles we need for a 3x3 grid centered on the location
-    const tiles: Array<{ x: number; y: number; offsetX: number; offsetY: number }> = [];
+    const tiles: Array<{
+        x: number;
+        y: number;
+        offsetX: number;
+        offsetY: number;
+    }> = [];
     for (let dy = -1; dy <= 1; dy++) {
         for (let dx = -1; dx <= 1; dx++) {
             tiles.push({
@@ -87,8 +94,11 @@ export function LocationMapPreview({
     const n = Math.pow(2, zoom);
     const xTileExact = ((lon + 180) / 360) * n;
     const latRad = (lat * Math.PI) / 180;
-    const yTileExact = ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * n;
-    
+    const yTileExact =
+        ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) /
+            2) *
+        n;
+
     const pixelX = ((xTileExact - xTile) % 1) * 256;
     const pixelY = ((yTileExact - yTile) % 1) * 256;
 
@@ -96,11 +106,19 @@ export function LocationMapPreview({
     const mapSize = tileSize * 3; // 3x3 grid = 768px
 
     return (
-        <div className={cn('relative overflow-hidden rounded-2xl border border-white/10 bg-black/20', className)}>
+        <div
+            className={cn(
+                'relative overflow-hidden rounded-2xl border border-white/10 bg-black/20',
+                className,
+            )}
+        >
             {/* Static map using composite tiles */}
-            <div ref={containerRef} className="relative h-full w-full overflow-hidden">
-                <div 
-                    className="absolute left-1/2 top-1/2"
+            <div
+                ref={containerRef}
+                className="relative h-full w-full overflow-hidden"
+            >
+                <div
+                    className="absolute top-1/2 left-1/2"
                     style={{
                         width: `${mapSize}px`,
                         height: `${mapSize}px`,
@@ -140,7 +158,7 @@ export function LocationMapPreview({
                 </div>
             </div>
             {label && (
-                <div className="absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-black/90 via-black/70 to-transparent px-4 py-3 pointer-events-none">
+                <div className="pointer-events-none absolute right-0 bottom-0 left-0 z-20 bg-gradient-to-t from-black/90 via-black/70 to-transparent px-4 py-3">
                     <p className="text-sm font-medium text-white">{label}</p>
                 </div>
             )}
@@ -157,4 +175,3 @@ export function LocationMapPreview({
         </div>
     );
 }
-

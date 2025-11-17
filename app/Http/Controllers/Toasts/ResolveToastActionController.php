@@ -45,4 +45,3 @@ class ResolveToastActionController extends Controller
         ]);
     }
 }
-

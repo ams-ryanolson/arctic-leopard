@@ -89,5 +89,3 @@ it('denies presence channel access to non-members', function (): void {
 
     expect(fn () => $broadcaster->auth($request))->toThrow(AccessDeniedHttpException::class);
 });
-
-

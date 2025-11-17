@@ -27,4 +27,3 @@ class LogPaymentIntentLifecycle implements ShouldQueue
             ->log(sprintf('Payment intent %s transitioned to %s', $intent->uuid, $intent->status->value));
     }
 }
-

@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\PlaybookArticle;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
 
 class PlaybookArticleSeeder extends Seeder
 {
@@ -198,7 +197,7 @@ class PlaybookArticleSeeder extends Seeder
 
         foreach ($articles as $index => $articleData) {
             $slug = $articleData['slug'];
-            
+
             PlaybookArticle::updateOrCreate(
                 ['slug' => $slug],
                 [

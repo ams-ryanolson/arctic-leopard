@@ -15,9 +15,7 @@ abstract class DatabaseNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(protected User $actor)
-    {
-    }
+    public function __construct(protected User $actor) {}
 
     /**
      * Return the notification channels.
@@ -121,4 +119,3 @@ abstract class DatabaseNotification extends Notification implements ShouldQueue
             : 0;
     }
 }
-

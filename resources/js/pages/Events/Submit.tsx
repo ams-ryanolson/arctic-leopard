@@ -1,7 +1,20 @@
+import InputError from '@/components/input-error';
+import {
+    LocationAutocomplete,
+    type LocationSuggestion,
+} from '@/components/location-autocomplete';
+import { LocationMapPreview } from '@/components/location-map-preview';
 import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
     Select,
     SelectContent,
@@ -9,10 +22,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import InputError from '@/components/input-error';
+import AppLayout from '@/layouts/app-layout';
+import { cn } from '@/lib/utils';
 import eventsRoutes from '@/routes/events';
-import { useForm, Head, Link } from '@inertiajs/react';
-import { useCallback, useMemo, useState } from 'react';
 import {
     type EventModality,
     type EventTag,
@@ -20,12 +32,9 @@ import {
     formatEventModality,
     formatEventType,
 } from '@/types/events';
-import { cn } from '@/lib/utils';
-import AppLayout from '@/layouts/app-layout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
-import { LocationAutocomplete, type LocationSuggestion } from '@/components/location-autocomplete';
-import { LocationMapPreview } from '@/components/location-map-preview';
+import { useCallback, useMemo, useState } from 'react';
 
 type EventSubmitProps = {
     tags: EventTag[];
@@ -131,18 +140,15 @@ export default function EventSubmit({
         [form],
     );
 
-    const handleToggleTag = useCallback(
-        (tagId: number) => {
-            setSelectedTags((prev) => {
-                if (prev.includes(tagId)) {
-                    return prev.filter((id) => id !== tagId);
-                }
+    const handleToggleTag = useCallback((tagId: number) => {
+        setSelectedTags((prev) => {
+            if (prev.includes(tagId)) {
+                return prev.filter((id) => id !== tagId);
+            }
 
-                return [...prev, tagId];
-            });
-        },
-        [],
-    );
+            return [...prev, tagId];
+        });
+    }, []);
 
     const handleSubmit = useCallback(() => {
         form.setData((data) => ({
@@ -203,9 +209,9 @@ export default function EventSubmit({
                             Suggest an official event
                         </CardTitle>
                         <CardDescription className="text-base text-white/65">
-                            Tell us what's happening, where it's located, and what
-                            members should expect. We'll review and follow up with
-                            next steps.
+                            Tell us what's happening, where it's located, and
+                            what members should expect. We'll review and follow
+                            up with next steps.
                         </CardDescription>
                     </CardHeader>
 
@@ -217,7 +223,10 @@ export default function EventSubmit({
                                     id="event-title"
                                     value={form.data.title}
                                     onChange={(event) =>
-                                        form.setData('title', event.target.value)
+                                        form.setData(
+                                            'title',
+                                            event.target.value,
+                                        )
                                     }
                                     className="rounded-2xl border-white/20 bg-black/40 text-white placeholder:text-white/40 focus-visible:ring-amber-400/40"
                                     placeholder="Leather Atlas · Field Trip"
@@ -232,7 +241,10 @@ export default function EventSubmit({
                                     id="event-subtitle"
                                     value={form.data.subtitle}
                                     onChange={(event) =>
-                                        form.setData('subtitle', event.target.value)
+                                        form.setData(
+                                            'subtitle',
+                                            event.target.value,
+                                        )
                                     }
                                     className="rounded-2xl border-white/20 bg-black/40 text-white placeholder:text-white/40 focus-visible:ring-amber-400/40"
                                     placeholder="Warehouse pop-up · RSVP required"
@@ -241,12 +253,17 @@ export default function EventSubmit({
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="event-description">Description</Label>
+                            <Label htmlFor="event-description">
+                                Description
+                            </Label>
                             <textarea
                                 id="event-description"
                                 value={form.data.description}
                                 onChange={(event) =>
-                                    form.setData('description', event.target.value)
+                                    form.setData(
+                                        'description',
+                                        event.target.value,
+                                    )
                                 }
                                 rows={5}
                                 placeholder="Share the focus of the event, who can attend, safety requirements, and any hosts or co-organizers involved."
@@ -346,7 +363,10 @@ export default function EventSubmit({
                                     type="datetime-local"
                                     value={form.data.starts_at}
                                     onChange={(event) =>
-                                        form.setData('starts_at', event.target.value)
+                                        form.setData(
+                                            'starts_at',
+                                            event.target.value,
+                                        )
                                     }
                                     className="rounded-2xl border-white/20 bg-black/40 text-sm text-white focus-visible:ring-amber-400/40"
                                 />
@@ -355,14 +375,20 @@ export default function EventSubmit({
 
                             <div className="space-y-2">
                                 <Label htmlFor="event-ends">
-                                    Ends <span className="text-white/40">(optional)</span>
+                                    Ends{' '}
+                                    <span className="text-white/40">
+                                        (optional)
+                                    </span>
                                 </Label>
                                 <Input
                                     id="event-ends"
                                     type="datetime-local"
                                     value={form.data.ends_at ?? ''}
                                     onChange={(event) =>
-                                        form.setData('ends_at', event.target.value)
+                                        form.setData(
+                                            'ends_at',
+                                            event.target.value,
+                                        )
                                     }
                                     className="rounded-2xl border-white/20 bg-black/40 text-sm text-white focus-visible:ring-amber-400/40"
                                 />
@@ -374,7 +400,9 @@ export default function EventSubmit({
                             <div className="space-y-2">
                                 <Label htmlFor="event-location">
                                     Venue / location name
-                                    <span className="ml-1 text-white/45">(optional)</span>
+                                    <span className="ml-1 text-white/45">
+                                        (optional)
+                                    </span>
                                 </Label>
                                 <Input
                                     id="event-location"
@@ -392,7 +420,9 @@ export default function EventSubmit({
                                         modalityIsVirtual && 'opacity-60',
                                     )}
                                 />
-                                <InputError message={form.errors.location_name} />
+                                <InputError
+                                    message={form.errors.location_name}
+                                />
                             </div>
 
                             <div className="space-y-2">
@@ -411,7 +441,9 @@ export default function EventSubmit({
                                     placeholder="https://"
                                     className="rounded-2xl border-white/20 bg-black/40 text-white placeholder:text-white/40 focus-visible:ring-amber-400/40"
                                 />
-                                <InputError message={form.errors.virtual_meeting_url} />
+                                <InputError
+                                    message={form.errors.virtual_meeting_url}
+                                />
                             </div>
                         </div>
 
@@ -420,7 +452,12 @@ export default function EventSubmit({
                                 <Label htmlFor="event-address">
                                     Address / Location
                                 </Label>
-                                <div className={cn('relative', modalityIsVirtual && 'opacity-60')}>
+                                <div
+                                    className={cn(
+                                        'relative',
+                                        modalityIsVirtual && 'opacity-60',
+                                    )}
+                                >
                                     <LocationAutocomplete
                                         value={locationQuery}
                                         onChange={handleLocationQueryChange}
@@ -441,31 +478,46 @@ export default function EventSubmit({
                                         form.errors.location_longitude
                                     }
                                 />
-                                {form.data.location_city && form.data.location_country && (
-                                    <div className="mt-2 space-y-3">
-                                        <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/70">
-                                            <p className="font-medium text-white/90">Selected location:</p>
-                                            <p>
-                                                {[
-                                                    form.data.location_city,
-                                                    form.data.location_region,
-                                                    form.data.location_country,
-                                                ]
-                                                    .filter(Boolean)
-                                                    .join(', ')}
-                                            </p>
+                                {form.data.location_city &&
+                                    form.data.location_country && (
+                                        <div className="mt-2 space-y-3">
+                                            <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/70">
+                                                <p className="font-medium text-white/90">
+                                                    Selected location:
+                                                </p>
+                                                <p>
+                                                    {[
+                                                        form.data.location_city,
+                                                        form.data
+                                                            .location_region,
+                                                        form.data
+                                                            .location_country,
+                                                    ]
+                                                        .filter(Boolean)
+                                                        .join(', ')}
+                                                </p>
+                                            </div>
+                                            {form.data.location_latitude &&
+                                                form.data
+                                                    .location_longitude && (
+                                                    <LocationMapPreview
+                                                        latitude={
+                                                            form.data
+                                                                .location_latitude
+                                                        }
+                                                        longitude={
+                                                            form.data
+                                                                .location_longitude
+                                                        }
+                                                        label={
+                                                            locationQuery ||
+                                                            undefined
+                                                        }
+                                                        className="h-[300px]"
+                                                    />
+                                                )}
                                         </div>
-                                        {form.data.location_latitude &&
-                                            form.data.location_longitude && (
-                                                <LocationMapPreview
-                                                    latitude={form.data.location_latitude}
-                                                    longitude={form.data.location_longitude}
-                                                    label={locationQuery || undefined}
-                                                    className="h-[300px]"
-                                                />
-                                            )}
-                                    </div>
-                                )}
+                                    )}
                             </div>
                         )}
 
@@ -473,13 +525,17 @@ export default function EventSubmit({
                             <Label>Tags (optional)</Label>
                             <div className="flex flex-wrap gap-2">
                                 {tags.map((tag) => {
-                                    const checked = selectedTags.includes(tag.id);
+                                    const checked = selectedTags.includes(
+                                        tag.id,
+                                    );
 
                                     return (
                                         <button
                                             key={tag.id}
                                             type="button"
-                                            onClick={() => handleToggleTag(tag.id)}
+                                            onClick={() =>
+                                                handleToggleTag(tag.id)
+                                            }
                                             className={cn(
                                                 'flex items-center gap-2 rounded-full border px-3 py-2 text-xs transition',
                                                 checked
@@ -504,7 +560,9 @@ export default function EventSubmit({
                         <div className="space-y-2">
                             <Label htmlFor="event-notes">
                                 Additional context for admins
-                                <span className="ml-1 text-white/45">(optional)</span>
+                                <span className="ml-1 text-white/45">
+                                    (optional)
+                                </span>
                             </Label>
                             <textarea
                                 id="event-notes"
@@ -519,11 +577,13 @@ export default function EventSubmit({
                                 placeholder="Share technical requirements, collaborator contacts, or anything else we should know during review."
                                 className="w-full rounded-3xl border border-white/20 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-white/40 focus-visible:ring-amber-400/40"
                             />
-                            <InputError message={form.errors.submission_notes} />
+                            <InputError
+                                message={form.errors.submission_notes}
+                            />
                         </div>
 
                         <div className="flex flex-wrap items-start justify-between gap-6 rounded-3xl border border-white/10 bg-white/5 px-6 py-5">
-                            <div className="flex-1 min-w-0">
+                            <div className="min-w-0 flex-1">
                                 <p className="mb-3 font-semibold text-white">
                                     What makes an event official?
                                 </p>
@@ -547,7 +607,7 @@ export default function EventSubmit({
                                     type="button"
                                     variant="ghost"
                                     asChild
-                                    className="rounded-full border border-white/15 bg-white/10 px-6 text-xs font-semibold uppercase tracking-[0.35em] text-white/70 hover:border-white/25 hover:bg-white/15 hover:text-white"
+                                    className="rounded-full border border-white/15 bg-white/10 px-6 text-xs font-semibold tracking-[0.35em] text-white/70 uppercase hover:border-white/25 hover:bg-white/15 hover:text-white"
                                 >
                                     <Link href={eventsRoutes.index().url}>
                                         Cancel
@@ -557,9 +617,11 @@ export default function EventSubmit({
                                     type="button"
                                     disabled={form.processing}
                                     onClick={handleSubmit}
-                                    className="rounded-full bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-500 px-8 text-sm font-semibold uppercase tracking-[0.35em] text-white shadow-[0_35px_90px_-50px_rgba(16,185,129,0.65)] transition hover:scale-[1.02]"
+                                    className="rounded-full bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-500 px-8 text-sm font-semibold tracking-[0.35em] text-white uppercase shadow-[0_35px_90px_-50px_rgba(16,185,129,0.65)] transition hover:scale-[1.02]"
                                 >
-                                    {form.processing ? 'Submitting...' : 'Submit for review'}
+                                    {form.processing
+                                        ? 'Submitting...'
+                                        : 'Submit for review'}
                                 </Button>
                             </div>
                         </div>
@@ -569,4 +631,3 @@ export default function EventSubmit({
         </AppLayout>
     );
 }
-

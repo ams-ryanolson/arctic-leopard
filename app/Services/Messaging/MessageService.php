@@ -8,18 +8,16 @@ use App\Models\Conversation;
 use App\Models\ConversationParticipant;
 use App\Models\Message;
 use App\Models\User;
+use App\Notifications\Messages\MessageReceivedNotification;
+use App\Services\Toasts\ToastBus;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
-use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
-use App\Services\Toasts\ToastBus;
-use App\Services\Messaging\MessageAttachmentService;
-use App\Services\Messaging\MessageAnalyticsService;
-use App\Notifications\Messages\MessageReceivedNotification;
 
 class MessageService
 {

@@ -27,5 +27,3 @@ class UnblockUserRequest extends FormRequest
         return [];
     }
 }
-
-

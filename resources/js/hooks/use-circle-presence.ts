@@ -22,7 +22,10 @@ type RawPresenceMember =
       };
 
 function normalizeMember(member: RawPresenceMember): PresenceMember {
-    const idValue = typeof member.id === 'string' ? Number.parseInt(member.id, 10) : member.id;
+    const idValue =
+        typeof member.id === 'string'
+            ? Number.parseInt(member.id, 10)
+            : member.id;
 
     return {
         id: Number.isFinite(idValue) ? Number(idValue) : 0,
@@ -31,7 +34,10 @@ function normalizeMember(member: RawPresenceMember): PresenceMember {
     };
 }
 
-function uniqueMembers(previous: PresenceMember[], next: PresenceMember): PresenceMember[] {
+function uniqueMembers(
+    previous: PresenceMember[],
+    next: PresenceMember,
+): PresenceMember[] {
     if (next.id === 0) {
         return previous;
     }
@@ -67,7 +73,11 @@ export function useCirclePresence(
 
         const identifier = circleIdentifier;
 
-        if (identifier === null || identifier === undefined || identifier === '') {
+        if (
+            identifier === null ||
+            identifier === undefined ||
+            identifier === ''
+        ) {
             return undefined;
         }
 
@@ -84,13 +94,17 @@ export function useCirclePresence(
         };
 
         const handleJoining = (member: RawPresenceMember) => {
-            setMembers((current) => uniqueMembers(current, normalizeMember(member)));
+            setMembers((current) =>
+                uniqueMembers(current, normalizeMember(member)),
+            );
         };
 
         const handleLeaving = (member: RawPresenceMember) => {
             const normalized = normalizeMember(member);
 
-            setMembers((current) => current.filter((entry) => entry.id !== normalized.id));
+            setMembers((current) =>
+                current.filter((entry) => entry.id !== normalized.id),
+            );
         };
 
         channel.here?.(handleHere);
@@ -112,5 +126,3 @@ export function useCirclePresence(
         isSubscribed,
     };
 }
-
-

@@ -297,8 +297,12 @@ class StoryService
             ];
         }
 
+        // Use optimized_url for images when available, fall back to original url
+        $mediaUrl = $media->optimized_url ?? $media->url;
+
         return [
-            'url' => $media->url,
+            'url' => $mediaUrl,
+            'optimized_url' => $media->optimized_url,
             'thumbnail_url' => $media->thumbnail_url,
             'blur_url' => $media->blur_url,
             'is_blurred' => false,

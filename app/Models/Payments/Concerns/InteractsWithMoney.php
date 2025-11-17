@@ -14,4 +14,3 @@ trait InteractsWithMoney
         return Money::from($amount, $currency ?? $this->getAttribute('currency') ?? 'USD');
     }
 }
-

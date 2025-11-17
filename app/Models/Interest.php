@@ -81,5 +81,3 @@ class Interest extends Model
         return $slug;
     }
 }
-
-

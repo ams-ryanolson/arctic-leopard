@@ -1,5 +1,5 @@
-import { createContext, useContext } from 'react';
 import type { ToastAction, ToastPayload } from '@/types/toasts';
+import { createContext, useContext } from 'react';
 
 export type ToastInstance = ToastPayload & {
     status: 'idle' | 'processing';
@@ -18,8 +18,15 @@ export type ToastContextValue = {
     show: (toast: ToastPayload) => void;
     ingest: (toasts: ToastPayload[]) => void;
     acknowledge: (toastId: string) => Promise<void>;
-    resolveAction: (toastId: string, actionKey: string, input?: Record<string, unknown>) => Promise<void>;
-    registerClientAction: (actionKey: string, handler: ToastClientHandler) => () => void;
+    resolveAction: (
+        toastId: string,
+        actionKey: string,
+        input?: Record<string, unknown>,
+    ) => Promise<void>;
+    registerClientAction: (
+        actionKey: string,
+        handler: ToastClientHandler,
+    ) => () => void;
 };
 
 const ToastContext = createContext<ToastContextValue | undefined>(undefined);
@@ -35,12 +42,3 @@ export function useToasts(): ToastContextValue {
 }
 
 export default ToastContext;
-
-
-
-
-
-
-
-
-

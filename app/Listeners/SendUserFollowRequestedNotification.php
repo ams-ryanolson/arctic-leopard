@@ -14,8 +14,7 @@ class SendUserFollowRequestedNotification
 
     public function __construct(
         private readonly ToastBus $toastBus,
-    ) {
-    }
+    ) {}
 
     /**
      * Handle the event.

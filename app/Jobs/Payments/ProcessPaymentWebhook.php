@@ -19,8 +19,7 @@ class ProcessPaymentWebhook implements ShouldQueue
 
     public function __construct(
         public PaymentWebhook $webhook
-    ) {
-    }
+    ) {}
 
     public function handle(): void
     {
@@ -31,4 +30,3 @@ class ProcessPaymentWebhook implements ShouldQueue
         ])->save();
     }
 }
-

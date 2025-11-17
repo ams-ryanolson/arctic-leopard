@@ -4,7 +4,6 @@ namespace App\Http\Requests\Onboarding;
 
 use App\Services\TemporaryUploadService;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\ValidationException;
 
 class MediaRequest extends FormRequest
 {
@@ -41,4 +40,3 @@ class MediaRequest extends FormRequest
         });
     }
 }
-

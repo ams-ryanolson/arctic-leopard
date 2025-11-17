@@ -177,4 +177,3 @@ trait DownloadsUnsplashMedia
         return $filename;
     }
 }
-

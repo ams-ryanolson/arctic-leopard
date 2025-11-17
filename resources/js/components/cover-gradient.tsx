@@ -10,7 +10,10 @@ type CoverGradientProps = {
     style?: CSSProperties;
 };
 
-export default function CoverGradient({ className, style }: CoverGradientProps) {
+export default function CoverGradient({
+    className,
+    style,
+}: CoverGradientProps) {
     return (
         <div
             className={cn('bg-cover bg-center', className)}
@@ -21,14 +24,3 @@ export default function CoverGradient({ className, style }: CoverGradientProps) 
         />
     );
 }
-
-
-
-
-
-
-
-
-
-
-

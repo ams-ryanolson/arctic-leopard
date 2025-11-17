@@ -1,6 +1,6 @@
-import { useRef, useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, Square, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 type AudioRecorderProps = {
     onRecorded: (blob: Blob) => void;
@@ -14,7 +14,7 @@ export default function AudioRecorder({
     onRecorded,
     onCancel,
     onError,
-    maxDuration = 240, 
+    maxDuration = 240,
     autoStart = true,
 }: AudioRecorderProps) {
     const [isRecording, setIsRecording] = useState(false);
@@ -122,7 +122,8 @@ export default function AudioRecorder({
             });
 
             if (!window.MediaRecorder) {
-                const errorMsg = 'Audio recording is not supported in this browser.';
+                const errorMsg =
+                    'Audio recording is not supported in this browser.';
                 setError(errorMsg);
                 onError?.(errorMsg);
                 stream.getTracks().forEach((track) => track.stop());
@@ -144,7 +145,11 @@ export default function AudioRecorder({
             const mediaRecorder = new MediaRecorder(stream, { mimeType });
 
             const audioContext = new (window.AudioContext ||
-                (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+                (
+                    window as unknown as {
+                        webkitAudioContext: typeof AudioContext;
+                    }
+                ).webkitAudioContext)();
             const source = audioContext.createMediaStreamSource(stream);
             const analyser = audioContext.createAnalyser();
             analyser.fftSize = 2048;
@@ -171,7 +176,8 @@ export default function AudioRecorder({
                 if (currentSessionId !== sessionIdRef.current) {
                     return;
                 }
-                const errorMsg = 'An error occurred while recording. Please try again.';
+                const errorMsg =
+                    'An error occurred while recording. Please try again.';
                 setError(errorMsg);
                 onError?.(errorMsg);
                 setIsRecording(false);
@@ -190,7 +196,9 @@ export default function AudioRecorder({
                     audioContextRef.current = null;
                 }
                 if (mediaStreamRef.current) {
-                    mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+                    mediaStreamRef.current
+                        .getTracks()
+                        .forEach((track) => track.stop());
                     mediaStreamRef.current = null;
                 }
                 analyserRef.current = null;
@@ -208,7 +216,8 @@ export default function AudioRecorder({
 
                     if (audioChunksRef.current.length === 0) {
                         if (recordingTime > 0) {
-                            const errorMsg = 'No audio was recorded. Please try again.';
+                            const errorMsg =
+                                'No audio was recorded. Please try again.';
                             setError(errorMsg);
                             onError?.(errorMsg);
                         }
@@ -218,10 +227,14 @@ export default function AudioRecorder({
                         return;
                     }
 
-                    const totalSize = audioChunksRef.current.reduce((sum, chunk) => sum + chunk.size, 0);
+                    const totalSize = audioChunksRef.current.reduce(
+                        (sum, chunk) => sum + chunk.size,
+                        0,
+                    );
                     if (totalSize === 0) {
                         if (recordingTime > 0) {
-                            const errorMsg = 'No audio data was recorded. Please try again.';
+                            const errorMsg =
+                                'No audio data was recorded. Please try again.';
                             setError(errorMsg);
                             onError?.(errorMsg);
                         }
@@ -232,11 +245,14 @@ export default function AudioRecorder({
                         return;
                     }
 
-                    const blob = new Blob(audioChunksRef.current, { type: mediaRecorder.mimeType });
+                    const blob = new Blob(audioChunksRef.current, {
+                        type: mediaRecorder.mimeType,
+                    });
 
                     if (blob.size === 0) {
                         if (recordingTime > 0) {
-                            const errorMsg = 'No audio data was recorded. Please try again.';
+                            const errorMsg =
+                                'No audio data was recorded. Please try again.';
                             setError(errorMsg);
                             onError?.(errorMsg);
                         }
@@ -271,17 +287,19 @@ export default function AudioRecorder({
             await new Promise((resolve) => setTimeout(resolve, 150));
 
             if (mediaRecorder.state !== 'recording') {
-                throw new Error(`MediaRecorder did not start recording. State: ${mediaRecorder.state}`);
+                throw new Error(
+                    `MediaRecorder did not start recording. State: ${mediaRecorder.state}`,
+                );
             }
 
             // Update both states together - React batches these updates
             // Setting isRecording=true first makes the condition (isInitializing && !isRecording) false immediately
             setIsRecording(true);
             setRecordingTime(0);
-            
+
             // Reset the starting flag
             isStartingRef.current = false;
-            
+
             // Set isInitializing to false - this will hide the spinner
             setIsInitializing(false);
 
@@ -294,7 +312,10 @@ export default function AudioRecorder({
                     }
                     return next;
                 });
-                if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+                if (
+                    mediaRecorderRef.current &&
+                    mediaRecorderRef.current.state === 'recording'
+                ) {
                     try {
                         mediaRecorderRef.current.requestData();
                     } catch {
@@ -308,24 +329,34 @@ export default function AudioRecorder({
             });
         } catch (error) {
             const errorMsg =
-                error instanceof Error ? error.message : 'Unable to access microphone. Please check your permissions.';
-            
+                error instanceof Error
+                    ? error.message
+                    : 'Unable to access microphone. Please check your permissions.';
+
             // Always ensure isInitializing is set to false on error
             setIsInitializing(false);
             setIsRecording(false);
-            
+
             // Clean up any resources
             cleanup();
-            
+
             // Set error state
             setError(errorMsg);
             onError?.(errorMsg);
-            
+
             // Reset refs so user can try again
             hasStartedRef.current = false;
             isStartingRef.current = false;
         }
-    }, [isRecording, maxDuration, updateWaveform, stopRecording, recordingTime, onError, cleanup]); // cleanup is stable (empty deps)
+    }, [
+        isRecording,
+        maxDuration,
+        updateWaveform,
+        stopRecording,
+        recordingTime,
+        onError,
+        cleanup,
+    ]); // cleanup is stable (empty deps)
 
     // Store startRecording in a ref to avoid dependency issues
     const startRecordingRef = useRef(startRecording);
@@ -354,15 +385,21 @@ export default function AudioRecorder({
     // Auto-start recording if autoStart is true
     useEffect(() => {
         // Skip if conditions aren't met
-        if (!autoStart || isRecording || audioBlob || hasStartedRef.current || isStartingRef.current) {
+        if (
+            !autoStart ||
+            isRecording ||
+            audioBlob ||
+            hasStartedRef.current ||
+            isStartingRef.current
+        ) {
             return;
         }
-        
+
         // Mark that we're starting to prevent re-runs
         isStartingRef.current = true;
         hasStartedRef.current = true;
         setIsInitializing(true);
-        
+
         // Call startRecording directly instead of using setTimeout
         // This avoids cleanup issues
         const fn = startRecordingRef.current;
@@ -372,7 +409,10 @@ export default function AudioRecorder({
                 setIsInitializing(false);
                 setIsRecording(false);
                 hasStartedRef.current = false;
-                const errorMsg = error instanceof Error ? error.message : 'Failed to start recording';
+                const errorMsg =
+                    error instanceof Error
+                        ? error.message
+                        : 'Failed to start recording';
                 setError(errorMsg);
                 onError?.(errorMsg);
             });
@@ -391,7 +431,10 @@ export default function AudioRecorder({
                 recorder.ondataavailable = null;
                 recorder.onstop = null;
                 recorder.onerror = null;
-                if (recorder.state === 'recording' || recorder.state === 'paused') {
+                if (
+                    recorder.state === 'recording' ||
+                    recorder.state === 'paused'
+                ) {
                     recorder.stop();
                 }
             }
@@ -419,20 +462,22 @@ export default function AudioRecorder({
                 </p>
             )}
             {isInitializing && !isRecording ? (
-                <div className="flex items-center justify-center gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 h-[68px]">
+                <div className="flex h-[68px] items-center justify-center gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
                     <Loader2 className="h-6 w-6 animate-spin text-rose-500" />
-                    <span className="text-sm text-white/70">Preparing audio recorder...</span>
+                    <span className="text-sm text-white/70">
+                        Preparing audio recorder...
+                    </span>
                 </div>
             ) : isRecording ? (
-                <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 h-[68px]">
+                <div className="flex h-[68px] items-center gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
                     <div className="flex-1">
-                        <div className="flex items-center justify-center gap-0.5 h-12">
+                        <div className="flex h-12 items-center justify-center gap-0.5">
                             {waveformData.map((value, index) => {
                                 const height = Math.max(3, value * 60);
                                 return (
                                     <div
                                         key={index}
-                                        className="bg-rose-500 rounded-full transition-all duration-75"
+                                        className="rounded-full bg-rose-500 transition-all duration-75"
                                         style={{
                                             width: '3px',
                                             height: `${height}px`,
@@ -445,14 +490,15 @@ export default function AudioRecorder({
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono font-medium text-white/70 min-w-[3rem] text-right">
-                            {formatRecordingTime(recordingTime)} / {maxDurationFormatted}
+                        <span className="min-w-[3rem] text-right font-mono text-xs font-medium text-white/70">
+                            {formatRecordingTime(recordingTime)} /{' '}
+                            {maxDurationFormatted}
                         </span>
                         <Button
                             type="button"
                             variant="ghost"
                             onClick={stopRecording}
-                            className="flex size-10 items-center justify-center rounded-full border border-rose-500/50 bg-rose-500/20 text-rose-400 transition hover:bg-rose-500/30 hover:border-rose-500/70"
+                            className="flex size-10 items-center justify-center rounded-full border border-rose-500/50 bg-rose-500/20 text-rose-400 transition hover:border-rose-500/70 hover:bg-rose-500/30"
                             aria-label="Stop recording"
                         >
                             <Square className="h-4 w-4 fill-rose-500" />
@@ -471,7 +517,7 @@ export default function AudioRecorder({
             ) : audioBlob && audioUrl ? (
                 <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
                     <div className="flex-1">
-                        <audio src={audioUrl} controls className="w-full h-10">
+                        <audio src={audioUrl} controls className="h-10 w-full">
                             Your browser does not support the audio element.
                         </audio>
                     </div>

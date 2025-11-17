@@ -10,9 +10,7 @@ use Illuminate\Http\Request;
 
 class CircleFeedController extends Controller
 {
-    public function __construct(private readonly FeedService $feedService)
-    {
-    }
+    public function __construct(private readonly FeedService $feedService) {}
 
     public function show(Request $request, Circle $circle): JsonResponse
     {
@@ -33,4 +31,3 @@ class CircleFeedController extends Controller
         return response()->json($payload);
     }
 }
-

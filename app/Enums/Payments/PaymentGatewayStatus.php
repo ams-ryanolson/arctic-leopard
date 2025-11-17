@@ -12,4 +12,3 @@ enum PaymentGatewayStatus: string
     case Inactive = 'inactive';
     case Pending = 'pending';
 }
-

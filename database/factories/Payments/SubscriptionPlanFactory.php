@@ -28,7 +28,7 @@ class SubscriptionPlanFactory extends Factory
             'uuid' => (string) Str::uuid(),
             'creator_id' => fn () => \App\Models\User::factory(),
             'name' => $name,
-            'slug' => Str::slug($name) . '-' . fake()->unique()->numerify('###'),
+            'slug' => Str::slug($name).'-'.fake()->unique()->numerify('###'),
             'description' => fake()->sentence(),
             'amount' => fake()->numberBetween(500, 5000),
             'currency' => 'USD',
@@ -43,4 +43,3 @@ class SubscriptionPlanFactory extends Factory
         ];
     }
 }
-

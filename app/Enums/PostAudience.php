@@ -20,4 +20,3 @@ enum PostAudience: string
         );
     }
 }
-

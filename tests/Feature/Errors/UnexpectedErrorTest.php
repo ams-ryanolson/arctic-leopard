@@ -30,4 +30,3 @@ it('falls back to json when requested', function (): void {
     $response->assertStatus(500)
         ->assertJsonFragment(['exception' => 'RuntimeException']);
 });
-

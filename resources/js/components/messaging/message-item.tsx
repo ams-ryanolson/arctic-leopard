@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import { CheckCheck } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import MessageReactions from './message-reactions';
+import { CheckCheck } from 'lucide-react';
+import { useState } from 'react';
+import MessageActions from './message-actions';
 import MessageAttachment from './message-attachment';
+import MessageReactions from './message-reactions';
+import { formatMessageTime, isOnlyEmojis } from './message-utils';
 import TipMessage from './tip-message';
 import TipRequestMessage from './tip-request-message';
-import MessageActions from './message-actions';
-import { isOnlyEmojis, formatMessageTime } from './message-utils';
 import type { Message, TipMessageMetadata } from './types';
 
 type MessageItemProps = {
@@ -20,7 +20,15 @@ type MessageItemProps = {
     tipRequestActionMessageId: number | null;
     onToggleReactions: (messageId: number) => void;
     onReply: (message: Message) => void;
-    onReactionChange: (messageId: number, summary: Array<{ emoji: string; variant?: string | null; count: number; reacted: boolean }>) => void;
+    onReactionChange: (
+        messageId: number,
+        summary: Array<{
+            emoji: string;
+            variant?: string | null;
+            count: number;
+            reacted: boolean;
+        }>,
+    ) => void;
     onTipRequestAccept: (messageId: number) => void;
     onTipRequestDecline: (messageId: number) => void;
 };
@@ -43,7 +51,8 @@ export default function MessageItem({
     const tipMetadata = (message.metadata ?? {}) as TipMessageMetadata;
     const createdAt = message.created_at ?? message.updated_at ?? '';
 
-    const authorName = message.author?.display_name ?? message.author?.username ?? 'Unknown';
+    const authorName =
+        message.author?.display_name ?? message.author?.username ?? 'Unknown';
     const authorAvatar = message.author?.avatar_url;
     const authorInitials = authorName.slice(0, 2).toUpperCase();
     const [isHovered, setIsHovered] = useState(false);
@@ -57,10 +66,18 @@ export default function MessageItem({
                 )}
             >
                 {showAvatar ? (
-                    <div className={cn('flex shrink-0 flex-col items-end justify-start pt-1', isOwnMessage && 'items-start')}>
+                    <div
+                        className={cn(
+                            'flex shrink-0 flex-col items-end justify-start pt-1',
+                            isOwnMessage && 'items-start',
+                        )}
+                    >
                         <Avatar className="size-8 border-2 border-white/10 shadow-lg ring-2 ring-black/20">
                             {authorAvatar ? (
-                                <AvatarImage src={authorAvatar} alt={authorName} />
+                                <AvatarImage
+                                    src={authorAvatar}
+                                    alt={authorName}
+                                />
                             ) : (
                                 <AvatarFallback className="bg-gradient-to-br from-amber-500/20 to-amber-600/30 text-xs font-semibold text-amber-200">
                                     {authorInitials}
@@ -71,10 +88,17 @@ export default function MessageItem({
                 ) : (
                     <div className="w-8 shrink-0" />
                 )}
-                <div className={cn('flex min-w-0 flex-1 flex-col gap-1.5', isOwnMessage ? 'items-end' : 'items-start')}>
+                <div
+                    className={cn(
+                        'flex min-w-0 flex-1 flex-col gap-1.5',
+                        isOwnMessage ? 'items-end' : 'items-start',
+                    )}
+                >
                     {showAuthor && (
                         <div className="flex items-center gap-2 px-1">
-                            <span className="text-xs font-semibold text-white/70">{authorName}</span>
+                            <span className="text-xs font-semibold text-white/70">
+                                {authorName}
+                            </span>
                         </div>
                     )}
                     <TipMessage
@@ -100,10 +124,18 @@ export default function MessageItem({
                 )}
             >
                 {showAvatar ? (
-                    <div className={cn('flex shrink-0 flex-col items-end justify-start pt-1', isOwnMessage && 'items-start')}>
+                    <div
+                        className={cn(
+                            'flex shrink-0 flex-col items-end justify-start pt-1',
+                            isOwnMessage && 'items-start',
+                        )}
+                    >
                         <Avatar className="size-8 border-2 border-white/10 shadow-lg ring-2 ring-black/20">
                             {authorAvatar ? (
-                                <AvatarImage src={authorAvatar} alt={authorName} />
+                                <AvatarImage
+                                    src={authorAvatar}
+                                    alt={authorName}
+                                />
                             ) : (
                                 <AvatarFallback className="bg-gradient-to-br from-amber-500/20 to-amber-600/30 text-xs font-semibold text-amber-200">
                                     {authorInitials}
@@ -114,10 +146,17 @@ export default function MessageItem({
                 ) : (
                     <div className="w-8 shrink-0" />
                 )}
-                <div className={cn('flex min-w-0 flex-1 flex-col gap-1.5', isOwnMessage ? 'items-end' : 'items-start')}>
+                <div
+                    className={cn(
+                        'flex min-w-0 flex-1 flex-col gap-1.5',
+                        isOwnMessage ? 'items-end' : 'items-start',
+                    )}
+                >
                     {showAuthor && (
                         <div className="flex items-center gap-2 px-1">
-                            <span className="text-xs font-semibold text-white/70">{authorName}</span>
+                            <span className="text-xs font-semibold text-white/70">
+                                {authorName}
+                            </span>
                         </div>
                     )}
                     <TipRequestMessage
@@ -137,11 +176,16 @@ export default function MessageItem({
 
     const messageBody = message.body ?? '';
     const isEmojiOnly = isOnlyEmojis(messageBody) && messageBody.trim() !== '';
-    const hasReply = message.reply_to_id !== undefined && message.reply_to_id !== null;
-    const hasAttachments = message.attachments && message.attachments.length > 0;
+    const hasReply =
+        message.reply_to_id !== undefined && message.reply_to_id !== null;
+    const hasAttachments =
+        message.attachments && message.attachments.length > 0;
     const shouldShowEmojiStyle = isEmojiOnly && !hasReply && !hasAttachments;
     const reactionCount =
-        message.reaction_summary?.reduce((total, summary) => total + summary.count, 0) ?? 0;
+        message.reaction_summary?.reduce(
+            (total, summary) => total + summary.count,
+            0,
+        ) ?? 0;
 
     return (
         <div
@@ -154,7 +198,12 @@ export default function MessageItem({
         >
             {/* Avatar */}
             {showAvatar ? (
-                <div className={cn('flex shrink-0 flex-col items-end justify-start pt-1', isOwnMessage && 'items-start')}>
+                <div
+                    className={cn(
+                        'flex shrink-0 flex-col items-end justify-start pt-1',
+                        isOwnMessage && 'items-start',
+                    )}
+                >
                     <Avatar className="size-8 border-2 border-white/10 shadow-lg ring-2 ring-black/20">
                         {authorAvatar ? (
                             <AvatarImage src={authorAvatar} alt={authorName} />
@@ -170,11 +219,18 @@ export default function MessageItem({
             )}
 
             {/* Message Content */}
-            <div className={cn('flex min-w-0 flex-1 flex-col gap-1.5', isOwnMessage ? 'items-end' : 'items-start')}>
+            <div
+                className={cn(
+                    'flex min-w-0 flex-1 flex-col gap-1.5',
+                    isOwnMessage ? 'items-end' : 'items-start',
+                )}
+            >
                 {/* Author Name (only in group chats) */}
                 {showAuthor && (
                     <div className="flex items-center gap-2 px-1">
-                        <span className="text-xs font-semibold text-white/70">{authorName}</span>
+                        <span className="text-xs font-semibold text-white/70">
+                            {authorName}
+                        </span>
                     </div>
                 )}
 
@@ -184,13 +240,15 @@ export default function MessageItem({
                         'relative max-w-[85%] rounded-2xl px-4 py-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.3)] transition-all duration-200 lg:max-w-[65%]',
                         shouldShowEmojiStyle ? 'px-6 py-5' : '',
                         isOwnMessage
-                            ? 'bg-gradient-to-br from-emerald-500/20 to-emerald-600/25 border border-emerald-400/30 text-emerald-50 shadow-emerald-500/10'
-                            : 'bg-white/10 border border-white/20 text-white backdrop-blur-sm shadow-white/5',
+                            ? 'border border-emerald-400/30 bg-gradient-to-br from-emerald-500/20 to-emerald-600/25 text-emerald-50 shadow-emerald-500/10'
+                            : 'border border-white/20 bg-white/10 text-white shadow-white/5 backdrop-blur-sm',
                         'hover:shadow-[0_4px_12px_rgba(0,0,0,0.4)]',
                     )}
                 >
                     {message.deleted_at ? (
-                        <span className="text-xs italic text-white/50">Message removed</span>
+                        <span className="text-xs text-white/50 italic">
+                            Message removed
+                        </span>
                     ) : (
                         <>
                             {/* Reply Reference */}
@@ -204,11 +262,21 @@ export default function MessageItem({
                                     )}
                                 >
                                     <p className="mb-1 font-medium text-white/60">
-                                        {referencedMessage.author?.display_name ?? referencedMessage.author?.username ?? 'Unknown'}
+                                        {referencedMessage.author
+                                            ?.display_name ??
+                                            referencedMessage.author
+                                                ?.username ??
+                                            'Unknown'}
                                     </p>
                                     <p className="line-clamp-2 text-white/80">
-                                        {(referencedMessage.body ?? '').slice(0, 120)}
-                                        {(referencedMessage.body ?? '').length > 120 ? '…' : ''}
+                                        {(referencedMessage.body ?? '').slice(
+                                            0,
+                                            120,
+                                        )}
+                                        {(referencedMessage.body ?? '').length >
+                                        120
+                                            ? '…'
+                                            : ''}
                                     </p>
                                 </div>
                             )}
@@ -217,7 +285,7 @@ export default function MessageItem({
                             {message.body && (
                                 <p
                                     className={cn(
-                                        'whitespace-pre-wrap break-words',
+                                        'break-words whitespace-pre-wrap',
                                         shouldShowEmojiStyle
                                             ? 'text-center text-5xl leading-none'
                                             : 'text-[15px] leading-[1.5] text-white/95',
@@ -228,27 +296,45 @@ export default function MessageItem({
                             )}
 
                             {/* Attachments */}
-                            {message.attachments && message.attachments.length > 0 && (
-                                <div className={cn('grid gap-2', message.attachments.length > 1 ? 'mt-3 grid-cols-2' : 'mt-3')}>
-                                    {message.attachments.map((attachment) => (
-                                        <MessageAttachment key={attachment.id} attachment={attachment} />
-                                    ))}
-                                </div>
-                            )}
+                            {message.attachments &&
+                                message.attachments.length > 0 && (
+                                    <div
+                                        className={cn(
+                                            'grid gap-2',
+                                            message.attachments.length > 1
+                                                ? 'mt-3 grid-cols-2'
+                                                : 'mt-3',
+                                        )}
+                                    >
+                                        {message.attachments.map(
+                                            (attachment) => (
+                                                <MessageAttachment
+                                                    key={attachment.id}
+                                                    attachment={attachment}
+                                                />
+                                            ),
+                                        )}
+                                    </div>
+                                )}
 
                             {/* Timestamp and Read Receipt (always at bottom right for sent, bottom left for received) */}
                             {!shouldShowEmojiStyle && (
                                 <div
                                     className={cn(
                                         'mt-1.5 flex items-center gap-1',
-                                        isOwnMessage ? 'justify-end' : 'justify-start',
+                                        isOwnMessage
+                                            ? 'justify-end'
+                                            : 'justify-start',
                                     )}
                                 >
                                     <span className="text-[11px] text-white/50">
                                         {formatMessageTime(createdAt)}
                                     </span>
                                     {isOwnMessage && (
-                                        <CheckCheck className="h-3 w-3 text-white/50" strokeWidth={2.5} />
+                                        <CheckCheck
+                                            className="h-3 w-3 text-white/50"
+                                            strokeWidth={2.5}
+                                        />
                                     )}
                                 </div>
                             )}
@@ -257,14 +343,19 @@ export default function MessageItem({
                                 <div
                                     className={cn(
                                         'mt-2 flex items-center gap-1',
-                                        isOwnMessage ? 'justify-end' : 'justify-start',
+                                        isOwnMessage
+                                            ? 'justify-end'
+                                            : 'justify-start',
                                     )}
                                 >
                                     <span className="text-[11px] text-white/50">
                                         {formatMessageTime(createdAt)}
                                     </span>
                                     {isOwnMessage && (
-                                        <CheckCheck className="h-3 w-3 text-white/50" strokeWidth={2.5} />
+                                        <CheckCheck
+                                            className="h-3 w-3 text-white/50"
+                                            strokeWidth={2.5}
+                                        />
                                     )}
                                 </div>
                             )}
@@ -274,30 +365,41 @@ export default function MessageItem({
 
                 {/* Message Actions (hover-only) */}
                 {!message.deleted_at && (
-                    <div className={cn('flex items-center px-1', isOwnMessage ? 'justify-end' : 'justify-start')}>
+                    <div
+                        className={cn(
+                            'flex items-center px-1',
+                            isOwnMessage ? 'justify-end' : 'justify-start',
+                        )}
+                    >
                         <MessageActions
                             isOwnMessage={isOwnMessage}
                             reactionCount={reactionCount}
-                            isReactionsExpanded={expandedReactionsMessageId === message.id}
+                            isReactionsExpanded={
+                                expandedReactionsMessageId === message.id
+                            }
                             isHovered={isHovered}
-                            onToggleReactions={() => onToggleReactions(message.id)}
+                            onToggleReactions={() =>
+                                onToggleReactions(message.id)
+                            }
                             onReply={() => onReply(message)}
                         />
                     </div>
                 )}
 
                 {/* Expanded Reactions */}
-                {!message.deleted_at && expandedReactionsMessageId === message.id && (
-                    <div className="mt-1 px-1">
-                        <MessageReactions
-                            messageId={message.id}
-                            reactions={message.reaction_summary ?? []}
-                            onChange={(summary) => onReactionChange(message.id, summary)}
-                        />
-                    </div>
-                )}
+                {!message.deleted_at &&
+                    expandedReactionsMessageId === message.id && (
+                        <div className="mt-1 px-1">
+                            <MessageReactions
+                                messageId={message.id}
+                                reactions={message.reaction_summary ?? []}
+                                onChange={(summary) =>
+                                    onReactionChange(message.id, summary)
+                                }
+                            />
+                        </div>
+                    )}
             </div>
         </div>
     );
 }
-

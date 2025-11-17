@@ -45,31 +45,88 @@ class MediaController
 
     public function update(MediaRequest $request): RedirectResponse
     {
-        $user = $request->user();
-        $updates = [];
+        try {
+            \Log::info('MediaController: update called', [
+                'user_id' => $request->user()->id,
+                'avatar_upload_id' => $request->input('avatar_upload_id'),
+                'cover_upload_id' => $request->input('cover_upload_id'),
+                'all_input' => $request->all(),
+            ]);
 
-        $avatarIdentifier = $request->string('avatar_upload_id')->toString();
-        if ($avatarIdentifier !== '') {
-            $avatarPath = $this->userMediaService->updateAvatar($user, $avatarIdentifier);
+            $user = $request->user();
+            $updates = [];
+            $errors = [];
 
-            if ($avatarPath !== null) {
-                $updates['avatar_path'] = $avatarPath;
+            $avatarIdentifier = $request->string('avatar_upload_id')->toString();
+            if ($avatarIdentifier !== '') {
+                \Log::info('MediaController: processing avatar', ['identifier' => $avatarIdentifier]);
+                try {
+                    $avatarPath = $this->userMediaService->updateAvatar($user, $avatarIdentifier);
+
+                    if ($avatarPath === null) {
+                        \Log::warning('MediaController: avatar promotion failed', ['identifier' => $avatarIdentifier]);
+                        $errors['avatar_upload_id'] = 'Failed to process avatar upload. Please try uploading again.';
+                    } else {
+                        \Log::info('MediaController: avatar processed successfully', ['path' => $avatarPath]);
+                        $updates['avatar_path'] = $avatarPath;
+                    }
+                } catch (\Throwable $e) {
+                    \Log::error('MediaController: avatar processing exception', [
+                        'identifier' => $avatarIdentifier,
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString(),
+                    ]);
+                    $errors['avatar_upload_id'] = 'An error occurred while processing your avatar. Please try again.';
+                }
             }
-        }
 
-        $coverIdentifier = $request->string('cover_upload_id')->toString();
-        if ($coverIdentifier !== '') {
-            $coverPath = $this->userMediaService->updateCover($user, $coverIdentifier);
+            $coverIdentifier = $request->string('cover_upload_id')->toString();
+            if ($coverIdentifier !== '') {
+                \Log::info('MediaController: processing cover', ['identifier' => $coverIdentifier]);
+                try {
+                    $coverPath = $this->userMediaService->updateCover($user, $coverIdentifier);
 
-            if ($coverPath !== null) {
-                $updates['cover_path'] = $coverPath;
+                    if ($coverPath === null) {
+                        \Log::warning('MediaController: cover promotion failed', ['identifier' => $coverIdentifier]);
+                        $errors['cover_upload_id'] = 'Failed to process cover upload. Please try uploading again.';
+                    } else {
+                        \Log::info('MediaController: cover processed successfully', ['path' => $coverPath]);
+                        $updates['cover_path'] = $coverPath;
+                    }
+                } catch (\Throwable $e) {
+                    \Log::error('MediaController: cover processing exception', [
+                        'identifier' => $coverIdentifier,
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString(),
+                    ]);
+                    $errors['cover_upload_id'] = 'An error occurred while processing your cover. Please try again.';
+                }
             }
-        }
 
-        if (! empty($updates)) {
-            $user->forceFill($updates)->save();
-        }
+            if (! empty($errors)) {
+                \Log::warning('MediaController: returning with errors', ['errors' => $errors]);
 
-        return redirect()->route('onboarding.follow');
+                return back()->withErrors($errors);
+            }
+
+            if (! empty($updates)) {
+                $user->forceFill($updates)->save();
+                \Log::info('MediaController: user updated', ['updates' => $updates]);
+            } else {
+                \Log::info('MediaController: no updates to apply');
+            }
+
+            return redirect()->route('onboarding.follow');
+        } catch (\Throwable $e) {
+            \Log::error('MediaController: update exception', [
+                'user_id' => $request->user()?->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return back()->withErrors([
+                'general' => 'An unexpected error occurred. Please try again.',
+            ]);
+        }
     }
 }

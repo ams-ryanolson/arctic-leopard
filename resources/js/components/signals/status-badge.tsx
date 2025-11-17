@@ -17,11 +17,15 @@ interface StatusBadgeProps {
     children: ReactNode;
 }
 
-export function StatusBadge({ tone = 'neutral', className, children }: StatusBadgeProps) {
+export function StatusBadge({
+    tone = 'neutral',
+    className,
+    children,
+}: StatusBadgeProps) {
     return (
         <span
             className={cn(
-                'inline-flex items-center rounded-full border px-3 py-1 text-[0.65rem] uppercase tracking-[0.3em]',
+                'inline-flex items-center rounded-full border px-3 py-1 text-[0.65rem] tracking-[0.3em] uppercase',
                 toneClasses[tone],
                 className,
             )}
@@ -30,5 +34,3 @@ export function StatusBadge({ tone = 'neutral', className, children }: StatusBad
         </span>
     );
 }
-
-

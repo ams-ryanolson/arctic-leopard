@@ -32,4 +32,3 @@ class StorePostViewRequest extends FormRequest
         ];
     }
 }
-

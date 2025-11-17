@@ -25,7 +25,9 @@ export default function TimelineAd({ ad }: TimelineAdProps) {
                     </div>
                 )}
                 {ad.headline && (
-                    <h3 className="mb-2 text-base font-semibold text-white">{ad.headline}</h3>
+                    <h3 className="mb-2 text-base font-semibold text-white">
+                        {ad.headline}
+                    </h3>
                 )}
                 {ad.body_text && (
                     <p className="mb-3 text-sm text-white/70">{ad.body_text}</p>
@@ -44,7 +46,3 @@ export default function TimelineAd({ ad }: TimelineAdProps) {
         </Card>
     );
 }
-
-
-
-

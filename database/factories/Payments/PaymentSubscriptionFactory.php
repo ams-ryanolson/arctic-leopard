@@ -51,4 +51,3 @@ class PaymentSubscriptionFactory extends Factory
         ];
     }
 }
-

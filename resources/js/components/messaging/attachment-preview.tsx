@@ -15,7 +15,10 @@ type AttachmentPreviewProps = {
     onRemove: (id: string) => void;
 };
 
-export default function AttachmentPreview({ attachments, onRemove }: AttachmentPreviewProps) {
+export default function AttachmentPreview({
+    attachments,
+    onRemove,
+}: AttachmentPreviewProps) {
     if (attachments.length === 0) {
         return null;
     }
@@ -30,7 +33,9 @@ export default function AttachmentPreview({ attachments, onRemove }: AttachmentP
                     {attachment.thumbnail_url ? (
                         <img
                             src={attachment.thumbnail_url}
-                            alt={attachment.original_name ?? 'Attachment preview'}
+                            alt={
+                                attachment.original_name ?? 'Attachment preview'
+                            }
                             className="h-32 w-full object-cover"
                         />
                     ) : (
@@ -42,7 +47,7 @@ export default function AttachmentPreview({ attachments, onRemove }: AttachmentP
                     <button
                         type="button"
                         onClick={() => onRemove(attachment.id)}
-                        className="absolute right-3 top-3 hidden rounded-full bg-black/70 p-2 text-white transition group-hover:flex"
+                        className="absolute top-3 right-3 hidden rounded-full bg-black/70 p-2 text-white transition group-hover:flex"
                         aria-label="Remove attachment"
                     >
                         <X className="h-3 w-3" />
@@ -52,7 +57,3 @@ export default function AttachmentPreview({ attachments, onRemove }: AttachmentP
         </div>
     );
 }
-
-
-
-

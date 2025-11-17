@@ -15,7 +15,7 @@ class DispatchUserFollowedEvent
      */
     public function handle(Followed $event): void
     {
-        $userMorphClass = (new User())->getMorphClass();
+        $userMorphClass = (new User)->getMorphClass();
 
         if ($event->followable_type !== $userMorphClass) {
             return;
@@ -54,4 +54,3 @@ class DispatchUserFollowedEvent
         event(new UserFollowAccepted($follower, $followed, $wasPendingRequest));
     }
 }
-

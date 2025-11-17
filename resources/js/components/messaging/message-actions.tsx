@@ -1,5 +1,5 @@
-import { CornerUpRight, SmilePlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { CornerUpRight, SmilePlus } from 'lucide-react';
 
 type MessageActionsProps = {
     isOwnMessage: boolean;
@@ -25,10 +25,12 @@ export default function MessageActions({
         <div
             className={cn(
                 'flex items-center gap-1 transition-all duration-200',
-                showActions ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1 pointer-events-none',
+                showActions
+                    ? 'translate-y-0 opacity-100'
+                    : 'pointer-events-none translate-y-1 opacity-0',
             )}
         >
-            <div className="flex items-center gap-0.5 rounded-full bg-white/10 px-1 py-0.5 backdrop-blur-sm border border-white/10 shadow-sm">
+            <div className="flex items-center gap-0.5 rounded-full border border-white/10 bg-white/10 px-1 py-0.5 shadow-sm backdrop-blur-sm">
                 <button
                     type="button"
                     aria-label="React"
@@ -38,7 +40,8 @@ export default function MessageActions({
                     }}
                     className={cn(
                         'rounded-full p-1.5 text-white/70 transition-all duration-150 hover:bg-white/20 hover:text-white active:scale-95',
-                        isReactionsExpanded && 'bg-amber-400/20 text-amber-300 shadow-md shadow-amber-400/20',
+                        isReactionsExpanded &&
+                            'bg-amber-400/20 text-amber-300 shadow-md shadow-amber-400/20',
                     )}
                 >
                     <SmilePlus className="h-3.5 w-3.5" />
@@ -58,4 +61,3 @@ export default function MessageActions({
         </div>
     );
 }
-

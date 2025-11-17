@@ -3,7 +3,6 @@
 use App\Enums\PostAudience;
 use App\Enums\PostType;
 use App\Models\User;
-use App\Models\Post;
 use App\Services\Posts\PostCreationService;
 
 test('dashboard feed renders timeline entries for the viewer', function () {
@@ -81,5 +80,3 @@ test('dashboard surfaces new drops banner when realtime events arrive', function
 
     $page->waitForText('Refreshing…');
 });
-
-

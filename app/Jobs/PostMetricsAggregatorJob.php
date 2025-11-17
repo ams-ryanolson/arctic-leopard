@@ -21,9 +21,7 @@ class PostMetricsAggregatorJob implements ShouldQueue
 
     public int $tries = 2;
 
-    public function __construct(public ?Carbon $date = null)
-    {
-    }
+    public function __construct(public ?Carbon $date = null) {}
 
     public function handle(): void
     {

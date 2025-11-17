@@ -20,12 +20,11 @@ use Illuminate\Support\Str;
 class FakeGateway implements PaymentGatewayContract, SubscriptionGatewayContract
 {
     /**
-     * @param array<string, mixed> $config
+     * @param  array<string, mixed>  $config
      */
     public function __construct(
         protected array $config = []
-    ) {
-    }
+    ) {}
 
     public function identifier(): string
     {
@@ -250,7 +249,6 @@ class FakeGateway implements PaymentGatewayContract, SubscriptionGatewayContract
 
     protected function generateId(string $prefix): string
     {
-        return $prefix . '_' . Str::lower(Str::random(24));
+        return $prefix.'_'.Str::lower(Str::random(24));
     }
 }
-

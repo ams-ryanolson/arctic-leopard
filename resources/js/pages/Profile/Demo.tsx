@@ -1,4 +1,3 @@
-import AppLayout from '@/layouts/app-layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,9 +10,10 @@ import {
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useInitials } from '@/hooks/use-initials';
-import { Head, Link } from '@inertiajs/react';
+import AppLayout from '@/layouts/app-layout';
 import { SubscribeDialog, TipDialog } from '@/pages/Profile/dialogs';
 import { type ProfilePayload } from '@/pages/Profile/types';
+import { Head, Link } from '@inertiajs/react';
 
 interface ProfileDemoProps {
     profile: ProfilePayload;
@@ -79,10 +79,10 @@ export default function ProfileDemo({ profile }: ProfileDemoProps) {
                                             Verified Creator
                                         </Badge>
                                     </div>
-                                    <h1 className="text-3xl font-semibold leading-tight sm:text-4xl">
+                                    <h1 className="text-3xl leading-tight font-semibold sm:text-4xl">
                                         {displayName}
                                     </h1>
-                                    <p className="text-sm uppercase tracking-[0.4em] text-white/50">
+                                    <p className="text-sm tracking-[0.4em] text-white/50 uppercase">
                                         {handle}
                                     </p>
                                 </div>
@@ -90,7 +90,9 @@ export default function ProfileDemo({ profile }: ProfileDemoProps) {
 
                             <div className="flex flex-1 flex-col gap-3 text-white sm:items-end">
                                 {pronouns && (
-                                    <p className="text-sm font-semibold text-white">{pronouns}</p>
+                                    <p className="text-sm font-semibold text-white">
+                                        {pronouns}
+                                    </p>
                                 )}
                                 <div className="flex flex-wrap items-center gap-3 text-xs text-white/60 sm:justify-end">
                                     <Badge className="rounded-full border-white/20 bg-white/10 text-white/70">
@@ -105,7 +107,9 @@ export default function ProfileDemo({ profile }: ProfileDemoProps) {
                                         </Badge>
                                     ))}
                                 </div>
-                                <p className="text-sm text-white/70 sm:text-right">{role}</p>
+                                <p className="text-sm text-white/70 sm:text-right">
+                                    {role}
+                                </p>
                                 <div className="flex flex-wrap gap-2">
                                     <SubscribeDialog
                                         tiers={subscriptionTiers}
@@ -131,13 +135,17 @@ export default function ProfileDemo({ profile }: ProfileDemoProps) {
                                         variant="ghost"
                                         className="rounded-full text-white/80 hover:bg-white/10 hover:text-white"
                                     >
-                                        <Link href="/profile-demo/wishlist">Wishlist</Link>
+                                        <Link href="/profile-demo/wishlist">
+                                            Wishlist
+                                        </Link>
                                     </Button>
                                 </div>
                             </div>
                         </div>
                         <Separator className="my-6 border-white/10" />
-                        <p className="max-w-3xl text-sm leading-relaxed text-white/70">{bio}</p>
+                        <p className="max-w-3xl text-sm leading-relaxed text-white/70">
+                            {bio}
+                        </p>
                         <div className="mt-4 flex flex-wrap gap-2">
                             {tags.map((tag) => (
                                 <Badge
@@ -156,7 +164,9 @@ export default function ProfileDemo({ profile }: ProfileDemoProps) {
                     <section className="space-y-6">
                         <Card className="border-white/10 bg-white/5 text-white">
                             <CardHeader>
-                                <CardTitle className="text-lg font-semibold">Scene stats</CardTitle>
+                                <CardTitle className="text-lg font-semibold">
+                                    Scene stats
+                                </CardTitle>
                                 <CardDescription className="text-white/60">
                                     Live metrics updated every hour.
                                 </CardDescription>
@@ -168,7 +178,7 @@ export default function ProfileDemo({ profile }: ProfileDemoProps) {
                                             key={stat.label}
                                             className="rounded-2xl border border-white/10 bg-black/40 px-4 py-5"
                                         >
-                                            <p className="text-xs uppercase tracking-[0.35em] text-white/50">
+                                            <p className="text-xs tracking-[0.35em] text-white/50 uppercase">
                                                 {stat.label}
                                             </p>
                                             <p className="mt-2 text-2xl font-semibold text-white">
@@ -182,9 +192,12 @@ export default function ProfileDemo({ profile }: ProfileDemoProps) {
 
                         <Card className="border-white/10 bg-white/5 text-white">
                             <CardHeader>
-                                <CardTitle className="text-lg font-semibold">Creator feed</CardTitle>
+                                <CardTitle className="text-lg font-semibold">
+                                    Creator feed
+                                </CardTitle>
                                 <CardDescription className="text-white/60">
-                                    Latest drops, circle updates, and monetized moments.
+                                    Latest drops, circle updates, and monetized
+                                    moments.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -194,12 +207,16 @@ export default function ProfileDemo({ profile }: ProfileDemoProps) {
                                         className="rounded-3xl border border-white/10 bg-black/35 p-5"
                                     >
                                         <div className="flex flex-wrap items-center justify-between gap-3">
-                                            <h3 className="text-lg font-semibold text-white">{item.title}</h3>
-                                            <span className="text-xs uppercase tracking-[0.3em] text-white/50">
+                                            <h3 className="text-lg font-semibold text-white">
+                                                {item.title}
+                                            </h3>
+                                            <span className="text-xs tracking-[0.3em] text-white/50 uppercase">
                                                 {item.timestamp}
                                             </span>
                                         </div>
-                                        <p className="mt-3 text-sm text-white/70">{item.content}</p>
+                                        <p className="mt-3 text-sm text-white/70">
+                                            {item.content}
+                                        </p>
                                         {item.media.length > 0 && (
                                             <div className="mt-4 grid gap-3 sm:grid-cols-2">
                                                 {item.media.map((mediaUrl) => (
@@ -217,7 +234,10 @@ export default function ProfileDemo({ profile }: ProfileDemoProps) {
                                             </div>
                                         )}
                                         <div className="mt-4 flex flex-wrap items-center gap-2">
-                                            <Button size="sm" className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-4 text-xs font-semibold">
+                                            <Button
+                                                size="sm"
+                                                className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-4 text-xs font-semibold"
+                                            >
                                                 Unlock Scene
                                             </Button>
                                             <Button
@@ -237,7 +257,9 @@ export default function ProfileDemo({ profile }: ProfileDemoProps) {
                     <aside className="space-y-6">
                         <Card className="border-white/10 bg-white/5 text-white">
                             <CardHeader>
-                                <CardTitle className="text-lg font-semibold">Availability</CardTitle>
+                                <CardTitle className="text-lg font-semibold">
+                                    Availability
+                                </CardTitle>
                                 <CardDescription className="text-white/60">
                                     Updated weekly for collaborators.
                                 </CardDescription>
@@ -246,11 +268,16 @@ export default function ProfileDemo({ profile }: ProfileDemoProps) {
                                 <p className="text-base font-semibold text-white">
                                     {availability.status}
                                 </p>
-                                <p className="text-white/65">{availability.window}</p>
+                                <p className="text-white/65">
+                                    {availability.window}
+                                </p>
                                 <p>{availability.note}</p>
                             </CardContent>
                             <CardFooter>
-                                <Button variant="ghost" className="w-full rounded-full text-white/80 hover:bg-white/10 hover:text-white">
+                                <Button
+                                    variant="ghost"
+                                    className="w-full rounded-full text-white/80 hover:bg-white/10 hover:text-white"
+                                >
                                     Request collaboration
                                 </Button>
                             </CardFooter>
@@ -258,7 +285,9 @@ export default function ProfileDemo({ profile }: ProfileDemoProps) {
 
                         <Card className="border-white/10 bg-white/5 text-white">
                             <CardHeader>
-                                <CardTitle className="text-lg font-semibold">Membership tiers</CardTitle>
+                                <CardTitle className="text-lg font-semibold">
+                                    Membership tiers
+                                </CardTitle>
                                 <CardDescription className="text-white/60">
                                     Choose your level of access and perks.
                                 </CardDescription>
@@ -270,15 +299,22 @@ export default function ProfileDemo({ profile }: ProfileDemoProps) {
                                         className="space-y-3 rounded-2xl border border-white/10 bg-black/35 p-4"
                                     >
                                         <div className="flex items-center justify-between gap-2">
-                                            <h3 className="text-sm font-semibold text-white">{tier.name}</h3>
+                                            <h3 className="text-sm font-semibold text-white">
+                                                {tier.name}
+                                            </h3>
                                             <Badge className="rounded-full border-white/15 bg-white/10 text-xs text-white/70">
                                                 {tier.price}
                                             </Badge>
                                         </div>
-                                        <p className="text-xs text-white/65">{tier.description}</p>
+                                        <p className="text-xs text-white/65">
+                                            {tier.description}
+                                        </p>
                                         <ul className="space-y-2 text-xs text-white/60">
                                             {tier.perks.map((perk) => (
-                                                <li key={perk} className="flex items-start gap-2">
+                                                <li
+                                                    key={perk}
+                                                    className="flex items-start gap-2"
+                                                >
                                                     <span className="mt-1 size-1.5 rounded-full bg-amber-400" />
                                                     <span>{perk}</span>
                                                 </li>
@@ -294,9 +330,12 @@ export default function ProfileDemo({ profile }: ProfileDemoProps) {
 
                         <Card className="border-white/10 bg-white/5 text-white">
                             <CardHeader>
-                                <CardTitle className="text-lg font-semibold">Tip jar</CardTitle>
+                                <CardTitle className="text-lg font-semibold">
+                                    Tip jar
+                                </CardTitle>
                                 <CardDescription className="text-white/60">
-                                    Boost the next scene or unlock bonuses instantly.
+                                    Boost the next scene or unlock bonuses
+                                    instantly.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="flex flex-wrap gap-2">
@@ -306,8 +345,12 @@ export default function ProfileDemo({ profile }: ProfileDemoProps) {
                                         variant="ghost"
                                         className="rounded-full border border-white/15 bg-white/5 px-4 text-sm text-white/80 hover:border-white/40 hover:bg-white/10 hover:text-white"
                                     >
-                                        <span className="font-semibold text-white">{tip.amount}</span>
-                                        <span className="ml-2 text-xs text-white/70">{tip.label}</span>
+                                        <span className="font-semibold text-white">
+                                            {tip.amount}
+                                        </span>
+                                        <span className="ml-2 text-xs text-white/70">
+                                            {tip.label}
+                                        </span>
                                     </Button>
                                 ))}
                             </CardContent>
@@ -320,9 +363,12 @@ export default function ProfileDemo({ profile }: ProfileDemoProps) {
 
                         <Card className="border-white/10 bg-white/5 text-white">
                             <CardHeader>
-                                <CardTitle className="text-lg font-semibold">Wishlist</CardTitle>
+                                <CardTitle className="text-lg font-semibold">
+                                    Wishlist
+                                </CardTitle>
                                 <CardDescription className="text-white/60">
-                                    Help unlock new gear, travel, and production upgrades.
+                                    Help unlock new gear, travel, and production
+                                    upgrades.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-3">
@@ -332,13 +378,16 @@ export default function ProfileDemo({ profile }: ProfileDemoProps) {
                                         className="rounded-2xl border border-white/10 bg-black/35 p-4 text-sm text-white/75"
                                     >
                                         <div className="flex items-center justify-between gap-2 text-white">
-                                            <p className="font-semibold">{item.title}</p>
-                                            <span className="text-xs uppercase tracking-[0.3em] text-white/55">
+                                            <p className="font-semibold">
+                                                {item.title}
+                                            </p>
+                                            <span className="text-xs tracking-[0.3em] text-white/55 uppercase">
                                                 {item.price}
                                             </span>
                                         </div>
                                         <p className="mt-2 text-xs text-white/60">
-                                            {displayName} will shout you out on the next drop.
+                                            {displayName} will shout you out on
+                                            the next drop.
                                         </p>
                                         <Button
                                             variant="ghost"
@@ -356,4 +405,3 @@ export default function ProfileDemo({ profile }: ProfileDemoProps) {
         </AppLayout>
     );
 }
-

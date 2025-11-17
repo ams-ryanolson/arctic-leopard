@@ -13,9 +13,7 @@ class FollowingFeedController extends Controller
     public function __construct(
         private TimelineCacheService $timelineCache,
         private FeedService $feedService,
-    )
-    {
-    }
+    ) {}
 
     public function index(Request $request): JsonResponse
     {

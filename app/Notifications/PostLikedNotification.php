@@ -3,8 +3,8 @@
 namespace App\Notifications;
 
 use App\Models\Post;
-use App\Notifications\Concerns\InteractsWithPost;
 use App\Models\User;
+use App\Notifications\Concerns\InteractsWithPost;
 
 class PostLikedNotification extends DatabaseNotification
 {
@@ -35,4 +35,3 @@ class PostLikedNotification extends DatabaseNotification
         return $postMeta === [] ? [] : ['post' => $postMeta];
     }
 }
-

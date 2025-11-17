@@ -11,9 +11,7 @@ use Illuminate\Http\JsonResponse;
 
 class PostViewController extends Controller
 {
-    public function __construct(private readonly CountryResolver $countryResolver)
-    {
-    }
+    public function __construct(private readonly CountryResolver $countryResolver) {}
 
     public function store(StorePostViewRequest $request, Post $post): JsonResponse
     {
@@ -55,4 +53,3 @@ class PostViewController extends Controller
         ]);
     }
 }
-

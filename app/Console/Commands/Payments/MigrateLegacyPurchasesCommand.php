@@ -7,7 +7,6 @@ use App\Enums\Payments\PostPurchaseStatus;
 use App\Models\Payments\Payment;
 use App\Models\PostPurchase;
 use Illuminate\Console\Command;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 

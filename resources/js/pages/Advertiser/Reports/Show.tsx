@@ -14,8 +14,12 @@ export default function AdvertiserReportsShow() {
 
             <div className="space-y-8 text-white">
                 <header>
-                    <h1 className="text-2xl font-semibold tracking-tight">Ad Reports</h1>
-                    <p className="text-sm text-white/65">View your advertising performance reports.</p>
+                    <h1 className="text-2xl font-semibold tracking-tight">
+                        Ad Reports
+                    </h1>
+                    <p className="text-sm text-white/65">
+                        View your advertising performance reports.
+                    </p>
                 </header>
 
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center text-white/70">
@@ -25,7 +29,3 @@ export default function AdvertiserReportsShow() {
         </AppLayout>
     );
 }
-
-
-
-

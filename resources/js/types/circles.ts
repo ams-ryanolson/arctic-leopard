@@ -55,4 +55,3 @@ export type CircleFilterState = {
     joined?: boolean;
     sort?: string | null;
 };
-

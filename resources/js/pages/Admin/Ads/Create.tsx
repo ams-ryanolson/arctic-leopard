@@ -1,5 +1,11 @@
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -11,8 +17,7 @@ import {
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { Form, Head, router, useForm } from '@inertiajs/react';
-import { Plus, Trash2, X } from 'lucide-react';
-import { useState } from 'react';
+import { Plus, Trash2 } from 'lucide-react';
 
 type CreativeFormData = {
     placement: string;
@@ -133,7 +138,11 @@ export default function AdminAdsCreate() {
         );
     };
 
-    const updateCreative = (index: number, field: keyof CreativeFormData, value: string | number) => {
+    const updateCreative = (
+        index: number,
+        field: keyof CreativeFormData,
+        value: string | number,
+    ) => {
         const updated = [...data.creatives];
         updated[index] = { ...updated[index], [field]: value };
         setData('creatives', updated);
@@ -144,15 +153,23 @@ export default function AdminAdsCreate() {
 
         const payload = {
             ...data,
-            campaign_id: data.campaign_id ? Number.parseInt(data.campaign_id, 10) : null,
+            campaign_id: data.campaign_id
+                ? Number.parseInt(data.campaign_id, 10)
+                : null,
             budget_amount: Number.parseInt(data.budget_amount, 10),
             pricing_rate: Number.parseInt(data.pricing_rate, 10),
-            max_impressions: data.max_impressions ? Number.parseInt(data.max_impressions, 10) : null,
-            max_clicks: data.max_clicks ? Number.parseInt(data.max_clicks, 10) : null,
+            max_impressions: data.max_impressions
+                ? Number.parseInt(data.max_impressions, 10)
+                : null,
+            max_clicks: data.max_clicks
+                ? Number.parseInt(data.max_clicks, 10)
+                : null,
             daily_impression_cap: data.daily_impression_cap
                 ? Number.parseInt(data.daily_impression_cap, 10)
                 : null,
-            daily_click_cap: data.daily_click_cap ? Number.parseInt(data.daily_click_cap, 10) : null,
+            daily_click_cap: data.daily_click_cap
+                ? Number.parseInt(data.daily_click_cap, 10)
+                : null,
             creatives: data.creatives.map((creative) => ({
                 ...creative,
                 display_order: creative.display_order,
@@ -180,8 +197,12 @@ export default function AdminAdsCreate() {
 
             <div className="space-y-8 text-white">
                 <header>
-                    <h1 className="text-2xl font-semibold tracking-tight">Create Ad</h1>
-                    <p className="text-sm text-white/65">Create a new advertising campaign.</p>
+                    <h1 className="text-2xl font-semibold tracking-tight">
+                        Create Ad
+                    </h1>
+                    <p className="text-sm text-white/65">
+                        Create a new advertising campaign.
+                    </p>
                 </header>
 
                 <Form onSubmit={handleSubmit} className="space-y-6">
@@ -198,23 +219,37 @@ export default function AdminAdsCreate() {
                                 <Input
                                     id="name"
                                     value={data.name}
-                                    onChange={(e) => setData('name', e.target.value)}
+                                    onChange={(e) =>
+                                        setData('name', e.target.value)
+                                    }
                                     placeholder="Summer Sale Campaign"
                                     className="border-white/10 bg-black/30 text-white"
                                 />
-                                {errors.name && <p className="text-sm text-rose-400">{errors.name}</p>}
+                                {errors.name && (
+                                    <p className="text-sm text-rose-400">
+                                        {errors.name}
+                                    </p>
+                                )}
                             </div>
 
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div className="space-y-2">
                                     <Label htmlFor="status">Status</Label>
-                                    <Select value={data.status} onValueChange={(value) => setData('status', value)}>
+                                    <Select
+                                        value={data.status}
+                                        onValueChange={(value) =>
+                                            setData('status', value)
+                                        }
+                                    >
                                         <SelectTrigger className="border-white/10 bg-black/30 text-white">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {STATUSES.map((status) => (
-                                                <SelectItem key={status.value} value={status.value}>
+                                                <SelectItem
+                                                    key={status.value}
+                                                    value={status.value}
+                                                >
                                                     {status.label}
                                                 </SelectItem>
                                             ))}
@@ -223,19 +258,31 @@ export default function AdminAdsCreate() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="budget_currency">Currency *</Label>
+                                    <Label htmlFor="budget_currency">
+                                        Currency *
+                                    </Label>
                                     <Select
                                         value={data.budget_currency}
-                                        onValueChange={(value) => setData('budget_currency', value)}
+                                        onValueChange={(value) =>
+                                            setData('budget_currency', value)
+                                        }
                                     >
                                         <SelectTrigger className="border-white/10 bg-black/30 text-white">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="USD">USD</SelectItem>
-                                            <SelectItem value="EUR">EUR</SelectItem>
-                                            <SelectItem value="GBP">GBP</SelectItem>
-                                            <SelectItem value="CAD">CAD</SelectItem>
+                                            <SelectItem value="USD">
+                                                USD
+                                            </SelectItem>
+                                            <SelectItem value="EUR">
+                                                EUR
+                                            </SelectItem>
+                                            <SelectItem value="GBP">
+                                                GBP
+                                            </SelectItem>
+                                            <SelectItem value="CAD">
+                                                CAD
+                                            </SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -243,12 +290,19 @@ export default function AdminAdsCreate() {
 
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div className="space-y-2">
-                                    <Label htmlFor="start_date">Start Date</Label>
+                                    <Label htmlFor="start_date">
+                                        Start Date
+                                    </Label>
                                     <Input
                                         id="start_date"
                                         type="datetime-local"
                                         value={data.start_date}
-                                        onChange={(e) => setData('start_date', e.target.value)}
+                                        onChange={(e) =>
+                                            setData(
+                                                'start_date',
+                                                e.target.value,
+                                            )
+                                        }
                                         className="border-white/10 bg-black/30 text-white"
                                     />
                                 </div>
@@ -259,7 +313,9 @@ export default function AdminAdsCreate() {
                                         id="end_date"
                                         type="datetime-local"
                                         value={data.end_date}
-                                        onChange={(e) => setData('end_date', e.target.value)}
+                                        onChange={(e) =>
+                                            setData('end_date', e.target.value)
+                                        }
                                         className="border-white/10 bg-black/30 text-white"
                                     />
                                 </div>
@@ -277,36 +333,53 @@ export default function AdminAdsCreate() {
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div className="space-y-2">
-                                    <Label htmlFor="budget_amount">Budget Amount (cents) *</Label>
+                                    <Label htmlFor="budget_amount">
+                                        Budget Amount (cents) *
+                                    </Label>
                                     <Input
                                         id="budget_amount"
                                         type="number"
                                         min="1"
                                         value={data.budget_amount}
-                                        onChange={(e) => setData('budget_amount', e.target.value)}
+                                        onChange={(e) =>
+                                            setData(
+                                                'budget_amount',
+                                                e.target.value,
+                                            )
+                                        }
                                         placeholder="10000"
                                         className="border-white/10 bg-black/30 text-white"
                                     />
                                     {errors.budget_amount && (
-                                        <p className="text-sm text-rose-400">{errors.budget_amount}</p>
+                                        <p className="text-sm text-rose-400">
+                                            {errors.budget_amount}
+                                        </p>
                                     )}
                                     <p className="text-xs text-white/50">
-                                        Enter amount in cents (e.g., 10000 = $100.00)
+                                        Enter amount in cents (e.g., 10000 =
+                                        $100.00)
                                     </p>
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="pricing_model">Pricing Model *</Label>
+                                    <Label htmlFor="pricing_model">
+                                        Pricing Model *
+                                    </Label>
                                     <Select
                                         value={data.pricing_model}
-                                        onValueChange={(value) => setData('pricing_model', value)}
+                                        onValueChange={(value) =>
+                                            setData('pricing_model', value)
+                                        }
                                     >
                                         <SelectTrigger className="border-white/10 bg-black/30 text-white">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {PRICING_MODELS.map((model) => (
-                                                <SelectItem key={model.value} value={model.value}>
+                                                <SelectItem
+                                                    key={model.value}
+                                                    value={model.value}
+                                                >
                                                     {model.label}
                                                 </SelectItem>
                                             ))}
@@ -316,46 +389,67 @@ export default function AdminAdsCreate() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="pricing_rate">Pricing Rate (cents) *</Label>
+                                <Label htmlFor="pricing_rate">
+                                    Pricing Rate (cents) *
+                                </Label>
                                 <Input
                                     id="pricing_rate"
                                     type="number"
                                     min="1"
                                     value={data.pricing_rate}
-                                    onChange={(e) => setData('pricing_rate', e.target.value)}
+                                    onChange={(e) =>
+                                        setData('pricing_rate', e.target.value)
+                                    }
                                     placeholder="500"
                                     className="border-white/10 bg-black/30 text-white"
                                 />
                                 {errors.pricing_rate && (
-                                    <p className="text-sm text-rose-400">{errors.pricing_rate}</p>
+                                    <p className="text-sm text-rose-400">
+                                        {errors.pricing_rate}
+                                    </p>
                                 )}
                                 <p className="text-xs text-white/50">
-                                    For CPM: cost per 1000 impressions. For CPC: cost per click.
+                                    For CPM: cost per 1000 impressions. For CPC:
+                                    cost per click.
                                 </p>
                             </div>
 
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div className="space-y-2">
-                                    <Label htmlFor="max_impressions">Max Impressions</Label>
+                                    <Label htmlFor="max_impressions">
+                                        Max Impressions
+                                    </Label>
                                     <Input
                                         id="max_impressions"
                                         type="number"
                                         min="1"
                                         value={data.max_impressions}
-                                        onChange={(e) => setData('max_impressions', e.target.value)}
+                                        onChange={(e) =>
+                                            setData(
+                                                'max_impressions',
+                                                e.target.value,
+                                            )
+                                        }
                                         placeholder="100000"
                                         className="border-white/10 bg-black/30 text-white"
                                     />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="max_clicks">Max Clicks</Label>
+                                    <Label htmlFor="max_clicks">
+                                        Max Clicks
+                                    </Label>
                                     <Input
                                         id="max_clicks"
                                         type="number"
                                         min="1"
                                         value={data.max_clicks}
-                                        onChange={(e) => setData('max_clicks', e.target.value)}
+                                        onChange={(e) =>
+                                            setData(
+                                                'max_clicks',
+                                                e.target.value,
+                                            )
+                                        }
                                         placeholder="1000"
                                         className="border-white/10 bg-black/30 text-white"
                                     />
@@ -364,26 +458,40 @@ export default function AdminAdsCreate() {
 
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div className="space-y-2">
-                                    <Label htmlFor="daily_impression_cap">Daily Impression Cap</Label>
+                                    <Label htmlFor="daily_impression_cap">
+                                        Daily Impression Cap
+                                    </Label>
                                     <Input
                                         id="daily_impression_cap"
                                         type="number"
                                         min="1"
                                         value={data.daily_impression_cap}
-                                        onChange={(e) => setData('daily_impression_cap', e.target.value)}
+                                        onChange={(e) =>
+                                            setData(
+                                                'daily_impression_cap',
+                                                e.target.value,
+                                            )
+                                        }
                                         placeholder="10000"
                                         className="border-white/10 bg-black/30 text-white"
                                     />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="daily_click_cap">Daily Click Cap</Label>
+                                    <Label htmlFor="daily_click_cap">
+                                        Daily Click Cap
+                                    </Label>
                                     <Input
                                         id="daily_click_cap"
                                         type="number"
                                         min="1"
                                         value={data.daily_click_cap}
-                                        onChange={(e) => setData('daily_click_cap', e.target.value)}
+                                        onChange={(e) =>
+                                            setData(
+                                                'daily_click_cap',
+                                                e.target.value,
+                                            )
+                                        }
                                         placeholder="100"
                                         className="border-white/10 bg-black/30 text-white"
                                     />
@@ -398,7 +506,8 @@ export default function AdminAdsCreate() {
                                 <div>
                                     <CardTitle>Creatives *</CardTitle>
                                     <CardDescription className="text-white/60">
-                                        Add one or more ad creatives for different placements.
+                                        Add one or more ad creatives for
+                                        different placements.
                                     </CardDescription>
                                 </div>
                                 <Button
@@ -415,15 +524,22 @@ export default function AdminAdsCreate() {
                         </CardHeader>
                         <CardContent className="space-y-6">
                             {data.creatives.map((creative, index) => (
-                                <Card key={index} className="border-white/5 bg-black/20">
+                                <Card
+                                    key={index}
+                                    className="border-white/5 bg-black/20"
+                                >
                                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                                        <CardTitle className="text-base">Creative {index + 1}</CardTitle>
+                                        <CardTitle className="text-base">
+                                            Creative {index + 1}
+                                        </CardTitle>
                                         {data.creatives.length > 1 && (
                                             <Button
                                                 type="button"
                                                 variant="ghost"
                                                 size="sm"
-                                                onClick={() => removeCreative(index)}
+                                                onClick={() =>
+                                                    removeCreative(index)
+                                                }
                                                 className="text-white/60 hover:text-white"
                                             >
                                                 <Trash2 className="h-4 w-4" />
@@ -437,21 +553,33 @@ export default function AdminAdsCreate() {
                                                 <Select
                                                     value={creative.placement}
                                                     onValueChange={(value) =>
-                                                        updateCreative(index, 'placement', value)
+                                                        updateCreative(
+                                                            index,
+                                                            'placement',
+                                                            value,
+                                                        )
                                                     }
                                                 >
                                                     <SelectTrigger className="border-white/10 bg-black/30 text-white">
                                                         <SelectValue />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {PLACEMENTS.map((placement) => (
-                                                            <SelectItem
-                                                                key={placement.value}
-                                                                value={placement.value}
-                                                            >
-                                                                {placement.label}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {PLACEMENTS.map(
+                                                            (placement) => (
+                                                                <SelectItem
+                                                                    key={
+                                                                        placement.value
+                                                                    }
+                                                                    value={
+                                                                        placement.value
+                                                                    }
+                                                                >
+                                                                    {
+                                                                        placement.label
+                                                                    }
+                                                                </SelectItem>
+                                                            ),
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
@@ -461,7 +589,11 @@ export default function AdminAdsCreate() {
                                                 <Select
                                                     value={creative.size}
                                                     onValueChange={(value) =>
-                                                        updateCreative(index, 'size', value)
+                                                        updateCreative(
+                                                            index,
+                                                            'size',
+                                                            value,
+                                                        )
                                                     }
                                                 >
                                                     <SelectTrigger className="border-white/10 bg-black/30 text-white">
@@ -469,7 +601,12 @@ export default function AdminAdsCreate() {
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {SIZES.map((size) => (
-                                                            <SelectItem key={size.value} value={size.value}>
+                                                            <SelectItem
+                                                                key={size.value}
+                                                                value={
+                                                                    size.value
+                                                                }
+                                                            >
                                                                 {size.label}
                                                             </SelectItem>
                                                         ))}
@@ -482,18 +619,31 @@ export default function AdminAdsCreate() {
                                                 <Select
                                                     value={creative.asset_type}
                                                     onValueChange={(value) =>
-                                                        updateCreative(index, 'asset_type', value)
+                                                        updateCreative(
+                                                            index,
+                                                            'asset_type',
+                                                            value,
+                                                        )
                                                     }
                                                 >
                                                     <SelectTrigger className="border-white/10 bg-black/30 text-white">
                                                         <SelectValue />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {ASSET_TYPES.map((type) => (
-                                                            <SelectItem key={type.value} value={type.value}>
-                                                                {type.label}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {ASSET_TYPES.map(
+                                                            (type) => (
+                                                                <SelectItem
+                                                                    key={
+                                                                        type.value
+                                                                    }
+                                                                    value={
+                                                                        type.value
+                                                                    }
+                                                                >
+                                                                    {type.label}
+                                                                </SelectItem>
+                                                            ),
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
@@ -504,14 +654,24 @@ export default function AdminAdsCreate() {
                                             <Input
                                                 value={creative.asset_url}
                                                 onChange={(e) =>
-                                                    updateCreative(index, 'asset_url', e.target.value)
+                                                    updateCreative(
+                                                        index,
+                                                        'asset_url',
+                                                        e.target.value,
+                                                    )
                                                 }
                                                 placeholder="https://example.com/image.jpg"
                                                 className="border-white/10 bg-black/30 text-white"
                                             />
-                                            {errors[`creatives.${index}.asset_url`] && (
+                                            {errors[
+                                                `creatives.${index}.asset_url`
+                                            ] && (
                                                 <p className="text-sm text-rose-400">
-                                                    {errors[`creatives.${index}.asset_url`]}
+                                                    {
+                                                        errors[
+                                                            `creatives.${index}.asset_url`
+                                                        ]
+                                                    }
                                                 </p>
                                             )}
                                         </div>
@@ -521,7 +681,11 @@ export default function AdminAdsCreate() {
                                             <Input
                                                 value={creative.headline}
                                                 onChange={(e) =>
-                                                    updateCreative(index, 'headline', e.target.value)
+                                                    updateCreative(
+                                                        index,
+                                                        'headline',
+                                                        e.target.value,
+                                                    )
                                                 }
                                                 placeholder="Amazing Product"
                                                 className="border-white/10 bg-black/30 text-white"
@@ -533,10 +697,14 @@ export default function AdminAdsCreate() {
                                             <textarea
                                                 value={creative.body_text}
                                                 onChange={(e) =>
-                                                    updateCreative(index, 'body_text', e.target.value)
+                                                    updateCreative(
+                                                        index,
+                                                        'body_text',
+                                                        e.target.value,
+                                                    )
                                                 }
                                                 placeholder="Description of your ad"
-                                                className="min-h-[80px] w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white placeholder:text-white/40 focus:border-white/30 focus:outline-none focus:ring-2 focus:ring-amber-400/20"
+                                                className="min-h-[80px] w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white placeholder:text-white/40 focus:border-white/30 focus:ring-2 focus:ring-amber-400/20 focus:outline-none"
                                                 rows={3}
                                             />
                                         </div>
@@ -547,7 +715,11 @@ export default function AdminAdsCreate() {
                                                 <Input
                                                     value={creative.cta_text}
                                                     onChange={(e) =>
-                                                        updateCreative(index, 'cta_text', e.target.value)
+                                                        updateCreative(
+                                                            index,
+                                                            'cta_text',
+                                                            e.target.value,
+                                                        )
                                                     }
                                                     placeholder="Learn More"
                                                     className="border-white/10 bg-black/30 text-white"
@@ -559,14 +731,24 @@ export default function AdminAdsCreate() {
                                                 <Input
                                                     value={creative.cta_url}
                                                     onChange={(e) =>
-                                                        updateCreative(index, 'cta_url', e.target.value)
+                                                        updateCreative(
+                                                            index,
+                                                            'cta_url',
+                                                            e.target.value,
+                                                        )
                                                     }
                                                     placeholder="https://example.com"
                                                     className="border-white/10 bg-black/30 text-white"
                                                 />
-                                                {errors[`creatives.${index}.cta_url`] && (
+                                                {errors[
+                                                    `creatives.${index}.cta_url`
+                                                ] && (
                                                     <p className="text-sm text-rose-400">
-                                                        {errors[`creatives.${index}.cta_url`]}
+                                                        {
+                                                            errors[
+                                                                `creatives.${index}.cta_url`
+                                                            ]
+                                                        }
                                                     </p>
                                                 )}
                                             </div>
@@ -575,7 +757,9 @@ export default function AdminAdsCreate() {
                                 </Card>
                             ))}
                             {errors.creatives && (
-                                <p className="text-sm text-rose-400">{errors.creatives}</p>
+                                <p className="text-sm text-rose-400">
+                                    {errors.creatives}
+                                </p>
                             )}
                         </CardContent>
                     </Card>

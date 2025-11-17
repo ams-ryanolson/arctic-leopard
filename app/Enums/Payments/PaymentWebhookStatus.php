@@ -13,4 +13,3 @@ enum PaymentWebhookStatus: string
     case Processed = 'processed';
     case Failed = 'failed';
 }
-

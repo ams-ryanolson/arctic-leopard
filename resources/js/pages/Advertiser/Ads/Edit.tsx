@@ -21,8 +21,12 @@ export default function AdvertiserAdsEdit({ ad }: AdvertiserAdsEditProps) {
 
             <div className="space-y-8 text-white">
                 <header>
-                    <h1 className="text-2xl font-semibold tracking-tight">Edit Ad</h1>
-                    <p className="text-sm text-white/65">Update your ad settings.</p>
+                    <h1 className="text-2xl font-semibold tracking-tight">
+                        Edit Ad
+                    </h1>
+                    <p className="text-sm text-white/65">
+                        Update your ad settings.
+                    </p>
                 </header>
 
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center text-white/70">
@@ -32,7 +36,3 @@ export default function AdvertiserAdsEdit({ ad }: AdvertiserAdsEditProps) {
         </AppLayout>
     );
 }
-
-
-
-

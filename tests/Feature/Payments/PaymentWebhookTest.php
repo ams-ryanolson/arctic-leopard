@@ -28,5 +28,3 @@ it('stores the webhook payload and dispatches the processing job', function (): 
 
     Queue::assertPushed(ProcessPaymentWebhook::class, fn (ProcessPaymentWebhook $job) => $job->webhook->is($webhook));
 });
-
-

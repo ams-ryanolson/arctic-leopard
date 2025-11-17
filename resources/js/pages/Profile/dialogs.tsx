@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogContent,
@@ -8,13 +9,9 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import {
-    type SubscriptionTier,
-    type TipOption,
-} from '@/pages/Profile/types';
+import { type SubscriptionTier, type TipOption } from '@/pages/Profile/types';
+import { useMemo, useState } from 'react';
 
 type CardMethod = {
     id: string;
@@ -98,9 +95,7 @@ export function SubscribeDialog({ tiers, trigger }: SubscribeDialogProps) {
             const found = storedCards.find(
                 (card) => card.id === checkoutState.cardId,
             );
-            return found
-                ? `${found.brand} •••• ${found.last4}`
-                : 'Saved card';
+            return found ? `${found.brand} •••• ${found.last4}` : 'Saved card';
         }
         return 'Payment method';
     }, [checkoutState]);
@@ -196,7 +191,7 @@ export function SubscribeDialog({ tiers, trigger }: SubscribeDialogProps) {
                     <>
                         <div className="space-y-6">
                             <div>
-                                <p className="text-xs uppercase tracking-[0.35em] text-white/50">
+                                <p className="text-xs tracking-[0.35em] text-white/50 uppercase">
                                     Saved cards
                                 </p>
                                 <div className="mt-2 space-y-3">
@@ -236,11 +231,12 @@ export function SubscribeDialog({ tiers, trigger }: SubscribeDialogProps) {
                                                             {card.last4}
                                                         </p>
                                                         <p className="text-xs text-white/60">
-                                                            Expires {card.expiry}
+                                                            Expires{' '}
+                                                            {card.expiry}
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <span className="text-xs uppercase tracking-[0.35em] text-amber-300">
+                                                <span className="text-xs tracking-[0.35em] text-amber-300 uppercase">
                                                     {isSelected
                                                         ? 'Selected'
                                                         : 'Choose'}
@@ -258,7 +254,7 @@ export function SubscribeDialog({ tiers, trigger }: SubscribeDialogProps) {
                             </div>
 
                             <div>
-                                <p className="text-xs uppercase tracking-[0.35em] text-white/50">
+                                <p className="text-xs tracking-[0.35em] text-white/50 uppercase">
                                     Alternative payments
                                 </p>
                                 <div className="mt-2 flex flex-wrap gap-3">
@@ -341,7 +337,7 @@ export function TipDialog({ options, trigger }: TipDialogProps) {
     const effectiveAmount =
         customAmount.trim() !== ''
             ? `$${customAmount.trim()}`
-            : selectedOption?.amount ?? '$0';
+            : (selectedOption?.amount ?? '$0');
 
     const activePaymentLabel = useMemo(() => {
         if (checkoutState.altId) {
@@ -354,9 +350,7 @@ export function TipDialog({ options, trigger }: TipDialogProps) {
             const found = storedCards.find(
                 (card) => card.id === checkoutState.cardId,
             );
-            return found
-                ? `${found.brand} •••• ${found.last4}`
-                : 'Saved card';
+            return found ? `${found.brand} •••• ${found.last4}` : 'Saved card';
         }
         return 'Payment method';
     }, [checkoutState]);
@@ -421,7 +415,7 @@ export function TipDialog({ options, trigger }: TipDialogProps) {
                             </div>
 
                             <div className="space-y-2">
-                                <p className="text-xs uppercase tracking-[0.35em] text-white/50">
+                                <p className="text-xs tracking-[0.35em] text-white/50 uppercase">
                                     Custom amount
                                 </p>
                                 <Input
@@ -467,7 +461,7 @@ export function TipDialog({ options, trigger }: TipDialogProps) {
                     <>
                         <div className="space-y-6">
                             <div>
-                                <p className="text-xs uppercase tracking-[0.35em] text-white/50">
+                                <p className="text-xs tracking-[0.35em] text-white/50 uppercase">
                                     Saved cards
                                 </p>
                                 <div className="mt-2 space-y-3">
@@ -507,11 +501,12 @@ export function TipDialog({ options, trigger }: TipDialogProps) {
                                                             {card.last4}
                                                         </p>
                                                         <p className="text-xs text-white/60">
-                                                            Expires {card.expiry}
+                                                            Expires{' '}
+                                                            {card.expiry}
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <span className="text-xs uppercase tracking-[0.35em] text-amber-300">
+                                                <span className="text-xs tracking-[0.35em] text-amber-300 uppercase">
                                                     {isSelected
                                                         ? 'Selected'
                                                         : 'Choose'}
@@ -523,7 +518,7 @@ export function TipDialog({ options, trigger }: TipDialogProps) {
                             </div>
 
                             <div>
-                                <p className="text-xs uppercase tracking-[0.35em] text-white/50">
+                                <p className="text-xs tracking-[0.35em] text-white/50 uppercase">
                                     Alternative payments
                                 </p>
                                 <div className="mt-2 flex flex-wrap gap-3">
@@ -571,7 +566,8 @@ export function TipDialog({ options, trigger }: TipDialogProps) {
                             </Button>
                             <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
                                 <p className="text-xs text-white/60 sm:mr-4 sm:text-right">
-                                    Tip {effectiveAmount} via {activePaymentLabel}
+                                    Tip {effectiveAmount} via{' '}
+                                    {activePaymentLabel}
                                 </p>
                                 <Button className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-6 text-sm font-semibold text-white shadow-[0_18px_40px_-12px_rgba(249,115,22,0.45)] hover:scale-[1.02]">
                                     Send {effectiveAmount}
@@ -584,4 +580,3 @@ export function TipDialog({ options, trigger }: TipDialogProps) {
         </Dialog>
     );
 }
-

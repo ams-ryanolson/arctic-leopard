@@ -14,9 +14,7 @@ abstract class PaymentEvent
     /**
      * Create a new event instance.
      */
-    public function __construct(public Payment $payment)
-    {
-    }
+    public function __construct(public Payment $payment) {}
 
     /**
      * Get the payment payload for listeners.
@@ -42,4 +40,3 @@ abstract class PaymentEvent
         ];
     }
 }
-

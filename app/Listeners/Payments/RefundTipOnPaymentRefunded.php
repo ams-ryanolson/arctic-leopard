@@ -25,4 +25,3 @@ class RefundTipOnPaymentRefunded implements ShouldQueue
         ])->save();
     }
 }
-

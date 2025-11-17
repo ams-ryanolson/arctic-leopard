@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useInitials } from '@/hooks/use-initials';
+import { cn } from '@/lib/utils';
 import {
     type BreadcrumbItem as BreadcrumbItemType,
     type HeaderAction,
@@ -13,9 +14,15 @@ import {
     type HeaderSupportLink,
     type SharedData,
 } from '@/types';
-import { cn } from '@/lib/utils';
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowUpRight, ChevronDown, Clapperboard, Radio, Search, Sparkles } from 'lucide-react';
+import {
+    ArrowUpRight,
+    ChevronDown,
+    Clapperboard,
+    Radio,
+    Search,
+    Sparkles,
+} from 'lucide-react';
 import { type ReactNode } from 'react';
 
 const defaultActions: HeaderAction[] = [
@@ -49,12 +56,17 @@ interface AppSidebarHeaderProps {
 }
 
 function renderActionButton(action: HeaderAction) {
-    const variantStyles: Record<NonNullable<HeaderAction['variant']>, string> = {
+    const variantStyles: Record<
+        NonNullable<HeaderAction['variant']>,
+        string
+    > = {
         primary:
             'bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-6 text-sm font-semibold text-white shadow-[0_18px_40px_-12px_rgba(249,115,22,0.45)] hover:scale-[1.02]',
-        secondary: 'border-white/25 bg-white/10 text-white hover:border-white/40 hover:bg-white/20',
+        secondary:
+            'border-white/25 bg-white/10 text-white hover:border-white/40 hover:bg-white/20',
         ghost: 'text-white/80 hover:bg-white/10 hover:text-white',
-        outline: 'border-white/25 bg-transparent text-white/80 hover:border-white/40',
+        outline:
+            'border-white/25 bg-transparent text-white/80 hover:border-white/40',
     };
 
     const Icon = action.icon;
@@ -62,10 +74,18 @@ function renderActionButton(action: HeaderAction) {
         <Button
             key={action.id}
             size="lg"
-            variant={action.variant === 'ghost' ? 'ghost' : action.variant === 'outline' ? 'outline' : 'default'}
+            variant={
+                action.variant === 'ghost'
+                    ? 'ghost'
+                    : action.variant === 'outline'
+                      ? 'outline'
+                      : 'default'
+            }
             className={cn(
                 'rounded-full transition',
-                action.variant ? variantStyles[action.variant] : variantStyles.primary,
+                action.variant
+                    ? variantStyles[action.variant]
+                    : variantStyles.primary,
             )}
         >
             {Icon ? <Icon className="size-4" /> : null}
@@ -75,7 +95,12 @@ function renderActionButton(action: HeaderAction) {
 
     if (action.href) {
         return (
-            <Link key={action.id} href={action.href} prefetch className="contents">
+            <Link
+                key={action.id}
+                href={action.href}
+                prefetch
+                className="contents"
+            >
                 {button}
             </Link>
         );
@@ -118,7 +143,10 @@ export function AppSidebarHeader({
                         <SidebarTrigger className="h-9 w-9 rounded-full border border-white/15 text-white hover:bg-white/10" />
                         <Avatar className="size-9 border border-white/10 bg-white/10">
                             {user?.avatar ? (
-                                <AvatarImage src={user.avatar} alt={displayName} />
+                                <AvatarImage
+                                    src={user.avatar}
+                                    alt={displayName}
+                                />
                             ) : (
                                 <AvatarFallback className="bg-gradient-to-br from-amber-400/70 via-rose-500/70 to-violet-600/70 text-xs font-semibold text-white">
                                     {initials || 'RK'}
@@ -126,31 +154,45 @@ export function AppSidebarHeader({
                             )}
                         </Avatar>
                         <div className="min-w-0 text-white">
-                            <h1 className="truncate text-sm font-semibold">{displayName}</h1>
+                            <h1 className="truncate text-sm font-semibold">
+                                {displayName}
+                            </h1>
                         </div>
                     </div>
                     <div className="flex items-center gap-1">
-                        {(actions?.length ? actions : defaultActions).slice(0, 1).map((action) => {
-                            const Icon = action.icon;
-                            return (
-                                <Button
-                                    key={action.id}
-                                    size="sm"
-                                    variant={action.variant === 'ghost' ? 'ghost' : action.variant === 'outline' ? 'outline' : 'default'}
-                                    className={cn(
-                                        'h-9 rounded-full text-xs font-semibold transition',
-                                        action.variant === 'primary'
-                                            ? 'bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-4 text-white shadow-[0_18px_40px_-12px_rgba(249,115,22,0.45)] hover:scale-[1.02]'
-                                            : action.variant === 'secondary'
-                                            ? 'border-white/25 bg-white/10 px-3 text-white hover:border-white/40 hover:bg-white/20'
-                                            : 'text-white/80 hover:bg-white/10 hover:text-white'
-                                    )}
-                                >
-                                    {Icon && <Icon className="mr-1.5 size-3.5" />}
-                                    <span className="hidden min-[375px]:inline">{action.label}</span>
-                                </Button>
-                            );
-                        })}
+                        {(actions?.length ? actions : defaultActions)
+                            .slice(0, 1)
+                            .map((action) => {
+                                const Icon = action.icon;
+                                return (
+                                    <Button
+                                        key={action.id}
+                                        size="sm"
+                                        variant={
+                                            action.variant === 'ghost'
+                                                ? 'ghost'
+                                                : action.variant === 'outline'
+                                                  ? 'outline'
+                                                  : 'default'
+                                        }
+                                        className={cn(
+                                            'h-9 rounded-full text-xs font-semibold transition',
+                                            action.variant === 'primary'
+                                                ? 'bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-4 text-white shadow-[0_18px_40px_-12px_rgba(249,115,22,0.45)] hover:scale-[1.02]'
+                                                : action.variant === 'secondary'
+                                                  ? 'border-white/25 bg-white/10 px-3 text-white hover:border-white/40 hover:bg-white/20'
+                                                  : 'text-white/80 hover:bg-white/10 hover:text-white',
+                                        )}
+                                    >
+                                        {Icon && (
+                                            <Icon className="mr-1.5 size-3.5" />
+                                        )}
+                                        <span className="hidden min-[375px]:inline">
+                                            {action.label}
+                                        </span>
+                                    </Button>
+                                );
+                            })}
                     </div>
                 </div>
 
@@ -160,7 +202,10 @@ export function AppSidebarHeader({
                         <SidebarTrigger className="rounded-full border border-white/15 text-white hover:bg-white/10" />
                         <Avatar className="size-12 border border-white/10 bg-white/10">
                             {user?.avatar ? (
-                                <AvatarImage src={user.avatar} alt={displayName} />
+                                <AvatarImage
+                                    src={user.avatar}
+                                    alt={displayName}
+                                />
                             ) : (
                                 <AvatarFallback className="bg-gradient-to-br from-amber-400/70 via-rose-500/70 to-violet-600/70 text-sm font-semibold text-white">
                                     {initials || 'RK'}
@@ -168,7 +213,7 @@ export function AppSidebarHeader({
                             )}
                         </Avatar>
                         <div className="min-w-0 text-white">
-                            <p className="text-xs uppercase tracking-[0.35em] text-white/50">
+                            <p className="text-xs tracking-[0.35em] text-white/50 uppercase">
                                 Welcome back
                             </p>
                             <h1 className="truncate text-xl font-semibold sm:text-2xl">
@@ -181,7 +226,9 @@ export function AppSidebarHeader({
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-                        {(actions?.length ? actions : defaultActions).map((action) => renderActionButton(action))}
+                        {(actions?.length ? actions : defaultActions).map(
+                            (action) => renderActionButton(action),
+                        )}
                     </div>
                 </div>
 
@@ -189,7 +236,7 @@ export function AppSidebarHeader({
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex w-full flex-1 items-center gap-2 sm:max-w-xl">
                         <div className="relative w-full">
-                            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/40 sm:left-4" />
+                            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-white/40 sm:left-4" />
                             <Input
                                 type="search"
                                 placeholder="Search..."
@@ -212,10 +259,12 @@ export function AppSidebarHeader({
                                 size="sm"
                                 className="flex items-center gap-2 rounded-full border-white/20 bg-white/10 px-3 py-1.5 text-xs font-medium text-white/70 hover:border-white/40 hover:bg-white/20 hover:text-white"
                             >
-                                <span className="text-[0.65rem] uppercase tracking-[0.2em] text-white/50">
+                                <span className="text-[0.65rem] tracking-[0.2em] text-white/50 uppercase">
                                     {filter.label}
                                 </span>
-                                <span className="text-sm text-white">{filter.value}</span>
+                                <span className="text-sm text-white">
+                                    {filter.value}
+                                </span>
                                 <ChevronDown className="size-3 text-white/40" />
                             </Button>
                         ))}
@@ -226,9 +275,11 @@ export function AppSidebarHeader({
                                     key={link.id}
                                     href={link.href}
                                     prefetch
-                                    className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.25em] text-white/60 transition hover:border-white/30 hover:bg-white/10 hover:text-white"
+                                    className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold tracking-[0.25em] text-white/60 uppercase transition hover:border-white/30 hover:bg-white/10 hover:text-white"
                                 >
-                                    {Icon ? <Icon className="size-3 text-white/50" /> : null}
+                                    {Icon ? (
+                                        <Icon className="size-3 text-white/50" />
+                                    ) : null}
                                     <span>{link.label}</span>
                                     <ArrowUpRight className="size-3 text-white/40" />
                                 </Link>
@@ -251,14 +302,18 @@ export function AppSidebarHeader({
                                             </span>
                                         ) : null}
                                         <div>
-                                            <p className="text-sm font-semibold text-white">{action.title}</p>
+                                            <p className="text-sm font-semibold text-white">
+                                                {action.title}
+                                            </p>
                                             {action.description ? (
-                                                <p className="text-xs text-white/60">{action.description}</p>
+                                                <p className="text-xs text-white/60">
+                                                    {action.description}
+                                                </p>
                                             ) : null}
                                         </div>
                                     </div>
                                     {action.badge ? (
-                                        <span className="mt-3 inline-flex rounded-full border border-white/15 bg-white/10 px-2 py-0.5 text-[0.65rem] uppercase tracking-[0.25em] text-white/50">
+                                        <span className="mt-3 inline-flex rounded-full border border-white/15 bg-white/10 px-2 py-0.5 text-[0.65rem] tracking-[0.25em] text-white/50 uppercase">
                                             {action.badge}
                                         </span>
                                     ) : null}
@@ -267,7 +322,12 @@ export function AppSidebarHeader({
 
                             if (action.href) {
                                 return (
-                                    <Link key={action.id} href={action.href} prefetch className="block">
+                                    <Link
+                                        key={action.id}
+                                        href={action.href}
+                                        prefetch
+                                        className="block"
+                                    >
                                         {content}
                                     </Link>
                                 );
@@ -291,7 +351,8 @@ export function AppSidebarHeader({
                                 ...breadcrumbs.map((breadcrumb, index) => {
                                     if (
                                         index === breadcrumbs.length - 1 &&
-                                        breadcrumb.title.toLowerCase() === 'dashboard'
+                                        breadcrumb.title.toLowerCase() ===
+                                            'dashboard'
                                     ) {
                                         return { ...breadcrumb, title: 'Home' };
                                     }
@@ -306,4 +367,3 @@ export function AppSidebarHeader({
         </header>
     );
 }
-

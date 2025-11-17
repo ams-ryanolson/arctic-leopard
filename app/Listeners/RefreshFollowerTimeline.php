@@ -10,8 +10,7 @@ class RefreshFollowerTimeline
 {
     public function __construct(
         private readonly TimelineCacheService $timelineCache,
-    ) {
-    }
+    ) {}
 
     public function handle(UserFollowAccepted $event): void
     {
@@ -22,5 +21,3 @@ class RefreshFollowerTimeline
         $this->timelineCache->forgetForUser($follower);
     }
 }
-
-

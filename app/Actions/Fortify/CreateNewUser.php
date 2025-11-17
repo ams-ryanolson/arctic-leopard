@@ -29,6 +29,7 @@ class CreateNewUser implements CreatesNewUsers
                 function (string $attribute, mixed $value, \Closure $fail): void {
                     if (! is_string($value)) {
                         $fail(__('The :attribute must be a string.', ['attribute' => $attribute]));
+
                         return;
                     }
 
@@ -45,6 +46,7 @@ class CreateNewUser implements CreatesNewUsers
                 function (string $attribute, mixed $value, \Closure $fail): void {
                     if (! is_string($value)) {
                         $fail(__('The :attribute must be a string.', ['attribute' => $attribute]));
+
                         return;
                     }
 

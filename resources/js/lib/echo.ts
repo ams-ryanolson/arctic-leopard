@@ -1,8 +1,8 @@
 import Echo, { type Channel } from 'laravel-echo';
 import Pusher from 'pusher-js';
 
-import http from '@/lib/http';
 import { getCsrfToken } from '@/lib/csrf';
+import http from '@/lib/http';
 
 declare global {
     interface Window {
@@ -15,7 +15,10 @@ let echoInstance: Echo | null = null;
 
 type EchoChannel = Channel & {
     notification?(callback: (notification: unknown) => void): EchoChannel;
-    listenForWhisper?(event: string, callback: (data: unknown) => void): EchoChannel;
+    listenForWhisper?(
+        event: string,
+        callback: (data: unknown) => void,
+    ): EchoChannel;
     whisper?(event: string, data: unknown): EchoChannel;
     stopListening?(event: string): EchoChannel;
 };
@@ -38,7 +41,9 @@ function parsePort(value: string | undefined): number | undefined {
 
 export function ensureEcho(): Echo {
     if (typeof window === 'undefined') {
-        throw new Error('Laravel Echo is only available in a browser environment.');
+        throw new Error(
+            'Laravel Echo is only available in a browser environment.',
+        );
     }
 
     if (echoInstance) {
@@ -48,7 +53,9 @@ export function ensureEcho(): Echo {
     const key = import.meta.env.VITE_PUSHER_APP_KEY;
 
     if (!key) {
-        throw new Error('Missing VITE_PUSHER_APP_KEY. Set it in your environment to enable broadcasting.');
+        throw new Error(
+            'Missing VITE_PUSHER_APP_KEY. Set it in your environment to enable broadcasting.',
+        );
     }
 
     const cluster = import.meta.env.VITE_PUSHER_APP_CLUSTER ?? 'us2';
@@ -100,8 +107,16 @@ export function ensureEcho(): Echo {
                 )
                     .then((response) => callback(false, response.data))
                     .catch((error: unknown) => {
-                        console.error('[broadcasting] Authorization failed', error);
-                        callback(true, error instanceof Error ? error : new Error('Broadcast auth failed'));
+                        console.error(
+                            '[broadcasting] Authorization failed',
+                            error,
+                        );
+                        callback(
+                            true,
+                            error instanceof Error
+                                ? error
+                                : new Error('Broadcast auth failed'),
+                        );
                     });
             },
         }),
@@ -134,10 +149,11 @@ export function getPresenceChannel(name: string): EchoPresenceChannel | null {
     try {
         return ensureEcho().join(name) as EchoPresenceChannel;
     } catch (error) {
-        console.error('[broadcasting] Unable to create presence channel', error);
+        console.error(
+            '[broadcasting] Unable to create presence channel',
+            error,
+        );
 
         return null;
     }
 }
-
-

@@ -3,9 +3,9 @@
 namespace App\Listeners;
 
 use App\Events\PostDeleted;
+use App\Models\Timeline;
 use App\Services\Cache\PostCacheService;
 use App\Services\Cache\TimelineCacheService;
-use App\Models\Timeline;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 
@@ -18,8 +18,7 @@ class RemovePostFromTimelines implements ShouldQueue
     public function __construct(
         private TimelineCacheService $timelineCache,
         private PostCacheService $postCache,
-    ) {
-    }
+    ) {}
 
     public function handle(PostDeleted $event): void
     {

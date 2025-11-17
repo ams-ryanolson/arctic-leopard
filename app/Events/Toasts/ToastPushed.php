@@ -19,8 +19,7 @@ class ToastPushed implements ShouldBroadcast
     public function __construct(
         public User $user,
         public ToastPayload $payload,
-    ) {
-    }
+    ) {}
 
     public function broadcastOn(): PrivateChannel
     {
@@ -42,4 +41,3 @@ class ToastPushed implements ShouldBroadcast
         return 'ToastPushed';
     }
 }
-

@@ -83,4 +83,3 @@ class PaymentSubscription extends Model
         ], true);
     }
 }
-

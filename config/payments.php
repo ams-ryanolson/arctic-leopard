@@ -86,5 +86,3 @@ return [
         'replay_window' => (int) env('PAYMENTS_WEBHOOK_REPLAY_WINDOW', 300),
     ],
 ];
-
-

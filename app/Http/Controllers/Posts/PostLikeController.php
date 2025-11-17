@@ -16,8 +16,7 @@ class PostLikeController extends Controller
     public function __construct(
         private readonly PostCacheService $postCache,
         private readonly TimelineCacheService $timelineCache,
-    ) {
-    }
+    ) {}
 
     public function store(Request $request, Post $post): JsonResponse
     {
@@ -88,5 +87,3 @@ class PostLikeController extends Controller
         return (new PostResource($post))->toResponse($request);
     }
 }
-
-

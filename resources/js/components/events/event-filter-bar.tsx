@@ -1,13 +1,9 @@
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
+    LocationAutocomplete,
+    type LocationSuggestion,
+} from '@/components/location-autocomplete';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
     Card,
     CardContent,
@@ -20,19 +16,26 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import eventsRoutes from '@/routes/events';
-import { router } from '@inertiajs/react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     type EventFilters,
     type EventMeta,
     formatEventModality,
     formatEventType,
 } from '@/types/events';
+import { router } from '@inertiajs/react';
 import { ChevronDown, ChevronUp, Filter, Search, X } from 'lucide-react';
-import { LocationAutocomplete, type LocationSuggestion } from '@/components/location-autocomplete';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 type ActiveFilters = {
     search?: string;
@@ -68,7 +71,9 @@ export function EventFilterBar({
             return false;
         }
         try {
-            const value = window.localStorage.getItem(EVENTS_FILTERS_COLLAPSED_KEY);
+            const value = window.localStorage.getItem(
+                EVENTS_FILTERS_COLLAPSED_KEY,
+            );
             return value === 'true';
         } catch {
             return false;
@@ -83,7 +88,10 @@ export function EventFilterBar({
             return;
         }
         try {
-            window.localStorage.setItem(EVENTS_FILTERS_COLLAPSED_KEY, String(isCollapsed));
+            window.localStorage.setItem(
+                EVENTS_FILTERS_COLLAPSED_KEY,
+                String(isCollapsed),
+            );
         } catch {
             // ignore storage errors
         }
@@ -99,18 +107,27 @@ export function EventFilterBar({
             active.tags = filters.tags.map(Number).filter(Boolean);
         }
         if (filters.location_city) active.location_city = filters.location_city;
-        if (filters.location_region) active.location_region = filters.location_region;
-        if (filters.location_country) active.location_country = filters.location_country;
-        if (filters.location_latitude) active.location_latitude = Number(filters.location_latitude);
-        if (filters.location_longitude) active.location_longitude = Number(filters.location_longitude);
+        if (filters.location_region)
+            active.location_region = filters.location_region;
+        if (filters.location_country)
+            active.location_country = filters.location_country;
+        if (filters.location_latitude)
+            active.location_latitude = Number(filters.location_latitude);
+        if (filters.location_longitude)
+            active.location_longitude = Number(filters.location_longitude);
         return active;
     }, [filters]);
 
-    const [localFilters, setLocalFilters] = useState<ActiveFilters>(initialActiveFilters);
+    const [localFilters, setLocalFilters] =
+        useState<ActiveFilters>(initialActiveFilters);
     const [tagSearch, setTagSearch] = useState('');
     const [locationQuery, setLocationQuery] = useState(() => {
         if (filters.location_city && filters.location_country) {
-            return [filters.location_city, filters.location_region, filters.location_country]
+            return [
+                filters.location_city,
+                filters.location_region,
+                filters.location_country,
+            ]
                 .filter(Boolean)
                 .join(', ');
         }
@@ -121,17 +138,29 @@ export function EventFilterBar({
         setLocalFilters(initialActiveFilters);
         if (filters.location_city && filters.location_country) {
             setLocationQuery(
-                [filters.location_city, filters.location_region, filters.location_country]
+                [
+                    filters.location_city,
+                    filters.location_region,
+                    filters.location_country,
+                ]
                     .filter(Boolean)
                     .join(', '),
             );
         } else {
             setLocationQuery('');
         }
-    }, [initialActiveFilters, filters.location_city, filters.location_region, filters.location_country]);
+    }, [
+        initialActiveFilters,
+        filters.location_city,
+        filters.location_region,
+        filters.location_country,
+    ]);
 
     const hasChanges = useMemo(() => {
-        return JSON.stringify(localFilters) !== JSON.stringify(initialActiveFilters);
+        return (
+            JSON.stringify(localFilters) !==
+            JSON.stringify(initialActiveFilters)
+        );
     }, [localFilters, initialActiveFilters]);
 
     const filteredTags = useMemo(() => {
@@ -139,25 +168,40 @@ export function EventFilterBar({
             return meta.tags.slice(0, 30);
         }
         const search = tagSearch.toLowerCase();
-        return meta.tags.filter((tag) => tag.name.toLowerCase().includes(search)).slice(0, 30);
+        return meta.tags
+            .filter((tag) => tag.name.toLowerCase().includes(search))
+            .slice(0, 30);
     }, [meta.tags, tagSearch]);
 
-    const selectedTagIds = useMemo(() => localFilters.tags ?? [], [localFilters.tags]);
+    const selectedTagIds = useMemo(
+        () => localFilters.tags ?? [],
+        [localFilters.tags],
+    );
 
     const buildQueryParams = useCallback(
-        (filters: ActiveFilters): Record<string, string | number | (string | number)[]> => {
-            const params: Record<string, string | number | (string | number)[]> = {};
+        (
+            filters: ActiveFilters,
+        ): Record<string, string | number | (string | number)[]> => {
+            const params: Record<
+                string,
+                string | number | (string | number)[]
+            > = {};
             if (filters.search) params.search = filters.search;
             if (filters.type) params.type = filters.type;
             if (filters.modality) params.modality = filters.modality;
             if (filters.tags && filters.tags.length > 0) {
                 params.tags = filters.tags;
             }
-            if (filters.location_city) params.location_city = filters.location_city;
-            if (filters.location_region) params.location_region = filters.location_region;
-            if (filters.location_country) params.location_country = filters.location_country;
-            if (filters.location_latitude) params.location_latitude = filters.location_latitude;
-            if (filters.location_longitude) params.location_longitude = filters.location_longitude;
+            if (filters.location_city)
+                params.location_city = filters.location_city;
+            if (filters.location_region)
+                params.location_region = filters.location_region;
+            if (filters.location_country)
+                params.location_country = filters.location_country;
+            if (filters.location_latitude)
+                params.location_latitude = filters.location_latitude;
+            if (filters.location_longitude)
+                params.location_longitude = filters.location_longitude;
             return params;
         },
         [],
@@ -166,7 +210,11 @@ export function EventFilterBar({
     const handleReset = useCallback(() => {
         setLocalFilters({});
         setLocationQuery('');
-        router.get(eventsRoutes.index().url, {}, { preserveScroll: true, preserveState: false });
+        router.get(
+            eventsRoutes.index().url,
+            {},
+            { preserveScroll: true, preserveState: false },
+        );
     }, []);
 
     const handleApply = useCallback(() => {
@@ -182,7 +230,10 @@ export function EventFilterBar({
             const newIds = currentIds.includes(tagId)
                 ? currentIds.filter((id) => id !== tagId)
                 : [...currentIds, tagId];
-            const newFilters = { ...prev, tags: newIds.length > 0 ? newIds : undefined };
+            const newFilters = {
+                ...prev,
+                tags: newIds.length > 0 ? newIds : undefined,
+            };
             if (newIds.length === 0) {
                 delete newFilters.tags;
             }
@@ -236,7 +287,8 @@ export function EventFilterBar({
                                     Filter events
                                 </CardTitle>
                                 <CardDescription className="mt-1 text-sm text-white/55">
-                                    Search, filter by type, modality, tags, and location.
+                                    Search, filter by type, modality, tags, and
+                                    location.
                                 </CardDescription>
                             </div>
                         ) : (
@@ -248,7 +300,8 @@ export function EventFilterBar({
                                     Filter events
                                 </CardTitle>
                                 <CardDescription className="max-w-2xl text-white/65">
-                                    Search, filter by type, modality, tags, and location.
+                                    Search, filter by type, modality, tags, and
+                                    location.
                                 </CardDescription>
                             </div>
                         )}
@@ -277,7 +330,11 @@ export function EventFilterBar({
                                 variant="ghost"
                                 size="sm"
                                 className="flex-shrink-0 rounded-full border border-white/10 bg-white/5 p-2 text-white/70 hover:border-white/30 hover:bg-white/10 hover:text-white"
-                                aria-label={isCollapsed ? 'Expand filters' : 'Collapse filters'}
+                                aria-label={
+                                    isCollapsed
+                                        ? 'Expand filters'
+                                        : 'Collapse filters'
+                                }
                             >
                                 {isCollapsed ? (
                                     <ChevronDown className="size-4" />
@@ -290,11 +347,11 @@ export function EventFilterBar({
                 </CardHeader>
 
                 <CollapsibleContent className="overflow-visible transition-all duration-200 ease-in-out">
-                    <CardContent className="border-t border-white/10 px-6 pt-6 overflow-visible">
+                    <CardContent className="overflow-visible border-t border-white/10 px-6 pt-6">
                         <div className="grid gap-4">
                             {/* Row 1: Text Search */}
-                            <div className="rounded-3xl border border-white/10 bg-white/5 p-5 space-y-3">
-                                <Label className="text-xs uppercase tracking-[0.3em] text-white/55 flex items-center gap-2">
+                            <div className="space-y-3 rounded-3xl border border-white/10 bg-white/5 p-5">
+                                <Label className="flex items-center gap-2 text-xs tracking-[0.3em] text-white/55 uppercase">
                                     <Search className="size-3.5" />
                                     Search by title
                                 </Label>
@@ -313,8 +370,8 @@ export function EventFilterBar({
 
                             {/* Row 2: Types and Modalities */}
                             <div className="grid gap-4 md:grid-cols-2">
-                                <div className="rounded-3xl border border-white/10 bg-white/5 p-5 space-y-3">
-                                    <Label className="text-xs uppercase tracking-[0.3em] text-white/55">
+                                <div className="space-y-3 rounded-3xl border border-white/10 bg-white/5 p-5">
+                                    <Label className="text-xs tracking-[0.3em] text-white/55 uppercase">
                                         Event Type
                                     </Label>
                                     <Select
@@ -322,7 +379,10 @@ export function EventFilterBar({
                                         onValueChange={(value) =>
                                             setLocalFilters((prev) => ({
                                                 ...prev,
-                                                type: value === 'all' ? undefined : value,
+                                                type:
+                                                    value === 'all'
+                                                        ? undefined
+                                                        : value,
                                             }))
                                         }
                                     >
@@ -349,8 +409,8 @@ export function EventFilterBar({
                                     </Select>
                                 </div>
 
-                                <div className="rounded-3xl border border-white/10 bg-white/5 p-5 space-y-3">
-                                    <Label className="text-xs uppercase tracking-[0.3em] text-white/55">
+                                <div className="space-y-3 rounded-3xl border border-white/10 bg-white/5 p-5">
+                                    <Label className="text-xs tracking-[0.3em] text-white/55 uppercase">
                                         Modality
                                     </Label>
                                     <Select
@@ -358,7 +418,10 @@ export function EventFilterBar({
                                         onValueChange={(value) =>
                                             setLocalFilters((prev) => ({
                                                 ...prev,
-                                                modality: value === 'all' ? undefined : value,
+                                                modality:
+                                                    value === 'all'
+                                                        ? undefined
+                                                        : value,
                                             }))
                                         }
                                     >
@@ -378,7 +441,9 @@ export function EventFilterBar({
                                                     value={modality}
                                                     className="focus:bg-white/10 focus:text-white"
                                                 >
-                                                    {formatEventModality(modality)}
+                                                    {formatEventModality(
+                                                        modality,
+                                                    )}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -387,14 +452,16 @@ export function EventFilterBar({
                             </div>
 
                             {/* Row 3: Tags */}
-                            <div className="rounded-3xl border border-white/10 bg-white/5 p-5 space-y-3">
-                                <Label className="text-xs uppercase tracking-[0.3em] text-white/55">
+                            <div className="space-y-3 rounded-3xl border border-white/10 bg-white/5 p-5">
+                                <Label className="text-xs tracking-[0.3em] text-white/55 uppercase">
                                     Tags
                                 </Label>
                                 {selectedTagIds.length > 0 && (
                                     <div className="flex flex-wrap gap-2">
                                         {selectedTagIds.map((tagId) => {
-                                            const tag = meta.tags.find((t) => t.id === tagId);
+                                            const tag = meta.tags.find(
+                                                (t) => t.id === tagId,
+                                            );
                                             if (!tag) return null;
                                             return (
                                                 <Badge
@@ -404,7 +471,9 @@ export function EventFilterBar({
                                                     {tag.name}
                                                     <button
                                                         type="button"
-                                                        onClick={() => toggleTag(tagId)}
+                                                        onClick={() =>
+                                                            toggleTag(tagId)
+                                                        }
                                                         className="ml-1 rounded-full p-0.5 hover:bg-amber-400/30"
                                                     >
                                                         <X className="size-3" />
@@ -418,17 +487,22 @@ export function EventFilterBar({
                                     type="text"
                                     placeholder="Search tags..."
                                     value={tagSearch}
-                                    onChange={(e) => setTagSearch(e.target.value)}
+                                    onChange={(e) =>
+                                        setTagSearch(e.target.value)
+                                    }
                                     className="border-white/20 bg-white/5 text-white placeholder:text-white/50 focus:border-white/35 focus:bg-white/10"
                                 />
-                                <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                                <div className="flex max-h-32 flex-wrap gap-2 overflow-y-auto">
                                     {filteredTags.map((tag) => {
-                                        const isSelected = selectedTagIds.includes(tag.id);
+                                        const isSelected =
+                                            selectedTagIds.includes(tag.id);
                                         return (
                                             <button
                                                 key={tag.id}
                                                 type="button"
-                                                onClick={() => toggleTag(tag.id)}
+                                                onClick={() =>
+                                                    toggleTag(tag.id)
+                                                }
                                                 className={cn(
                                                     'rounded-full border px-3 py-1 text-xs font-medium transition-all',
                                                     isSelected
@@ -444,8 +518,8 @@ export function EventFilterBar({
                             </div>
 
                             {/* Row 4: Location */}
-                            <div className="relative rounded-3xl border border-white/10 bg-white/5 p-5 space-y-3 overflow-visible">
-                                <Label className="text-xs uppercase tracking-[0.3em] text-white/55">
+                            <div className="relative space-y-3 overflow-visible rounded-3xl border border-white/10 bg-white/5 p-5">
+                                <Label className="text-xs tracking-[0.3em] text-white/55 uppercase">
                                     Location
                                 </Label>
                                 <div className="relative overflow-visible">

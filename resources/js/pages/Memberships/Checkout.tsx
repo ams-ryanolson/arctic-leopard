@@ -1,13 +1,19 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import membershipsRoutes from '@/routes/memberships';
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { ArrowLeft, CheckCircle2, Crown, Loader2, Tag } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 
@@ -29,8 +35,12 @@ type CheckoutPageProps = {
 };
 
 export default function MembershipCheckout({ plan }: CheckoutPageProps) {
-    const [billingType, setBillingType] = useState<'recurring' | 'one_time'>('recurring');
-    const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('monthly');
+    const [billingType, setBillingType] = useState<'recurring' | 'one_time'>(
+        'recurring',
+    );
+    const [billingInterval, setBillingInterval] = useState<
+        'monthly' | 'yearly'
+    >('monthly');
     const [discountCode, setDiscountCode] = useState('');
     const [discountApplied, setDiscountApplied] = useState<{
         code: string;
@@ -55,8 +65,11 @@ export default function MembershipCheckout({ plan }: CheckoutPageProps) {
         }).format(cents / 100);
     };
 
-    const basePrice = billingInterval === 'yearly' ? plan.yearly_price : plan.monthly_price;
-    const finalPrice = discountApplied ? discountApplied.final_price : basePrice;
+    const basePrice =
+        billingInterval === 'yearly' ? plan.yearly_price : plan.monthly_price;
+    const finalPrice = discountApplied
+        ? discountApplied.final_price
+        : basePrice;
     const discountAmount = discountApplied ? discountApplied.amount : 0;
 
     const applyDiscount = async () => {
@@ -66,18 +79,24 @@ export default function MembershipCheckout({ plan }: CheckoutPageProps) {
 
         setApplyingDiscount(true);
         try {
-            const response = await fetch(membershipsRoutes.applyDiscount().url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            const response = await fetch(
+                membershipsRoutes.applyDiscount().url,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN':
+                            document
+                                .querySelector('meta[name="csrf-token"]')
+                                ?.getAttribute('content') || '',
+                    },
+                    body: JSON.stringify({
+                        code: discountCode,
+                        plan_id: plan.id,
+                        price: basePrice,
+                    }),
                 },
-                body: JSON.stringify({
-                    code: discountCode,
-                    plan_id: plan.id,
-                    price: basePrice,
-                }),
-            });
+            );
 
             const result = await response.json();
 
@@ -127,7 +146,10 @@ export default function MembershipCheckout({ plan }: CheckoutPageProps) {
                 // Redirect to payment gateway or show success
                 if (page.props.payment_intent) {
                     // Handle payment intent (e.g., redirect to Stripe checkout)
-                    console.log('Payment intent created:', page.props.payment_intent);
+                    console.log(
+                        'Payment intent created:',
+                        page.props.payment_intent,
+                    );
                 }
             },
         });
@@ -152,50 +174,70 @@ export default function MembershipCheckout({ plan }: CheckoutPageProps) {
                         </a>
                     </Button>
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-white">Complete Your Purchase</h1>
+                        <h1 className="text-3xl font-bold tracking-tight text-white">
+                            Complete Your Purchase
+                        </h1>
                         <p className="mt-2 text-sm text-white/70">
-                            Review your membership selection and complete payment
+                            Review your membership selection and complete
+                            payment
                         </p>
                     </div>
                 </div>
 
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-6 lg:grid-cols-3">
-                        <div className="lg:col-span-2 space-y-6">
+                        <div className="space-y-6 lg:col-span-2">
                             <Card className="border-white/10 bg-white/5">
                                 <CardHeader>
-                                    <CardTitle className="text-white">Membership Plan</CardTitle>
+                                    <CardTitle className="text-white">
+                                        Membership Plan
+                                    </CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="flex items-center gap-3">
                                         <Crown className="size-5 text-amber-400" />
                                         <div>
-                                            <p className="font-semibold text-white">{plan.name}</p>
+                                            <p className="font-semibold text-white">
+                                                {plan.name}
+                                            </p>
                                             {plan.description && (
-                                                <p className="text-sm text-white/60">{plan.description}</p>
+                                                <p className="text-sm text-white/60">
+                                                    {plan.description}
+                                                </p>
                                             )}
                                         </div>
                                     </div>
 
-                                    {plan.features && Object.keys(plan.features).length > 0 && (
-                                        <div className="space-y-2">
-                                            <p className="text-sm font-medium text-white/70">Features included:</p>
-                                            <ul className="space-y-2">
-                                                {Object.entries(plan.features).map(([key, value]) => (
-                                                    <li key={key} className="flex items-start gap-2 text-sm text-white/80">
-                                                        <CheckCircle2 className="mt-0.5 size-4 text-emerald-300" />
-                                                        <span>{value}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    )}
+                                    {plan.features &&
+                                        Object.keys(plan.features).length >
+                                            0 && (
+                                            <div className="space-y-2">
+                                                <p className="text-sm font-medium text-white/70">
+                                                    Features included:
+                                                </p>
+                                                <ul className="space-y-2">
+                                                    {Object.entries(
+                                                        plan.features,
+                                                    ).map(([key, value]) => (
+                                                        <li
+                                                            key={key}
+                                                            className="flex items-start gap-2 text-sm text-white/80"
+                                                        >
+                                                            <CheckCircle2 className="mt-0.5 size-4 text-emerald-300" />
+                                                            <span>{value}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
                                 </CardContent>
                             </Card>
 
                             <Card className="border-white/10 bg-white/5">
                                 <CardHeader>
-                                    <CardTitle className="text-white">Billing Options</CardTitle>
+                                    <CardTitle className="text-white">
+                                        Billing Options
+                                    </CardTitle>
                                     <CardDescription className="text-white/60">
                                         Choose how you want to be billed
                                     </CardDescription>
@@ -204,12 +246,22 @@ export default function MembershipCheckout({ plan }: CheckoutPageProps) {
                                     <RadioGroup
                                         value={billingType}
                                         onValueChange={(value) => {
-                                            setBillingType(value as 'recurring' | 'one_time');
+                                            setBillingType(
+                                                value as
+                                                    | 'recurring'
+                                                    | 'one_time',
+                                            );
                                         }}
                                     >
                                         <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="recurring" id="recurring" />
-                                            <Label htmlFor="recurring" className="text-white">
+                                            <RadioGroupItem
+                                                value="recurring"
+                                                id="recurring"
+                                            />
+                                            <Label
+                                                htmlFor="recurring"
+                                                className="text-white"
+                                            >
                                                 Recurring Subscription
                                             </Label>
                                         </div>
@@ -218,24 +270,41 @@ export default function MembershipCheckout({ plan }: CheckoutPageProps) {
                                                 <div className="flex items-center gap-2">
                                                     <Button
                                                         type="button"
-                                                        variant={billingInterval === 'monthly' ? 'default' : 'outline'}
+                                                        variant={
+                                                            billingInterval ===
+                                                            'monthly'
+                                                                ? 'default'
+                                                                : 'outline'
+                                                        }
                                                         size="sm"
                                                         onClick={() => {
-                                                            setBillingInterval('monthly');
+                                                            setBillingInterval(
+                                                                'monthly',
+                                                            );
                                                         }}
                                                     >
                                                         Monthly
                                                     </Button>
                                                     <Button
                                                         type="button"
-                                                        variant={billingInterval === 'yearly' ? 'default' : 'outline'}
+                                                        variant={
+                                                            billingInterval ===
+                                                            'yearly'
+                                                                ? 'default'
+                                                                : 'outline'
+                                                        }
                                                         size="sm"
                                                         onClick={() => {
-                                                            setBillingInterval('yearly');
+                                                            setBillingInterval(
+                                                                'yearly',
+                                                            );
                                                         }}
                                                     >
                                                         Yearly
-                                                        <Badge variant="secondary" className="ml-2 bg-emerald-500/20 text-emerald-400">
+                                                        <Badge
+                                                            variant="secondary"
+                                                            className="ml-2 bg-emerald-500/20 text-emerald-400"
+                                                        >
                                                             Save 2 months
                                                         </Badge>
                                                     </Button>
@@ -244,22 +313,32 @@ export default function MembershipCheckout({ plan }: CheckoutPageProps) {
                                         )}
 
                                         <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="one_time" id="one_time" />
-                                            <Label htmlFor="one_time" className="text-white">
+                                            <RadioGroupItem
+                                                value="one_time"
+                                                id="one_time"
+                                            />
+                                            <Label
+                                                htmlFor="one_time"
+                                                className="text-white"
+                                            >
                                                 One-Time Purchase
                                             </Label>
                                         </div>
                                     </RadioGroup>
 
                                     {errors.billing_type && (
-                                        <p className="text-sm text-red-400">{errors.billing_type}</p>
+                                        <p className="text-sm text-red-400">
+                                            {errors.billing_type}
+                                        </p>
                                     )}
                                 </CardContent>
                             </Card>
 
                             <Card className="border-white/10 bg-white/5">
                                 <CardHeader>
-                                    <CardTitle className="text-white">Discount Code</CardTitle>
+                                    <CardTitle className="text-white">
+                                        Discount Code
+                                    </CardTitle>
                                     <CardDescription className="text-white/60">
                                         Have a discount code? Enter it here
                                     </CardDescription>
@@ -268,16 +347,27 @@ export default function MembershipCheckout({ plan }: CheckoutPageProps) {
                                     <div className="flex gap-2">
                                         <Input
                                             value={discountCode}
-                                            onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                                            onChange={(e) =>
+                                                setDiscountCode(
+                                                    e.target.value.toUpperCase(),
+                                                )
+                                            }
                                             placeholder="Enter code"
-                                            className="bg-white/5 border-white/10 text-white"
-                                            disabled={applyingDiscount || !!discountApplied}
+                                            className="border-white/10 bg-white/5 text-white"
+                                            disabled={
+                                                applyingDiscount ||
+                                                !!discountApplied
+                                            }
                                         />
                                         <Button
                                             type="button"
                                             variant="outline"
                                             onClick={applyDiscount}
-                                            disabled={applyingDiscount || !discountCode.trim() || !!discountApplied}
+                                            disabled={
+                                                applyingDiscount ||
+                                                !discountCode.trim() ||
+                                                !!discountApplied
+                                            }
                                         >
                                             {applyingDiscount ? (
                                                 <Loader2 className="size-4 animate-spin" />
@@ -296,7 +386,9 @@ export default function MembershipCheckout({ plan }: CheckoutPageProps) {
                                                 <div className="flex items-center gap-2">
                                                     <CheckCircle2 className="size-4 text-emerald-400" />
                                                     <span className="text-sm font-medium text-emerald-300">
-                                                        Code {discountApplied.code} applied
+                                                        Code{' '}
+                                                        {discountApplied.code}{' '}
+                                                        applied
                                                     </span>
                                                 </div>
                                                 <Button
@@ -304,8 +396,10 @@ export default function MembershipCheckout({ plan }: CheckoutPageProps) {
                                                     variant="ghost"
                                                     size="sm"
                                                     onClick={() => {
-                                                setDiscountCode('');
-                                                setDiscountApplied(null);
+                                                        setDiscountCode('');
+                                                        setDiscountApplied(
+                                                            null,
+                                                        );
                                                     }}
                                                     className="text-white/60 hover:text-white"
                                                 >
@@ -316,25 +410,35 @@ export default function MembershipCheckout({ plan }: CheckoutPageProps) {
                                     )}
 
                                     {errors.discount_code && (
-                                        <p className="text-sm text-red-400">{errors.discount_code}</p>
+                                        <p className="text-sm text-red-400">
+                                            {errors.discount_code}
+                                        </p>
                                     )}
                                 </CardContent>
                             </Card>
                         </div>
 
                         <div className="lg:col-span-1">
-                            <Card className="border-white/10 bg-white/5 sticky top-4">
+                            <Card className="sticky top-4 border-white/10 bg-white/5">
                                 <CardHeader>
-                                    <CardTitle className="text-white">Order Summary</CardTitle>
+                                    <CardTitle className="text-white">
+                                        Order Summary
+                                    </CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="space-y-2">
                                         <div className="flex items-center justify-between text-sm">
-                                            <span className="text-white/70">Plan</span>
-                                            <span className="font-medium text-white">{plan.name}</span>
+                                            <span className="text-white/70">
+                                                Plan
+                                            </span>
+                                            <span className="font-medium text-white">
+                                                {plan.name}
+                                            </span>
                                         </div>
                                         <div className="flex items-center justify-between text-sm">
-                                            <span className="text-white/70">Billing</span>
+                                            <span className="text-white/70">
+                                                Billing
+                                            </span>
                                             <span className="font-medium text-white">
                                                 {billingType === 'recurring'
                                                     ? `${billingInterval === 'yearly' ? 'Yearly' : 'Monthly'} (Recurring)`
@@ -347,14 +451,28 @@ export default function MembershipCheckout({ plan }: CheckoutPageProps) {
 
                                     <div className="space-y-2">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-white/70">Subtotal</span>
-                                            <span className="text-white">{formatPrice(basePrice, plan.currency)}</span>
+                                            <span className="text-white/70">
+                                                Subtotal
+                                            </span>
+                                            <span className="text-white">
+                                                {formatPrice(
+                                                    basePrice,
+                                                    plan.currency,
+                                                )}
+                                            </span>
                                         </div>
                                         {discountApplied && (
                                             <div className="flex items-center justify-between text-sm">
-                                                <span className="text-emerald-400">Discount ({discountApplied.code})</span>
                                                 <span className="text-emerald-400">
-                                                    -{formatPrice(discountAmount, plan.currency)}
+                                                    Discount (
+                                                    {discountApplied.code})
+                                                </span>
+                                                <span className="text-emerald-400">
+                                                    -
+                                                    {formatPrice(
+                                                        discountAmount,
+                                                        plan.currency,
+                                                    )}
                                                 </span>
                                             </div>
                                         )}
@@ -363,9 +481,14 @@ export default function MembershipCheckout({ plan }: CheckoutPageProps) {
                                     <Separator className="bg-white/10" />
 
                                     <div className="flex items-center justify-between">
-                                        <span className="text-lg font-semibold text-white">Total</span>
+                                        <span className="text-lg font-semibold text-white">
+                                            Total
+                                        </span>
                                         <span className="text-2xl font-bold text-white">
-                                            {formatPrice(finalPrice, plan.currency)}
+                                            {formatPrice(
+                                                finalPrice,
+                                                plan.currency,
+                                            )}
                                         </span>
                                     </div>
 
@@ -389,14 +512,14 @@ export default function MembershipCheckout({ plan }: CheckoutPageProps) {
                                                 Processing...
                                             </>
                                         ) : (
-                                            <>
-                                                Complete Purchase
-                                            </>
+                                            <>Complete Purchase</>
                                         )}
                                     </Button>
 
                                     {errors.plan_id && (
-                                        <p className="text-sm text-red-400">{errors.plan_id}</p>
+                                        <p className="text-sm text-red-400">
+                                            {errors.plan_id}
+                                        </p>
                                     )}
                                 </CardContent>
                             </Card>
@@ -407,4 +530,3 @@ export default function MembershipCheckout({ plan }: CheckoutPageProps) {
         </AppLayout>
     );
 }
-

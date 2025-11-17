@@ -1,5 +1,4 @@
-import { useState, useMemo } from 'react';
-import AppLayout from '@/layouts/app-layout';
+import CoverGradient from '@/components/cover-gradient';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,26 +9,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { SubscribeDialog, TipDialog } from '@/pages/Profile/dialogs';
-import CoverGradient from '@/components/cover-gradient';
-import { useInitials } from '@/hooks/use-initials';
-import { Head, Link, router } from '@inertiajs/react';
-import {
-    Gift,
-    TrendingUp,
-    Users,
-    CheckCircle2,
-    Clock,
-    Sparkles,
-    Filter,
-    ArrowUpDown,
-    Search,
-    ExternalLink,
-    Heart,
-    Target,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
 import {
     Select,
     SelectContent,
@@ -37,7 +17,23 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
+import { useInitials } from '@/hooks/use-initials';
+import AppLayout from '@/layouts/app-layout';
+import { Head, Link, router } from '@inertiajs/react';
+import {
+    ArrowUpDown,
+    CheckCircle2,
+    Clock,
+    ExternalLink,
+    Filter,
+    Gift,
+    Search,
+    Sparkles,
+    TrendingUp,
+    Users,
+} from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 type WishlistItem = {
     id: number;
@@ -86,7 +82,10 @@ interface ProfileWishlistProps {
     };
 }
 
-function formatCurrency(cents: number | null, currency: string | null = 'USD'): string {
+function formatCurrency(
+    cents: number | null,
+    currency: string | null = 'USD',
+): string {
     if (cents === null) {
         return 'N/A';
     }
@@ -99,10 +98,25 @@ function formatCurrency(cents: number | null, currency: string | null = 'USD'): 
 }
 
 type FilterType = 'all' | 'active' | 'crowdfunded' | 'fixed' | 'expiring';
-type SortType = 'newest' | 'oldest' | 'amount_high' | 'amount_low' | 'progress_high' | 'progress_low';
+type SortType =
+    | 'newest'
+    | 'oldest'
+    | 'amount_high'
+    | 'amount_low'
+    | 'progress_high'
+    | 'progress_low';
 
-export default function ProfileWishlist({ profile, items, stats }: ProfileWishlistProps) {
-    const { display_name: displayName, handle, cover_image: coverImage, avatar_url: avatarUrl } = profile;
+export default function ProfileWishlist({
+    profile,
+    items,
+    stats,
+}: ProfileWishlistProps) {
+    const {
+        display_name: displayName,
+        handle,
+        cover_image: coverImage,
+        avatar_url: avatarUrl,
+    } = profile;
     const itemsList = items.data || [];
 
     const [filter, setFilter] = useState<FilterType>('all');
@@ -137,7 +151,9 @@ export default function ProfileWishlist({ profile, items, stats }: ProfileWishli
                 break;
             case 'expiring':
                 filtered = filtered.filter(
-                    (item) => item.expires_at && new Date(item.expires_at) > new Date(),
+                    (item) =>
+                        item.expires_at &&
+                        new Date(item.expires_at) > new Date(),
                 );
                 break;
             case 'active':
@@ -150,18 +166,36 @@ export default function ProfileWishlist({ profile, items, stats }: ProfileWishli
         const sorted = [...filtered].sort((a, b) => {
             switch (sort) {
                 case 'oldest':
-                    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+                    return (
+                        new Date(a.created_at).getTime() -
+                        new Date(b.created_at).getTime()
+                    );
                 case 'amount_high':
-                    return (b.amount ?? b.goal_amount ?? 0) - (a.amount ?? a.goal_amount ?? 0);
+                    return (
+                        (b.amount ?? b.goal_amount ?? 0) -
+                        (a.amount ?? a.goal_amount ?? 0)
+                    );
                 case 'amount_low':
-                    return (a.amount ?? a.goal_amount ?? 0) - (b.amount ?? b.goal_amount ?? 0);
+                    return (
+                        (a.amount ?? a.goal_amount ?? 0) -
+                        (b.amount ?? b.goal_amount ?? 0)
+                    );
                 case 'progress_high':
-                    return (b.progress_percentage ?? 0) - (a.progress_percentage ?? 0);
+                    return (
+                        (b.progress_percentage ?? 0) -
+                        (a.progress_percentage ?? 0)
+                    );
                 case 'progress_low':
-                    return (a.progress_percentage ?? 0) - (b.progress_percentage ?? 0);
+                    return (
+                        (a.progress_percentage ?? 0) -
+                        (b.progress_percentage ?? 0)
+                    );
                 case 'newest':
                 default:
-                    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                    return (
+                        new Date(b.created_at).getTime() -
+                        new Date(a.created_at).getTime()
+                    );
             }
         });
 
@@ -173,7 +207,8 @@ export default function ProfileWishlist({ profile, items, stats }: ProfileWishli
         if (!expiresAt) return false;
         const expiry = new Date(expiresAt);
         const now = new Date();
-        const daysUntilExpiry = (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+        const daysUntilExpiry =
+            (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
         return daysUntilExpiry > 0 && daysUntilExpiry <= 7;
     };
 
@@ -182,7 +217,9 @@ export default function ProfileWishlist({ profile, items, stats }: ProfileWishli
         if (!expiresAt) return null;
         const expiry = new Date(expiresAt);
         const now = new Date();
-        const days = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        const days = Math.ceil(
+            (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+        );
         return days > 0 ? days : null;
     };
 
@@ -203,7 +240,9 @@ export default function ProfileWishlist({ profile, items, stats }: ProfileWishli
                         {coverImage ? (
                             <div
                                 className="h-full w-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                                style={{ backgroundImage: `url(${coverImage})` }}
+                                style={{
+                                    backgroundImage: `url(${coverImage})`,
+                                }}
                             />
                         ) : (
                             <CoverGradient className="h-full w-full" />
@@ -227,10 +266,10 @@ export default function ProfileWishlist({ profile, items, stats }: ProfileWishli
                                     )}
                                 </div>
                                 <div className="space-y-1 text-white">
-                                    <h1 className="text-2xl font-semibold leading-tight sm:text-3xl">
+                                    <h1 className="text-2xl leading-tight font-semibold sm:text-3xl">
                                         Wishlist • {displayName}
                                     </h1>
-                                    <p className="text-xs uppercase tracking-[0.4em] text-white/50">
+                                    <p className="text-xs tracking-[0.4em] text-white/50 uppercase">
                                         {handle}
                                     </p>
                                 </div>
@@ -241,21 +280,26 @@ export default function ProfileWishlist({ profile, items, stats }: ProfileWishli
                                     <Button
                                         asChild
                                         variant="ghost"
-                                        className="rounded-full text-white/80 transition-all hover:bg-white/10 hover:text-white hover:scale-105"
+                                        className="rounded-full text-white/80 transition-all hover:scale-105 hover:bg-white/10 hover:text-white"
                                     >
-                                        <Link href={`/p/${username}`}>Full profile</Link>
+                                        <Link href={`/p/${username}`}>
+                                            Full profile
+                                        </Link>
                                     </Button>
                                 </div>
                                 <p className="text-xs text-white/60">
-                                    Gift gear, travel, and upgrades that fuel the next scene.
+                                    Gift gear, travel, and upgrades that fuel
+                                    the next scene.
                                 </p>
                             </div>
                         </div>
 
                         <Separator className="my-6 border-white/10" />
                         <p className="max-w-3xl text-sm leading-relaxed text-white/70">
-                            Every wishlist item unlocks bigger, bolder experiences. Gift equipment, production
-                            upgrades, or travel boosts and get shouted out during the next drop.
+                            Every wishlist item unlocks bigger, bolder
+                            experiences. Gift equipment, production upgrades, or
+                            travel boosts and get shouted out during the next
+                            drop.
                         </p>
                     </div>
                 </section>
@@ -268,7 +312,7 @@ export default function ProfileWishlist({ profile, items, stats }: ProfileWishli
                             <CardContent className="relative p-6">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-xs uppercase tracking-[0.35em] text-white/50">
+                                        <p className="text-xs tracking-[0.35em] text-white/50 uppercase">
                                             Total Items
                                         </p>
                                         <p className="mt-2 text-3xl font-semibold text-white">
@@ -287,7 +331,7 @@ export default function ProfileWishlist({ profile, items, stats }: ProfileWishli
                             <CardContent className="relative p-6">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-xs uppercase tracking-[0.35em] text-white/50">
+                                        <p className="text-xs tracking-[0.35em] text-white/50 uppercase">
                                             Total Raised
                                         </p>
                                         <p className="mt-2 text-3xl font-semibold text-white">
@@ -306,7 +350,7 @@ export default function ProfileWishlist({ profile, items, stats }: ProfileWishli
                             <CardContent className="relative p-6">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-xs uppercase tracking-[0.35em] text-white/50">
+                                        <p className="text-xs tracking-[0.35em] text-white/50 uppercase">
                                             Contributors
                                         </p>
                                         <p className="mt-2 text-3xl font-semibold text-white">
@@ -325,7 +369,7 @@ export default function ProfileWishlist({ profile, items, stats }: ProfileWishli
                             <CardContent className="relative p-6">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-xs uppercase tracking-[0.35em] text-white/50">
+                                        <p className="text-xs tracking-[0.35em] text-white/50 uppercase">
                                             Fulfilled
                                         </p>
                                         <p className="mt-2 text-3xl font-semibold text-white">
@@ -344,42 +388,72 @@ export default function ProfileWishlist({ profile, items, stats }: ProfileWishli
                 {/* Filters and Search */}
                 {itemsList.length > 0 && (
                     <section className="flex flex-wrap items-center gap-4">
-                        <div className="flex-1 min-w-[200px]">
+                        <div className="min-w-[200px] flex-1">
                             <div className="relative">
-                                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/40" />
+                                <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-white/40" />
                                 <Input
                                     type="text"
                                     placeholder="Search items..."
                                     value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full rounded-full border-white/20 bg-black/40 pl-10 pr-4 text-white placeholder:text-white/40 focus-visible:border-white/40 focus-visible:ring-amber-500/20"
+                                    onChange={(e) =>
+                                        setSearchQuery(e.target.value)
+                                    }
+                                    className="w-full rounded-full border-white/20 bg-black/40 pr-4 pl-10 text-white placeholder:text-white/40 focus-visible:border-white/40 focus-visible:ring-amber-500/20"
                                 />
                             </div>
                         </div>
-                        <Select value={filter} onValueChange={(value) => setFilter(value as FilterType)}>
+                        <Select
+                            value={filter}
+                            onValueChange={(value) =>
+                                setFilter(value as FilterType)
+                            }
+                        >
                             <SelectTrigger className="w-[180px] rounded-full border-white/20 bg-black/40 text-white">
                                 <Filter className="mr-2 size-4" />
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="border-white/10 bg-black/90 text-white">
                                 <SelectItem value="all">All Items</SelectItem>
-                                <SelectItem value="crowdfunded">Crowdfunded</SelectItem>
-                                <SelectItem value="fixed">Fixed Price</SelectItem>
-                                <SelectItem value="expiring">Expiring Soon</SelectItem>
+                                <SelectItem value="crowdfunded">
+                                    Crowdfunded
+                                </SelectItem>
+                                <SelectItem value="fixed">
+                                    Fixed Price
+                                </SelectItem>
+                                <SelectItem value="expiring">
+                                    Expiring Soon
+                                </SelectItem>
                             </SelectContent>
                         </Select>
-                        <Select value={sort} onValueChange={(value) => setSort(value as SortType)}>
+                        <Select
+                            value={sort}
+                            onValueChange={(value) =>
+                                setSort(value as SortType)
+                            }
+                        >
                             <SelectTrigger className="w-[180px] rounded-full border-white/20 bg-black/40 text-white">
                                 <ArrowUpDown className="mr-2 size-4" />
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="border-white/10 bg-black/90 text-white">
-                                <SelectItem value="newest">Newest First</SelectItem>
-                                <SelectItem value="oldest">Oldest First</SelectItem>
-                                <SelectItem value="amount_high">Price: High to Low</SelectItem>
-                                <SelectItem value="amount_low">Price: Low to High</SelectItem>
-                                <SelectItem value="progress_high">Progress: High to Low</SelectItem>
-                                <SelectItem value="progress_low">Progress: Low to High</SelectItem>
+                                <SelectItem value="newest">
+                                    Newest First
+                                </SelectItem>
+                                <SelectItem value="oldest">
+                                    Oldest First
+                                </SelectItem>
+                                <SelectItem value="amount_high">
+                                    Price: High to Low
+                                </SelectItem>
+                                <SelectItem value="amount_low">
+                                    Price: Low to High
+                                </SelectItem>
+                                <SelectItem value="progress_high">
+                                    Progress: High to Low
+                                </SelectItem>
+                                <SelectItem value="progress_low">
+                                    Progress: Low to High
+                                </SelectItem>
                             </SelectContent>
                         </Select>
                     </section>
@@ -389,16 +463,21 @@ export default function ProfileWishlist({ profile, items, stats }: ProfileWishli
                 <section className="space-y-4">
                     <div className="flex flex-wrap items-center justify-between gap-3 text-white">
                         <div>
-                            <h2 className="text-xl font-semibold">Wishlisted items</h2>
+                            <h2 className="text-xl font-semibold">
+                                Wishlisted items
+                            </h2>
                             <p className="text-sm text-white/60">
-                                {filteredAndSortedItems.length === itemsList.length
+                                {filteredAndSortedItems.length ===
+                                itemsList.length
                                     ? 'Hand-picked gear and experiences that amplify every ritual.'
                                     : `Showing ${filteredAndSortedItems.length} of ${itemsList.length} items`}
                             </p>
                         </div>
                         <Badge className="rounded-full border-white/15 bg-white/10 text-xs text-white/70">
                             {filteredAndSortedItems.length}{' '}
-                            {filteredAndSortedItems.length === 1 ? 'item' : 'items'}
+                            {filteredAndSortedItems.length === 1
+                                ? 'item'
+                                : 'items'}
                         </Badge>
                     </div>
 
@@ -415,7 +494,7 @@ export default function ProfileWishlist({ profile, items, stats }: ProfileWishli
                                 </h3>
                                 <p className="max-w-md text-sm text-white/60">
                                     {searchQuery || filter !== 'all'
-                                        ? 'Try adjusting your search or filters to find what you\'re looking for.'
+                                        ? "Try adjusting your search or filters to find what you're looking for."
                                         : 'Check back soon for exciting gear, travel, and upgrades that fuel the next scene.'}
                                 </p>
                             </CardContent>
@@ -423,8 +502,12 @@ export default function ProfileWishlist({ profile, items, stats }: ProfileWishli
                     ) : (
                         <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
                             {filteredAndSortedItems.map((item) => {
-                                const daysUntilExpiry = getDaysUntilExpiry(item.expires_at);
-                                const expiringSoon = isExpiringSoon(item.expires_at);
+                                const daysUntilExpiry = getDaysUntilExpiry(
+                                    item.expires_at,
+                                );
+                                const expiringSoon = isExpiringSoon(
+                                    item.expires_at,
+                                );
                                 const isAlmostFunded =
                                     item.is_crowdfunded &&
                                     item.progress_percentage >= 75 &&
@@ -436,23 +519,24 @@ export default function ProfileWishlist({ profile, items, stats }: ProfileWishli
                                 return (
                                     <Card
                                         key={item.id}
-                                        className="group relative flex h-full flex-col overflow-hidden border-white/10 bg-white/5 text-white transition-all duration-300 hover:border-white/20 hover:bg-white/10 hover:shadow-[0_35px_90px_-60px_rgba(249,115,22,0.65)] hover:-translate-y-1"
+                                        className="group relative flex h-full flex-col overflow-hidden border-white/10 bg-white/5 text-white transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/10 hover:shadow-[0_35px_90px_-60px_rgba(249,115,22,0.65)]"
                                     >
                                         {/* Priority Badges */}
-                                        <div className="absolute right-3 top-3 z-10 flex flex-col gap-2">
+                                        <div className="absolute top-3 right-3 z-10 flex flex-col gap-2">
                                             {isAlmostFunded && (
-                                                <Badge className="rounded-full border-emerald-400/40 bg-emerald-400/10 text-[0.65rem] uppercase tracking-[0.3em] text-emerald-200 shadow-[0_16px_45px_-25px_rgba(16,185,129,0.45)]">
+                                                <Badge className="rounded-full border-emerald-400/40 bg-emerald-400/10 text-[0.65rem] tracking-[0.3em] text-emerald-200 uppercase shadow-[0_16px_45px_-25px_rgba(16,185,129,0.45)]">
                                                     Almost Funded
                                                 </Badge>
                                             )}
-                                            {expiringSoon && daysUntilExpiry && (
-                                                <Badge className="rounded-full border-amber-400/40 bg-amber-400/10 text-[0.65rem] uppercase tracking-[0.3em] text-amber-200 shadow-[0_16px_45px_-25px_rgba(249,115,22,0.45)]">
-                                                    <Clock className="mr-1 size-3" />
-                                                    {daysUntilExpiry}d left
-                                                </Badge>
-                                            )}
+                                            {expiringSoon &&
+                                                daysUntilExpiry && (
+                                                    <Badge className="rounded-full border-amber-400/40 bg-amber-400/10 text-[0.65rem] tracking-[0.3em] text-amber-200 uppercase shadow-[0_16px_45px_-25px_rgba(249,115,22,0.45)]">
+                                                        <Clock className="mr-1 size-3" />
+                                                        {daysUntilExpiry}d left
+                                                    </Badge>
+                                                )}
                                             {item.purchase_count > 0 && (
-                                                <Badge className="rounded-full border-white/25 bg-white/15 text-[0.65rem] uppercase tracking-[0.3em] text-white/80">
+                                                <Badge className="rounded-full border-white/25 bg-white/15 text-[0.65rem] tracking-[0.3em] text-white/80 uppercase">
                                                     <Sparkles className="mr-1 size-3" />
                                                     {item.purchase_count}
                                                 </Badge>
@@ -477,34 +561,47 @@ export default function ProfileWishlist({ profile, items, stats }: ProfileWishli
                                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
                                                 </>
                                             )}
-                                            
+
                                             {/* Remaining Items Badge - Top Left */}
-                                            {!item.is_crowdfunded && item.remaining_quantity !== null && (
-                                                <div className="absolute left-3 top-3 z-10">
-                                                    <div className="rounded-xl border border-white/20 bg-black/70 backdrop-blur-sm px-3 py-1.5 shadow-lg">
-                                                        <p className="text-xs font-medium text-white/90">
-                                                            {item.remaining_quantity}{' '}
-                                                            {item.remaining_quantity === 1 ? 'left' : 'left'}
-                                                        </p>
-                                                        {item.remaining_quantity <= 5 && (
-                                                            <p className="mt-0.5 text-[0.65rem] font-semibold uppercase tracking-[0.1em] text-amber-300">
-                                                                Low Stock
+                                            {!item.is_crowdfunded &&
+                                                item.remaining_quantity !==
+                                                    null && (
+                                                    <div className="absolute top-3 left-3 z-10">
+                                                        <div className="rounded-xl border border-white/20 bg-black/70 px-3 py-1.5 shadow-lg backdrop-blur-sm">
+                                                            <p className="text-xs font-medium text-white/90">
+                                                                {
+                                                                    item.remaining_quantity
+                                                                }{' '}
+                                                                {item.remaining_quantity ===
+                                                                1
+                                                                    ? 'left'
+                                                                    : 'left'}
                                                             </p>
-                                                        )}
+                                                            {item.remaining_quantity <=
+                                                                5 && (
+                                                                <p className="mt-0.5 text-[0.65rem] font-semibold tracking-[0.1em] text-amber-300 uppercase">
+                                                                    Low Stock
+                                                                </p>
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            )}
-                                            
+                                                )}
+
                                             {/* Price Overlay - Prominent */}
-                                            <div className="absolute bottom-0 left-0 right-0 p-4">
+                                            <div className="absolute right-0 bottom-0 left-0 p-4">
                                                 <div className="flex items-end justify-between gap-3">
                                                     <div className="flex-1">
-                                                        <p className="mb-1 text-xs uppercase tracking-[0.3em] text-white/60">
-                                                            {item.is_crowdfunded ? 'Goal' : 'Price'}
+                                                        <p className="mb-1 text-xs tracking-[0.3em] text-white/60 uppercase">
+                                                            {item.is_crowdfunded
+                                                                ? 'Goal'
+                                                                : 'Price'}
                                                         </p>
                                                         <div className="flex items-baseline gap-2">
                                                             <span className="text-4xl font-bold text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-                                                                {formatCurrency(displayPrice, item.currency)}
+                                                                {formatCurrency(
+                                                                    displayPrice,
+                                                                    item.currency,
+                                                                )}
                                                             </span>
                                                             {item.is_crowdfunded && (
                                                                 <span className="mb-1 text-sm font-medium text-white/70">
@@ -513,24 +610,32 @@ export default function ProfileWishlist({ profile, items, stats }: ProfileWishli
                                                             )}
                                                         </div>
                                                     </div>
-                                                    {item.is_crowdfunded && item.progress_percentage > 0 && (
-                                                        <div className="text-right">
-                                                            <p className="text-2xl font-bold text-emerald-300 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-                                                                {Math.round(item.progress_percentage)}%
-                                                            </p>
-                                                            <p className="text-xs text-white/60">funded</p>
-                                                        </div>
-                                                    )}
+                                                    {item.is_crowdfunded &&
+                                                        item.progress_percentage >
+                                                            0 && (
+                                                            <div className="text-right">
+                                                                <p className="text-2xl font-bold text-emerald-300 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+                                                                    {Math.round(
+                                                                        item.progress_percentage,
+                                                                    )}
+                                                                    %
+                                                                </p>
+                                                                <p className="text-xs text-white/60">
+                                                                    funded
+                                                                </p>
+                                                            </div>
+                                                        )}
                                                 </div>
                                             </div>
                                         </div>
 
                                         <CardHeader className="gap-2 pb-3">
-                                            <CardTitle className="pr-16 text-xl font-semibold leading-tight transition-colors group-hover:text-amber-400">
+                                            <CardTitle className="pr-16 text-xl leading-tight font-semibold transition-colors group-hover:text-amber-400">
                                                 {item.title}
                                             </CardTitle>
                                             <CardDescription className="line-clamp-2 text-sm text-white/70">
-                                                {item.description || 'Supports the next wave of immersive scenes.'}
+                                                {item.description ||
+                                                    'Supports the next wave of immersive scenes.'}
                                             </CardDescription>
                                         </CardHeader>
 
@@ -541,7 +646,11 @@ export default function ProfileWishlist({ profile, items, stats }: ProfileWishli
                                                     <div className="flex items-center justify-between text-xs text-white/60">
                                                         <span>Progress</span>
                                                         <span className="font-medium text-white/80">
-                                                            {formatCurrency(item.current_funding, item.currency)} raised
+                                                            {formatCurrency(
+                                                                item.current_funding,
+                                                                item.currency,
+                                                            )}{' '}
+                                                            raised
                                                         </span>
                                                     </div>
                                                     <div className="relative h-3 overflow-hidden rounded-full bg-white/10">
@@ -551,7 +660,7 @@ export default function ProfileWishlist({ profile, items, stats }: ProfileWishli
                                                                 width: `${Math.min(item.progress_percentage, 100)}%`,
                                                             }}
                                                         />
-                                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+                                                        <div className="animate-shimmer absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
                                                     </div>
                                                 </div>
                                             )}
@@ -561,20 +670,28 @@ export default function ProfileWishlist({ profile, items, stats }: ProfileWishli
                                             <div className="flex w-full flex-col gap-2">
                                                 {item.can_be_purchased ? (
                                                     <Button
-                                                        onClick={() => router.visit(`/wishlist/${item.id}/checkout`)}
+                                                        onClick={() =>
+                                                            router.visit(
+                                                                `/wishlist/${item.id}/checkout`,
+                                                            )
+                                                        }
                                                         className="group/btn w-full rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 py-6 text-base font-semibold text-white shadow-[0_18px_40px_-12px_rgba(249,115,22,0.45)] transition-all duration-300 hover:scale-105 hover:shadow-[0_24px_50px_-15px_rgba(249,115,22,0.55)]"
                                                     >
                                                         <Gift className="mr-2 size-5 transition-transform group-hover/btn:scale-110" />
-                                                        {item.is_crowdfunded ? 'Contribute Now' : 'Purchase Now'}
+                                                        {item.is_crowdfunded
+                                                            ? 'Contribute Now'
+                                                            : 'Purchase Now'}
                                                     </Button>
                                                 ) : (
                                                     <Button
                                                         disabled
                                                         className="w-full rounded-full bg-white/10 py-6 text-base font-semibold text-white/50"
                                                     >
-                                                        {item.status === 'fulfilled'
+                                                        {item.status ===
+                                                        'fulfilled'
                                                             ? 'Fulfilled'
-                                                            : item.status === 'funded'
+                                                            : item.status ===
+                                                                'funded'
                                                               ? 'Funded'
                                                               : 'Unavailable'}
                                                     </Button>
@@ -583,7 +700,7 @@ export default function ProfileWishlist({ profile, items, stats }: ProfileWishli
                                                     <Button
                                                         asChild
                                                         variant="outline"
-                                                        className="w-full rounded-full border-white/20 bg-white/5 text-sm text-white transition-all hover:border-white/40 hover:bg-white/10 hover:scale-105"
+                                                        className="w-full rounded-full border-white/20 bg-white/5 text-sm text-white transition-all hover:scale-105 hover:border-white/40 hover:bg-white/10"
                                                     >
                                                         <Link
                                                             href={item.url}

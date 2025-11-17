@@ -4,7 +4,7 @@ use App\Models\User;
 use App\Services\Geo\CountryResolver;
 
 it('prioritizes context country code when available', function (): void {
-    $resolver = new CountryResolver();
+    $resolver = new CountryResolver;
 
     $result = $resolver->resolve(
         viewer: null,
@@ -16,7 +16,7 @@ it('prioritizes context country code when available', function (): void {
 });
 
 it('falls back to viewer profile country when context is missing', function (): void {
-    $resolver = new CountryResolver();
+    $resolver = new CountryResolver;
 
     $user = new User([
         'location_country' => 'United States',
@@ -39,7 +39,7 @@ it('uses array driver for ip lookups when configured', function (): void {
         ],
     ]);
 
-    $resolver = new CountryResolver();
+    $resolver = new CountryResolver;
 
     $result = $resolver->resolve(
         viewer: null,
@@ -57,7 +57,7 @@ it('returns fallback country code when no data source resolves the country', fun
         'services.geoip.fallback_country_code' => 'GB',
     ]);
 
-    $resolver = new CountryResolver();
+    $resolver = new CountryResolver;
 
     $result = $resolver->resolve(
         viewer: null,
@@ -67,4 +67,3 @@ it('returns fallback country code when no data source resolves the country', fun
 
     expect($result)->toBe('GB');
 });
-

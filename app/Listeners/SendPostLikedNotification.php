@@ -11,8 +11,7 @@ class SendPostLikedNotification
 {
     public function __construct(
         private readonly ToastBus $toastBus,
-    ) {
-    }
+    ) {}
 
     /**
      * Handle the event.
@@ -78,4 +77,3 @@ class SendPostLikedNotification
         return $user->name ?? 'Someone';
     }
 }
-

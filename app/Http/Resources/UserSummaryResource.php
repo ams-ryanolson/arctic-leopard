@@ -24,4 +24,3 @@ class UserSummaryResource extends JsonResource
         ];
     }
 }
-

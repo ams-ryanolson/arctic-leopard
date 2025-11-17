@@ -10,8 +10,7 @@ class PostCacheService
 {
     public function __construct(
         private int $ttlSeconds = 120,
-    ) {
-    }
+    ) {}
 
     /**
      * @param  Closure():array<string, mixed>  $resolver
@@ -46,4 +45,3 @@ class PostCacheService
         return "post:{$postId}:show";
     }
 }
-

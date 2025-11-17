@@ -1,3 +1,5 @@
+import { ChartWithAxes } from '@/components/ads/chart-with-axes';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,13 +11,20 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { ChartWithAxes } from '@/components/ads/chart-with-axes';
 import AppLayout from '@/layouts/app-layout';
-import { router, Head, Link } from '@inertiajs/react';
-import { useState, useMemo } from 'react';
 import type { SharedData } from '@/types';
-import { TrendingUp, TrendingDown, Eye, MousePointerClick, DollarSign, BarChart3, Users, AlertCircle } from 'lucide-react';
+import { Head, Link, router } from '@inertiajs/react';
+import {
+    AlertCircle,
+    BarChart3,
+    DollarSign,
+    Eye,
+    MousePointerClick,
+    TrendingDown,
+    TrendingUp,
+    Users,
+} from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 type Ad = {
     id: number;
@@ -107,7 +116,12 @@ type FilterFormState = {
     status: string;
 };
 
-export default function AdminAdsIndex({ ads, filters, meta, analytics }: AdminAdsIndexProps) {
+export default function AdminAdsIndex({
+    ads,
+    filters,
+    meta,
+    analytics,
+}: AdminAdsIndexProps) {
     const ALL_OPTION = 'all';
 
     const [formState, setFormState] = useState<FilterFormState>({
@@ -162,7 +176,14 @@ export default function AdminAdsIndex({ ads, filters, meta, analytics }: AdminAd
         });
     };
 
-    const statusOptions = meta.statuses ?? ['draft', 'pending_review', 'active', 'paused', 'expired', 'rejected'];
+    const statusOptions = meta.statuses ?? [
+        'draft',
+        'pending_review',
+        'active',
+        'paused',
+        'expired',
+        'rejected',
+    ];
 
     // Prepare chart data
     const chartSeries = useMemo(() => {
@@ -212,14 +233,17 @@ export default function AdminAdsIndex({ ads, filters, meta, analytics }: AdminAd
             <div className="space-y-6 text-white">
                 <header className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-6">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Ads Dashboard</h1>
+                        <h1 className="text-3xl font-bold tracking-tight">
+                            Ads Dashboard
+                        </h1>
                         <p className="mt-1 text-sm text-white/60">
-                            Comprehensive analytics, insights, and ad management.
+                            Comprehensive analytics, insights, and ad
+                            management.
                         </p>
                     </div>
                     <Link
                         href="/admin/ads/create"
-                        className="rounded-full bg-white px-6 py-2.5 text-xs font-semibold uppercase tracking-[0.35em] text-black shadow-[0_30px_70px_-45px_rgba(255,255,255,0.55)] transition-transform hover:scale-[1.02]"
+                        className="rounded-full bg-white px-6 py-2.5 text-xs font-semibold tracking-[0.35em] text-black uppercase shadow-[0_30px_70px_-45px_rgba(255,255,255,0.55)] transition-transform hover:scale-[1.02]"
                     >
                         Create Ad
                     </Link>
@@ -227,7 +251,9 @@ export default function AdminAdsIndex({ ads, filters, meta, analytics }: AdminAd
 
                 {/* Overview Metrics */}
                 <div>
-                    <h2 className="mb-4 text-lg font-semibold text-white/90">Overview</h2>
+                    <h2 className="mb-4 text-lg font-semibold text-white/90">
+                        Overview
+                    </h2>
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                         <MetricCard
                             title="Total Ads"
@@ -259,7 +285,9 @@ export default function AdminAdsIndex({ ads, filters, meta, analytics }: AdminAd
 
                 {/* Performance Metrics */}
                 <div>
-                    <h2 className="mb-4 text-lg font-semibold text-white/90">Performance (Last 30 Days)</h2>
+                    <h2 className="mb-4 text-lg font-semibold text-white/90">
+                        Performance (Last 30 Days)
+                    </h2>
                     <div className="grid gap-4 md:grid-cols-3">
                         <MetricCard
                             title="Impressions"
@@ -284,12 +312,18 @@ export default function AdminAdsIndex({ ads, filters, meta, analytics }: AdminAd
 
                 {/* Charts */}
                 <div>
-                    <h2 className="mb-4 text-lg font-semibold text-white/90">Analytics</h2>
+                    <h2 className="mb-4 text-lg font-semibold text-white/90">
+                        Analytics
+                    </h2>
                     <div className="grid gap-6 lg:grid-cols-2">
                         <Card className="border-white/10 bg-white/5">
                             <CardHeader className="pb-3">
-                                <CardTitle className="text-base font-semibold">Impressions & Clicks</CardTitle>
-                                <p className="mt-1 text-xs text-white/50">Daily performance over the last 30 days</p>
+                                <CardTitle className="text-base font-semibold">
+                                    Impressions & Clicks
+                                </CardTitle>
+                                <p className="mt-1 text-xs text-white/50">
+                                    Daily performance over the last 30 days
+                                </p>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="rounded-2xl border border-white/10 bg-black/30 p-6">
@@ -304,13 +338,20 @@ export default function AdminAdsIndex({ ads, filters, meta, analytics }: AdminAd
                                 </div>
                                 <div className="flex flex-wrap items-center gap-4 text-xs text-white/65">
                                     {chartSeries.map((series, index) => (
-                                        <span key={series.name} className="inline-flex items-center gap-2">
+                                        <span
+                                            key={series.name}
+                                            className="inline-flex items-center gap-2"
+                                        >
                                             <span
                                                 className={`inline-flex size-2.5 rounded-full ${
-                                                    index === 0 ? 'bg-amber-400' : 'bg-sky-300'
+                                                    index === 0
+                                                        ? 'bg-amber-400'
+                                                        : 'bg-sky-300'
                                                 }`}
                                             />
-                                            <span className="font-medium">{series.name}</span>
+                                            <span className="font-medium">
+                                                {series.name}
+                                            </span>
                                         </span>
                                     ))}
                                 </div>
@@ -319,8 +360,13 @@ export default function AdminAdsIndex({ ads, filters, meta, analytics }: AdminAd
 
                         <Card className="border-white/10 bg-white/5">
                             <CardHeader className="pb-3">
-                                <CardTitle className="text-base font-semibold">Revenue</CardTitle>
-                                <p className="mt-1 text-xs text-white/50">Daily revenue generated over the last 30 days</p>
+                                <CardTitle className="text-base font-semibold">
+                                    Revenue
+                                </CardTitle>
+                                <p className="mt-1 text-xs text-white/50">
+                                    Daily revenue generated over the last 30
+                                    days
+                                </p>
                             </CardHeader>
                             <CardContent>
                                 <div className="rounded-2xl border border-white/10 bg-black/30 p-6">
@@ -340,18 +386,29 @@ export default function AdminAdsIndex({ ads, filters, meta, analytics }: AdminAd
 
                 {/* Breakdowns & Top Ads */}
                 <div>
-                    <h2 className="mb-4 text-lg font-semibold text-white/90">Insights</h2>
+                    <h2 className="mb-4 text-lg font-semibold text-white/90">
+                        Insights
+                    </h2>
                     <div className="grid gap-6 lg:grid-cols-3">
                         <Card className="border-white/10 bg-white/5">
                             <CardHeader className="pb-3">
-                                <CardTitle className="text-base font-semibold">Status Breakdown</CardTitle>
-                                <p className="mt-1 text-xs text-white/50">Distribution of ads by status</p>
+                                <CardTitle className="text-base font-semibold">
+                                    Status Breakdown
+                                </CardTitle>
+                                <p className="mt-1 text-xs text-white/50">
+                                    Distribution of ads by status
+                                </p>
                             </CardHeader>
                             <CardContent className="space-y-3">
-                                {Object.entries(analytics.status_breakdown).length === 0 ? (
-                                    <p className="text-sm text-white/50">No data available</p>
+                                {Object.entries(analytics.status_breakdown)
+                                    .length === 0 ? (
+                                    <p className="text-sm text-white/50">
+                                        No data available
+                                    </p>
                                 ) : (
-                                    Object.entries(analytics.status_breakdown).map(([status, count]) => (
+                                    Object.entries(
+                                        analytics.status_breakdown,
+                                    ).map(([status, count]) => (
                                         <div
                                             key={status}
                                             className="flex items-center justify-between rounded-lg border border-white/10 bg-black/20 px-3 py-2"
@@ -370,20 +427,34 @@ export default function AdminAdsIndex({ ads, filters, meta, analytics }: AdminAd
 
                         <Card className="border-white/10 bg-white/5">
                             <CardHeader className="pb-3">
-                                <CardTitle className="text-base font-semibold">Placement Breakdown</CardTitle>
-                                <p className="mt-1 text-xs text-white/50">Number of creatives by placement</p>
+                                <CardTitle className="text-base font-semibold">
+                                    Placement Breakdown
+                                </CardTitle>
+                                <p className="mt-1 text-xs text-white/50">
+                                    Number of creatives by placement
+                                </p>
                             </CardHeader>
                             <CardContent className="space-y-3">
-                                {Object.entries(analytics.placement_breakdown).length === 0 ? (
-                                    <p className="text-sm text-white/50">No data available</p>
+                                {Object.entries(analytics.placement_breakdown)
+                                    .length === 0 ? (
+                                    <p className="text-sm text-white/50">
+                                        No data available
+                                    </p>
                                 ) : (
-                                    Object.entries(analytics.placement_breakdown).map(([placement, count]) => (
+                                    Object.entries(
+                                        analytics.placement_breakdown,
+                                    ).map(([placement, count]) => (
                                         <div
                                             key={placement}
                                             className="flex items-center justify-between rounded-lg border border-white/10 bg-black/20 px-3 py-2"
                                         >
                                             <span className="text-sm font-medium text-white/80 capitalize">
-                                                {placement.replace('_', ' ').replace('dashboard', 'sidebar')}
+                                                {placement
+                                                    .replace('_', ' ')
+                                                    .replace(
+                                                        'dashboard',
+                                                        'sidebar',
+                                                    )}
                                             </span>
                                             <Badge className="rounded-full border-white/20 bg-white/10 px-2.5 py-0.5 text-xs font-semibold">
                                                 {count}
@@ -396,12 +467,18 @@ export default function AdminAdsIndex({ ads, filters, meta, analytics }: AdminAd
 
                         <Card className="border-white/10 bg-white/5">
                             <CardHeader className="pb-3">
-                                <CardTitle className="text-base font-semibold">Top Performing Ads</CardTitle>
-                                <p className="mt-1 text-xs text-white/50">Highest impression ads (last 30 days)</p>
+                                <CardTitle className="text-base font-semibold">
+                                    Top Performing Ads
+                                </CardTitle>
+                                <p className="mt-1 text-xs text-white/50">
+                                    Highest impression ads (last 30 days)
+                                </p>
                             </CardHeader>
                             <CardContent className="space-y-3">
                                 {analytics.top_ads.length === 0 ? (
-                                    <p className="text-sm text-white/50">No performance data yet</p>
+                                    <p className="text-sm text-white/50">
+                                        No performance data yet
+                                    </p>
                                 ) : (
                                     analytics.top_ads.map((ad, index) => (
                                         <div
@@ -409,19 +486,21 @@ export default function AdminAdsIndex({ ads, filters, meta, analytics }: AdminAd
                                             className="space-y-2 rounded-lg border border-white/10 bg-black/20 p-3"
                                         >
                                             <div className="flex items-start justify-between gap-2">
-                                                <div className="flex-1 min-w-0">
+                                                <div className="min-w-0 flex-1">
                                                     <div className="flex items-center gap-2">
                                                         <span className="flex size-5 items-center justify-center rounded-full bg-amber-500/20 text-[10px] font-bold text-amber-300">
                                                             {index + 1}
                                                         </span>
                                                         <Link
                                                             href={`/admin/ads/${ad.id}`}
-                                                            className="text-sm font-semibold text-white hover:text-amber-300 hover:underline truncate"
+                                                            className="truncate text-sm font-semibold text-white hover:text-amber-300 hover:underline"
                                                         >
                                                             {ad.name}
                                                         </Link>
                                                     </div>
-                                                    <p className="mt-1 text-xs text-white/50">{ad.advertiser}</p>
+                                                    <p className="mt-1 text-xs text-white/50">
+                                                        {ad.advertiser}
+                                                    </p>
                                                 </div>
                                                 <Badge className="rounded-full border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">
                                                     {ad.ctr}% CTR
@@ -449,8 +528,12 @@ export default function AdminAdsIndex({ ads, filters, meta, analytics }: AdminAd
                 <section className="space-y-4 border-t border-white/10 pt-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h2 className="text-lg font-semibold text-white/90">Ad Management</h2>
-                            <p className="mt-1 text-sm text-white/50">Search, filter, and manage all ads</p>
+                            <h2 className="text-lg font-semibold text-white/90">
+                                Ad Management
+                            </h2>
+                            <p className="mt-1 text-sm text-white/50">
+                                Search, filter, and manage all ads
+                            </p>
                         </div>
                     </div>
 
@@ -471,15 +554,22 @@ export default function AdminAdsIndex({ ads, filters, meta, analytics }: AdminAd
                                             applyFilters();
                                         }
                                     }}
-                                    className="rounded-full border-white/20 bg-black/25 text-sm text-white placeholder:text-white/40 transition-all focus-visible:border-amber-400/50 focus-visible:ring-amber-400/40"
+                                    className="rounded-full border-white/20 bg-black/25 text-sm text-white transition-all placeholder:text-white/40 focus-visible:border-amber-400/50 focus-visible:ring-amber-400/40"
                                 />
 
                                 <Select
-                                    value={formState.status === '' ? ALL_OPTION : formState.status}
+                                    value={
+                                        formState.status === ''
+                                            ? ALL_OPTION
+                                            : formState.status
+                                    }
                                     onValueChange={(value) =>
                                         setFormState((prev) => ({
                                             ...prev,
-                                            status: value === ALL_OPTION ? '' : value,
+                                            status:
+                                                value === ALL_OPTION
+                                                    ? ''
+                                                    : value,
                                         }))
                                     }
                                 >
@@ -487,7 +577,10 @@ export default function AdminAdsIndex({ ads, filters, meta, analytics }: AdminAd
                                         <SelectValue placeholder="Filter by status" />
                                     </SelectTrigger>
                                     <SelectContent className="rounded-2xl border border-white/10 bg-black/85 text-white shadow-[0_30px_70px_-50px_rgba(0,0,0,0.70)] backdrop-blur-xl">
-                                        <SelectItem value={ALL_OPTION} className="text-sm text-white/75">
+                                        <SelectItem
+                                            value={ALL_OPTION}
+                                            className="text-sm text-white/75"
+                                        >
                                             All statuses
                                         </SelectItem>
                                         {statusOptions.map((status) => (
@@ -496,7 +589,11 @@ export default function AdminAdsIndex({ ads, filters, meta, analytics }: AdminAd
                                                 value={status}
                                                 className="text-sm text-white/80 transition-colors hover:bg-white/10 hover:text-white"
                                             >
-                                                {status.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                                                {status
+                                                    .replace('_', ' ')
+                                                    .replace(/\b\w/g, (l) =>
+                                                        l.toUpperCase(),
+                                                    )}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -507,7 +604,7 @@ export default function AdminAdsIndex({ ads, filters, meta, analytics }: AdminAd
                                 <Button
                                     type="button"
                                     onClick={applyFilters}
-                                    className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-6 py-2.5 text-xs font-semibold uppercase tracking-[0.35em] text-white shadow-[0_25px_65px_-35px_rgba(249,115,22,0.6)] transition-all hover:scale-[1.02]"
+                                    className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-6 py-2.5 text-xs font-semibold tracking-[0.35em] text-white uppercase shadow-[0_25px_65px_-35px_rgba(249,115,22,0.6)] transition-all hover:scale-[1.02]"
                                 >
                                     Apply Filters
                                 </Button>
@@ -515,7 +612,7 @@ export default function AdminAdsIndex({ ads, filters, meta, analytics }: AdminAd
                                     type="button"
                                     variant="ghost"
                                     onClick={resetFilters}
-                                    className="rounded-full border border-white/15 bg-white/10 px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.35em] text-white/70 transition-all hover:border-white/30 hover:bg-white/15 hover:text-white"
+                                    className="rounded-full border border-white/15 bg-white/10 px-5 py-2.5 text-xs font-semibold tracking-[0.35em] text-white/70 uppercase transition-all hover:border-white/30 hover:bg-white/15 hover:text-white"
                                 >
                                     Reset
                                 </Button>
@@ -526,15 +623,17 @@ export default function AdminAdsIndex({ ads, filters, meta, analytics }: AdminAd
                     {ads.data.length === 0 ? (
                         <Card className="border-white/10 bg-white/5">
                             <CardContent className="flex flex-col items-center gap-4 p-12 text-center">
-                                <div className="rounded-full border border-white/15 bg-white/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white/60">
+                                <div className="rounded-full border border-white/15 bg-white/10 px-5 py-2 text-xs font-semibold tracking-[0.35em] text-white/60 uppercase">
                                     Nothing Found
                                 </div>
-                                <p className="text-white/70">No ads match the current filters.</p>
+                                <p className="text-white/70">
+                                    No ads match the current filters.
+                                </p>
                                 <Button
                                     type="button"
                                     variant="ghost"
                                     onClick={resetFilters}
-                                    className="mt-2 rounded-full border border-white/15 bg-white/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white/70 transition-all hover:border-white/30 hover:bg-white/15 hover:text-white"
+                                    className="mt-2 rounded-full border border-white/15 bg-white/10 px-5 py-2 text-xs font-semibold tracking-[0.35em] text-white/70 uppercase transition-all hover:border-white/30 hover:bg-white/15 hover:text-white"
                                 >
                                     Clear Filters
                                 </Button>
@@ -567,17 +666,27 @@ type MetricCardProps = {
     highlight?: boolean;
 };
 
-function MetricCard({ title, value, icon: Icon, trend, highlight }: MetricCardProps) {
+function MetricCard({
+    title,
+    value,
+    icon: Icon,
+    trend,
+    highlight,
+}: MetricCardProps) {
     return (
         <Card
             className={`border transition-all hover:border-white/20 ${
-                highlight ? 'border-amber-500/40 bg-amber-500/10' : 'border-white/10 bg-white/5'
+                highlight
+                    ? 'border-amber-500/40 bg-amber-500/10'
+                    : 'border-white/10 bg-white/5'
             }`}
         >
             <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                     <div className="space-y-1.5">
-                        <p className="text-xs font-medium uppercase tracking-[0.35em] text-white/50">{title}</p>
+                        <p className="text-xs font-medium tracking-[0.35em] text-white/50 uppercase">
+                            {title}
+                        </p>
                         <p
                             className={`text-3xl font-bold tracking-tight ${
                                 highlight ? 'text-amber-300' : 'text-white'
@@ -591,7 +700,9 @@ function MetricCard({ title, value, icon: Icon, trend, highlight }: MetricCardPr
                             highlight ? 'bg-amber-500/20' : 'bg-white/10'
                         }`}
                     >
-                        <Icon className={`size-6 ${highlight ? 'text-amber-300' : 'text-white/70'}`} />
+                        <Icon
+                            className={`size-6 ${highlight ? 'text-amber-300' : 'text-white/70'}`}
+                        />
                     </div>
                 </div>
                 {trend !== null && (
@@ -599,12 +710,16 @@ function MetricCard({ title, value, icon: Icon, trend, highlight }: MetricCardPr
                         {trend > 0 ? (
                             <>
                                 <TrendingUp className="size-3.5 text-emerald-400" />
-                                <span className="font-semibold text-emerald-400">+{trend}%</span>
+                                <span className="font-semibold text-emerald-400">
+                                    +{trend}%
+                                </span>
                             </>
                         ) : (
                             <>
                                 <TrendingDown className="size-3.5 text-red-400" />
-                                <span className="font-semibold text-red-400">{trend}%</span>
+                                <span className="font-semibold text-red-400">
+                                    {trend}%
+                                </span>
                             </>
                         )}
                         <span className="text-white/50">vs last period</span>
@@ -622,7 +737,9 @@ type AdminAdRowProps = {
 function AdminAdRow({ ad }: AdminAdRowProps) {
     const [processing, setProcessing] = useState(false);
 
-    const handleAction = async (action: 'approve' | 'reject' | 'pause' | 'resume') => {
+    const handleAction = async (
+        action: 'approve' | 'reject' | 'pause' | 'resume',
+    ) => {
         setProcessing(true);
 
         const options = {
@@ -635,7 +752,11 @@ function AdminAdRow({ ad }: AdminAdRowProps) {
                 router.post(`/admin/ads/${ad.id}/approve`, {}, options);
                 break;
             case 'reject':
-                router.post(`/admin/ads/${ad.id}/reject`, { reason: 'Rejected by admin' }, options);
+                router.post(
+                    `/admin/ads/${ad.id}/reject`,
+                    { reason: 'Rejected by admin' },
+                    options,
+                );
                 break;
             case 'pause':
                 router.post(`/admin/ads/${ad.id}/pause`, {}, options);
@@ -662,13 +783,14 @@ function AdminAdRow({ ad }: AdminAdRowProps) {
                     <div className="flex flex-wrap items-center gap-2.5">
                         <Link
                             href={`/admin/ads/${ad.id}`}
-                            className="text-lg font-semibold text-white hover:text-amber-300 hover:underline transition-colors"
+                            className="text-lg font-semibold text-white transition-colors hover:text-amber-300 hover:underline"
                         >
                             {ad.name}
                         </Link>
                         <Badge
                             className={`rounded-full px-2.5 py-0.5 text-[0.65rem] font-semibold ${
-                                statusColors[ad.status] ?? 'bg-gray-500/20 text-gray-300'
+                                statusColors[ad.status] ??
+                                'bg-gray-500/20 text-gray-300'
                             }`}
                         >
                             {ad.status.replace('_', ' ')}
@@ -677,17 +799,23 @@ function AdminAdRow({ ad }: AdminAdRowProps) {
                     <div className="flex flex-wrap items-center gap-3 text-sm text-white/60">
                         <span className="flex items-center gap-1.5">
                             <Users className="size-3.5" />
-                            {ad.advertiser.display_name ?? ad.advertiser.username}
+                            {ad.advertiser.display_name ??
+                                ad.advertiser.username}
                         </span>
                         <span>·</span>
-                        <span>Budget: ${(ad.budget_amount / 100).toFixed(2)}</span>
+                        <span>
+                            Budget: ${(ad.budget_amount / 100).toFixed(2)}
+                        </span>
                         <span>·</span>
-                        <span>Spent: ${(ad.spent_amount / 100).toFixed(2)}</span>
+                        <span>
+                            Spent: ${(ad.spent_amount / 100).toFixed(2)}
+                        </span>
                     </div>
                     <div className="flex flex-wrap gap-2">
                         <Badge className="rounded-full border-white/20 bg-white/10 px-2.5 py-0.5 text-[0.65rem] font-medium">
                             <Eye className="mr-1.5 inline size-3" />
-                            {(ad.impressions_count ?? 0).toLocaleString()} impressions
+                            {(ad.impressions_count ?? 0).toLocaleString()}{' '}
+                            impressions
                         </Badge>
                         <Badge className="rounded-full border-white/20 bg-white/10 px-2.5 py-0.5 text-[0.65rem] font-medium">
                             <MousePointerClick className="mr-1.5 inline size-3" />
@@ -705,7 +833,7 @@ function AdminAdRow({ ad }: AdminAdRowProps) {
                             size="sm"
                             disabled={processing}
                             onClick={() => handleAction('approve')}
-                            className="rounded-full bg-emerald-500/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white shadow-[0_20px_50px_-30px_rgba(16,185,129,0.5)] transition-all hover:scale-[1.02] hover:bg-emerald-500"
+                            className="rounded-full bg-emerald-500/90 px-4 py-2 text-xs font-semibold tracking-[0.35em] text-white uppercase shadow-[0_20px_50px_-30px_rgba(16,185,129,0.5)] transition-all hover:scale-[1.02] hover:bg-emerald-500"
                         >
                             Approve
                         </Button>
@@ -715,7 +843,7 @@ function AdminAdRow({ ad }: AdminAdRowProps) {
                             size="sm"
                             disabled={processing}
                             onClick={() => handleAction('reject')}
-                            className="rounded-full bg-red-500/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white shadow-[0_20px_50px_-30px_rgba(239,68,68,0.5)] transition-all hover:scale-[1.02] hover:bg-red-500"
+                            className="rounded-full bg-red-500/90 px-4 py-2 text-xs font-semibold tracking-[0.35em] text-white uppercase shadow-[0_20px_50px_-30px_rgba(239,68,68,0.5)] transition-all hover:scale-[1.02] hover:bg-red-500"
                         >
                             Reject
                         </Button>
@@ -725,7 +853,7 @@ function AdminAdRow({ ad }: AdminAdRowProps) {
                             size="sm"
                             disabled={processing}
                             onClick={() => handleAction('pause')}
-                            className="rounded-full border-white/25 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white/75 transition-all hover:border-white/40 hover:bg-white/20 hover:text-white"
+                            className="rounded-full border-white/25 bg-white/10 px-4 py-2 text-xs font-semibold tracking-[0.35em] text-white/75 uppercase transition-all hover:border-white/40 hover:bg-white/20 hover:text-white"
                         >
                             Pause
                         </Button>
@@ -735,7 +863,7 @@ function AdminAdRow({ ad }: AdminAdRowProps) {
                             size="sm"
                             disabled={processing}
                             onClick={() => handleAction('resume')}
-                            className="rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white shadow-[0_20px_50px_-30px_rgba(16,185,129,0.5)] transition-all hover:scale-[1.02]"
+                            className="rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 px-4 py-2 text-xs font-semibold tracking-[0.35em] text-white uppercase shadow-[0_20px_50px_-30px_rgba(16,185,129,0.5)] transition-all hover:scale-[1.02]"
                         >
                             Resume
                         </Button>

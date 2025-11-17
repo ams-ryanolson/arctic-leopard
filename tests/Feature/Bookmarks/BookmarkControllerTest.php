@@ -91,7 +91,7 @@ it('returns bookmarks as json when requested', function (): void {
 
     $this->actingAs($user);
 
-    $posts->each(function (Post $post) use ($user): void {
+    $posts->each(function (Post $post): void {
         $this->postJson(route('posts.bookmarks.store', $post));
     });
 
@@ -129,4 +129,3 @@ it('renders the bookmarks page via inertia', function (): void {
             ->has('bookmarks.data', 2)
             ->where('bookmarks.data.0.post.is_bookmarked', true));
 });
-

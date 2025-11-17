@@ -21,8 +21,7 @@ class ToastBus
         private readonly Repository $cache,
         private readonly Dispatcher $events,
         private readonly int $ttlSeconds = self::DEFAULT_TTL_SECONDS,
-    ) {
-    }
+    ) {}
 
     public function push(User $user, ToastPayload $payload): ToastPayload
     {
@@ -162,4 +161,3 @@ class ToastBus
         return Carbon::now()->addSeconds($this->ttlSeconds);
     }
 }
-

@@ -9,4 +9,3 @@ class SubscriptionGatewayNotSupportedException extends PaymentGatewayException
         return new self("Gateway [{$name}] does not support subscription operations.");
     }
 }
-

@@ -5,9 +5,9 @@ namespace App\Listeners\Payments;
 use App\Enums\Payments\PostPurchaseStatus;
 use App\Events\Payments\PaymentCaptured;
 use App\Models\PostPurchase;
+use App\Services\Posts\PostLockService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
-use App\Services\Posts\PostLockService;
 
 class CompletePostPurchaseOnPaymentCaptured implements ShouldQueue
 {
@@ -15,8 +15,7 @@ class CompletePostPurchaseOnPaymentCaptured implements ShouldQueue
 
     public function __construct(
         protected readonly PostLockService $locks
-    ) {
-    }
+    ) {}
 
     public function handle(PaymentCaptured $event): void
     {
@@ -35,4 +34,3 @@ class CompletePostPurchaseOnPaymentCaptured implements ShouldQueue
         $this->locks->completePurchase($purchase);
     }
 }
-

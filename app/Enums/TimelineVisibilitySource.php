@@ -22,4 +22,3 @@ enum TimelineVisibilitySource: string
         );
     }
 }
-

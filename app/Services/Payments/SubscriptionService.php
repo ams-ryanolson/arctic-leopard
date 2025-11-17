@@ -26,8 +26,7 @@ class SubscriptionService
 {
     public function __construct(
         protected readonly PaymentGatewayManager $gateways
-    ) {
-    }
+    ) {}
 
     public function create(SubscriptionCreateData $data, ?SubscriptionPlan $plan = null, ?string $gateway = null): PaymentSubscription
     {
@@ -227,4 +226,3 @@ class SubscriptionService
         };
     }
 }
-

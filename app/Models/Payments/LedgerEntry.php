@@ -56,4 +56,3 @@ class LedgerEntry extends Model
         return $this->money($balance);
     }
 }
-

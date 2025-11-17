@@ -41,4 +41,3 @@ class UpdateSubscriptionPlanRequest extends FormRequest
         }
     }
 }
-

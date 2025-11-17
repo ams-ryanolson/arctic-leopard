@@ -9,4 +9,3 @@ class PaymentGatewayNotFoundException extends PaymentGatewayException
         return new self("Payment gateway [{$name}] is not configured.");
     }
 }
-

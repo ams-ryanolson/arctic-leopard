@@ -4,6 +4,7 @@ export type FeedMedia = {
     type: string | null;
     alt: string | null;
     thumbnail_url: string | null;
+    optimized_url: string | null;
 };
 
 export type FeedPollOption = {

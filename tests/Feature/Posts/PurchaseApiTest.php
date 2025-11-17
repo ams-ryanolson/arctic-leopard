@@ -2,12 +2,12 @@
 
 use App\Enums\PostAudience;
 use App\Enums\TimelineVisibilitySource;
+use App\Models\Payments\PaymentIntent;
 use App\Models\Post;
 use App\Models\Timeline;
 use App\Models\User;
-use App\Models\Payments\PaymentIntent;
-use App\Services\Payments\PaymentService;
 use App\Payments\Data\PaymentCaptureData;
+use App\Services\Payments\PaymentService;
 use App\ValueObjects\Money;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;

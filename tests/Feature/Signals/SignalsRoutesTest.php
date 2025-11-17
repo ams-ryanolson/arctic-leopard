@@ -57,5 +57,3 @@ it('provides settings payload structure', function () {
             ->has('notifications', 3)
             ->has('automations', 3));
 });
-
-

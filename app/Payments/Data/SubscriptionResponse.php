@@ -7,7 +7,7 @@ use InvalidArgumentException;
 final class SubscriptionResponse
 {
     /**
-     * @param array<string, mixed> $raw
+     * @param  array<string, mixed>  $raw
      */
     public function __construct(
         public readonly string $provider,
@@ -21,7 +21,7 @@ final class SubscriptionResponse
     }
 
     /**
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      */
     public static function fromArray(array $attributes): self
     {
@@ -46,4 +46,3 @@ final class SubscriptionResponse
         ];
     }
 }
-

@@ -35,4 +35,3 @@ class PaymentGatewayConfig extends Model
         return $query->where('status', PaymentGatewayStatus::Active);
     }
 }
-

@@ -13,8 +13,7 @@ class SendFollowRequestApprovedNotification
 
     public function __construct(
         private readonly ToastBus $toastBus,
-    ) {
-    }
+    ) {}
 
     /**
      * Handle the event.
@@ -86,5 +85,3 @@ class SendFollowRequestApprovedNotification
         return $user->name ?? 'Someone';
     }
 }
-
-

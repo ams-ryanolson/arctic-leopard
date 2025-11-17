@@ -74,7 +74,7 @@ it('creates a membership when payment is captured for a membership plan', functi
         ->where('user_id', $user->id)
         ->where('membership_plan_id', $plan->id)
         ->first();
-    
+
     if ($membership) {
         $roleListener = app(\App\Listeners\Memberships\AssignRoleOnMembershipPurchased::class);
         $roleListener->handle(new \App\Events\Memberships\MembershipPurchased($membership));

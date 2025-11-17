@@ -89,7 +89,8 @@ export default function FeedMediaGallery({
         return null;
     }
 
-    const containerLayout = layoutByCount[visibleCount] ?? layoutByCount[MAX_MEDIA_ITEMS];
+    const containerLayout =
+        layoutByCount[visibleCount] ?? layoutByCount[MAX_MEDIA_ITEMS];
     const handleSelect = (index: number) => {
         if (typeof onMediaClick === 'function') {
             onMediaClick(index);
@@ -97,17 +98,24 @@ export default function FeedMediaGallery({
     };
 
     return (
-        <div className={cn('mt-4 grid gap-3 sm:grid-flow-dense', containerLayout, className)}>
+        <div
+            className={cn(
+                'mt-4 grid gap-3 sm:grid-flow-dense',
+                containerLayout,
+                className,
+            )}
+        >
             {visibleMedia.map((item, index) => {
                 const clickable = typeof onMediaClick === 'function';
                 const itemIsVideo = isVideo(item);
                 const previewSource = itemIsVideo
-                    ? item.thumbnail_url ?? item.url
-                    : item.url;
+                    ? (item.thumbnail_url ?? item.url)
+                    : (item.optimized_url ?? item.url);
                 const label =
                     item.alt ??
                     `View ${post?.author?.display_name ?? 'media'} ${itemIsVideo ? 'clip' : 'image'} ${index + 1} of ${media.length}`;
-                const showOverflowNotice = overflowCount > 0 && index === visibleMedia.length - 1;
+                const showOverflowNotice =
+                    overflowCount > 0 && index === visibleMedia.length - 1;
 
                 return (
                     <figure
@@ -115,17 +123,22 @@ export default function FeedMediaGallery({
                         className={cn(
                             'group relative aspect-[4/5] overflow-hidden rounded-2xl border border-white/10 bg-black/30 sm:aspect-auto sm:h-full',
                             clickable &&
-                                'cursor-zoom-in transition hover:border-white/30 hover:bg-white/10 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-white/40',
+                                'cursor-zoom-in transition hover:border-white/30 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:outline-hidden',
                             figureLayout(index, visibleCount),
                         )}
                         role={clickable ? 'button' : undefined}
                         tabIndex={clickable ? 0 : undefined}
                         aria-label={clickable ? label : undefined}
-                        onClick={clickable ? () => handleSelect(index) : undefined}
+                        onClick={
+                            clickable ? () => handleSelect(index) : undefined
+                        }
                         onKeyDown={
                             clickable
                                 ? (event) => {
-                                      if (event.key === 'Enter' || event.key === ' ') {
+                                      if (
+                                          event.key === 'Enter' ||
+                                          event.key === ' '
+                                      ) {
                                           event.preventDefault();
                                           handleSelect(index);
                                       }
@@ -136,7 +149,12 @@ export default function FeedMediaGallery({
                         {previewSource ? (
                             <img
                                 src={previewSource}
-                                alt={item.alt ?? (itemIsVideo ? 'Post video thumbnail' : 'Post media')}
+                                alt={
+                                    item.alt ??
+                                    (itemIsVideo
+                                        ? 'Post video thumbnail'
+                                        : 'Post media')
+                                }
                                 className={cn(
                                     'h-full w-full object-cover',
                                     clickable && 'pointer-events-none',
@@ -145,7 +163,7 @@ export default function FeedMediaGallery({
                                 draggable={false}
                             />
                         ) : (
-                            <div className="flex h-full w-full items-center justify-center bg-black/50 text-xs uppercase tracking-[0.3em] text-white/60">
+                            <div className="flex h-full w-full items-center justify-center bg-black/50 text-xs tracking-[0.3em] text-white/60 uppercase">
                                 No preview
                             </div>
                         )}
@@ -153,7 +171,7 @@ export default function FeedMediaGallery({
                         {itemIsVideo && (
                             // Temporary placeholder until inline video playback ships. This keeps drops visible.
                             <div className="absolute inset-0 flex items-end justify-start bg-gradient-to-t from-black/70 via-black/10 to-transparent p-3">
-                                <span className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/60 px-2 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-white/80">
+                                <span className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/60 px-2 py-1 text-[0.65rem] font-semibold tracking-[0.3em] text-white/80 uppercase">
                                     <Play className="size-3" />
                                     Video
                                 </span>

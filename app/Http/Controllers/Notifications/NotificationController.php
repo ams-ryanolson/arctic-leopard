@@ -197,4 +197,3 @@ class NotificationController extends Controller
         return $blocked->merge($blockers)->unique()->values();
     }
 }
-

@@ -25,4 +25,3 @@ class FailPostPurchaseOnPaymentFailed implements ShouldQueue
         ])->save();
     }
 }
-

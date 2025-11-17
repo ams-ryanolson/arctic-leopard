@@ -25,4 +25,3 @@ class FailTipOnPaymentFailed implements ShouldQueue
         ])->save();
     }
 }
-

@@ -18,8 +18,7 @@ class PostBookmarkController extends Controller
     public function __construct(
         private readonly PostCacheService $postCache,
         private readonly TimelineCacheService $timelineCache,
-    ) {
-    }
+    ) {}
 
     public function store(Request $request, Post $post): JsonResponse
     {

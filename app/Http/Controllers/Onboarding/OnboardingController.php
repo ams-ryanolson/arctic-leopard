@@ -16,4 +16,3 @@ class OnboardingController
         return Inertia::render('Onboarding/Start');
     }
 }
-

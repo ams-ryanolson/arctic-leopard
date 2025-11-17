@@ -25,4 +25,3 @@ class RefundPostPurchaseOnPaymentRefunded implements ShouldQueue
         ])->save();
     }
 }
-

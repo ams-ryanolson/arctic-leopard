@@ -84,8 +84,14 @@ export function formatDateSeparator(iso?: string | null): string {
 
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const messageDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const diffDays = Math.floor((today.getTime() - messageDate.getTime()) / (1000 * 60 * 60 * 24));
+    const messageDate = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+    );
+    const diffDays = Math.floor(
+        (today.getTime() - messageDate.getTime()) / (1000 * 60 * 60 * 24),
+    );
 
     // Today
     if (diffDays === 0) {
@@ -117,7 +123,10 @@ export function formatDateSeparator(iso?: string | null): string {
 /**
  * Check if two dates are on the same day
  */
-export function isSameDay(date1: Date | string | null, date2: Date | string | null): boolean {
+export function isSameDay(
+    date1: Date | string | null,
+    date2: Date | string | null,
+): boolean {
     if (!date1 || !date2) {
         return false;
     }
@@ -142,7 +151,7 @@ export function isOnlyEmojis(text: string | null | undefined): boolean {
     }
 
     const trimmed = text.trim();
-    
+
     if (trimmed.length === 0) {
         return false;
     }
@@ -161,17 +170,18 @@ export function isOnlyEmojis(text: string | null | undefined): boolean {
     // - Regional indicator symbols U+1F1E0-U+1F1FF (for flags)
     // - Keycap base U+20E3
     // - Combining enclosing keycap U+FE0F (optional)
-    const emojiPattern = /[\u{1F300}-\u{1F9FF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA00}-\u{1FAFF}]|[\u{1F3FB}-\u{1F3FF}]|[\u{FE00}-\u{FE0F}]|[\u{200D}]|[\u{20E3}]|[\u{1F1E0}-\u{1F1FF}]/gu;
-    
+    const emojiPattern =
+        /[\u{1F300}-\u{1F9FF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA00}-\u{1FAFF}]|[\u{1F3FB}-\u{1F3FF}]|[\u{FE00}-\u{FE0F}]|[\u{200D}]|[\u{20E3}]|[\u{1F1E0}-\u{1F1FF}]/gu;
+
     // Remove all emojis and related characters from the text
     const textWithoutEmojis = trimmed.replace(emojiPattern, '').trim();
-    
+
     // Check if we found any emoji characters
     const hasEmojis = emojiPattern.test(trimmed);
-    
+
     // Reset regex lastIndex for future tests
     emojiPattern.lastIndex = 0;
-    
+
     // If we have emojis and no remaining text, it's emoji-only
     return hasEmojis && textWithoutEmojis.length === 0;
 }
@@ -196,4 +206,3 @@ export function normalizeMessage(raw: any): any {
         sequence: normalizeNumeric(raw.sequence),
     };
 }
-

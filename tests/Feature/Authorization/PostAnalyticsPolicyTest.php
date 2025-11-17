@@ -80,4 +80,3 @@ it('redirects guests to login when accessing the analytics route', function (): 
 
     $response->assertRedirect(route('login'));
 });
-

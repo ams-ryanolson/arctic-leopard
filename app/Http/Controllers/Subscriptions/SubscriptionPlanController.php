@@ -120,4 +120,3 @@ class SubscriptionPlanController extends Controller
         return $slug;
     }
 }
-

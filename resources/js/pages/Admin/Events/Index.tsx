@@ -1,4 +1,5 @@
 import { EventStatusBadge } from '@/components/events/event-status-badge';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,12 +12,10 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
 import AppLayout from '@/layouts/app-layout';
 import adminEventsRoutes from '@/routes/admin/events';
 import eventsRoutes from '@/routes/events';
-import { router, Head, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import type { SharedData } from '@/types';
 import {
     type Event,
     type EventCollection,
@@ -25,7 +24,8 @@ import {
     formatEventDateRange,
     formatEventLocation,
 } from '@/types/events';
-import type { SharedData } from '@/types';
+import { Head, router, usePage } from '@inertiajs/react';
+import { useState } from 'react';
 
 type AdminEventsIndexProps = {
     events: EventCollection;
@@ -108,7 +108,13 @@ export default function AdminEventsIndex({
         });
     };
 
-    const statusOptions = meta.statuses ?? ['draft', 'pending', 'published', 'cancelled', 'archived'];
+    const statusOptions = meta.statuses ?? [
+        'draft',
+        'pending',
+        'published',
+        'cancelled',
+        'archived',
+    ];
     const typeOptions = meta.types ?? [];
     const modalityOptions = meta.modalities ?? [];
 
@@ -139,13 +145,13 @@ export default function AdminEventsIndex({
                                 preserveScroll: true,
                             })
                         }
-                        className="rounded-full bg-white px-5 text-xs font-semibold uppercase tracking-[0.35em] text-black shadow-[0_30px_70px_-45px_rgba(255,255,255,0.55)] hover:scale-[1.02]"
+                        className="rounded-full bg-white px-5 text-xs font-semibold tracking-[0.35em] text-black uppercase shadow-[0_30px_70px_-45px_rgba(255,255,255,0.55)] hover:scale-[1.02]"
                     >
                         View member-facing page
                     </Button>
                 </header>
 
-            <Card className="border-white/10 bg-white/5">
+                <Card className="border-white/10 bg-white/5">
                     <CardContent className="space-y-4 p-5">
                         <div className="grid gap-3 lg:grid-cols-[minmax(0,240px)_minmax(0,180px)_minmax(0,180px)_minmax(0,180px)] lg:items-center">
                             <Input
@@ -166,19 +172,27 @@ export default function AdminEventsIndex({
                             />
 
                             <Select
-                        value={formState.status === '' ? ALL_OPTION : formState.status}
+                                value={
+                                    formState.status === ''
+                                        ? ALL_OPTION
+                                        : formState.status
+                                }
                                 onValueChange={(value) =>
-                            setFormState((prev) => ({
-                                ...prev,
-                                status: value === ALL_OPTION ? '' : value,
-                            }))
+                                    setFormState((prev) => ({
+                                        ...prev,
+                                        status:
+                                            value === ALL_OPTION ? '' : value,
+                                    }))
                                 }
                             >
                                 <SelectTrigger className="rounded-full border-white/20 bg-black/25 text-sm text-white focus-visible:ring-amber-400/40">
                                     <SelectValue placeholder="Status" />
                                 </SelectTrigger>
                                 <SelectContent className="rounded-2xl border border-white/10 bg-black/85 text-white shadow-[0_30px_70px_-50px_rgba(0,0,0,0.70)] backdrop-blur-xl">
-                            <SelectItem value={ALL_OPTION} className="text-sm text-white/75">
+                                    <SelectItem
+                                        value={ALL_OPTION}
+                                        className="text-sm text-white/75"
+                                    >
                                         All statuses
                                     </SelectItem>
                                     {statusOptions.map((status) => (
@@ -187,18 +201,23 @@ export default function AdminEventsIndex({
                                             value={status}
                                             className="text-sm text-white/80 hover:bg-white/10 hover:text-white"
                                         >
-                                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                                            {status.charAt(0).toUpperCase() +
+                                                status.slice(1)}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
 
                             <Select
-                        value={formState.type === '' ? ALL_OPTION : formState.type}
+                                value={
+                                    formState.type === ''
+                                        ? ALL_OPTION
+                                        : formState.type
+                                }
                                 onValueChange={(value) =>
                                     setFormState((prev) => ({
                                         ...prev,
-                                type: value === ALL_OPTION ? '' : value,
+                                        type: value === ALL_OPTION ? '' : value,
                                     }))
                                 }
                             >
@@ -206,7 +225,10 @@ export default function AdminEventsIndex({
                                     <SelectValue placeholder="Type" />
                                 </SelectTrigger>
                                 <SelectContent className="rounded-2xl border border-white/10 bg-black/85 text-white shadow-[0_30px_70px_-50px_rgba(0,0,0,0.70)] backdrop-blur-xl">
-                            <SelectItem value={ALL_OPTION} className="text-sm text-white/75">
+                                    <SelectItem
+                                        value={ALL_OPTION}
+                                        className="text-sm text-white/75"
+                                    >
                                         All types
                                     </SelectItem>
                                     {typeOptions.map((type) => (
@@ -215,18 +237,24 @@ export default function AdminEventsIndex({
                                             value={type}
                                             className="text-sm text-white/80 hover:bg-white/10 hover:text-white"
                                         >
-                                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                                            {type.charAt(0).toUpperCase() +
+                                                type.slice(1)}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
 
                             <Select
-                        value={formState.modality === '' ? ALL_OPTION : formState.modality}
+                                value={
+                                    formState.modality === ''
+                                        ? ALL_OPTION
+                                        : formState.modality
+                                }
                                 onValueChange={(value) =>
                                     setFormState((prev) => ({
                                         ...prev,
-                                modality: value === ALL_OPTION ? '' : value,
+                                        modality:
+                                            value === ALL_OPTION ? '' : value,
                                     }))
                                 }
                             >
@@ -234,7 +262,10 @@ export default function AdminEventsIndex({
                                     <SelectValue placeholder="Modality" />
                                 </SelectTrigger>
                                 <SelectContent className="rounded-2xl border border-white/10 bg-black/85 text-white shadow-[0_30px_70px_-50px_rgba(0,0,0,0.70)] backdrop-blur-xl">
-                            <SelectItem value={ALL_OPTION} className="text-sm text-white/75">
+                                    <SelectItem
+                                        value={ALL_OPTION}
+                                        className="text-sm text-white/75"
+                                    >
                                         All modalities
                                     </SelectItem>
                                     {modalityOptions.map((modality) => (
@@ -243,7 +274,8 @@ export default function AdminEventsIndex({
                                             value={modality}
                                             className="text-sm text-white/80 hover:bg-white/10 hover:text-white"
                                         >
-                                            {modality.charAt(0).toUpperCase() + modality.slice(1)}
+                                            {modality.charAt(0).toUpperCase() +
+                                                modality.slice(1)}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -254,7 +286,7 @@ export default function AdminEventsIndex({
                             <Button
                                 type="button"
                                 onClick={applyFilters}
-                                className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-6 text-xs font-semibold uppercase tracking-[0.35em] text-white shadow-[0_25px_65px_-35px_rgba(249,115,22,0.6)] hover:scale-[1.02]"
+                                className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-6 text-xs font-semibold tracking-[0.35em] text-white uppercase shadow-[0_25px_65px_-35px_rgba(249,115,22,0.6)] hover:scale-[1.02]"
                             >
                                 Apply
                             </Button>
@@ -262,7 +294,7 @@ export default function AdminEventsIndex({
                                 type="button"
                                 variant="ghost"
                                 onClick={resetFilters}
-                                className="rounded-full border border-white/15 bg-white/10 px-5 text-xs font-semibold uppercase tracking-[0.35em] text-white/70 hover:border-white/30 hover:bg-white/15 hover:text-white"
+                                className="rounded-full border border-white/15 bg-white/10 px-5 text-xs font-semibold tracking-[0.35em] text-white/70 uppercase hover:border-white/30 hover:bg-white/15 hover:text-white"
                             >
                                 Reset
                             </Button>
@@ -274,7 +306,7 @@ export default function AdminEventsIndex({
                     {events.data.length === 0 ? (
                         <Card className="border-white/10 bg-white/5">
                             <CardContent className="flex flex-col items-center gap-3 p-8 text-center text-white/70">
-                                <div className="rounded-full border border-white/15 bg-white/10 px-4 py-1 text-xs uppercase tracking-[0.35em] text-white/60">
+                                <div className="rounded-full border border-white/15 bg-white/10 px-4 py-1 text-xs tracking-[0.35em] text-white/60 uppercase">
                                     Nothing Found
                                 </div>
                                 <p>
@@ -315,12 +347,7 @@ function AdminEventRow({ event, currentUserId }: AdminEventRowProps) {
     const [processing, setProcessing] = useState(false);
 
     const handleAction = async (
-        action:
-            | 'approve'
-            | 'publish'
-            | 'cancel'
-            | 'assignSelf'
-            | 'removeSelf',
+        action: 'approve' | 'publish' | 'cancel' | 'assignSelf' | 'removeSelf',
     ) => {
         setProcessing(true);
 
@@ -389,7 +416,7 @@ function AdminEventRow({ event, currentUserId }: AdminEventRowProps) {
                         {formatEventDateRange(event)} ·{' '}
                         {formatEventLocation(event.location)}
                     </p>
-                    <div className="flex flex-wrap gap-2 text-xs uppercase tracking-[0.3em] text-white/60">
+                    <div className="flex flex-wrap gap-2 text-xs tracking-[0.3em] text-white/60 uppercase">
                         <Badge className="rounded-full border-white/20 bg-white/10 text-[0.65rem]">
                             {event.type}
                         </Badge>
@@ -397,7 +424,9 @@ function AdminEventRow({ event, currentUserId }: AdminEventRowProps) {
                             {event.modality}
                         </Badge>
                         <Badge className="rounded-full border-white/20 bg-white/10 text-[0.65rem]">
-                            RSVPs {event.rsvp_summary.going + event.rsvp_summary.tentative}
+                            RSVPs{' '}
+                            {event.rsvp_summary.going +
+                                event.rsvp_summary.tentative}
                         </Badge>
                     </div>
                 </div>
@@ -408,28 +437,29 @@ function AdminEventRow({ event, currentUserId }: AdminEventRowProps) {
                             size="sm"
                             disabled={processing}
                             onClick={() => handleAction('approve')}
-                            className="rounded-full bg-white/90 px-4 text-xs font-semibold uppercase tracking-[0.35em] text-black hover:scale-[1.02]"
+                            className="rounded-full bg-white/90 px-4 text-xs font-semibold tracking-[0.35em] text-black uppercase hover:scale-[1.02]"
                         >
                             Approve
                         </Button>
                     )}
-                    {event.status !== 'published' && event.status !== 'cancelled' && (
-                        <Button
-                            size="sm"
-                            disabled={processing}
-                            onClick={() => handleAction('publish')}
-                            className="rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 px-4 text-xs font-semibold uppercase tracking-[0.35em] text-white hover:scale-[1.02]"
-                        >
-                            Publish
-                        </Button>
-                    )}
+                    {event.status !== 'published' &&
+                        event.status !== 'cancelled' && (
+                            <Button
+                                size="sm"
+                                disabled={processing}
+                                onClick={() => handleAction('publish')}
+                                className="rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 px-4 text-xs font-semibold tracking-[0.35em] text-white uppercase hover:scale-[1.02]"
+                            >
+                                Publish
+                            </Button>
+                        )}
                     {event.status === 'published' && (
                         <Button
                             size="sm"
                             variant="outline"
                             disabled={processing}
                             onClick={() => handleAction('cancel')}
-                            className="rounded-full border-white/25 bg-white/10 px-4 text-xs font-semibold uppercase tracking-[0.35em] text-white/75 hover:border-white/40 hover:bg-white/20"
+                            className="rounded-full border-white/25 bg-white/10 px-4 text-xs font-semibold tracking-[0.35em] text-white/75 uppercase hover:border-white/40 hover:bg-white/20"
                         >
                             Cancel
                         </Button>
@@ -437,15 +467,16 @@ function AdminEventRow({ event, currentUserId }: AdminEventRowProps) {
                     <Button
                         size="sm"
                         variant="ghost"
-                        disabled={processing || (!event.manager && currentUserId === null)}
+                        disabled={
+                            processing ||
+                            (!event.manager && currentUserId === null)
+                        }
                         onClick={() =>
                             handleAction(
-                                event.manager
-                                    ? 'removeSelf'
-                                    : 'assignSelf',
+                                event.manager ? 'removeSelf' : 'assignSelf',
                             )
                         }
-                        className="rounded-full border border-white/15 bg-white/10 px-4 text-xs font-semibold uppercase tracking-[0.35em] text-white/75 hover:border-white/30 hover:bg-white/20 hover:text-white"
+                        className="rounded-full border border-white/15 bg-white/10 px-4 text-xs font-semibold tracking-[0.35em] text-white/75 uppercase hover:border-white/30 hover:bg-white/20 hover:text-white"
                     >
                         {event.manager ? 'Unassign' : 'Assign self'}
                     </Button>
@@ -463,4 +494,3 @@ AdminEventsIndex.Skeleton = function AdminEventsIndexSkeleton() {
         </div>
     );
 };
-

@@ -1,6 +1,6 @@
+import { getCsrfToken } from '@/lib/csrf';
 import { acknowledge, action as resolveRoute } from '@/routes/toasts';
 import type { ToastAction, ToastPayload } from '@/types/toasts';
-import { getCsrfToken } from '@/lib/csrf';
 
 type ToastActionResponse = {
     toast: ToastPayload;
@@ -8,7 +8,9 @@ type ToastActionResponse = {
     input?: Record<string, unknown>;
 };
 
-function buildHeaders(contentType: string | null = 'application/json'): HeadersInit {
+function buildHeaders(
+    contentType: string | null = 'application/json',
+): HeadersInit {
     const headers: Record<string, string> = {
         Accept: 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
@@ -45,7 +47,12 @@ async function handleResponse(response: Response): Promise<unknown> {
     try {
         const problem = await response.json();
 
-        if (problem && typeof problem === 'object' && 'message' in problem && typeof problem.message === 'string') {
+        if (
+            problem &&
+            typeof problem === 'object' &&
+            'message' in problem &&
+            typeof problem.message === 'string'
+        ) {
             message = problem.message;
         }
     } catch {
@@ -86,9 +93,10 @@ export async function resolveToastAction(
     const typed = data as Partial<ToastActionResponse>;
 
     if (!typed.toast || !typed.action) {
-        throw new Error('Incomplete response received from toast action endpoint.');
+        throw new Error(
+            'Incomplete response received from toast action endpoint.',
+        );
     }
 
     return typed as ToastActionResponse;
 }
-

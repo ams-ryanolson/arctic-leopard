@@ -57,10 +57,12 @@ type UseFeedResult = {
 
 const DEFAULT_ERROR_MESSAGE = 'We could not load the feed. Please try again.';
 
-const sanitizeTimelinePayload = (payload: NormalizePayload): NormalizePayload => {
+const sanitizeTimelinePayload = (
+    payload: NormalizePayload,
+): NormalizePayload => {
     // Ensure data is an array
     const data = Array.isArray(payload.data) ? payload.data : [];
-    
+
     // Filter out entries that are neither posts nor ads
     const filtered = data.filter((entry) => {
         // Ad entries have type === 'ad'
@@ -76,9 +78,10 @@ const sanitizeTimelinePayload = (payload: NormalizePayload): NormalizePayload =>
     }
 
     const removed = data.length - filtered.length;
-    const total = typeof payload.meta.total === 'number'
-        ? Math.max(0, payload.meta.total - removed)
-        : payload.meta.total;
+    const total =
+        typeof payload.meta.total === 'number'
+            ? Math.max(0, payload.meta.total - removed)
+            : payload.meta.total;
 
     return {
         ...payload,
@@ -91,7 +94,10 @@ const sanitizeTimelinePayload = (payload: NormalizePayload): NormalizePayload =>
 };
 
 const hasMoreFromMeta = (meta: PaginationMeta): boolean => {
-    if (typeof meta.current_page !== 'number' || typeof meta.last_page !== 'number') {
+    if (
+        typeof meta.current_page !== 'number' ||
+        typeof meta.last_page !== 'number'
+    ) {
         return false;
     }
 
@@ -110,11 +116,17 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
 
     const normalize = useCallback(
         (payload: FeedPayload): NormalizePayload => {
-            const normalized = sanitizeTimelinePayload(transformPayload(payload));
-            
+            const normalized = sanitizeTimelinePayload(
+                transformPayload(payload),
+            );
+
             // Normalize post structure - handle cases where post is wrapped in 'data'
             normalized.data = normalized.data.map((entry) => {
-                if (entry.post && typeof entry.post === 'object' && 'data' in entry.post) {
+                if (
+                    entry.post &&
+                    typeof entry.post === 'object' &&
+                    'data' in entry.post
+                ) {
                     const post = entry.post.data;
                     // Ensure media is always an array
                     if (post && typeof post === 'object') {
@@ -122,7 +134,9 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
                             ...entry,
                             post: {
                                 ...post,
-                                media: Array.isArray(post.media) ? post.media : [],
+                                media: Array.isArray(post.media)
+                                    ? post.media
+                                    : [],
                             },
                         };
                     }
@@ -137,27 +151,35 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
                         ...entry,
                         post: {
                             ...entry.post,
-                            media: Array.isArray(entry.post.media) ? entry.post.media : [],
+                            media: Array.isArray(entry.post.media)
+                                ? entry.post.media
+                                : [],
                         },
                     };
                 }
                 return entry;
             });
-            
+
             return normalized;
         },
         [transformPayload],
     );
 
-    const [pages, setPages] = useState<NormalizePayload[]>(() => [normalize(initialPayload)]);
-    const [hasMore, setHasMore] = useState<boolean>(() => hasMoreFromMeta(normalize(initialPayload).meta));
+    const [pages, setPages] = useState<NormalizePayload[]>(() => [
+        normalize(initialPayload),
+    ]);
+    const [hasMore, setHasMore] = useState<boolean>(() =>
+        hasMoreFromMeta(normalize(initialPayload).meta),
+    );
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [pendingLikes, setPendingLikes] = useState<number[]>([]);
     const [pendingBookmarks, setPendingBookmarks] = useState<number[]>([]);
     const [pendingPurchases, setPendingPurchases] = useState<number[]>([]);
-    const [activeCommentPost, setActiveCommentPost] = useState<FeedPost | null>(null);
+    const [activeCommentPost, setActiveCommentPost] = useState<FeedPost | null>(
+        null,
+    );
     const [isCommentSheetOpen, setIsCommentSheetOpen] = useState(false);
     const sentinelRef = useRef<HTMLDivElement | null>(null);
 
@@ -186,15 +208,17 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
         [pages],
     );
 
-    const meta = useMemo<PaginationMeta>(() => pages[pages.length - 1]?.meta ?? normalize(initialPayload).meta, [
-        pages,
-        initialPayload,
-        normalize,
-    ]);
+    const meta = useMemo<PaginationMeta>(
+        () => pages[pages.length - 1]?.meta ?? normalize(initialPayload).meta,
+        [pages, initialPayload, normalize],
+    );
 
     const handleFeedError = useCallback(
         (problem: unknown) => {
-            if (problem instanceof DOMException && problem.name === 'AbortError') {
+            if (
+                problem instanceof DOMException &&
+                problem.name === 'AbortError'
+            ) {
                 return;
             }
 
@@ -221,7 +245,11 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
                               post: {
                                   ...entry.post,
                                   ...nextPost,
-                                  media: Array.isArray(nextPost.media) ? nextPost.media : (Array.isArray(entry.post.media) ? entry.post.media : []),
+                                  media: Array.isArray(nextPost.media)
+                                      ? nextPost.media
+                                      : Array.isArray(entry.post.media)
+                                        ? entry.post.media
+                                        : [],
                               },
                           }
                         : entry,
@@ -230,21 +258,35 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
         );
     }, []);
 
-    const markPending = useCallback((setState: React.Dispatch<React.SetStateAction<number[]>>) => {
-        return (postId: number, pending: boolean) => {
-            setState((previous) => {
-                if (pending) {
-                    return previous.includes(postId) ? previous : [...previous, postId];
-                }
+    const markPending = useCallback(
+        (setState: React.Dispatch<React.SetStateAction<number[]>>) => {
+            return (postId: number, pending: boolean) => {
+                setState((previous) => {
+                    if (pending) {
+                        return previous.includes(postId)
+                            ? previous
+                            : [...previous, postId];
+                    }
 
-                return previous.filter((id) => id !== postId);
-            });
-        };
-    }, []);
+                    return previous.filter((id) => id !== postId);
+                });
+            };
+        },
+        [],
+    );
 
-    const markLikePending = useMemo(() => markPending(setPendingLikes), [markPending]);
-    const markBookmarkPending = useMemo(() => markPending(setPendingBookmarks), [markPending]);
-    const markPurchasePending = useMemo(() => markPending(setPendingPurchases), [markPending]);
+    const markLikePending = useMemo(
+        () => markPending(setPendingLikes),
+        [markPending],
+    );
+    const markBookmarkPending = useMemo(
+        () => markPending(setPendingBookmarks),
+        [markPending],
+    );
+    const markPurchasePending = useMemo(
+        () => markPending(setPendingPurchases),
+        [markPending],
+    );
 
     const findPostById = useCallback(
         (postId: number): FeedPost | null =>
@@ -266,13 +308,18 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
             const optimisticPost: FeedPost = {
                 ...targetPost,
                 has_liked: !currentlyLiked,
-                likes_count: Math.max(0, targetPost.likes_count + (currentlyLiked ? -1 : 1)),
+                likes_count: Math.max(
+                    0,
+                    targetPost.likes_count + (currentlyLiked ? -1 : 1),
+                ),
             };
 
             updatePostInPages(optimisticPost);
 
             try {
-                const updatedPost = currentlyLiked ? await unlikePost(postId) : await likePost(postId);
+                const updatedPost = currentlyLiked
+                    ? await unlikePost(postId)
+                    : await likePost(postId);
                 updatePostInPages({ ...targetPost, ...updatedPost });
                 setError(null);
             } catch (problem) {
@@ -303,7 +350,9 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
                     0,
                     targetPost.bookmark_count + (currentlyBookmarked ? -1 : 1),
                 ),
-                bookmark_id: currentlyBookmarked ? null : targetPost.bookmark_id,
+                bookmark_id: currentlyBookmarked
+                    ? null
+                    : targetPost.bookmark_id,
             };
 
             updatePostInPages(optimisticPost);
@@ -333,7 +382,10 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
                 return;
             }
 
-            if (targetPost.paywall_price === null || !targetPost.paywall_currency) {
+            if (
+                targetPost.paywall_price === null ||
+                !targetPost.paywall_currency
+            ) {
                 handleFeedError(
                     new FeedRequestError(
                         'This post is not available for purchase right now.',
@@ -493,16 +545,13 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
         [findPostById, updatePostInPages],
     );
 
-    const handleCommentsOpenChange = useCallback(
-        (openState: boolean) => {
-            setIsCommentSheetOpen(openState);
+    const handleCommentsOpenChange = useCallback((openState: boolean) => {
+        setIsCommentSheetOpen(openState);
 
-            if (!openState) {
-                setActiveCommentPost(null);
-            }
-        },
-        [],
-    );
+        if (!openState) {
+            setActiveCommentPost(null);
+        }
+    }, []);
 
     return {
         entries,
@@ -528,4 +577,3 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
         handleCommentsOpenChange,
     };
 }
-

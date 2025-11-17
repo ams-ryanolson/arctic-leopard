@@ -16,8 +16,7 @@ class AudienceDecision
         public readonly Post $post,
         public readonly ?User $viewer,
         protected readonly EntitlementService $entitlements,
-    ) {
-    }
+    ) {}
 
     public static function make(Post $post, ?User $viewer): self
     {
@@ -155,4 +154,3 @@ class AudienceDecision
             ->exists();
     }
 }
-

@@ -42,4 +42,3 @@ class LedgerEntryFactory extends Factory
         ];
     }
 }
-

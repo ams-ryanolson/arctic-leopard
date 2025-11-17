@@ -24,7 +24,7 @@ test('story service returns empty array when feature is disabled', function (): 
 
 test('story service can create a story', function (): void {
     Storage::fake('local');
-    
+
     $user = User::factory()->create([
         'profile_completed_at' => now(),
     ]);

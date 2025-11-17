@@ -11,6 +11,7 @@ class PlaybookArticle extends Model
 {
     /** @use HasFactory<\Database\Factories\PlaybookArticleFactory> */
     use HasFactory;
+
     use Likeable;
     use SoftDeletes;
 

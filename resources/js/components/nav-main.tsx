@@ -8,7 +8,6 @@ import {
     SidebarMenuSub,
     SidebarMenuSubButton,
     SidebarMenuSubItem,
-    SidebarMenuAction,
 } from '@/components/ui/sidebar';
 import { resolveUrl } from '@/lib/utils';
 import { type NavItem } from '@/types';
@@ -16,7 +15,13 @@ import { Link, usePage } from '@inertiajs/react';
 import { ChevronDown } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-export function NavMain({ items = [], label = 'Platform' }: { items: NavItem[]; label?: string }) {
+export function NavMain({
+    items = [],
+    label = 'Platform',
+}: {
+    items: NavItem[];
+    label?: string;
+}) {
     const page = usePage();
     const storageKey = 'rk:sidebar:nav:expanded';
     const [expanded, setExpanded] = useState<Record<string, boolean>>(() => {
@@ -45,7 +50,9 @@ export function NavMain({ items = [], label = 'Platform' }: { items: NavItem[]; 
     }, [expanded, storageKey]);
 
     const initialMessagesBadge = useMemo(() => {
-        const candidate = items.find((item) => item.title === 'Messages')?.badge;
+        const candidate = items.find(
+            (item) => item.title === 'Messages',
+        )?.badge;
         if (typeof candidate === 'number') {
             return candidate;
         }
@@ -58,7 +65,9 @@ export function NavMain({ items = [], label = 'Platform' }: { items: NavItem[]; 
         return null;
     }, [items]);
 
-    const [messageBadge, setMessageBadge] = useState<number | null>(initialMessagesBadge);
+    const [messageBadge, setMessageBadge] = useState<number | null>(
+        initialMessagesBadge,
+    );
 
     useEffect(() => {
         setMessageBadge(initialMessagesBadge);
@@ -78,10 +87,16 @@ export function NavMain({ items = [], label = 'Platform' }: { items: NavItem[]; 
             setMessageBadge(detail.count > 0 ? detail.count : null);
         };
 
-        window.addEventListener('messaging:unread-count', handler as EventListener);
+        window.addEventListener(
+            'messaging:unread-count',
+            handler as EventListener,
+        );
 
         return () => {
-            window.removeEventListener('messaging:unread-count', handler as EventListener);
+            window.removeEventListener(
+                'messaging:unread-count',
+                handler as EventListener,
+            );
         };
     }, []);
 
@@ -112,9 +127,7 @@ export function NavMain({ items = [], label = 'Platform' }: { items: NavItem[]; 
     const currentPath = normalizePath(page.url);
 
     const pathDepth = (value: string): number =>
-        normalizePath(value)
-            .split('/')
-            .filter(Boolean).length;
+        normalizePath(value).split('/').filter(Boolean).length;
 
     const matchesTarget = (target: string, allowNested = false): boolean => {
         const normalizedTarget = normalizePath(target);
@@ -140,17 +153,24 @@ export function NavMain({ items = [], label = 'Platform' }: { items: NavItem[]; 
             <SidebarMenu>
                 {items.map((item) => {
                     const resolvedHref = resolveUrl(item.href);
-                    const allowNestedForItem = item.items?.length ? false : pathDepth(resolvedHref) >= 1;
+                    const allowNestedForItem = item.items?.length
+                        ? false
+                        : pathDepth(resolvedHref) >= 1;
                     const childMatch =
                         item.items?.some((child) => {
                             const childHref = resolveUrl(child.href);
-                            return matchesTarget(childHref, pathDepth(childHref) > 1);
+                            return matchesTarget(
+                                childHref,
+                                pathDepth(childHref) > 1,
+                            );
                         }) ?? false;
-                    const isActive = matchesTarget(resolvedHref, allowNestedForItem) || childMatch;
+                    const isActive =
+                        matchesTarget(resolvedHref, allowNestedForItem) ||
+                        childMatch;
                     const isExpanded = expanded[item.title] === true;
                     const dynamicBadge =
                         item.title === 'Messages'
-                            ? messageBadge ?? item.badge
+                            ? (messageBadge ?? item.badge)
                             : item.badge;
 
                     return (
@@ -176,17 +196,30 @@ export function NavMain({ items = [], label = 'Platform' }: { items: NavItem[]; 
                                     {isExpanded ? (
                                         <SidebarMenuSub>
                                             {item.items.map((child) => (
-                                                <SidebarMenuSubItem key={child.title}>
+                                                <SidebarMenuSubItem
+                                                    key={child.title}
+                                                >
                                                     <SidebarMenuSubButton
                                                         asChild
                                                         isActive={matchesTarget(
-                                                            resolveUrl(child.href),
-                                                            pathDepth(child.href) > 1,
+                                                            resolveUrl(
+                                                                child.href,
+                                                            ),
+                                                            pathDepth(
+                                                                child.href,
+                                                            ) > 1,
                                                         )}
                                                     >
-                                                        <Link href={child.href} prefetch>
-                                                            {child.icon && <child.icon />}
-                                                            <span>{child.title}</span>
+                                                        <Link
+                                                            href={child.href}
+                                                            prefetch
+                                                        >
+                                                            {child.icon && (
+                                                                <child.icon />
+                                                            )}
+                                                            <span>
+                                                                {child.title}
+                                                            </span>
                                                         </Link>
                                                     </SidebarMenuSubButton>
                                                 </SidebarMenuSubItem>

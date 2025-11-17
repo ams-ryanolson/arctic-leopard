@@ -12,8 +12,7 @@ class CircleMembershipService
 {
     public function __construct(
         private readonly TimelineCacheService $timelineCache,
-    ) {
-    }
+    ) {}
 
     /**
      * Add the provided user to the circle, retaining any existing membership metadata.
@@ -80,4 +79,3 @@ class CircleMembershipService
             ->exists();
     }
 }
-

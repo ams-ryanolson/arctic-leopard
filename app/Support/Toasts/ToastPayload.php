@@ -15,7 +15,6 @@ use Illuminate\Support\Str;
  *     payload?: array<string, mixed>|null,
  *     meta?: array<string, mixed>|null
  * }
- *
  * @phpstan-type ToastArray array{
  *     id: string,
  *     level: string,
@@ -46,8 +45,7 @@ final class ToastPayload implements Arrayable
         public readonly bool $requiresInteraction = false,
         public readonly ?int $timeoutSeconds = null,
         public readonly array $meta = [],
-    ) {
-    }
+    ) {}
 
     /**
      * @param  array<string, mixed>  $attributes
@@ -121,4 +119,3 @@ final class ToastPayload implements Arrayable
         return null;
     }
 }
-

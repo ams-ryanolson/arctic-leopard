@@ -134,7 +134,7 @@ it('upgrades membership and swaps roles', function (): void {
         ->where('membership_plan_id', $elitePlan->id)
         ->where('status', 'active')
         ->first();
-    
+
     if ($newMembership) {
         $roleUpdateListener = app(\App\Listeners\Memberships\UpdateRoleOnMembershipUpgraded::class);
         $roleUpdateListener->handle(new \App\Events\Memberships\MembershipUpgraded($currentMembership, $newMembership));

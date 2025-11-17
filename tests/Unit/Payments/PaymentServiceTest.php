@@ -4,8 +4,8 @@ use App\Enums\Payments\PaymentIntentStatus;
 use App\Enums\Payments\PaymentRefundStatus;
 use App\Enums\Payments\PaymentStatus;
 use App\Enums\Payments\PaymentType;
-use App\Events\Payments\PaymentCaptured;
 use App\Events\Payments\PaymentCancelled;
+use App\Events\Payments\PaymentCaptured;
 use App\Events\Payments\PaymentIntentCancelled;
 use App\Events\Payments\PaymentIntentCreated;
 use App\Events\Payments\PaymentIntentSucceeded;
@@ -160,5 +160,3 @@ it('refunds a payment and records refund information', function (): void {
 
     Event::assertDispatched(PaymentRefunded::class);
 });
-
-

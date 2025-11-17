@@ -30,4 +30,3 @@ class SubscriptionPlanFeatureFactory extends Factory
         ];
     }
 }
-

@@ -25,4 +25,3 @@ class RefundWishlistPurchaseOnPaymentRefunded implements ShouldQueue
         ])->save();
     }
 }
-

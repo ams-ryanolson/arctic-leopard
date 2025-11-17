@@ -2,7 +2,4 @@
 
 namespace App\Events\Payments;
 
-class PaymentFailed extends PaymentEvent
-{
-}
-
+class PaymentFailed extends PaymentEvent {}

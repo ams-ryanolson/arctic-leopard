@@ -1,7 +1,15 @@
-import AppLayout from '@/layouts/app-layout';
+import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Dialog,
     DialogContent,
@@ -13,15 +21,22 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import InputError from '@/components/input-error';
-import { Head, Link, router, useForm } from '@inertiajs/react';
-import { Gift, Plus, Edit, Trash2, RotateCcw, Users, BarChart3, X } from 'lucide-react';
-import { useState, useCallback } from 'react';
+import { Textarea } from '@/components/ui/textarea';
+import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 import signalsWishlistRoutes from '@/routes/signals/wishlist';
+import { Head, router, useForm } from '@inertiajs/react';
+import {
+    BarChart3,
+    Edit,
+    Gift,
+    Plus,
+    RotateCcw,
+    Trash2,
+    Users,
+} from 'lucide-react';
+import { useCallback, useState } from 'react';
 
 type WishlistItem = {
     id: number;
@@ -96,7 +111,10 @@ interface SignalsWishlistProps {
     status: string;
 }
 
-function formatCurrency(cents: number | null, currency: string | null = 'USD'): string {
+function formatCurrency(
+    cents: number | null,
+    currency: string | null = 'USD',
+): string {
     if (cents === null) {
         return 'N/A';
     }
@@ -123,18 +141,25 @@ function getStatusBadgeClass(status: string): string {
     }
 }
 
-export default function SignalsWishlist({ items: itemsData, analytics, status: initialStatus }: SignalsWishlistProps) {
+export default function SignalsWishlist({
+    items: itemsData,
+    analytics,
+    status: initialStatus,
+}: SignalsWishlistProps) {
     const [selectedStatus, setSelectedStatus] = useState(initialStatus);
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [editItem, setEditItem] = useState<WishlistItem | null>(null);
-    const [contributorsItem, setContributorsItem] = useState<WishlistItem | null>(null);
-    const [contributorsData, setContributorsData] = useState<Array<{
-        buyer_id: number;
-        buyer_name: string;
-        buyer_avatar: string | null;
-        total_contributed: number;
-        contribution_count: number;
-    }>>([]);
+    const [contributorsItem, setContributorsItem] =
+        useState<WishlistItem | null>(null);
+    const [contributorsData, setContributorsData] = useState<
+        Array<{
+            buyer_id: number;
+            buyer_name: string;
+            buyer_avatar: string | null;
+            total_contributed: number;
+            contribution_count: number;
+        }>
+    >([]);
     const [loadingContributors, setLoadingContributors] = useState(false);
 
     const items = itemsData.data;
@@ -176,12 +201,18 @@ export default function SignalsWishlist({ items: itemsData, analytics, status: i
         };
 
         if (createForm.data.is_crowdfunded) {
-            data.goal_amount = createForm.data.goal_amount ? parseInt(createForm.data.goal_amount) * 100 : null;
+            data.goal_amount = createForm.data.goal_amount
+                ? parseInt(createForm.data.goal_amount) * 100
+                : null;
             data.amount = null;
             data.quantity = null;
         } else {
-            data.amount = createForm.data.amount ? parseInt(createForm.data.amount) * 100 : null;
-            data.quantity = createForm.data.quantity ? parseInt(createForm.data.quantity) : null;
+            data.amount = createForm.data.amount
+                ? parseInt(createForm.data.amount) * 100
+                : null;
+            data.quantity = createForm.data.quantity
+                ? parseInt(createForm.data.quantity)
+                : null;
             data.goal_amount = null;
         }
 
@@ -209,10 +240,16 @@ export default function SignalsWishlist({ items: itemsData, analytics, status: i
         };
 
         if (editItem.is_crowdfunded) {
-            data.goal_amount = editForm.data.goal_amount ? parseInt(editForm.data.goal_amount) * 100 : null;
+            data.goal_amount = editForm.data.goal_amount
+                ? parseInt(editForm.data.goal_amount) * 100
+                : null;
         } else {
-            data.amount = editForm.data.amount ? parseInt(editForm.data.amount) * 100 : null;
-            data.quantity = editForm.data.quantity ? parseInt(editForm.data.quantity) : null;
+            data.amount = editForm.data.amount
+                ? parseInt(editForm.data.amount) * 100
+                : null;
+            data.quantity = editForm.data.quantity
+                ? parseInt(editForm.data.quantity)
+                : null;
         }
 
         editForm.put(signalsWishlistRoutes.update.url(editItem.id), {
@@ -226,7 +263,9 @@ export default function SignalsWishlist({ items: itemsData, analytics, status: i
 
     const handleDelete = useCallback(
         (item: WishlistItem) => {
-            if (confirm('Are you sure you want to delete this wishlist item?')) {
+            if (
+                confirm('Are you sure you want to delete this wishlist item?')
+            ) {
                 router.delete(signalsWishlistRoutes.destroy.url(item.id), {
                     preserveScroll: true,
                 });
@@ -237,7 +276,7 @@ export default function SignalsWishlist({ items: itemsData, analytics, status: i
 
     const handleRenew = useCallback(
         (item: WishlistItem) => {
-                router.post(signalsWishlistRoutes.renew.url(item.id), {
+            router.post(signalsWishlistRoutes.renew.url(item.id), {
                 preserveScroll: true,
             });
         },
@@ -255,34 +294,37 @@ export default function SignalsWishlist({ items: itemsData, analytics, status: i
                 url: item.url || '',
                 image_url: item.image_url || '',
                 quantity: item.quantity ? String(item.quantity) : '',
-                goal_amount: item.goal_amount ? String(item.goal_amount / 100) : '',
+                goal_amount: item.goal_amount
+                    ? String(item.goal_amount / 100)
+                    : '',
                 expires_at: item.expires_at ? item.expires_at.slice(0, 16) : '',
             });
         },
         [editForm],
     );
 
-    const openContributorsDialog = useCallback(
-        async (item: WishlistItem) => {
-            setContributorsItem(item);
-            setLoadingContributors(true);
-            try {
-                const response = await fetch(signalsWishlistRoutes.contributors.url(item.id));
-                const result = await response.json();
-                setContributorsData(result.data || []);
-            } catch (error) {
-                console.error('Failed to load contributors:', error);
-                setContributorsData([]);
-            } finally {
-                setLoadingContributors(false);
-            }
-        },
-        [],
-    );
+    const openContributorsDialog = useCallback(async (item: WishlistItem) => {
+        setContributorsItem(item);
+        setLoadingContributors(true);
+        try {
+            const response = await fetch(
+                signalsWishlistRoutes.contributors.url(item.id),
+            );
+            const result = await response.json();
+            setContributorsData(result.data || []);
+        } catch (error) {
+            console.error('Failed to load contributors:', error);
+            setContributorsData([]);
+        } finally {
+            setLoadingContributors(false);
+        }
+    }, []);
 
     const activeItems = items.filter((item) => item.status === 'active');
     const fulfilledItems = items.filter((item) => item.status === 'fulfilled');
-    const pendingItems = items.filter((item) => !item.approved_at && item.status === 'active');
+    const pendingItems = items.filter(
+        (item) => !item.approved_at && item.status === 'active',
+    );
 
     return (
         <AppLayout
@@ -297,10 +339,17 @@ export default function SignalsWishlist({ items: itemsData, analytics, status: i
             <div className="space-y-8 text-white">
                 <header className="flex flex-wrap items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-semibold tracking-tight">Wishlist Manager</h1>
-                        <p className="text-sm text-white/65">Manage your wishlist items and track contributions.</p>
+                        <h1 className="text-2xl font-semibold tracking-tight">
+                            Wishlist Manager
+                        </h1>
+                        <p className="text-sm text-white/65">
+                            Manage your wishlist items and track contributions.
+                        </p>
                     </div>
-                    <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+                    <Dialog
+                        open={createDialogOpen}
+                        onOpenChange={setCreateDialogOpen}
+                    >
                         <DialogTrigger asChild>
                             <Button className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 text-white">
                                 <Plus className="mr-2 size-4" />
@@ -309,133 +358,229 @@ export default function SignalsWishlist({ items: itemsData, analytics, status: i
                         </DialogTrigger>
                         <DialogContent className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-white/10 bg-black/90 text-white shadow-[0_60px_120px_-70px_rgba(249,115,22,0.75)] backdrop-blur-xl">
                             <DialogHeader>
-                                <DialogTitle className="text-2xl font-semibold">Create Wishlist Item</DialogTitle>
+                                <DialogTitle className="text-2xl font-semibold">
+                                    Create Wishlist Item
+                                </DialogTitle>
                                 <DialogDescription className="text-sm text-white/60">
-                                    Add a new item to your wishlist for supporters to contribute to.
+                                    Add a new item to your wishlist for
+                                    supporters to contribute to.
                                 </DialogDescription>
                             </DialogHeader>
                             <div className="space-y-4 py-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="create-title">Title *</Label>
+                                    <Label htmlFor="create-title">
+                                        Title *
+                                    </Label>
                                     <Input
                                         id="create-title"
                                         value={createForm.data.title}
-                                        onChange={(e) => createForm.setData('title', e.target.value)}
+                                        onChange={(e) =>
+                                            createForm.setData(
+                                                'title',
+                                                e.target.value,
+                                            )
+                                        }
                                         className="border-white/20 bg-black/40 text-white placeholder:text-white/40"
                                         placeholder="Custom dyed jute rope set"
                                     />
-                                    <InputError message={createForm.errors.title} />
+                                    <InputError
+                                        message={createForm.errors.title}
+                                    />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="create-description">Description</Label>
+                                    <Label htmlFor="create-description">
+                                        Description
+                                    </Label>
                                     <Textarea
                                         id="create-description"
                                         value={createForm.data.description}
-                                        onChange={(e) => createForm.setData('description', e.target.value)}
+                                        onChange={(e) =>
+                                            createForm.setData(
+                                                'description',
+                                                e.target.value,
+                                            )
+                                        }
                                         className="border-white/20 bg-black/40 text-white placeholder:text-white/40"
                                         placeholder="Describe what this item is for..."
                                         rows={3}
                                     />
-                                    <InputError message={createForm.errors.description} />
+                                    <InputError
+                                        message={createForm.errors.description}
+                                    />
                                 </div>
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-2">
                                         <Checkbox
                                             id="create-crowdfunded"
-                                            checked={createForm.data.is_crowdfunded}
+                                            checked={
+                                                createForm.data.is_crowdfunded
+                                            }
                                             onCheckedChange={(checked) =>
-                                                createForm.setData('is_crowdfunded', checked === true)
+                                                createForm.setData(
+                                                    'is_crowdfunded',
+                                                    checked === true,
+                                                )
                                             }
                                         />
-                                        <Label htmlFor="create-crowdfunded" className="cursor-pointer">
+                                        <Label
+                                            htmlFor="create-crowdfunded"
+                                            className="cursor-pointer"
+                                        >
                                             This is a crowdfunded item
                                         </Label>
                                     </div>
                                 </div>
                                 {createForm.data.is_crowdfunded ? (
                                     <div className="space-y-2">
-                                        <Label htmlFor="create-goal">Goal Amount (USD) *</Label>
+                                        <Label htmlFor="create-goal">
+                                            Goal Amount (USD) *
+                                        </Label>
                                         <Input
                                             id="create-goal"
                                             type="number"
                                             min="1"
                                             step="0.01"
                                             value={createForm.data.goal_amount}
-                                            onChange={(e) => createForm.setData('goal_amount', e.target.value)}
+                                            onChange={(e) =>
+                                                createForm.setData(
+                                                    'goal_amount',
+                                                    e.target.value,
+                                                )
+                                            }
                                             className="border-white/20 bg-black/40 text-white placeholder:text-white/40"
                                             placeholder="100.00"
                                         />
-                                        <InputError message={createForm.errors.goal_amount} />
+                                        <InputError
+                                            message={
+                                                createForm.errors.goal_amount
+                                            }
+                                        />
                                     </div>
                                 ) : (
                                     <>
                                         <div className="grid gap-4 sm:grid-cols-2">
                                             <div className="space-y-2">
-                                                <Label htmlFor="create-amount">Price (USD)</Label>
+                                                <Label htmlFor="create-amount">
+                                                    Price (USD)
+                                                </Label>
                                                 <Input
                                                     id="create-amount"
                                                     type="number"
                                                     min="0.01"
                                                     step="0.01"
-                                                    value={createForm.data.amount}
-                                                    onChange={(e) => createForm.setData('amount', e.target.value)}
+                                                    value={
+                                                        createForm.data.amount
+                                                    }
+                                                    onChange={(e) =>
+                                                        createForm.setData(
+                                                            'amount',
+                                                            e.target.value,
+                                                        )
+                                                    }
                                                     className="border-white/20 bg-black/40 text-white placeholder:text-white/40"
                                                     placeholder="95.00"
                                                 />
-                                                <InputError message={createForm.errors.amount} />
+                                                <InputError
+                                                    message={
+                                                        createForm.errors.amount
+                                                    }
+                                                />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="create-quantity">Quantity *</Label>
+                                                <Label htmlFor="create-quantity">
+                                                    Quantity *
+                                                </Label>
                                                 <Input
                                                     id="create-quantity"
                                                     type="number"
                                                     min="1"
-                                                    value={createForm.data.quantity}
-                                                    onChange={(e) => createForm.setData('quantity', e.target.value)}
+                                                    value={
+                                                        createForm.data.quantity
+                                                    }
+                                                    onChange={(e) =>
+                                                        createForm.setData(
+                                                            'quantity',
+                                                            e.target.value,
+                                                        )
+                                                    }
                                                     className="border-white/20 bg-black/40 text-white placeholder:text-white/40"
                                                     placeholder="5"
                                                 />
-                                                <InputError message={createForm.errors.quantity} />
+                                                <InputError
+                                                    message={
+                                                        createForm.errors
+                                                            .quantity
+                                                    }
+                                                />
                                             </div>
                                         </div>
                                     </>
                                 )}
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
-                                        <Label htmlFor="create-image">Image URL</Label>
+                                        <Label htmlFor="create-image">
+                                            Image URL
+                                        </Label>
                                         <Input
                                             id="create-image"
                                             type="url"
                                             value={createForm.data.image_url}
-                                            onChange={(e) => createForm.setData('image_url', e.target.value)}
+                                            onChange={(e) =>
+                                                createForm.setData(
+                                                    'image_url',
+                                                    e.target.value,
+                                                )
+                                            }
                                             className="border-white/20 bg-black/40 text-white placeholder:text-white/40"
                                             placeholder="https://example.com/image.jpg"
                                         />
-                                        <InputError message={createForm.errors.image_url} />
+                                        <InputError
+                                            message={
+                                                createForm.errors.image_url
+                                            }
+                                        />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="create-url">Item URL</Label>
+                                        <Label htmlFor="create-url">
+                                            Item URL
+                                        </Label>
                                         <Input
                                             id="create-url"
                                             type="url"
                                             value={createForm.data.url}
-                                            onChange={(e) => createForm.setData('url', e.target.value)}
+                                            onChange={(e) =>
+                                                createForm.setData(
+                                                    'url',
+                                                    e.target.value,
+                                                )
+                                            }
                                             className="border-white/20 bg-black/40 text-white placeholder:text-white/40"
                                             placeholder="https://example.com/item"
                                         />
-                                        <InputError message={createForm.errors.url} />
+                                        <InputError
+                                            message={createForm.errors.url}
+                                        />
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="create-expires">Expires At (Optional)</Label>
+                                    <Label htmlFor="create-expires">
+                                        Expires At (Optional)
+                                    </Label>
                                     <Input
                                         id="create-expires"
                                         type="datetime-local"
                                         value={createForm.data.expires_at}
-                                        onChange={(e) => createForm.setData('expires_at', e.target.value)}
+                                        onChange={(e) =>
+                                            createForm.setData(
+                                                'expires_at',
+                                                e.target.value,
+                                            )
+                                        }
                                         className="border-white/20 bg-black/40 text-white placeholder:text-white/40"
                                     />
-                                    <InputError message={createForm.errors.expires_at} />
+                                    <InputError
+                                        message={createForm.errors.expires_at}
+                                    />
                                 </div>
                             </div>
                             <DialogFooter>
@@ -451,14 +596,20 @@ export default function SignalsWishlist({ items: itemsData, analytics, status: i
                                     disabled={createForm.processing}
                                     className="bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 text-white"
                                 >
-                                    {createForm.processing ? 'Creating...' : 'Create Item'}
+                                    {createForm.processing
+                                        ? 'Creating...'
+                                        : 'Create Item'}
                                 </Button>
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
                 </header>
 
-                <Tabs value={selectedStatus} onValueChange={setSelectedStatus} className="space-y-6">
+                <Tabs
+                    value={selectedStatus}
+                    onValueChange={setSelectedStatus}
+                    className="space-y-6"
+                >
                     <TabsList className="grid w-full grid-cols-3 rounded-2xl border border-white/10 bg-black/30 p-1">
                         <TabsTrigger
                             value="active"
@@ -487,7 +638,9 @@ export default function SignalsWishlist({ items: itemsData, analytics, status: i
                                     <Gift className="size-12 text-white/30" />
                                     <p>No active wishlist items.</p>
                                     <Button
-                                        onClick={() => setCreateDialogOpen(true)}
+                                        onClick={() =>
+                                            setCreateDialogOpen(true)
+                                        }
                                         className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 text-white"
                                     >
                                         <Plus className="mr-2 size-4" />
@@ -498,16 +651,30 @@ export default function SignalsWishlist({ items: itemsData, analytics, status: i
                         ) : (
                             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                 {activeItems.map((item) => (
-                                    <Card key={item.id} className="border-white/10 bg-white/5 text-white">
+                                    <Card
+                                        key={item.id}
+                                        className="border-white/10 bg-white/5 text-white"
+                                    >
                                         <CardHeader>
                                             <div className="flex items-start justify-between gap-2">
-                                                <CardTitle className="text-lg font-semibold">{item.title}</CardTitle>
-                                                <Badge className={cn('rounded-full border text-xs', getStatusBadgeClass(item.status))}>
+                                                <CardTitle className="text-lg font-semibold">
+                                                    {item.title}
+                                                </CardTitle>
+                                                <Badge
+                                                    className={cn(
+                                                        'rounded-full border text-xs',
+                                                        getStatusBadgeClass(
+                                                            item.status,
+                                                        ),
+                                                    )}
+                                                >
                                                     {item.status}
                                                 </Badge>
                                             </div>
                                             {item.description && (
-                                                <CardDescription className="text-white/60">{item.description}</CardDescription>
+                                                <CardDescription className="text-white/60">
+                                                    {item.description}
+                                                </CardDescription>
                                             )}
                                         </CardHeader>
                                         <CardContent className="space-y-3">
@@ -522,29 +689,51 @@ export default function SignalsWishlist({ items: itemsData, analytics, status: i
                                                 <div className="space-y-2">
                                                     <div className="flex items-center justify-between text-xs text-white/70">
                                                         <span>Progress</span>
-                                                        <span>{Math.round(item.progress_percentage)}%</span>
+                                                        <span>
+                                                            {Math.round(
+                                                                item.progress_percentage,
+                                                            )}
+                                                            %
+                                                        </span>
                                                     </div>
                                                     <div className="h-2 overflow-hidden rounded-full bg-white/10">
                                                         <div
                                                             className="h-full rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-500"
-                                                            style={{ width: `${Math.min(item.progress_percentage, 100)}%` }}
+                                                            style={{
+                                                                width: `${Math.min(item.progress_percentage, 100)}%`,
+                                                            }}
                                                         />
                                                     </div>
                                                     <p className="text-xs text-white/60">
-                                                        {formatCurrency(item.current_funding, item.currency)} of{' '}
-                                                        {formatCurrency(item.goal_amount, item.currency)} raised
+                                                        {formatCurrency(
+                                                            item.current_funding,
+                                                            item.currency,
+                                                        )}{' '}
+                                                        of{' '}
+                                                        {formatCurrency(
+                                                            item.goal_amount,
+                                                            item.currency,
+                                                        )}{' '}
+                                                        raised
                                                     </p>
                                                 </div>
                                             ) : (
                                                 <p className="text-sm text-white/70">
-                                                    {item.remaining_quantity !== null
+                                                    {item.remaining_quantity !==
+                                                    null
                                                         ? `${item.remaining_quantity} ${item.remaining_quantity === 1 ? 'item' : 'items'} remaining`
-                                                        : formatCurrency(item.amount, item.currency)}
+                                                        : formatCurrency(
+                                                              item.amount,
+                                                              item.currency,
+                                                          )}
                                                 </p>
                                             )}
                                             <div className="flex flex-wrap gap-2 text-xs text-white/60">
                                                 <Badge className="rounded-full border-white/20 bg-white/10">
-                                                    {item.purchase_count} {item.purchase_count === 1 ? 'purchase' : 'purchases'}
+                                                    {item.purchase_count}{' '}
+                                                    {item.purchase_count === 1
+                                                        ? 'purchase'
+                                                        : 'purchases'}
                                                 </Badge>
                                             </div>
                                         </CardContent>
@@ -552,7 +741,9 @@ export default function SignalsWishlist({ items: itemsData, analytics, status: i
                                             <Button
                                                 size="sm"
                                                 variant="outline"
-                                                onClick={() => openEditDialog(item)}
+                                                onClick={() =>
+                                                    openEditDialog(item)
+                                                }
                                                 className="border-white/20 text-white/80"
                                             >
                                                 <Edit className="mr-1 size-3" />
@@ -561,7 +752,9 @@ export default function SignalsWishlist({ items: itemsData, analytics, status: i
                                             <Button
                                                 size="sm"
                                                 variant="outline"
-                                                onClick={() => openContributorsDialog(item)}
+                                                onClick={() =>
+                                                    openContributorsDialog(item)
+                                                }
                                                 className="border-white/20 text-white/80"
                                             >
                                                 <Users className="mr-1 size-3" />
@@ -570,7 +763,13 @@ export default function SignalsWishlist({ items: itemsData, analytics, status: i
                                             <Button
                                                 size="sm"
                                                 variant="outline"
-                                                onClick={() => router.visit(signalsWishlistRoutes.analytics.url(item.id))}
+                                                onClick={() =>
+                                                    router.visit(
+                                                        signalsWishlistRoutes.analytics.url(
+                                                            item.id,
+                                                        ),
+                                                    )
+                                                }
                                                 className="border-white/20 text-white/80"
                                             >
                                                 <BarChart3 className="mr-1 size-3" />
@@ -579,7 +778,9 @@ export default function SignalsWishlist({ items: itemsData, analytics, status: i
                                             <Button
                                                 size="sm"
                                                 variant="ghost"
-                                                onClick={() => handleDelete(item)}
+                                                onClick={() =>
+                                                    handleDelete(item)
+                                                }
                                                 className="text-red-400 hover:text-red-300"
                                             >
                                                 <Trash2 className="mr-1 size-3" />
@@ -596,31 +797,52 @@ export default function SignalsWishlist({ items: itemsData, analytics, status: i
                         {fulfilledItems.length === 0 ? (
                             <Card className="border-white/10 bg-white/5">
                                 <CardContent className="flex flex-col items-center gap-3 p-8 text-center text-white/70">
-                                    <p>No fulfilled items. Renew items to make them active again.</p>
+                                    <p>
+                                        No fulfilled items. Renew items to make
+                                        them active again.
+                                    </p>
                                 </CardContent>
                             </Card>
                         ) : (
                             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                 {fulfilledItems.map((item) => (
-                                    <Card key={item.id} className="border-white/10 bg-white/5 text-white">
+                                    <Card
+                                        key={item.id}
+                                        className="border-white/10 bg-white/5 text-white"
+                                    >
                                         <CardHeader>
                                             <div className="flex items-start justify-between gap-2">
-                                                <CardTitle className="text-lg font-semibold">{item.title}</CardTitle>
-                                                <Badge className={cn('rounded-full border text-xs', getStatusBadgeClass(item.status))}>
+                                                <CardTitle className="text-lg font-semibold">
+                                                    {item.title}
+                                                </CardTitle>
+                                                <Badge
+                                                    className={cn(
+                                                        'rounded-full border text-xs',
+                                                        getStatusBadgeClass(
+                                                            item.status,
+                                                        ),
+                                                    )}
+                                                >
                                                     Fulfilled
                                                 </Badge>
                                             </div>
                                         </CardHeader>
                                         <CardContent>
                                             <p className="text-sm text-white/70">
-                                                {item.purchase_count} {item.purchase_count === 1 ? 'purchase' : 'purchases'} made
+                                                {item.purchase_count}{' '}
+                                                {item.purchase_count === 1
+                                                    ? 'purchase'
+                                                    : 'purchases'}{' '}
+                                                made
                                             </p>
                                         </CardContent>
                                         <CardFooter>
                                             <Button
                                                 size="sm"
                                                 variant="outline"
-                                                onClick={() => handleRenew(item)}
+                                                onClick={() =>
+                                                    handleRenew(item)
+                                                }
                                                 className="border-white/20 text-white/80"
                                             >
                                                 <RotateCcw className="mr-1 size-3" />
@@ -643,9 +865,14 @@ export default function SignalsWishlist({ items: itemsData, analytics, status: i
                         ) : (
                             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                 {pendingItems.map((item) => (
-                                    <Card key={item.id} className="border-white/10 bg-white/5 text-white">
+                                    <Card
+                                        key={item.id}
+                                        className="border-white/10 bg-white/5 text-white"
+                                    >
                                         <CardHeader>
-                                            <CardTitle className="text-lg font-semibold">{item.title}</CardTitle>
+                                            <CardTitle className="text-lg font-semibold">
+                                                {item.title}
+                                            </CardTitle>
                                             <CardDescription className="text-white/60">
                                                 Waiting for admin approval
                                             </CardDescription>
@@ -659,29 +886,51 @@ export default function SignalsWishlist({ items: itemsData, analytics, status: i
 
                 <Card className="border-white/10 bg-white/5 text-white">
                     <CardHeader>
-                        <CardTitle className="text-xl font-semibold">Analytics Overview</CardTitle>
-                        <CardDescription className="text-white/60">Summary of your wishlist performance</CardDescription>
+                        <CardTitle className="text-xl font-semibold">
+                            Analytics Overview
+                        </CardTitle>
+                        <CardDescription className="text-white/60">
+                            Summary of your wishlist performance
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                             <div>
-                                <p className="text-xs uppercase tracking-[0.3em] text-white/50">Total Items</p>
-                                <p className="mt-2 text-2xl font-semibold">{analytics.total_items}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs uppercase tracking-[0.3em] text-white/50">Total Contributions</p>
+                                <p className="text-xs tracking-[0.3em] text-white/50 uppercase">
+                                    Total Items
+                                </p>
                                 <p className="mt-2 text-2xl font-semibold">
-                                    {formatCurrency(analytics.total_contributions, 'USD')}
+                                    {analytics.total_items}
                                 </p>
                             </div>
                             <div>
-                                <p className="text-xs uppercase tracking-[0.3em] text-white/50">Total Contributors</p>
-                                <p className="mt-2 text-2xl font-semibold">{analytics.total_contributors}</p>
+                                <p className="text-xs tracking-[0.3em] text-white/50 uppercase">
+                                    Total Contributions
+                                </p>
+                                <p className="mt-2 text-2xl font-semibold">
+                                    {formatCurrency(
+                                        analytics.total_contributions,
+                                        'USD',
+                                    )}
+                                </p>
                             </div>
                             <div>
-                                <p className="text-xs uppercase tracking-[0.3em] text-white/50">Avg Contribution</p>
+                                <p className="text-xs tracking-[0.3em] text-white/50 uppercase">
+                                    Total Contributors
+                                </p>
                                 <p className="mt-2 text-2xl font-semibold">
-                                    {formatCurrency(analytics.average_contribution, 'USD')}
+                                    {analytics.total_contributors}
+                                </p>
+                            </div>
+                            <div>
+                                <p className="text-xs tracking-[0.3em] text-white/50 uppercase">
+                                    Avg Contribution
+                                </p>
+                                <p className="mt-2 text-2xl font-semibold">
+                                    {formatCurrency(
+                                        analytics.average_contribution,
+                                        'USD',
+                                    )}
                                 </p>
                             </div>
                         </div>
@@ -689,11 +938,18 @@ export default function SignalsWishlist({ items: itemsData, analytics, status: i
                 </Card>
 
                 {editItem && (
-                    <Dialog open={!!editItem} onOpenChange={(open) => !open && setEditItem(null)}>
+                    <Dialog
+                        open={!!editItem}
+                        onOpenChange={(open) => !open && setEditItem(null)}
+                    >
                         <DialogContent className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-white/10 bg-black/90 text-white shadow-[0_60px_120px_-70px_rgba(249,115,22,0.75)] backdrop-blur-xl">
                             <DialogHeader>
-                                <DialogTitle className="text-2xl font-semibold">Edit Wishlist Item</DialogTitle>
-                                <DialogDescription className="text-sm text-white/60">Update your wishlist item details.</DialogDescription>
+                                <DialogTitle className="text-2xl font-semibold">
+                                    Edit Wishlist Item
+                                </DialogTitle>
+                                <DialogDescription className="text-sm text-white/60">
+                                    Update your wishlist item details.
+                                </DialogDescription>
                             </DialogHeader>
                             <div className="space-y-4 py-4">
                                 <div className="space-y-2">
@@ -701,99 +957,173 @@ export default function SignalsWishlist({ items: itemsData, analytics, status: i
                                     <Input
                                         id="edit-title"
                                         value={editForm.data.title}
-                                        onChange={(e) => editForm.setData('title', e.target.value)}
+                                        onChange={(e) =>
+                                            editForm.setData(
+                                                'title',
+                                                e.target.value,
+                                            )
+                                        }
                                         className="border-white/20 bg-black/40 text-white placeholder:text-white/40"
                                     />
-                                    <InputError message={editForm.errors.title} />
+                                    <InputError
+                                        message={editForm.errors.title}
+                                    />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="edit-description">Description</Label>
+                                    <Label htmlFor="edit-description">
+                                        Description
+                                    </Label>
                                     <Textarea
                                         id="edit-description"
                                         value={editForm.data.description}
-                                        onChange={(e) => editForm.setData('description', e.target.value)}
+                                        onChange={(e) =>
+                                            editForm.setData(
+                                                'description',
+                                                e.target.value,
+                                            )
+                                        }
                                         className="border-white/20 bg-black/40 text-white placeholder:text-white/40"
                                         rows={3}
                                     />
-                                    <InputError message={editForm.errors.description} />
+                                    <InputError
+                                        message={editForm.errors.description}
+                                    />
                                 </div>
                                 {editItem.is_crowdfunded ? (
                                     <div className="space-y-2">
-                                        <Label htmlFor="edit-goal">Goal Amount (USD)</Label>
+                                        <Label htmlFor="edit-goal">
+                                            Goal Amount (USD)
+                                        </Label>
                                         <Input
                                             id="edit-goal"
                                             type="number"
                                             min="1"
                                             step="0.01"
                                             value={editForm.data.goal_amount}
-                                            onChange={(e) => editForm.setData('goal_amount', e.target.value)}
+                                            onChange={(e) =>
+                                                editForm.setData(
+                                                    'goal_amount',
+                                                    e.target.value,
+                                                )
+                                            }
                                             className="border-white/20 bg-black/40 text-white placeholder:text-white/40"
                                         />
-                                        <InputError message={editForm.errors.goal_amount} />
+                                        <InputError
+                                            message={
+                                                editForm.errors.goal_amount
+                                            }
+                                        />
                                     </div>
                                 ) : (
                                     <div className="grid gap-4 sm:grid-cols-2">
                                         <div className="space-y-2">
-                                            <Label htmlFor="edit-amount">Price (USD)</Label>
+                                            <Label htmlFor="edit-amount">
+                                                Price (USD)
+                                            </Label>
                                             <Input
                                                 id="edit-amount"
                                                 type="number"
                                                 min="0.01"
                                                 step="0.01"
                                                 value={editForm.data.amount}
-                                                onChange={(e) => editForm.setData('amount', e.target.value)}
+                                                onChange={(e) =>
+                                                    editForm.setData(
+                                                        'amount',
+                                                        e.target.value,
+                                                    )
+                                                }
                                                 className="border-white/20 bg-black/40 text-white placeholder:text-white/40"
                                             />
-                                            <InputError message={editForm.errors.amount} />
+                                            <InputError
+                                                message={editForm.errors.amount}
+                                            />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="edit-quantity">Quantity</Label>
+                                            <Label htmlFor="edit-quantity">
+                                                Quantity
+                                            </Label>
                                             <Input
                                                 id="edit-quantity"
                                                 type="number"
                                                 min="1"
                                                 value={editForm.data.quantity}
-                                                onChange={(e) => editForm.setData('quantity', e.target.value)}
+                                                onChange={(e) =>
+                                                    editForm.setData(
+                                                        'quantity',
+                                                        e.target.value,
+                                                    )
+                                                }
                                                 className="border-white/20 bg-black/40 text-white placeholder:text-white/40"
                                             />
-                                            <InputError message={editForm.errors.quantity} />
+                                            <InputError
+                                                message={
+                                                    editForm.errors.quantity
+                                                }
+                                            />
                                         </div>
                                     </div>
                                 )}
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
-                                        <Label htmlFor="edit-image">Image URL</Label>
+                                        <Label htmlFor="edit-image">
+                                            Image URL
+                                        </Label>
                                         <Input
                                             id="edit-image"
                                             type="url"
                                             value={editForm.data.image_url}
-                                            onChange={(e) => editForm.setData('image_url', e.target.value)}
+                                            onChange={(e) =>
+                                                editForm.setData(
+                                                    'image_url',
+                                                    e.target.value,
+                                                )
+                                            }
                                             className="border-white/20 bg-black/40 text-white placeholder:text-white/40"
                                         />
-                                        <InputError message={editForm.errors.image_url} />
+                                        <InputError
+                                            message={editForm.errors.image_url}
+                                        />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="edit-url">Item URL</Label>
+                                        <Label htmlFor="edit-url">
+                                            Item URL
+                                        </Label>
                                         <Input
                                             id="edit-url"
                                             type="url"
                                             value={editForm.data.url}
-                                            onChange={(e) => editForm.setData('url', e.target.value)}
+                                            onChange={(e) =>
+                                                editForm.setData(
+                                                    'url',
+                                                    e.target.value,
+                                                )
+                                            }
                                             className="border-white/20 bg-black/40 text-white placeholder:text-white/40"
                                         />
-                                        <InputError message={editForm.errors.url} />
+                                        <InputError
+                                            message={editForm.errors.url}
+                                        />
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="edit-expires">Expires At (Optional)</Label>
+                                    <Label htmlFor="edit-expires">
+                                        Expires At (Optional)
+                                    </Label>
                                     <Input
                                         id="edit-expires"
                                         type="datetime-local"
                                         value={editForm.data.expires_at}
-                                        onChange={(e) => editForm.setData('expires_at', e.target.value)}
+                                        onChange={(e) =>
+                                            editForm.setData(
+                                                'expires_at',
+                                                e.target.value,
+                                            )
+                                        }
                                         className="border-white/20 bg-black/40 text-white placeholder:text-white/40"
                                     />
-                                    <InputError message={editForm.errors.expires_at} />
+                                    <InputError
+                                        message={editForm.errors.expires_at}
+                                    />
                                 </div>
                             </div>
                             <DialogFooter>
@@ -809,7 +1139,9 @@ export default function SignalsWishlist({ items: itemsData, analytics, status: i
                                     disabled={editForm.processing}
                                     className="bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 text-white"
                                 >
-                                    {editForm.processing ? 'Updating...' : 'Update Item'}
+                                    {editForm.processing
+                                        ? 'Updating...'
+                                        : 'Update Item'}
                                 </Button>
                             </DialogFooter>
                         </DialogContent>
@@ -817,17 +1149,27 @@ export default function SignalsWishlist({ items: itemsData, analytics, status: i
                 )}
 
                 {contributorsItem && (
-                    <Dialog open={!!contributorsItem} onOpenChange={(open) => !open && setContributorsItem(null)}>
+                    <Dialog
+                        open={!!contributorsItem}
+                        onOpenChange={(open) =>
+                            !open && setContributorsItem(null)
+                        }
+                    >
                         <DialogContent className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-white/10 bg-black/90 text-white shadow-[0_60px_120px_-70px_rgba(249,115,22,0.75)] backdrop-blur-xl">
                             <DialogHeader>
-                                <DialogTitle className="text-2xl font-semibold">Contributors</DialogTitle>
+                                <DialogTitle className="text-2xl font-semibold">
+                                    Contributors
+                                </DialogTitle>
                                 <DialogDescription className="text-sm text-white/60">
-                                    View all contributors for {contributorsItem.title}
+                                    View all contributors for{' '}
+                                    {contributorsItem.title}
                                 </DialogDescription>
                             </DialogHeader>
                             <div className="space-y-3 py-4">
                                 {loadingContributors ? (
-                                    <p className="text-center text-white/60">Loading contributors...</p>
+                                    <p className="text-center text-white/60">
+                                        Loading contributors...
+                                    </p>
                                 ) : contributorsData.length > 0 ? (
                                     contributorsData.map((contributor) => (
                                         <div
@@ -838,33 +1180,51 @@ export default function SignalsWishlist({ items: itemsData, analytics, status: i
                                                 <div className="size-10 overflow-hidden rounded-full border border-white/10 bg-white/10">
                                                     {contributor.buyer_avatar ? (
                                                         <img
-                                                            src={contributor.buyer_avatar}
-                                                            alt={contributor.buyer_name}
+                                                            src={
+                                                                contributor.buyer_avatar
+                                                            }
+                                                            alt={
+                                                                contributor.buyer_name
+                                                            }
                                                             className="size-full object-cover"
                                                         />
                                                     ) : (
                                                         <div className="flex size-full items-center justify-center text-xs text-white/60">
-                                                            {contributor.buyer_name.charAt(0).toUpperCase()}
+                                                            {contributor.buyer_name
+                                                                .charAt(0)
+                                                                .toUpperCase()}
                                                         </div>
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <p className="font-semibold text-white">{contributor.buyer_name}</p>
+                                                    <p className="font-semibold text-white">
+                                                        {contributor.buyer_name}
+                                                    </p>
                                                     <p className="text-xs text-white/60">
-                                                        {contributor.contribution_count}{' '}
-                                                        {contributor.contribution_count === 1 ? 'contribution' : 'contributions'}
+                                                        {
+                                                            contributor.contribution_count
+                                                        }{' '}
+                                                        {contributor.contribution_count ===
+                                                        1
+                                                            ? 'contribution'
+                                                            : 'contributions'}
                                                     </p>
                                                 </div>
                                             </div>
                                             <div className="text-right">
                                                 <p className="font-semibold text-emerald-200">
-                                                    {formatCurrency(contributor.total_contributed, 'USD')}
+                                                    {formatCurrency(
+                                                        contributor.total_contributed,
+                                                        'USD',
+                                                    )}
                                                 </p>
                                             </div>
                                         </div>
                                     ))
                                 ) : (
-                                    <p className="text-center text-white/60">No contributors yet.</p>
+                                    <p className="text-center text-white/60">
+                                        No contributors yet.
+                                    </p>
                                 )}
                             </div>
                             <DialogFooter>
@@ -883,4 +1243,3 @@ export default function SignalsWishlist({ items: itemsData, analytics, status: i
         </AppLayout>
     );
 }
-

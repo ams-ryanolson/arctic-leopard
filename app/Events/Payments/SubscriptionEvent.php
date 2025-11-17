@@ -11,9 +11,7 @@ abstract class SubscriptionEvent
     use Dispatchable;
     use SerializesModels;
 
-    public function __construct(public PaymentSubscription $subscription)
-    {
-    }
+    public function __construct(public PaymentSubscription $subscription) {}
 
     /**
      * @return array{
@@ -39,4 +37,3 @@ abstract class SubscriptionEvent
         ];
     }
 }
-

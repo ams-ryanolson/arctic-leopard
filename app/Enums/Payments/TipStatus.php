@@ -14,4 +14,3 @@ enum TipStatus: string
     case Cancelled = 'cancelled';
     case Failed = 'failed';
 }
-

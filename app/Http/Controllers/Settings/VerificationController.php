@@ -62,20 +62,20 @@ class VerificationController extends Controller
 
         try {
             $user = $request->user();
-            
+
             \Log::info('VerificationController::createSession - Initiating verification', [
                 'user_id' => $user->getKey(),
             ]);
 
             $verification = $this->verificationService->initiateVerification($user);
-            
+
             \Log::info('VerificationController::createSession - Verification created', [
                 'verification_id' => $verification->getKey(),
                 'provider_applicant_id' => $verification->provider_applicant_id,
             ]);
 
             $accessToken = $this->sumsubService->generateAccessToken($verification->provider_applicant_id);
-            
+
             \Log::info('VerificationController::createSession - Access token generated', [
                 'verification_id' => $verification->getKey(),
                 'access_token_length' => strlen($accessToken),
@@ -91,7 +91,7 @@ class VerificationController extends Controller
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            
+
             throw $e;
         }
     }

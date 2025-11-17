@@ -5,9 +5,9 @@ namespace App\Listeners;
 use App\Enums\PostAudience;
 use App\Events\PostAudienceChanged;
 use App\Jobs\TimelineFanOutJob;
+use App\Models\Timeline;
 use App\Services\Cache\PostCacheService;
 use App\Services\Cache\TimelineCacheService;
-use App\Models\Timeline;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 
@@ -20,8 +20,7 @@ class RefreshTimelineForAudienceChange implements ShouldQueue
     public function __construct(
         private TimelineCacheService $timelineCache,
         private PostCacheService $postCache,
-    ) {
-    }
+    ) {}
 
     public function handle(PostAudienceChanged $event): void
     {

@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Loader2, RefreshCw, Star, Trash2, UploadCloud } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { cn } from '@/lib/utils';
 import { getCsrfToken } from '@/lib/csrf';
+import { cn } from '@/lib/utils';
 
 export type UploadStatus = 'idle' | 'uploading' | 'uploaded' | 'error';
 
@@ -77,10 +77,15 @@ export default function FeedMediaUploader({
     const dropRef = useRef<HTMLDivElement | null>(null);
     const [items, setItems] = useState<UploadItem[]>([]);
     const itemsRef = useRef<UploadItem[]>([]);
-    const [validationMessage, setValidationMessage] = useState<string | null>(null);
+    const [validationMessage, setValidationMessage] = useState<string | null>(
+        null,
+    );
     const [isDragging, setIsDragging] = useState(false);
     const acceptAttribute = useMemo(
-        () => (acceptedMimeTypes && acceptedMimeTypes.length ? acceptedMimeTypes.join(',') : undefined),
+        () =>
+            acceptedMimeTypes && acceptedMimeTypes.length
+                ? acceptedMimeTypes.join(',')
+                : undefined,
         [acceptedMimeTypes],
     );
     const atCapacity = items.length >= maxFiles;
@@ -88,15 +93,15 @@ export default function FeedMediaUploader({
 
     useEffect(() => {
         if (!value || value.length === 0) {
-             
             setItems([]);
             return;
         }
 
-         
         setItems(
             value.map((uploaded, index) => ({
-                clientId: uploaded.clientId ?? `${uploaded.identifier ?? `uploaded-${index}`}`,
+                clientId:
+                    uploaded.clientId ??
+                    `${uploaded.identifier ?? `uploaded-${index}`}`,
                 previewUrl: uploaded.thumbnail_url ?? uploaded.url ?? '',
                 status: 'uploaded' as UploadStatus,
                 progress: 100,
@@ -153,7 +158,10 @@ export default function FeedMediaUploader({
     );
 
     const finalizeSuccess = useCallback(
-        (clientId: string, payload: UploadResponsePayload | null | undefined) => {
+        (
+            clientId: string,
+            payload: UploadResponsePayload | null | undefined,
+        ) => {
             const response: FeedUploadedMedia = {
                 clientId,
                 identifier: payload?.id ?? null,
@@ -196,7 +204,12 @@ export default function FeedMediaUploader({
     const beginUpload = useCallback(
         (clientId: string, file: File) => {
             const xhr = new XMLHttpRequest();
-            console.info('[FeedMediaUploader] begin upload', { clientId, name: file.name, size: file.size, type: file.type });
+            console.info('[FeedMediaUploader] begin upload', {
+                clientId,
+                name: file.name,
+                size: file.size,
+                type: file.type,
+            });
             const headers: Record<string, string> = {
                 'X-Requested-With': 'XMLHttpRequest',
             };
@@ -216,7 +229,12 @@ export default function FeedMediaUploader({
             });
 
             xhr.upload.onprogress = (event) => {
-                console.debug('[FeedMediaUploader] upload progress event', { clientId, loaded: event.loaded, total: event.total, lengthComputable: event.lengthComputable });
+                console.debug('[FeedMediaUploader] upload progress event', {
+                    clientId,
+                    loaded: event.loaded,
+                    total: event.total,
+                    lengthComputable: event.lengthComputable,
+                });
                 if (!event.lengthComputable) {
                     updateItem(clientId, (item) => ({
                         ...item,
@@ -233,22 +251,31 @@ export default function FeedMediaUploader({
             };
 
             xhr.onload = () => {
-                console.info('[FeedMediaUploader] upload load', { clientId, status: xhr.status, response: xhr.response ?? xhr.responseText });
+                console.info('[FeedMediaUploader] upload load', {
+                    clientId,
+                    status: xhr.status,
+                    response: xhr.response ?? xhr.responseText,
+                });
                 if (xhr.status >= 200 && xhr.status < 300) {
-                    const payload = xhr.response ?? (() => {
-                        try {
-                            return JSON.parse(xhr.responseText);
-                        } catch {
-                            return null;
-                        }
-                    })();
+                    const payload =
+                        xhr.response ??
+                        (() => {
+                            try {
+                                return JSON.parse(xhr.responseText);
+                            } catch {
+                                return null;
+                            }
+                        })();
 
                     if (payload && typeof payload === 'object') {
                         finalizeSuccess(clientId, payload);
                         return;
                     }
 
-                    finalizeError(clientId, 'Upload succeeded but response was malformed.');
+                    finalizeError(
+                        clientId,
+                        'Upload succeeded but response was malformed.',
+                    );
                     return;
                 }
 
@@ -262,7 +289,9 @@ export default function FeedMediaUploader({
 
                 const message =
                     errorPayload?.message ??
-                    (errorPayload?.errors ? Object.values(errorPayload.errors).flat().join(' ') : null) ??
+                    (errorPayload?.errors
+                        ? Object.values(errorPayload.errors).flat().join(' ')
+                        : null) ??
                     'Upload failed. Please try again.';
 
                 finalizeError(clientId, message);
@@ -274,7 +303,9 @@ export default function FeedMediaUploader({
             };
 
             xhr.onabort = () => {
-                console.warn('[FeedMediaUploader] upload aborted', { clientId });
+                console.warn('[FeedMediaUploader] upload aborted', {
+                    clientId,
+                });
                 finalizeError(clientId, 'Upload cancelled.');
             };
 
@@ -333,7 +364,10 @@ export default function FeedMediaUploader({
         };
 
         const handleWindowDragLeave = (event: DragEvent) => {
-            if (dropRef.current && !dropRef.current.contains(event.relatedTarget as Node)) {
+            if (
+                dropRef.current &&
+                !dropRef.current.contains(event.relatedTarget as Node)
+            ) {
                 setIsDragging(false);
             }
         };
@@ -358,7 +392,9 @@ export default function FeedMediaUploader({
     const handleFiles = useCallback(
         (fileList: FileList | null) => {
             if (!fileList || dropDisabled) {
-                console.warn('[FeedMediaUploader] handleFiles skipped', { reason: dropDisabled ? 'disabled-or-capacity' : 'no-files' });
+                console.warn('[FeedMediaUploader] handleFiles skipped', {
+                    reason: dropDisabled ? 'disabled-or-capacity' : 'no-files',
+                });
                 return;
             }
 
@@ -366,7 +402,10 @@ export default function FeedMediaUploader({
 
             if (availableSlots <= 0) {
                 setValidationMessage(`You can upload up to ${maxFiles} files.`);
-                console.warn('[FeedMediaUploader] handleFiles capacity reached', { maxFiles, current: items.length });
+                console.warn(
+                    '[FeedMediaUploader] handleFiles capacity reached',
+                    { maxFiles, current: items.length },
+                );
                 return;
             }
 
@@ -411,7 +450,12 @@ export default function FeedMediaUploader({
             });
 
             if (invalidFiles.length) {
-                console.warn('[FeedMediaUploader] unsupported file types', { files: invalidFiles.map((file) => ({ name: file.name, type: file.type })) });
+                console.warn('[FeedMediaUploader] unsupported file types', {
+                    files: invalidFiles.map((file) => ({
+                        name: file.name,
+                        type: file.type,
+                    })),
+                });
                 setValidationMessage(
                     `Unsupported file type: ${invalidFiles.map((file) => file.name).join(', ')}.`,
                 );
@@ -423,11 +467,18 @@ export default function FeedMediaUploader({
             }
 
             setValidationMessage(null);
-            console.info('[FeedMediaUploader] starting uploads', { files: validFiles.map((file) => ({ name: file.name, size: file.size, type: file.type })) });
+            console.info('[FeedMediaUploader] starting uploads', {
+                files: validFiles.map((file) => ({
+                    name: file.name,
+                    size: file.size,
+                    type: file.type,
+                })),
+            });
 
             const newUploadItems = validFiles.map((file, index) => {
                 const clientId =
-                    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+                    typeof crypto !== 'undefined' &&
+                    typeof crypto.randomUUID === 'function'
                         ? crypto.randomUUID()
                         : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
                 const url = URL.createObjectURL(file);
@@ -452,21 +503,28 @@ export default function FeedMediaUploader({
                 return next;
             });
 
-            console.info('[FeedMediaUploader] queued uploads', newUploadItems.map(({ clientId, file }) => ({
-                clientId,
-                name: file.name,
-                size: file.size,
-                type: file.type,
-            })));
+            console.info(
+                '[FeedMediaUploader] queued uploads',
+                newUploadItems.map(({ clientId, file }) => ({
+                    clientId,
+                    name: file.name,
+                    size: file.size,
+                    type: file.type,
+                })),
+            );
 
-            newUploadItems.forEach(({ clientId, file }) => beginUpload(clientId, file));
+            newUploadItems.forEach(({ clientId, file }) =>
+                beginUpload(clientId, file),
+            );
         },
         [acceptedMimeTypes, beginUpload, dropDisabled, items.length, maxFiles],
     );
 
     const handleInputChange = useCallback(
         (event: React.ChangeEvent<HTMLInputElement>) => {
-            console.info('[FeedMediaUploader] input change', { fileCount: event.target.files?.length ?? 0 });
+            console.info('[FeedMediaUploader] input change', {
+                fileCount: event.target.files?.length ?? 0,
+            });
             handleFiles(event.target.files);
             event.target.value = '';
         },
@@ -481,7 +539,9 @@ export default function FeedMediaUploader({
 
             event.preventDefault();
             setIsDragging(false);
-            console.info('[FeedMediaUploader] drop event', { fileCount: event.dataTransfer.files?.length ?? 0 });
+            console.info('[FeedMediaUploader] drop event', {
+                fileCount: event.dataTransfer.files?.length ?? 0,
+            });
             handleFiles(event.dataTransfer.files);
         },
         [dropDisabled, handleFiles],
@@ -545,8 +605,11 @@ export default function FeedMediaUploader({
                 className={cn(
                     'relative flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/20 bg-white/5 px-6 py-10 text-center transition',
                     dropDisabled && 'cursor-not-allowed opacity-60',
-                    !dropDisabled && 'cursor-pointer hover:border-white/40 hover:bg-white/10',
-                    isDragging && !dropDisabled && 'border-white/60 bg-white/15',
+                    !dropDisabled &&
+                        'cursor-pointer hover:border-white/40 hover:bg-white/10',
+                    isDragging &&
+                        !dropDisabled &&
+                        'border-white/60 bg-white/15',
                 )}
                 onClick={dropDisabled ? undefined : handleBrowse}
                 onDragOver={(event) => {
@@ -565,10 +628,14 @@ export default function FeedMediaUploader({
             >
                 <UploadCloud className="mb-4 size-10 text-white/50" />
                 <p className="text-sm text-white/70">
-                    Drag &amp; drop media, or <span className="text-white underline">browse</span>
+                    Drag &amp; drop media, or{' '}
+                    <span className="text-white underline">browse</span>
                 </p>
                 <p className="mt-2 text-xs text-white/40">
-                    {maxFiles} files max{acceptedMimeTypes?.length ? ` · ${acceptedMimeTypes.join(', ')}` : ''}
+                    {maxFiles} files max
+                    {acceptedMimeTypes?.length
+                        ? ` · ${acceptedMimeTypes.join(', ')}`
+                        : ''}
                 </p>
                 <input
                     ref={inputRef}
@@ -582,7 +649,9 @@ export default function FeedMediaUploader({
             </div>
 
             {validationMessage && (
-                <p className="px-2 text-xs text-rose-300">{validationMessage}</p>
+                <p className="px-2 text-xs text-rose-300">
+                    {validationMessage}
+                </p>
             )}
 
             {previews.length > 0 && (
@@ -595,7 +664,10 @@ export default function FeedMediaUploader({
                             {item.previewUrl ? (
                                 <img
                                     src={item.previewUrl}
-                                    alt={item.response?.mime_type ?? 'Selected media'}
+                                    alt={
+                                        item.response?.mime_type ??
+                                        'Selected media'
+                                    }
                                     className="h-48 w-full object-cover sm:h-56"
                                 />
                             ) : (
@@ -606,30 +678,46 @@ export default function FeedMediaUploader({
 
                             <div className="absolute inset-0 flex flex-col justify-between p-3">
                                 <div className="flex items-start justify-between gap-2">
-                                    <span className="rounded-full bg-black/60 px-2 py-1 text-[0.65rem] uppercase tracking-[0.3em] text-white/60 backdrop-blur">
+                                    <span className="rounded-full bg-black/60 px-2 py-1 text-[0.65rem] tracking-[0.3em] text-white/60 uppercase backdrop-blur">
                                         {item.status === 'uploading'
                                             ? `Uploading ${item.progress}%`
                                             : item.status === 'error'
-                                                ? 'Failed'
-                                                : 'Ready'}
+                                              ? 'Failed'
+                                              : 'Ready'}
                                     </span>
                                     <div className="flex items-center gap-2">
                                         <button
                                             type="button"
                                             className={cn(
                                                 'rounded-full bg-black/50 p-1 text-white/70 transition hover:bg-black/70 hover:text-amber-300',
-                                                item.isPrimary && 'text-amber-300',
+                                                item.isPrimary &&
+                                                    'text-amber-300',
                                             )}
-                                            onClick={() => setPrimary(item.clientId)}
+                                            onClick={() =>
+                                                setPrimary(item.clientId)
+                                            }
                                             aria-pressed={item.isPrimary}
-                                            aria-label={item.isPrimary ? 'Primary media' : 'Set as primary'}
+                                            aria-label={
+                                                item.isPrimary
+                                                    ? 'Primary media'
+                                                    : 'Set as primary'
+                                            }
                                         >
-                                            <Star className="size-3.5" fill={item.isPrimary ? 'currentColor' : 'none'} />
+                                            <Star
+                                                className="size-3.5"
+                                                fill={
+                                                    item.isPrimary
+                                                        ? 'currentColor'
+                                                        : 'none'
+                                                }
+                                            />
                                         </button>
                                         <button
                                             type="button"
                                             className="rounded-full bg-black/50 p-1 text-white/70 transition hover:bg-black/70 hover:text-white"
-                                            onClick={() => removeItem(item.clientId)}
+                                            onClick={() =>
+                                                removeItem(item.clientId)
+                                            }
                                             aria-label="Remove media"
                                         >
                                             <Trash2 className="size-3.5" />
@@ -645,20 +733,29 @@ export default function FeedMediaUploader({
                                             <RefreshCw className="size-3 text-rose-300" />
                                         ) : null}
                                         <span className="truncate text-xs text-white/80">
-                                            {item.file?.name ?? item.response?.mime_type ?? 'Media'}
+                                            {item.file?.name ??
+                                                item.response?.mime_type ??
+                                                'Media'}
                                         </span>
                                     </div>
-                                    {item.progress > 0 && item.progress < 100 && (
-                                        <span className="text-xs text-white/70">{item.progress}%</span>
-                                    )}
+                                    {item.progress > 0 &&
+                                        item.progress < 100 && (
+                                            <span className="text-xs text-white/70">
+                                                {item.progress}%
+                                            </span>
+                                        )}
                                 </div>
                                 {item.status === 'error' && item.error && (
-                                    <p className="mt-2 text-xs text-rose-300">{item.error}</p>
+                                    <p className="mt-2 text-xs text-rose-300">
+                                        {item.error}
+                                    </p>
                                 )}
                                 {item.status === 'error' && (
                                     <button
                                         type="button"
-                                        onClick={() => retryUpload(item.clientId)}
+                                        onClick={() =>
+                                            retryUpload(item.clientId)
+                                        }
                                         className="mt-2 inline-flex items-center gap-2 rounded-full bg-rose-500/20 px-3 py-1.5 text-xs font-medium text-rose-100 transition hover:bg-rose-500/30"
                                     >
                                         <RefreshCw className="size-3" />
@@ -669,7 +766,9 @@ export default function FeedMediaUploader({
                                     <div className="mt-3 h-1 w-full overflow-hidden rounded-full bg-white/10">
                                         <div
                                             className="h-full rounded-full bg-white/80 transition-[width]"
-                                            style={{ width: `${item.progress}%` }}
+                                            style={{
+                                                width: `${item.progress}%`,
+                                            }}
                                         />
                                     </div>
                                 )}
@@ -681,4 +780,3 @@ export default function FeedMediaUploader({
         </div>
     );
 }
-

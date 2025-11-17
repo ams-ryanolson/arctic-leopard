@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Polls\StorePollVoteRequest;
 use App\Http\Resources\PostResource;
 use App\Models\PostPoll;
-use App\Models\PostPollOption;
 use App\Models\PostPollVote;
 use App\Services\Polls\PollVoteService;
 use Illuminate\Http\JsonResponse;
@@ -15,9 +14,7 @@ use Illuminate\Http\Response;
 
 class PollVoteController extends Controller
 {
-    public function __construct(protected PollVoteService $pollVoteService)
-    {
-    }
+    public function __construct(protected PollVoteService $pollVoteService) {}
 
     public function store(StorePollVoteRequest $request, PostPoll $poll): JsonResponse
     {

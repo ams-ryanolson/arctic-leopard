@@ -1,7 +1,16 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft, BookOpen, Clock, Heart, Calendar, Eye, TrendingUp, Tag } from 'lucide-react';
+import { Head, Link } from '@inertiajs/react';
+import {
+    ArrowLeft,
+    BookOpen,
+    Calendar,
+    Clock,
+    Eye,
+    Heart,
+    Tag,
+    TrendingUp,
+} from 'lucide-react';
 import { useState } from 'react';
 
 interface Article {
@@ -75,9 +84,9 @@ const categoryColors: Record<string, string> = {
     security: 'bg-red-500/20 text-red-300 border-red-500/40',
 };
 
-export default function SignalsPlaybooksShow({ 
-    article: initialArticle, 
-    relatedArticles, 
+export default function SignalsPlaybooksShow({
+    article: initialArticle,
+    relatedArticles,
     popularArticles,
     categories,
 }: SignalsPlaybooksShowProps) {
@@ -97,7 +106,9 @@ export default function SignalsPlaybooksShow({
         setArticle({
             ...article,
             user_liked: !wasLiked,
-            likes_count: wasLiked ? article.likes_count - 1 : article.likes_count + 1,
+            likes_count: wasLiked
+                ? article.likes_count - 1
+                : article.likes_count + 1,
         });
 
         try {
@@ -106,7 +117,10 @@ export default function SignalsPlaybooksShow({
                 method: wasLiked ? 'DELETE' : 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    'X-CSRF-TOKEN':
+                        document
+                            .querySelector('meta[name="csrf-token"]')
+                            ?.getAttribute('content') || '',
                 },
                 credentials: 'include',
             });
@@ -153,7 +167,7 @@ export default function SignalsPlaybooksShow({
                 {/* Back Button */}
                 <Link
                     href="/signals/playbooks"
-                    className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/70 hover:border-white/20 hover:bg-white/10 hover:text-white transition-all"
+                    className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/70 transition-all hover:border-white/20 hover:bg-white/10 hover:text-white"
                 >
                     <ArrowLeft className="h-4 w-4" />
                     Back to Playbooks
@@ -170,7 +184,9 @@ export default function SignalsPlaybooksShow({
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                         {article.category && (
                             <div className="absolute top-6 left-6">
-                                <span className={`rounded-lg border px-3 py-1.5 text-xs font-semibold ${categoryColors[article.category] || 'bg-white/20 text-white border-white/30'}`}>
+                                <span
+                                    className={`rounded-lg border px-3 py-1.5 text-xs font-semibold ${categoryColors[article.category] || 'border-white/30 bg-white/20 text-white'}`}
+                                >
                                     {article.category.replace('_', ' ')}
                                 </span>
                             </div>
@@ -181,16 +197,22 @@ export default function SignalsPlaybooksShow({
                 {/* Article Header */}
                 <section className="space-y-6">
                     <div>
-                        <h1 className="text-4xl font-bold text-white leading-tight">{article.title}</h1>
+                        <h1 className="text-4xl leading-tight font-bold text-white">
+                            {article.title}
+                        </h1>
                         <div className="mt-4 flex flex-wrap items-center gap-6 text-sm text-white/60">
                             <div className="flex items-center gap-2">
                                 <Clock className="h-4 w-4" />
-                                <span>{article.read_time_minutes} min read</span>
+                                <span>
+                                    {article.read_time_minutes} min read
+                                </span>
                             </div>
                             {article.published_at && (
                                 <div className="flex items-center gap-2">
                                     <Calendar className="h-4 w-4" />
-                                    <span>{formatDate(article.published_at)}</span>
+                                    <span>
+                                        {formatDate(article.published_at)}
+                                    </span>
                                 </div>
                             )}
                             <div className="flex items-center gap-2">
@@ -206,11 +228,13 @@ export default function SignalsPlaybooksShow({
                         disabled={isLiking}
                         className={`inline-flex items-center gap-2 rounded-xl border px-6 py-3 text-sm font-semibold transition-all ${
                             article.user_liked
-                                ? 'bg-gradient-to-r from-rose-400/30 to-pink-500/20 border-rose-400/40 text-rose-300 shadow-[0_4px_15px_-5px_rgba(244,63,94,0.3)] hover:from-rose-500/40 hover:to-pink-600/30'
+                                ? 'border-rose-400/40 bg-gradient-to-r from-rose-400/30 to-pink-500/20 text-rose-300 shadow-[0_4px_15px_-5px_rgba(244,63,94,0.3)] hover:from-rose-500/40 hover:to-pink-600/30'
                                 : 'border-white/10 bg-white/5 text-white/70 hover:border-white/20 hover:bg-white/10 hover:text-white'
-                        } ${isLiking ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        } ${isLiking ? 'cursor-not-allowed opacity-50' : ''}`}
                     >
-                        <Heart className={`h-4 w-4 ${article.user_liked ? 'fill-current' : ''}`} />
+                        <Heart
+                            className={`h-4 w-4 ${article.user_liked ? 'fill-current' : ''}`}
+                        />
                         <span>{article.likes_count}</span>
                     </button>
                 </section>
@@ -221,8 +245,10 @@ export default function SignalsPlaybooksShow({
                     <div className="space-y-8">
                         <section className="rounded-3xl border border-white/10 bg-white/5 p-8">
                             <div
-                                className="prose prose-invert prose-lg max-w-none text-white/90 leading-relaxed [&>p]:mb-6 [&>p:last-child]:mb-0 [&>p]:text-white/90 [&>h1]:text-white [&>h2]:text-white [&>h3]:text-white [&>h4]:text-white [&>a]:text-blue-400 [&>a]:hover:text-blue-300 [&>strong]:text-white [&>code]:text-amber-400"
-                                dangerouslySetInnerHTML={{ __html: article.content }}
+                                className="prose prose-invert prose-lg max-w-none leading-relaxed text-white/90 [&>a]:text-blue-400 [&>a]:hover:text-blue-300 [&>code]:text-amber-400 [&>h1]:text-white [&>h2]:text-white [&>h3]:text-white [&>h4]:text-white [&>p]:mb-6 [&>p]:text-white/90 [&>p:last-child]:mb-0 [&>strong]:text-white"
+                                dangerouslySetInnerHTML={{
+                                    __html: article.content,
+                                }}
                             />
                         </section>
 
@@ -230,7 +256,7 @@ export default function SignalsPlaybooksShow({
                         <section>
                             <Link
                                 href="/signals/playbooks"
-                                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold text-white/70 hover:border-white/20 hover:bg-white/10 hover:text-white transition-all"
+                                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold text-white/70 transition-all hover:border-white/20 hover:bg-white/10 hover:text-white"
                             >
                                 <BookOpen className="h-4 w-4" />
                                 Explore More Playbooks
@@ -242,24 +268,34 @@ export default function SignalsPlaybooksShow({
                     <aside className="space-y-6">
                         {/* Article Stats */}
                         <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-                            <h3 className="text-lg font-semibold text-white mb-4">Article Stats</h3>
+                            <h3 className="mb-4 text-lg font-semibold text-white">
+                                Article Stats
+                            </h3>
                             <div className="space-y-3 text-sm">
                                 <div className="flex items-center justify-between text-white/70">
                                     <span>Read Time</span>
-                                    <span className="font-semibold text-white">{article.read_time_minutes} min</span>
+                                    <span className="font-semibold text-white">
+                                        {article.read_time_minutes} min
+                                    </span>
                                 </div>
                                 <div className="flex items-center justify-between text-white/70">
                                     <span>Views</span>
-                                    <span className="font-semibold text-white">{article.views_count.toLocaleString()}</span>
+                                    <span className="font-semibold text-white">
+                                        {article.views_count.toLocaleString()}
+                                    </span>
                                 </div>
                                 <div className="flex items-center justify-between text-white/70">
                                     <span>Likes</span>
-                                    <span className="font-semibold text-white">{article.likes_count.toLocaleString()}</span>
+                                    <span className="font-semibold text-white">
+                                        {article.likes_count.toLocaleString()}
+                                    </span>
                                 </div>
                                 {article.published_at && (
                                     <div className="flex items-center justify-between text-white/70">
                                         <span>Published</span>
-                                        <span className="font-semibold text-white text-xs">{formatDate(article.published_at)}</span>
+                                        <span className="text-xs font-semibold text-white">
+                                            {formatDate(article.published_at)}
+                                        </span>
                                     </div>
                                 )}
                             </div>
@@ -268,7 +304,7 @@ export default function SignalsPlaybooksShow({
                         {/* Related Articles */}
                         {relatedArticles.length > 0 && (
                             <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-                                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
                                     <Tag className="h-5 w-5 text-blue-400" />
                                     Related Articles
                                 </h3>
@@ -277,15 +313,20 @@ export default function SignalsPlaybooksShow({
                                         <Link
                                             key={related.id}
                                             href={`/signals/playbooks/${related.slug}`}
-                                            className="block rounded-xl border border-white/10 bg-white/5 p-4 hover:border-white/20 hover:bg-white/10 transition-all group"
+                                            className="group block rounded-xl border border-white/10 bg-white/5 p-4 transition-all hover:border-white/20 hover:bg-white/10"
                                         >
-                                            <h4 className="text-sm font-semibold text-white group-hover:text-blue-300 transition-colors line-clamp-2 mb-2">
+                                            <h4 className="mb-2 line-clamp-2 text-sm font-semibold text-white transition-colors group-hover:text-blue-300">
                                                 {related.title}
                                             </h4>
                                             <div className="flex items-center gap-3 text-xs text-white/60">
-                                                <span>{related.read_time_minutes} min</span>
+                                                <span>
+                                                    {related.read_time_minutes}{' '}
+                                                    min
+                                                </span>
                                                 <span>·</span>
-                                                <span>{related.views_count} views</span>
+                                                <span>
+                                                    {related.views_count} views
+                                                </span>
                                             </div>
                                         </Link>
                                     ))}
@@ -296,7 +337,7 @@ export default function SignalsPlaybooksShow({
                         {/* Popular Articles */}
                         {popularArticles.length > 0 && (
                             <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-                                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
                                     <TrendingUp className="h-5 w-5 text-emerald-400" />
                                     Popular Articles
                                 </h3>
@@ -305,20 +346,30 @@ export default function SignalsPlaybooksShow({
                                         <Link
                                             key={popular.id}
                                             href={`/signals/playbooks/${popular.slug}`}
-                                            className="block rounded-xl border border-white/10 bg-white/5 p-4 hover:border-white/20 hover:bg-white/10 transition-all group"
+                                            className="group block rounded-xl border border-white/10 bg-white/5 p-4 transition-all hover:border-white/20 hover:bg-white/10"
                                         >
                                             {popular.category && (
-                                                <span className={`inline-block rounded px-2 py-0.5 text-xs font-semibold mb-2 ${categoryColors[popular.category] || 'bg-white/20 text-white border-white/30'}`}>
-                                                    {popular.category.replace('_', ' ')}
+                                                <span
+                                                    className={`mb-2 inline-block rounded px-2 py-0.5 text-xs font-semibold ${categoryColors[popular.category] || 'border-white/30 bg-white/20 text-white'}`}
+                                                >
+                                                    {popular.category.replace(
+                                                        '_',
+                                                        ' ',
+                                                    )}
                                                 </span>
                                             )}
-                                            <h4 className="text-sm font-semibold text-white group-hover:text-blue-300 transition-colors line-clamp-2 mb-2">
+                                            <h4 className="mb-2 line-clamp-2 text-sm font-semibold text-white transition-colors group-hover:text-blue-300">
                                                 {popular.title}
                                             </h4>
                                             <div className="flex items-center gap-3 text-xs text-white/60">
-                                                <span>{popular.read_time_minutes} min</span>
+                                                <span>
+                                                    {popular.read_time_minutes}{' '}
+                                                    min
+                                                </span>
                                                 <span>·</span>
-                                                <span>{popular.views_count} views</span>
+                                                <span>
+                                                    {popular.views_count} views
+                                                </span>
                                             </div>
                                         </Link>
                                     ))}
@@ -329,18 +380,23 @@ export default function SignalsPlaybooksShow({
                         {/* Categories */}
                         {categories.length > 0 && (
                             <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-                                <h3 className="text-lg font-semibold text-white mb-4">Categories</h3>
+                                <h3 className="mb-4 text-lg font-semibold text-white">
+                                    Categories
+                                </h3>
                                 <div className="space-y-2">
                                     {categories.map((category) => (
                                         <Link
                                             key={category.name}
                                             href={`/signals/playbooks?category=${category.name}`}
-                                            className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-2 hover:border-white/20 hover:bg-white/10 transition-all group"
+                                            className="group flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-2 transition-all hover:border-white/20 hover:bg-white/10"
                                         >
-                                            <span className="text-sm font-medium text-white/70 group-hover:text-white capitalize">
-                                                {category.name.replace('_', ' ')}
+                                            <span className="text-sm font-medium text-white/70 capitalize group-hover:text-white">
+                                                {category.name.replace(
+                                                    '_',
+                                                    ' ',
+                                                )}
                                             </span>
-                                            <span className="text-xs text-white/50 bg-white/5 px-2 py-0.5 rounded">
+                                            <span className="rounded bg-white/5 px-2 py-0.5 text-xs text-white/50">
                                                 {category.count}
                                             </span>
                                         </Link>
@@ -354,4 +410,3 @@ export default function SignalsPlaybooksShow({
         </AppLayout>
     );
 }
-

@@ -13,4 +13,3 @@ class SubscriptionPaymentFailed extends SubscriptionEvent
         parent::__construct($subscription);
     }
 }
-

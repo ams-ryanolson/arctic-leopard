@@ -1,7 +1,14 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import {
+    useCallback,
+    useEffect,
+    useId,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -11,6 +18,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Spark } from '@/components/ui/spark';
 import {
     createComment,
     deleteComment as deleteCommentRequest,
@@ -31,7 +39,6 @@ import {
     MoreHorizontal,
     Trash2,
 } from 'lucide-react';
-import { Spark } from '@/components/ui/spark';
 
 export type CommentThreadPanelProps = {
     post: FeedPost | null;
@@ -142,7 +149,11 @@ const updateCommentInTree = (
         }
 
         if (currentReplies.length > 0) {
-            const updatedReplies = updateCommentInTree(currentReplies, commentId, mapper);
+            const updatedReplies = updateCommentInTree(
+                currentReplies,
+                commentId,
+                mapper,
+            );
 
             if (updatedReplies !== currentReplies) {
                 mutated = true;
@@ -160,7 +171,11 @@ const updateCommentInTree = (
     return mutated ? nextNodes : nodes;
 };
 
-const insertReplyIntoTree = (nodes: Comment[], parentId: number, reply: Comment): Comment[] => {
+const insertReplyIntoTree = (
+    nodes: Comment[],
+    parentId: number,
+    reply: Comment,
+): Comment[] => {
     let mutated = false;
 
     const nextNodes = nodes.map((node) => {
@@ -169,17 +184,25 @@ const insertReplyIntoTree = (nodes: Comment[], parentId: number, reply: Comment)
         if (node.id === parentId) {
             mutated = true;
 
-            const replyExists = currentReplies.some((existing) => existing.id === reply.id);
+            const replyExists = currentReplies.some(
+                (existing) => existing.id === reply.id,
+            );
 
             return {
                 ...node,
                 replies_count: node.replies_count + (replyExists ? 0 : 1),
-                replies: replyExists ? currentReplies : [reply, ...currentReplies],
+                replies: replyExists
+                    ? currentReplies
+                    : [reply, ...currentReplies],
             };
         }
 
         if (currentReplies.length > 0) {
-            const updatedReplies = insertReplyIntoTree(currentReplies, parentId, reply);
+            const updatedReplies = insertReplyIntoTree(
+                currentReplies,
+                parentId,
+                reply,
+            );
 
             if (updatedReplies !== currentReplies) {
                 mutated = true;
@@ -217,9 +240,11 @@ const CommentEntry = ({
     const isHidden = Boolean(comment.is_hidden);
     const displayName = isHidden
         ? 'Hidden member'
-        : comment.author?.display_name ?? comment.author?.username ?? 'Unknown member';
+        : (comment.author?.display_name ??
+          comment.author?.username ??
+          'Unknown member');
     const initials = getInitials(displayName);
-    const avatarUrl = isHidden ? null : comment.author?.avatar_url ?? null;
+    const avatarUrl = isHidden ? null : (comment.author?.avatar_url ?? null);
     const replies = Array.isArray(comment.replies) ? comment.replies : [];
     const [isReplying, setIsReplying] = useState(false);
     const [areRepliesVisible, setAreRepliesVisible] = useState(true);
@@ -232,7 +257,8 @@ const CommentEntry = ({
 
     const canInteract = !disabled && !comment.is_deleted && !isHidden;
     const canReply = canInteract && comment.can_reply;
-    const canLike = !disabled && comment.can_like && !comment.is_deleted && !isHidden;
+    const canLike =
+        !disabled && comment.can_like && !comment.is_deleted && !isHidden;
     const canDelete = !disabled && comment.can_delete;
     const repliesLoaded = replies.length > 0;
     const hasReplies = comment.replies_count > 0;
@@ -263,7 +289,9 @@ const CommentEntry = ({
         const confirmed =
             typeof window === 'undefined'
                 ? true
-                : window.confirm('Delete this comment? This action cannot be undone.');
+                : window.confirm(
+                      'Delete this comment? This action cannot be undone.',
+                  );
 
         if (!confirmed) {
             return;
@@ -278,7 +306,9 @@ const CommentEntry = ({
             setReplyBody('');
         } catch (thrown) {
             console.error(thrown);
-            setActionError('We could not delete this comment. Please try again.');
+            setActionError(
+                'We could not delete this comment. Please try again.',
+            );
         } finally {
             setIsDeleting(false);
         }
@@ -288,7 +318,9 @@ const CommentEntry = ({
         setActionError('Reporting is coming soon.');
     };
 
-    const handleReplySubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    const handleReplySubmit = async (
+        event: React.FormEvent<HTMLFormElement>,
+    ) => {
         event.preventDefault();
 
         if (!canReply || isSubmittingReply) {
@@ -316,12 +348,16 @@ const CommentEntry = ({
             console.error(thrown);
 
             if (thrown instanceof FeedRequestError) {
-                const validationMessage = extractValidationMessage(thrown.payload);
+                const validationMessage = extractValidationMessage(
+                    thrown.payload,
+                );
                 setReplyError(validationMessage ?? thrown.message);
             } else if (thrown instanceof Error) {
                 setReplyError(thrown.message);
             } else {
-                setReplyError('We could not post your reply. Please try again.');
+                setReplyError(
+                    'We could not post your reply. Please try again.',
+                );
             }
         } finally {
             setIsSubmittingReply(false);
@@ -354,23 +390,23 @@ const CommentEntry = ({
                     )}
                 </Avatar>
                 <div className="flex-1 space-y-2">
-                    <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.25em] text-white/50">
+                    <div className="flex flex-wrap items-center gap-2 text-xs tracking-[0.25em] text-white/50 uppercase">
                         <span className="font-semibold tracking-normal text-white">
                             {displayName}
                         </span>
                         <span>{formatTimestamp(comment.created_at)}</span>
                     </div>
                     {comment.is_deleted ? (
-                        <p className="whitespace-pre-line text-sm italic text-white/60">
+                        <p className="text-sm whitespace-pre-line text-white/60 italic">
                             Comment deleted
                         </p>
                     ) : isHidden ? (
-                        <p className="whitespace-pre-line text-sm italic text-white/60">
+                        <p className="text-sm whitespace-pre-line text-white/60 italic">
                             {comment.placeholder ??
                                 'This comment is hidden because of your privacy settings.'}
                         </p>
                     ) : (
-                        <p className="whitespace-pre-line text-sm leading-relaxed text-white/80">
+                        <p className="text-sm leading-relaxed whitespace-pre-line text-white/80">
                             {comment.body}
                         </p>
                     )}
@@ -379,10 +415,12 @@ const CommentEntry = ({
                         <div className="flex flex-wrap items-center gap-2 text-xs text-white/60">
                             <Button
                                 type="button"
-                                variant={comment.has_liked ? 'default' : 'ghost'}
+                                variant={
+                                    comment.has_liked ? 'default' : 'ghost'
+                                }
                                 size="sm"
                                 className={cn(
-                                    'rounded-full px-3 text-[11px] uppercase tracking-[0.2em]',
+                                    'rounded-full px-3 text-[11px] tracking-[0.2em] uppercase',
                                     comment.has_liked
                                         ? 'border border-amber-400/40 bg-gradient-to-br from-amber-400/10 via-rose-500/10 to-violet-600/10 text-amber-200 hover:border-amber-400/60 hover:from-amber-400/15 hover:via-rose-500/15 hover:to-violet-600/15 hover:text-amber-100'
                                         : 'text-white/75 hover:bg-white/10 hover:text-white',
@@ -393,11 +431,16 @@ const CommentEntry = ({
                                 disabled={!canLike || isProcessingLike}
                             >
                                 <span className="sr-only">
-                                    {comment.has_liked ? 'Unspark comment' : 'Spark comment'}
+                                    {comment.has_liked
+                                        ? 'Unspark comment'
+                                        : 'Spark comment'}
                                 </span>
                                 <Spark
                                     sparked={comment.has_liked}
-                                    className={cn('size-3.5', !comment.has_liked && 'text-white/60')}
+                                    className={cn(
+                                        'size-3.5',
+                                        !comment.has_liked && 'text-white/60',
+                                    )}
                                 />
                                 <span className="text-[10px] font-semibold tracking-[0.3em]">
                                     {likeCountLabel}
@@ -411,14 +454,18 @@ const CommentEntry = ({
                                     className="rounded-full px-3 text-white/75 hover:bg-white/10 hover:text-white disabled:text-white/40"
                                     onClick={() => {
                                         if (canReply) {
-                                            setIsReplying((previous) => !previous);
+                                            setIsReplying(
+                                                (previous) => !previous,
+                                            );
                                             setReplyError(null);
                                         }
                                     }}
                                     disabled={!canReply}
                                 >
                                     <span className="sr-only">
-                                        {isReplying ? 'Cancel reply' : 'Reply to comment'}
+                                        {isReplying
+                                            ? 'Cancel reply'
+                                            : 'Reply to comment'}
                                     </span>
                                     <MessageCircle className="size-3.5" />
                                 </Button>
@@ -428,8 +475,12 @@ const CommentEntry = ({
                                     type="button"
                                     variant="ghost"
                                     size="sm"
-                                    className="rounded-full px-3 text-[11px] uppercase tracking-[0.2em] text-white/60 hover:bg-white/10 hover:text-white"
-                                    onClick={() => setAreRepliesVisible((previous) => !previous)}
+                                    className="rounded-full px-3 text-[11px] tracking-[0.2em] text-white/60 uppercase hover:bg-white/10 hover:text-white"
+                                    onClick={() =>
+                                        setAreRepliesVisible(
+                                            (previous) => !previous,
+                                        )
+                                    }
                                 >
                                     <span className="flex items-center gap-1.5">
                                         {areRepliesVisible ? (
@@ -437,8 +488,10 @@ const CommentEntry = ({
                                         ) : (
                                             <ChevronDown className="size-3.5" />
                                         )}
-                                        {areRepliesVisible ? 'Hide Replies' : 'Show Replies'} (
-                                        {comment.replies_count})
+                                        {areRepliesVisible
+                                            ? 'Hide Replies'
+                                            : 'Show Replies'}{' '}
+                                        ({comment.replies_count})
                                     </span>
                                 </Button>
                             )}
@@ -464,46 +517,52 @@ const CommentEntry = ({
                                                 event.preventDefault();
                                                 handleReport();
                                             }}
-                                            className="cursor-pointer text-xs uppercase tracking-[0.25em]"
+                                            className="cursor-pointer text-xs tracking-[0.25em] uppercase"
                                         >
                                             <Flag className="size-3.5" />
                                             Report
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
                                             disabled
-                                            className="text-xs uppercase tracking-[0.25em]"
+                                            className="text-xs tracking-[0.25em] uppercase"
                                         >
                                             <BookmarkPlus className="size-3.5" />
                                             Save Thread (soon)
                                         </DropdownMenuItem>
-                                        {comment.can_delete && !comment.is_deleted && (
-                                            <>
-                                                <DropdownMenuSeparator className="bg-white/10" />
-                                                <DropdownMenuItem
-                                                    onSelect={(event) => {
-                                                        event.preventDefault();
-                                                        void handleDeleteClick();
-                                                    }}
-                                                    variant="destructive"
-                                                    className="cursor-pointer text-xs uppercase tracking-[0.25em]"
-                                                >
-                                                    <Trash2 className="size-3.5" />
-                                                    Delete
-                                                </DropdownMenuItem>
-                                            </>
-                                        )}
+                                        {comment.can_delete &&
+                                            !comment.is_deleted && (
+                                                <>
+                                                    <DropdownMenuSeparator className="bg-white/10" />
+                                                    <DropdownMenuItem
+                                                        onSelect={(event) => {
+                                                            event.preventDefault();
+                                                            void handleDeleteClick();
+                                                        }}
+                                                        variant="destructive"
+                                                        className="cursor-pointer text-xs tracking-[0.25em] uppercase"
+                                                    >
+                                                        <Trash2 className="size-3.5" />
+                                                        Delete
+                                                    </DropdownMenuItem>
+                                                </>
+                                            )}
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
                         </div>
                     )}
-                    {actionError && <p className="text-xs text-rose-200">{actionError}</p>}
+                    {actionError && (
+                        <p className="text-xs text-rose-200">{actionError}</p>
+                    )}
                     {isReplying && canReply && (
                         <form
                             onSubmit={handleReplySubmit}
                             className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-3"
                         >
-                            <label className="sr-only" htmlFor={`reply-${comment.id}`}>
+                            <label
+                                className="sr-only"
+                                htmlFor={`reply-${comment.id}`}
+                            >
                                 Reply to comment
                             </label>
                             <textarea
@@ -516,10 +575,14 @@ const CommentEntry = ({
                                 }}
                                 rows={3}
                                 placeholder="Start the aftercare…"
-                                className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-sm text-white transition focus:border-white/30 focus:outline-none focus:ring-2 focus:ring-white/30 placeholder:text-white/40"
+                                className="w-full rounded-xl border border-white/10 bg-white/5 p-3 text-sm text-white transition placeholder:text-white/40 focus:border-white/30 focus:ring-2 focus:ring-white/30 focus:outline-none"
                                 disabled={isSubmittingReply}
                             />
-                            {replyError && <p className="text-xs text-rose-200">{replyError}</p>}
+                            {replyError && (
+                                <p className="text-xs text-rose-200">
+                                    {replyError}
+                                </p>
+                            )}
                             <div className="flex justify-end gap-2">
                                 <Button
                                     type="button"
@@ -539,13 +602,18 @@ const CommentEntry = ({
                                     type="submit"
                                     size="sm"
                                     className="rounded-full px-5 text-xs font-semibold"
-                                    disabled={isSubmittingReply || replyBody.trim().length === 0}
+                                    disabled={
+                                        isSubmittingReply ||
+                                        replyBody.trim().length === 0
+                                    }
                                 >
                                     <span className="flex items-center gap-2">
                                         {isSubmittingReply && (
                                             <Loader2 className="size-3 animate-spin" />
                                         )}
-                                        {isSubmittingReply ? 'Posting…' : 'Post reply'}
+                                        {isSubmittingReply
+                                            ? 'Posting…'
+                                            : 'Post reply'}
                                     </span>
                                 </Button>
                             </div>
@@ -585,13 +653,16 @@ export default function CommentThreadPanel({
     const commentFieldId = `comment-body-${instanceId}`;
 
     const [comments, setComments] = useState<Comment[]>(EMPTY_COMMENTS);
-    const [totalComments, setTotalComments] = useState<number>(post?.comments_count ?? 0);
+    const [totalComments, setTotalComments] = useState<number>(
+        post?.comments_count ?? 0,
+    );
     const [currentPage, setCurrentPage] = useState(1);
     const [lastPage, setLastPage] = useState(1);
     const [isInitialLoading, setIsInitialLoading] = useState(false);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [formState, setFormState] = useState<CommentFormState>(initialFormState);
+    const [formState, setFormState] =
+        useState<CommentFormState>(initialFormState);
     const fetchControllerRef = useRef<AbortController | null>(null);
 
     const resetState = useCallback(() => {
@@ -668,7 +739,9 @@ export default function CommentThreadPanel({
 
                 setComments((previous) => {
                     const seen = new Set(previous.map((comment) => comment.id));
-                    const merged = payload.data.filter((comment) => !seen.has(comment.id));
+                    const merged = payload.data.filter(
+                        (comment) => !seen.has(comment.id),
+                    );
 
                     return [...previous, ...merged];
                 });
@@ -745,7 +818,9 @@ export default function CommentThreadPanel({
         }));
 
         try {
-            const newComment = await createComment(postId, { body: trimmedBody });
+            const newComment = await createComment(postId, {
+                body: trimmedBody,
+            });
 
             setComments((previous) => [newComment, ...previous]);
             setTotalComments((previous) => {
@@ -766,7 +841,9 @@ export default function CommentThreadPanel({
             console.error(thrown);
 
             if (thrown instanceof FeedRequestError) {
-                const validationMessage = extractValidationMessage(thrown.payload);
+                const validationMessage = extractValidationMessage(
+                    thrown.payload,
+                );
                 setFormState((previous) => ({
                     ...previous,
                     error: validationMessage ?? thrown.message,
@@ -788,7 +865,9 @@ export default function CommentThreadPanel({
         }
     };
 
-    const handleBodyChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const handleBodyChange = (
+        event: React.ChangeEvent<HTMLTextAreaElement>,
+    ) => {
         const nextValue = event.target.value;
 
         setFormState((previous) => ({
@@ -809,7 +888,9 @@ export default function CommentThreadPanel({
                 parentId,
             });
 
-            setComments((previous) => insertReplyIntoTree(previous, parentId, newComment));
+            setComments((previous) =>
+                insertReplyIntoTree(previous, parentId, newComment),
+            );
             setTotalComments((previous) => {
                 const next = previous + 1;
                 onCommentAdded?.(postId, next);
@@ -832,7 +913,9 @@ export default function CommentThreadPanel({
                 ? unlikeCommentRequest(postId, target.id)
                 : likeCommentRequest(postId, target.id));
 
-            setComments((previous) => updateCommentInTree(previous, updated.id, () => updated));
+            setComments((previous) =>
+                updateCommentInTree(previous, updated.id, () => updated),
+            );
 
             return updated;
         },
@@ -847,7 +930,9 @@ export default function CommentThreadPanel({
 
             const updated = await deleteCommentRequest(postId, target.id);
 
-            setComments((previous) => updateCommentInTree(previous, updated.id, () => updated));
+            setComments((previous) =>
+                updateCommentInTree(previous, updated.id, () => updated),
+            );
 
             return updated;
         },
@@ -880,8 +965,10 @@ export default function CommentThreadPanel({
     return (
         <div className={containerClasses}>
             <div className="border-b border-white/10 px-6 py-4">
-                <p className="text-lg font-semibold text-white">{commentLabel}</p>
-                <p className="text-xs uppercase tracking-[0.3em] text-white/50">
+                <p className="text-lg font-semibold text-white">
+                    {commentLabel}
+                </p>
+                <p className="text-xs tracking-[0.3em] text-white/50 uppercase">
                     Join the thread with {displayName}
                 </p>
             </div>
@@ -889,18 +976,25 @@ export default function CommentThreadPanel({
             <div className="space-y-4 border-b border-white/10 p-4">
                 <div className="flex items-start gap-3">
                     <Avatar className="size-11 border border-white/10">
-                        <AvatarImage src={post.author?.avatar_url ?? undefined} alt={displayName} />
+                        <AvatarImage
+                            src={post.author?.avatar_url ?? undefined}
+                            alt={displayName}
+                        />
                         <AvatarFallback className="bg-gradient-to-br from-amber-400/80 via-rose-500/80 to-violet-600/80 text-sm font-semibold text-white">
                             {getInitials(displayName) || '??'}
                         </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 space-y-1">
-                        <p className="font-semibold text-white">{displayName}</p>
-                        <p className="text-xs uppercase tracking-[0.3em] text-white/50">
-                            {formatTimestamp(post.published_at ?? post.created_at ?? null)}
+                        <p className="font-semibold text-white">
+                            {displayName}
+                        </p>
+                        <p className="text-xs tracking-[0.3em] text-white/50 uppercase">
+                            {formatTimestamp(
+                                post.published_at ?? post.created_at ?? null,
+                            )}
                         </p>
                         {post.body && (
-                            <p className="mt-3 whitespace-pre-line text-sm text-white/70">
+                            <p className="mt-3 text-sm whitespace-pre-line text-white/70">
                                 {post.body}
                             </p>
                         )}
@@ -935,7 +1029,9 @@ export default function CommentThreadPanel({
                         variant="destructive"
                         className="border border-rose-400/40 bg-rose-500/10 text-white"
                     >
-                        <AlertTitle className="text-sm font-semibold">Comments unavailable</AlertTitle>
+                        <AlertTitle className="text-sm font-semibold">
+                            Comments unavailable
+                        </AlertTitle>
                         <AlertDescription className="text-xs text-rose-100/90">
                             {error}
                         </AlertDescription>
@@ -967,7 +1063,9 @@ export default function CommentThreadPanel({
                                 onReply={handleReply}
                                 onToggleLike={handleToggleLike}
                                 onDelete={handleDeleteComment}
-                                disabled={disableInteractions || isInitialLoading}
+                                disabled={
+                                    disableInteractions || isInitialLoading
+                                }
                             />
                         ))}
 
@@ -983,7 +1081,9 @@ export default function CommentThreadPanel({
                                     {isLoadingMore && (
                                         <Loader2 className="size-3 animate-spin text-white/70" />
                                     )}
-                                    {isLoadingMore ? 'Loading more…' : 'Load older comments'}
+                                    {isLoadingMore
+                                        ? 'Loading more…'
+                                        : 'Load older comments'}
                                 </span>
                             </Button>
                         )}
@@ -991,7 +1091,10 @@ export default function CommentThreadPanel({
                 )}
             </div>
 
-            <form onSubmit={handleSubmit} className="flex-shrink-0 border-t border-white/10 p-4">
+            <form
+                onSubmit={handleSubmit}
+                className="flex-shrink-0 border-t border-white/10 p-4"
+            >
                 <label className="sr-only" htmlFor={commentFieldId}>
                     Add a comment
                 </label>
@@ -1002,10 +1105,14 @@ export default function CommentThreadPanel({
                     onChange={handleBodyChange}
                     placeholder="Offer feedback, drop aftercare notes, or share reactions…"
                     rows={4}
-                    className="w-full rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-white transition focus:border-white/30 focus:outline-none focus:ring-2 focus:ring-white/30 placeholder:text-white/40"
+                    className="w-full rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-white transition placeholder:text-white/40 focus:border-white/30 focus:ring-2 focus:ring-white/30 focus:outline-none"
                     disabled={disableInteractions}
                 />
-                {formState.error && <p className="mt-2 text-xs text-rose-200">{formState.error}</p>}
+                {formState.error && (
+                    <p className="mt-2 text-xs text-rose-200">
+                        {formState.error}
+                    </p>
+                )}
                 <div className="mt-3 flex items-center justify-end">
                     <Button
                         type="submit"
@@ -1017,7 +1124,9 @@ export default function CommentThreadPanel({
                         }
                     >
                         <span className="flex items-center gap-2">
-                            {formState.submitting && <Loader2 className="size-3 animate-spin" />}
+                            {formState.submitting && (
+                                <Loader2 className="size-3 animate-spin" />
+                            )}
                             {formState.submitting ? 'Posting…' : 'Post comment'}
                         </span>
                     </Button>
@@ -1026,4 +1135,3 @@ export default function CommentThreadPanel({
         </div>
     );
 }
-

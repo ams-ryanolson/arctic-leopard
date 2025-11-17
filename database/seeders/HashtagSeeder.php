@@ -112,5 +112,3 @@ class HashtagSeeder extends Seeder
         }
     }
 }
-
-

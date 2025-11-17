@@ -27,9 +27,9 @@ use App\Http\Controllers\Webhooks\PaymentWebhookController;
 use App\Http\Controllers\Webhooks\SumsubWebhookController;
 use App\Models\Conversation;
 use App\Models\Message;
-use App\Models\PlaybookArticle;
 use App\Models\Payments\PaymentSubscription;
 use App\Models\Payments\SubscriptionPlan;
+use App\Models\PlaybookArticle;
 use Illuminate\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Route;
 

@@ -18,8 +18,7 @@ class QueueTimelineFanOut implements ShouldQueue
     public function __construct(
         private TimelineCacheService $timelineCache,
         private PostCacheService $postCache,
-    ) {
-    }
+    ) {}
 
     public function handle(PostPublished $event): void
     {

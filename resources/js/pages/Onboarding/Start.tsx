@@ -22,12 +22,16 @@ export default function OnboardingStart() {
                 <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_bottom,_rgba(124,58,237,0.18),_transparent_65%)]" />
 
                 <div className="relative space-y-6 sm:space-y-8">
-                    <div className="space-y-3 sm:space-y-4 text-left lg:max-w-4xl">
+                    <div className="space-y-3 text-left sm:space-y-4 lg:max-w-4xl">
                         <h2 className="text-xl font-semibold tracking-tight sm:text-2xl lg:text-[2rem]">
-                            Let's get you comfortable before you hop into the scene.
+                            Let's get you comfortable before you hop into the
+                            scene.
                         </h2>
                         <p className="text-sm leading-relaxed text-white/75 sm:text-base sm:leading-relaxed">
-                            First we'll capture how you want to be addressed, then the visuals that carry your energy. You'll finish by picking people and circles to follow so your feed pulses from day one.
+                            First we'll capture how you want to be addressed,
+                            then the visuals that carry your energy. You'll
+                            finish by picking people and circles to follow so
+                            your feed pulses from day one.
                         </p>
                     </div>
 
@@ -35,19 +39,22 @@ export default function OnboardingStart() {
                         {[
                             {
                                 title: 'Profile basics',
-                                description: 'Dial in your display name, pronouns, and the story that helps others understand you.',
+                                description:
+                                    'Dial in your display name, pronouns, and the story that helps others understand you.',
                                 icon: ShieldCheck,
                                 iconColor: 'text-amber-400',
                             },
                             {
                                 title: 'Profile photo & cover',
-                                description: 'Upload visuals that feel true to you—bold, discreet, or anything in between.',
+                                description:
+                                    'Upload visuals that feel true to you—bold, discreet, or anything in between.',
                                 icon: Sparkles,
                                 iconColor: 'text-rose-400',
                             },
                             {
                                 title: 'Circles & friends',
-                                description: 'Pick creators, clubs, and houses to follow so your feed comes alive instantly.',
+                                description:
+                                    'Pick creators, clubs, and houses to follow so your feed comes alive instantly.',
                                 icon: Users,
                                 iconColor: 'text-violet-400',
                             },
@@ -57,32 +64,42 @@ export default function OnboardingStart() {
                                 className="group relative space-y-4 rounded-2xl border border-white/20 bg-white/[0.07] px-5 py-5 text-left shadow-[0_28px_85px_-58px_rgba(249,115,22,0.5)] backdrop-blur transition-all hover:border-white/30 hover:bg-white/[0.1] hover:shadow-[0_32px_95px_-55px_rgba(249,115,22,0.65)] sm:px-6 sm:py-6"
                             >
                                 <div className="flex items-start gap-4">
-                                    <div className={`flex-shrink-0 rounded-xl bg-white/10 p-2.5 ${step.iconColor} transition-colors group-hover:bg-white/15`}>
+                                    <div
+                                        className={`flex-shrink-0 rounded-xl bg-white/10 p-2.5 ${step.iconColor} transition-colors group-hover:bg-white/15`}
+                                    >
                                         <step.icon className="size-5 sm:size-6" />
                                     </div>
                                     <div className="min-w-0 flex-1 space-y-2">
-                                        <h3 className="text-base font-semibold text-white sm:text-lg">{step.title}</h3>
-                                        <p className="text-sm leading-relaxed text-white/75 sm:text-sm">{step.description}</p>
+                                        <h3 className="text-base font-semibold text-white sm:text-lg">
+                                            {step.title}
+                                        </h3>
+                                        <p className="text-sm leading-relaxed text-white/75 sm:text-sm">
+                                            {step.description}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
                         ))}
                     </div>
 
-                    <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/15 via-rose-500/10 to-violet-500/10 px-5 py-5 backdrop-blur shadow-[0_8px_32px_-8px_rgba(249,115,22,0.3)] sm:px-6 sm:py-6">
+                    <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/15 via-rose-500/10 to-violet-500/10 px-5 py-5 shadow-[0_8px_32px_-8px_rgba(249,115,22,0.3)] backdrop-blur sm:px-6 sm:py-6">
                         <div className="flex items-start gap-4">
                             <div className="flex-shrink-0 rounded-xl bg-amber-400/20 p-2.5">
                                 <Sparkles className="size-5 text-amber-300 sm:size-6" />
                             </div>
                             <div className="min-w-0 flex-1 space-y-2">
                                 <div className="flex items-start justify-between gap-3">
-                                    <p className="text-base font-semibold text-white sm:text-lg">Curious about earning later?</p>
-                                    <span className="flex-shrink-0 rounded-lg border border-white/20 bg-white/10 px-2.5 py-1 text-[0.65rem] font-medium uppercase tracking-[0.2em] text-white/70">
+                                    <p className="text-base font-semibold text-white sm:text-lg">
+                                        Curious about earning later?
+                                    </p>
+                                    <span className="flex-shrink-0 rounded-lg border border-white/20 bg-white/10 px-2.5 py-1 text-[0.65rem] font-medium tracking-[0.2em] text-white/70 uppercase">
                                         Optional
                                     </span>
                                 </div>
                                 <p className="text-sm leading-relaxed text-white/75 sm:text-base">
-                                    After the social setup you can explore optional creator tools—verification, payouts, subscriptions, and wishlist drops.
+                                    After the social setup you can explore
+                                    optional creator tools—verification,
+                                    payouts, subscriptions, and wishlist drops.
                                 </p>
                             </div>
                         </div>
@@ -99,7 +116,9 @@ export default function OnboardingStart() {
                             </Link>
                         </Button>
                         <p className="text-xs leading-relaxed text-white/70 sm:text-sm">
-                            This is all optional, but helps you connect with others. You can skip any section and come back later.
+                            This is all optional, but helps you connect with
+                            others. You can skip any section and come back
+                            later.
                         </p>
                     </div>
                 </div>
@@ -107,4 +126,3 @@ export default function OnboardingStart() {
         </OnboardingLayout>
     );
 }
-

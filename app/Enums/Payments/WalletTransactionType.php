@@ -12,4 +12,3 @@ enum WalletTransactionType: string
     case Debit = 'debit';
     case Adjustment = 'adjustment';
 }
-

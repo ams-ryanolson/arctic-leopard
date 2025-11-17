@@ -19,8 +19,7 @@ class CommentController extends Controller
     public function __construct(
         private PostCacheService $postCache,
         private TimelineCacheService $timelineCache,
-    ) {
-    }
+    ) {}
 
     public function index(Request $request, Post $post): JsonResponse
     {

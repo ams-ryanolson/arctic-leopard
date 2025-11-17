@@ -1,18 +1,14 @@
-import AppLayout from '@/layouts/app-layout';
-import FeedPostComposer from '@/components/feed/feed-post-composer';
-import CommentThreadSheet from '@/components/feed/comment-thread-sheet';
-import TimelineEntryCard from '@/components/feed/timeline-entry-card';
-import TimelineAd from '@/components/ads/timeline-ad';
 import SidebarAd from '@/components/ads/sidebar-ad';
+import TimelineAd from '@/components/ads/timeline-ad';
+import CommentThreadSheet from '@/components/feed/comment-thread-sheet';
+import FeedLoadingPlaceholder from '@/components/feed/feed-loading-placeholder';
+import FeedPostComposer from '@/components/feed/feed-post-composer';
+import TimelineEntryCard from '@/components/feed/timeline-entry-card';
 import StoriesSection from '@/components/stories/stories-section';
 import StoryViewer from '@/components/stories/story-viewer';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Alert,
-    AlertDescription,
-    AlertTitle,
-} from '@/components/ui/alert';
 import {
     Card,
     CardContent,
@@ -20,10 +16,10 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import FeedLoadingPlaceholder from '@/components/feed/feed-loading-placeholder';
-import { fetchFollowingFeedPage } from '@/lib/feed-client';
 import { useFeed } from '@/hooks/use-feed';
+import AppLayout from '@/layouts/app-layout';
 import { getPrivateChannel, leaveEchoChannel } from '@/lib/echo';
+import { fetchFollowingFeedPage } from '@/lib/feed-client';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import type {
@@ -51,7 +47,9 @@ const metricIcons = [Flame, Sparkles, Users, Clock3];
 const ScenePulseCard = ({ items }: { items: FeedPulseMetric[] }) => (
     <Card className="border-white/10 bg-white/5 text-white">
         <CardHeader>
-            <CardTitle className="text-base font-semibold">Scene pulse</CardTitle>
+            <CardTitle className="text-base font-semibold">
+                Scene pulse
+            </CardTitle>
             <CardDescription className="text-white/60">
                 Real-time signal for your network tonight.
             </CardDescription>
@@ -69,9 +67,15 @@ const ScenePulseCard = ({ items }: { items: FeedPulseMetric[] }) => (
                             <Icon className="size-4 text-amber-300" />
                         </div>
                         <div>
-                            <p className="text-xs uppercase tracking-[0.3em] text-white/50">{metric.title}</p>
-                            <p className="text-base font-semibold text-white">{metric.value}</p>
-                            <p className="text-xs text-white/60">{metric.description}</p>
+                            <p className="text-xs tracking-[0.3em] text-white/50 uppercase">
+                                {metric.title}
+                            </p>
+                            <p className="text-base font-semibold text-white">
+                                {metric.value}
+                            </p>
+                            <p className="text-xs text-white/60">
+                                {metric.description}
+                            </p>
                         </div>
                     </div>
                 );
@@ -148,24 +152,22 @@ export default function Dashboard() {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_nextStoryId, setNextStoryId] = useState<number | null>(null);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_previousStoryId, setPreviousStoryId] = useState<number | null>(null);
+    const [_previousStoryId, setPreviousStoryId] = useState<number | null>(
+        null,
+    );
 
-    const {
-        timeline,
-        composer,
-        pulse,
-        trending,
-        sidebarAds,
-        stories,
-        viewer,
-    } = usePage<DashboardProps>().props;
+    const { timeline, composer, pulse, trending, sidebarAds, stories, viewer } =
+        usePage<DashboardProps>().props;
 
     const transformTimelinePayload = useCallback(
-        (payload: TimelinePayload | PostCollectionPayload): TimelinePayload => payload as TimelinePayload,
+        (payload: TimelinePayload | PostCollectionPayload): TimelinePayload =>
+            payload as TimelinePayload,
         [],
     );
 
-    const [pendingBroadcasts, setPendingBroadcasts] = useState<TimelineBroadcastPayload[]>([]);
+    const [pendingBroadcasts, setPendingBroadcasts] = useState<
+        TimelineBroadcastPayload[]
+    >([]);
     const pendingIdsRef = useRef<Set<number>>(new Set());
 
     const {
@@ -250,7 +252,9 @@ export default function Dashboard() {
             return '';
         }
 
-        return pendingBroadcastCount === 1 ? '1 new drop' : `${pendingBroadcastCount} new drops`;
+        return pendingBroadcastCount === 1
+            ? '1 new drop'
+            : `${pendingBroadcastCount} new drops`;
     }, [pendingBroadcastCount]);
 
     const toolkitPrompts = [
@@ -289,16 +293,22 @@ export default function Dashboard() {
                     />
 
                     <div className="flex flex-col gap-6 xl:flex-row">
-                        <section className="flex-1 min-w-0 space-y-6">
-                            <FeedPostComposer config={composer} onSubmitted={handleComposerSubmitted} />
+                        <section className="min-w-0 flex-1 space-y-6">
+                            <FeedPostComposer
+                                config={composer}
+                                onSubmitted={handleComposerSubmitted}
+                            />
 
                             <Card className="border-white/10 bg-white/5 text-white">
                                 <CardHeader>
                                     <div className="flex flex-wrap items-center justify-between gap-3">
                                         <div>
-                                            <CardTitle className="text-lg font-semibold">Scene feed</CardTitle>
+                                            <CardTitle className="text-lg font-semibold">
+                                                Scene feed
+                                            </CardTitle>
                                             <CardDescription className="text-white/60">
-                                                Latest drops, circle updates, and monetized moments.
+                                                Latest drops, circle updates,
+                                                and monetized moments.
                                             </CardDescription>
                                         </div>
                                         <Button
@@ -308,33 +318,42 @@ export default function Dashboard() {
                                             disabled={isRefreshing}
                                             className="rounded-full border border-white/10 bg-white/5 px-4 text-xs text-white/70 hover:border-white/30 hover:bg-white/10 hover:text-white disabled:cursor-wait disabled:border-white/10 disabled:bg-white/5 disabled:text-white/50"
                                         >
-                                            {isRefreshing ? 'Refreshing…' : 'Refresh'}
+                                            {isRefreshing
+                                                ? 'Refreshing…'
+                                                : 'Refresh'}
                                         </Button>
                                     </div>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     {pendingBroadcastCount > 0 && (
                                         <Alert className="flex flex-col items-center gap-3 border border-emerald-400/40 bg-emerald-500/15 text-center text-white shadow-lg shadow-emerald-500/10">
-                                            <div className="flex items-center gap-2 rounded-full bg-emerald-400/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200">
+                                            <div className="flex items-center gap-2 rounded-full bg-emerald-400/20 px-3 py-1 text-xs font-semibold tracking-[0.3em] text-emerald-200 uppercase">
                                                 <Sparkles className="size-3" />
                                                 Live
                                             </div>
                                             <div className="space-y-1">
                                                 <p className="text-base font-semibold text-white">
-                                                    {pendingBroadcastLabel} ready to view
+                                                    {pendingBroadcastLabel}{' '}
+                                                    ready to view
                                                 </p>
                                                 <p className="text-sm text-white/70">
-                                                    Pull in the latest timeline drops while they’re still hot.
+                                                    Pull in the latest timeline
+                                                    drops while they’re still
+                                                    hot.
                                                 </p>
                                             </div>
-                        <Button
-                            size="sm"
-                            className="rounded-full bg-emerald-500 px-5 text-white shadow hover:bg-emerald-400"
-                            onClick={() => void handleViewNewEntries()}
-                            disabled={isRefreshing}
-                        >
-                            {isRefreshing ? 'Refreshing…' : 'View latest'}
-                        </Button>
+                                            <Button
+                                                size="sm"
+                                                className="rounded-full bg-emerald-500 px-5 text-white shadow hover:bg-emerald-400"
+                                                onClick={() =>
+                                                    void handleViewNewEntries()
+                                                }
+                                                disabled={isRefreshing}
+                                            >
+                                                {isRefreshing
+                                                    ? 'Refreshing…'
+                                                    : 'View latest'}
+                                            </Button>
                                         </Alert>
                                     )}
                                     {error && (
@@ -355,12 +374,16 @@ export default function Dashboard() {
                                     )}
                                     {entries.length === 0 ? (
                                         <Card className="border border-dashed border-white/15 bg-white/5 p-6 text-center text-sm text-white/70">
-                                            Your circles are quiet right now. Share a scene to spark the timeline.
+                                            Your circles are quiet right now.
+                                            Share a scene to spark the timeline.
                                         </Card>
                                     ) : (
                                         entries.map((entry) => {
                                             // Render ad entries differently
-                                            if (entry.type === 'ad' && entry.ad) {
+                                            if (
+                                                entry.type === 'ad' &&
+                                                entry.ad
+                                            ) {
                                                 return (
                                                     <TimelineAd
                                                         key={`ad-${entry.ad.id}`}
@@ -370,12 +393,19 @@ export default function Dashboard() {
                                             }
 
                                             // Render regular timeline entries
-                                            const postId = entry.post?.id ?? null;
+                                            const postId =
+                                                entry.post?.id ?? null;
                                             const isPostPending =
                                                 postId !== null &&
-                                                (pendingLikes.includes(postId) ||
-                                                    pendingPurchases.includes(postId) ||
-                                                    pendingBookmarks.includes(postId));
+                                                (pendingLikes.includes(
+                                                    postId,
+                                                ) ||
+                                                    pendingPurchases.includes(
+                                                        postId,
+                                                    ) ||
+                                                    pendingBookmarks.includes(
+                                                        postId,
+                                                    ));
 
                                             return (
                                                 <TimelineEntryCard
@@ -385,24 +415,36 @@ export default function Dashboard() {
                                                     onBookmark={toggleBookmark}
                                                     onComment={openComments}
                                                     onPurchase={togglePurchase}
-                                                    disabled={isPostPending || isRefreshing}
+                                                    disabled={
+                                                        isPostPending ||
+                                                        isRefreshing
+                                                    }
                                                 />
                                             );
                                         })
                                     )}
-                                    {isLoadingMore && <FeedLoadingPlaceholder />}
+                                    {isLoadingMore && (
+                                        <FeedLoadingPlaceholder />
+                                    )}
                                     {hasMore ? (
-                                        <div ref={sentinelRef} className="h-8 w-full" />
+                                        <div
+                                            ref={sentinelRef}
+                                            className="h-8 w-full"
+                                        />
                                     ) : (
                                         entries.length > 0 && (
                                             <div className="flex justify-center pt-3">
                                                 <Button
                                                     variant="ghost"
                                                     className="rounded-full border border-white/10 bg-white/10 px-4 text-xs text-white/70 hover:border-white/30 hover:bg-white/20 disabled:cursor-wait disabled:border-white/10 disabled:bg-white/10 disabled:text-white/50"
-                                                    onClick={() => void refresh()}
+                                                    onClick={() =>
+                                                        void refresh()
+                                                    }
                                                     disabled={isRefreshing}
                                                 >
-                                                    {isRefreshing ? 'Refreshing…' : 'Refresh feed'}
+                                                    {isRefreshing
+                                                        ? 'Refreshing…'
+                                                        : 'Refresh feed'}
                                                 </Button>
                                             </div>
                                         )
@@ -412,9 +454,12 @@ export default function Dashboard() {
 
                             <Card className="border-white/10 bg-white/5 text-white">
                                 <CardHeader>
-                                    <CardTitle className="text-base font-semibold">Creator toolkit</CardTitle>
+                                    <CardTitle className="text-base font-semibold">
+                                        Creator toolkit
+                                    </CardTitle>
                                     <CardDescription className="text-white/60">
-                                        Prompts to keep your earnings aligned with the feed vibe.
+                                        Prompts to keep your earnings aligned
+                                        with the feed vibe.
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-3">
@@ -433,71 +478,98 @@ export default function Dashboard() {
                         <aside className="hidden w-full max-w-[320px] flex-col gap-4 lg:flex">
                             <Card className="border-white/10 bg-white/5 text-white shadow-[0_24px_65px_-35px_rgba(249,115,22,0.45)]">
                                 <CardHeader>
-                                    <CardTitle className="text-base font-semibold">Trending tags</CardTitle>
+                                    <CardTitle className="text-base font-semibold">
+                                        Trending tags
+                                    </CardTitle>
                                     <CardDescription className="text-white/60">
                                         What the scene is amplifying right now.
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-3">
-                                    {trending.map(({ id, tag, usage_count }) => (
-                                        <div
-                                            key={id}
-                                            className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3"
-                                        >
-                                            <div className="flex items-center justify-between gap-2">
-                                                <p className="font-semibold text-white">{tag}</p>
-                                                <Badge className="rounded-full border-white/15 bg-white/10 px-2 py-0.5 text-[0.65rem] uppercase tracking-[0.3em] text-white/70">
-                                                    {formatUsage(usage_count)}
-                                                </Badge>
+                                    {trending.map(
+                                        ({ id, tag, usage_count }) => (
+                                            <div
+                                                key={id}
+                                                className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3"
+                                            >
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <p className="font-semibold text-white">
+                                                        {tag}
+                                                    </p>
+                                                    <Badge className="rounded-full border-white/15 bg-white/10 px-2 py-0.5 text-[0.65rem] tracking-[0.3em] text-white/70 uppercase">
+                                                        {formatUsage(
+                                                            usage_count,
+                                                        )}
+                                                    </Badge>
+                                                </div>
+                                                <p className="mt-1 text-xs text-white/60">
+                                                    Momentum from your circles
+                                                    over the last 24 hours.
+                                                </p>
                                             </div>
-                                            <p className="mt-1 text-xs text-white/60">
-                                                Momentum from your circles over the last 24 hours.
-                                            </p>
-                                        </div>
-                                    ))}
+                                        ),
+                                    )}
                                     {trending.length === 0 && (
                                         <Card className="border border-dashed border-white/15 bg-black/35 px-4 py-3 text-sm text-white/70">
-                                            Tag your scenes to start building heat charts.
+                                            Tag your scenes to start building
+                                            heat charts.
                                         </Card>
                                     )}
                                 </CardContent>
                             </Card>
 
-                            {pulse.length > 0 && <ScenePulseCard items={pulse} />}
+                            {pulse.length > 0 && (
+                                <ScenePulseCard items={pulse} />
+                            )}
 
                             <Deferred data="sidebarAds" fallback={null}>
-                                {sidebarAds && sidebarAds.length > 0 && sidebarAds[0] && (
-                                    <SidebarAd
-                                        ad={sidebarAds[0]}
-                                        size={
-                                            sidebarAds[0].placement === 'dashboard_sidebar_small'
-                                                ? 'small'
-                                                : sidebarAds[0].placement === 'dashboard_sidebar_medium'
-                                                  ? 'medium'
-                                                  : 'large'
-                                        }
-                                    />
-                                )}
+                                {sidebarAds &&
+                                    sidebarAds.length > 0 &&
+                                    sidebarAds[0] && (
+                                        <SidebarAd
+                                            ad={sidebarAds[0]}
+                                            size={
+                                                sidebarAds[0].placement ===
+                                                'dashboard_sidebar_small'
+                                                    ? 'small'
+                                                    : sidebarAds[0]
+                                                            .placement ===
+                                                        'dashboard_sidebar_medium'
+                                                      ? 'medium'
+                                                      : 'large'
+                                            }
+                                        />
+                                    )}
                             </Deferred>
 
                             <Card className="border-white/10 bg-white/5 text-white">
                                 <CardHeader>
-                                    <CardTitle className="text-base font-semibold">Circle spotlights</CardTitle>
+                                    <CardTitle className="text-base font-semibold">
+                                        Circle spotlights
+                                    </CardTitle>
                                     <CardDescription className="text-white/60">
                                         Rooms where your energy would pop.
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-3">
-                                    {circleSpotlights.map(({ name, members, status }) => (
-                                        <div
-                                            key={name}
-                                            className="rounded-2xl border border-white/10 bg-black/35 px-4 py-3"
-                                        >
-                                            <p className="text-sm font-semibold text-white">{name}</p>
-                                            <p className="text-xs text-white/55">{members}</p>
-                                            <p className="mt-1 text-xs text-amber-300">{status}</p>
-                                        </div>
-                                    ))}
+                                    {circleSpotlights.map(
+                                        ({ name, members, status }) => (
+                                            <div
+                                                key={name}
+                                                className="rounded-2xl border border-white/10 bg-black/35 px-4 py-3"
+                                            >
+                                                <p className="text-sm font-semibold text-white">
+                                                    {name}
+                                                </p>
+                                                <p className="text-xs text-white/55">
+                                                    {members}
+                                                </p>
+                                                <p className="mt-1 text-xs text-amber-300">
+                                                    {status}
+                                                </p>
+                                            </div>
+                                        ),
+                                    )}
                                 </CardContent>
                                 <div className="px-6 pb-6">
                                     <Button
@@ -511,42 +583,66 @@ export default function Dashboard() {
 
                             <Card className="border-white/10 bg-white/5 text-white">
                                 <CardHeader>
-                                    <CardTitle className="text-base font-semibold">Need-to-know</CardTitle>
+                                    <CardTitle className="text-base font-semibold">
+                                        Need-to-know
+                                    </CardTitle>
                                     <CardDescription className="text-white/60">
-                                        Consent and safety updates from moderators.
+                                        Consent and safety updates from
+                                        moderators.
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     <ul className="space-y-3 text-sm text-white/75">
                                         <li>
-                                            <span className="font-semibold">-</span>{' '}
-                                            Consensual kink week is live - tag scenes with <span className="text-white">#greenlight</span> to be featured on the welcome stream.
+                                            <span className="font-semibold">
+                                                -
+                                            </span>{' '}
+                                            Consensual kink week is live - tag
+                                            scenes with{' '}
+                                            <span className="text-white">
+                                                #greenlight
+                                            </span>{' '}
+                                            to be featured on the welcome
+                                            stream.
                                         </li>
                                         <li>
-                                            <span className="font-semibold">-</span>{' '}
-                                            New alias controls let you mask your handle during traveler mode. Toggle it in settings before IRL dungeons.
+                                            <span className="font-semibold">
+                                                -
+                                            </span>{' '}
+                                            New alias controls let you mask your
+                                            handle during traveler mode. Toggle
+                                            it in settings before IRL dungeons.
                                         </li>
                                         <li>
-                                            <span className="font-semibold">-</span>{' '}
-                                            Verification queue is averaging 4 hours. Upload your documents early if you plan to go live tonight.
+                                            <span className="font-semibold">
+                                                -
+                                            </span>{' '}
+                                            Verification queue is averaging 4
+                                            hours. Upload your documents early
+                                            if you plan to go live tonight.
                                         </li>
                                     </ul>
                                 </CardContent>
                             </Card>
 
                             <Deferred data="sidebarAds" fallback={null}>
-                                {sidebarAds && sidebarAds.length > 1 && sidebarAds[1] && (
-                                    <SidebarAd
-                                        ad={sidebarAds[1]}
-                                        size={
-                                            sidebarAds[1].placement === 'dashboard_sidebar_small'
-                                                ? 'small'
-                                                : sidebarAds[1].placement === 'dashboard_sidebar_medium'
-                                                  ? 'medium'
-                                                  : 'large'
-                                        }
-                                    />
-                                )}
+                                {sidebarAds &&
+                                    sidebarAds.length > 1 &&
+                                    sidebarAds[1] && (
+                                        <SidebarAd
+                                            ad={sidebarAds[1]}
+                                            size={
+                                                sidebarAds[1].placement ===
+                                                'dashboard_sidebar_small'
+                                                    ? 'small'
+                                                    : sidebarAds[1]
+                                                            .placement ===
+                                                        'dashboard_sidebar_medium'
+                                                      ? 'medium'
+                                                      : 'large'
+                                            }
+                                        />
+                                    )}
                             </Deferred>
                         </aside>
                     </div>

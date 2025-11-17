@@ -26,4 +26,3 @@ class SendPostBookmarkedNotification
         $author->notify(new PostBookmarkedNotification($event->actor, $post));
     }
 }
-

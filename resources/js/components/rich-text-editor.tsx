@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
 import { Bold, Italic, Strikethrough, Underline } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 const allowedTags = ['strong', 'em', 'u', 's', 'br'];
@@ -14,7 +13,8 @@ type RichTextEditorProps = {
     className?: string;
 };
 
-const hasDomParser = typeof window !== 'undefined' && typeof DOMParser !== 'undefined';
+const hasDomParser =
+    typeof window !== 'undefined' && typeof DOMParser !== 'undefined';
 
 const sanitizeHtml = (html: string): string => {
     if (!hasDomParser) {
@@ -42,7 +42,9 @@ const sanitizeHtml = (html: string): string => {
             return;
         }
 
-        [...node.attributes].forEach((attribute) => node.removeAttribute(attribute.name));
+        [...node.attributes].forEach((attribute) =>
+            node.removeAttribute(attribute.name),
+        );
     });
 
     return doc.body.innerHTML || '';
@@ -54,7 +56,8 @@ const plainTextLength = (html: string): number => {
     }
 
     if (!hasDomParser) {
-        return html.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '').length;
+        return html.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '')
+            .length;
     }
 
     const parser = new DOMParser();
@@ -88,7 +91,13 @@ const formatActions = [
     { label: 'Strikethrough', command: 'strikeThrough', icon: Strikethrough },
 ];
 
-export default function RichTextEditor({ value, onChange, maxLength, placeholder, className }: RichTextEditorProps) {
+export default function RichTextEditor({
+    value,
+    onChange,
+    maxLength,
+    placeholder,
+    className,
+}: RichTextEditorProps) {
     const editorRef = useRef<HTMLDivElement>(null);
     const lastHtmlRef = useRef<string>(value ?? '');
     const [isFocused, setIsFocused] = useState(false);
@@ -133,9 +142,9 @@ export default function RichTextEditor({ value, onChange, maxLength, placeholder
             return;
         }
 
-    if (typeof document === 'undefined') {
-        return;
-    }
+        if (typeof document === 'undefined') {
+            return;
+        }
 
         editorRef.current.focus();
         document.execCommand(command);
@@ -151,7 +160,7 @@ export default function RichTextEditor({ value, onChange, maxLength, placeholder
             >
                 <div
                     ref={editorRef}
-                    className="min-h-[220px] whitespace-pre-wrap break-words px-4 py-3 pb-8 outline-none"
+                    className="min-h-[220px] px-4 py-3 pb-8 break-words whitespace-pre-wrap outline-none"
                     contentEditable
                     suppressContentEditableWarning
                     onInput={handleInput}
@@ -159,10 +168,12 @@ export default function RichTextEditor({ value, onChange, maxLength, placeholder
                     onFocus={() => setIsFocused(true)}
                 />
                 {!isFocused && !value && placeholder && (
-                    <span className="pointer-events-none absolute left-4 top-3 text-sm text-white/40">{placeholder}</span>
+                    <span className="pointer-events-none absolute top-3 left-4 text-sm text-white/40">
+                        {placeholder}
+                    </span>
                 )}
-                <div className="pointer-events-none absolute bottom-3 right-4">
-                    <p className="text-[0.65rem] uppercase tracking-[0.3em] text-white/50">
+                <div className="pointer-events-none absolute right-4 bottom-3">
+                    <p className="text-[0.65rem] tracking-[0.3em] text-white/50 uppercase">
                         {plainTextLength(value)}/{maxLength}
                     </p>
                 </div>
@@ -170,4 +181,3 @@ export default function RichTextEditor({ value, onChange, maxLength, placeholder
         </div>
     );
 }
-

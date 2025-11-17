@@ -40,5 +40,3 @@ it('broadcasts notifications with unread counts and metadata', function (): void
         }
     );
 });
-
-

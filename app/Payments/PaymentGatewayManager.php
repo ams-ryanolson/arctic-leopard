@@ -33,7 +33,7 @@ class PaymentGatewayManager
     protected array $config = [];
 
     /**
-     * @param array<string, mixed> $config
+     * @param  array<string, mixed>  $config
      */
     public function __construct(
         protected readonly Container $container,
@@ -113,7 +113,7 @@ class PaymentGatewayManager
         ]);
 
         if (! $gateway instanceof PaymentGatewayContract) {
-            throw new PaymentGatewayException("Gateway [{$name}] must implement " . PaymentGatewayContract::class);
+            throw new PaymentGatewayException("Gateway [{$name}] must implement ".PaymentGatewayContract::class);
         }
 
         return $gateway;
@@ -133,7 +133,7 @@ class PaymentGatewayManager
             ]);
 
             if (! $driver instanceof SubscriptionGatewayContract) {
-                throw new PaymentGatewayException("Subscription driver for [{$name}] must implement " . SubscriptionGatewayContract::class);
+                throw new PaymentGatewayException("Subscription driver for [{$name}] must implement ".SubscriptionGatewayContract::class);
             }
 
             return $driver;
@@ -153,4 +153,3 @@ class PaymentGatewayManager
         return $this->customResolvers[$name]($this->container);
     }
 }
-

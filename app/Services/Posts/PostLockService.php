@@ -2,21 +2,21 @@
 
 namespace App\Services\Posts;
 
+use App\Enums\Payments\PaymentType;
+use App\Enums\Payments\PostPurchaseStatus;
 use App\Enums\PostAudience;
 use App\Enums\TimelineVisibilitySource;
 use App\Events\PostPurchased;
-use App\Services\Cache\PostCacheService;
-use App\Services\Cache\TimelineCacheService;
-use App\Services\Payments\PaymentService;
-use App\Payments\Data\PaymentIntentData;
-use App\Enums\Payments\PaymentType;
-use App\Enums\Payments\PostPurchaseStatus;
-use App\ValueObjects\Money;
 use App\Models\Post;
 use App\Models\PostPurchase;
 use App\Models\Timeline;
 use App\Models\User;
+use App\Payments\Data\PaymentIntentData;
+use App\Services\Cache\PostCacheService;
+use App\Services\Cache\TimelineCacheService;
+use App\Services\Payments\PaymentService;
 use App\Support\Audience\AudienceDecision;
+use App\ValueObjects\Money;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -27,8 +27,7 @@ class PostLockService
         private TimelineCacheService $timelineCache,
         private PostCacheService $postCache,
         private PaymentService $payments,
-    ) {
-    }
+    ) {}
 
     public function hasAccess(Post $post, ?User $viewer): bool
     {
@@ -129,4 +128,3 @@ class PostLockService
         $this->postCache->forget($post);
     }
 }
-

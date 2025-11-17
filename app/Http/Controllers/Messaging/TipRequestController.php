@@ -25,7 +25,7 @@ class TipRequestController extends Controller
         $conversation = $message->conversation()->firstOrFail();
 
         if (! $actor?->can('view', $conversation)) {
-            throw new AuthorizationException();
+            throw new AuthorizationException;
         }
 
         if ($message->type !== 'tip_request') {
@@ -79,7 +79,7 @@ class TipRequestController extends Controller
         $conversation = $message->conversation()->firstOrFail();
 
         if (! $actor?->can('view', $conversation)) {
-            throw new AuthorizationException();
+            throw new AuthorizationException;
         }
 
         if ($message->type !== 'tip_request') {
@@ -105,4 +105,3 @@ class TipRequestController extends Controller
         ]);
     }
 }
-

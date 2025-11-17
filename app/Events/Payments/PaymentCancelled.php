@@ -2,7 +2,4 @@
 
 namespace App\Events\Payments;
 
-class PaymentCancelled extends PaymentEvent
-{
-}
-
+class PaymentCancelled extends PaymentEvent {}

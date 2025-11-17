@@ -6,17 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\Cache\TimelineCacheService;
 use App\Services\Feed\FeedService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class UserFeedController extends Controller
 {
     public function __construct(
         private TimelineCacheService $timelineCache,
         private FeedService $feedService,
-    )
-    {
-    }
+    ) {}
 
     public function index(Request $request, User $user): JsonResponse
     {

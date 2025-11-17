@@ -25,4 +25,3 @@ class FailWishlistPurchaseOnPaymentFailed implements ShouldQueue
         ])->save();
     }
 }
-

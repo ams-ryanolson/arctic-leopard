@@ -24,8 +24,7 @@ class SubscriptionController extends Controller
     public function __construct(
         protected readonly SubscriptionService $subscriptions,
         protected readonly PaymentService $payments
-    ) {
-    }
+    ) {}
 
     public function store(StoreSubscriptionRequest $request): JsonResponse
     {
@@ -108,4 +107,3 @@ class SubscriptionController extends Controller
         abort_unless($subscription->subscriber_id === $request->user()->id, JsonResponse::HTTP_FORBIDDEN);
     }
 }
-

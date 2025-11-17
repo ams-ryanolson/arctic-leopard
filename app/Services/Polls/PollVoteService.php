@@ -17,8 +17,7 @@ class PollVoteService
     public function __construct(
         private PostCacheService $postCache,
         private TimelineCacheService $timelineCache,
-    ) {
-    }
+    ) {}
 
     /**
      * Cast a vote for the given poll option.
@@ -120,4 +119,3 @@ class PollVoteService
         }
     }
 }
-

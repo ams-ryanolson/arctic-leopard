@@ -2,7 +2,4 @@
 
 namespace App\Events\Payments;
 
-class SubscriptionRenewed extends SubscriptionEvent
-{
-}
-
+class SubscriptionRenewed extends SubscriptionEvent {}

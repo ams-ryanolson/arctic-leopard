@@ -16,8 +16,7 @@ class CommentLikeController extends Controller
     public function __construct(
         private PostCacheService $postCache,
         private TimelineCacheService $timelineCache,
-    ) {
-    }
+    ) {}
 
     public function store(Request $request, Post $post, Comment $comment): JsonResponse
     {
@@ -118,4 +117,3 @@ class CommentLikeController extends Controller
         return (new CommentResource($comment))->toResponse($request);
     }
 }
-

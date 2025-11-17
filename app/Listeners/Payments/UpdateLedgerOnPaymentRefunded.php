@@ -53,7 +53,7 @@ class UpdateLedgerOnPaymentRefunded implements ShouldQueue
     }
 
     /**
-     * @param array<string, mixed> $metadata
+     * @param  array<string, mixed>  $metadata
      */
     protected function createEntry(
         ?Model $model,
@@ -82,4 +82,3 @@ class UpdateLedgerOnPaymentRefunded implements ShouldQueue
         ]);
     }
 }
-

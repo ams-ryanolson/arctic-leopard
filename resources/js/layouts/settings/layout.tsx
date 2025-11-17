@@ -1,18 +1,9 @@
-import Heading from '@/components/heading';
-import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { cn, isSameUrl, resolveUrl } from '@/lib/utils';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
+import { Bell, Database, Lock, Share2, Shield, User } from 'lucide-react';
 import { type PropsWithChildren, useMemo } from 'react';
-import {
-    User,
-    Lock,
-    Shield,
-    Bell,
-    Share2,
-    Database,
-} from 'lucide-react';
 
 const sidebarNavItems: NavItem[] = [
     {
@@ -71,21 +62,23 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
             <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 via-white/5 to-black/20 shadow-[0_60px_120px_-70px_rgba(249,115,22,0.6)]">
                 <div className="pointer-events-none absolute inset-0">
                     <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-amber-500/25 via-amber-400/10 to-transparent blur-3xl" />
-                    <div className="absolute -left-32 top-1/2 size-[520px] -translate-y-1/2 rounded-full bg-violet-500/20 blur-3xl" />
-                    <div className="absolute -right-36 top-16 size-[460px] rounded-full bg-rose-600/20 blur-3xl" />
+                    <div className="absolute top-1/2 -left-32 size-[520px] -translate-y-1/2 rounded-full bg-violet-500/20 blur-3xl" />
+                    <div className="absolute top-16 -right-36 size-[460px] rounded-full bg-rose-600/20 blur-3xl" />
                 </div>
 
                 <div className="relative p-8 sm:p-10 md:p-12">
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <h1 className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
+                            <h1 className="text-3xl leading-tight font-semibold tracking-tight sm:text-4xl lg:text-5xl">
                                 Account{' '}
                                 <span className="bg-gradient-to-br from-amber-400 via-rose-500 to-violet-600 bg-clip-text text-transparent">
                                     Settings
                                 </span>
                             </h1>
                             <p className="max-w-2xl text-base leading-relaxed text-white/75 sm:text-lg">
-                                Manage your profile, privacy, security, and account preferences. Keep your information up to date and control how others see you.
+                                Manage your profile, privacy, security, and
+                                account preferences. Keep your information up to
+                                date and control how others see you.
                             </p>
                         </div>
                     </div>
@@ -104,24 +97,30 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
                                     className={cn(
                                         'group relative flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all duration-200',
                                         isActive
-                                            ? 'bg-gradient-to-r from-amber-400/20 via-amber-400/10 to-transparent border border-amber-400/30 text-white shadow-[0_12px_30px_-18px_rgba(249,115,22,0.65)]'
-                                            : 'text-white/70 hover:bg-white/10 hover:text-white hover:border hover:border-white/20',
+                                            ? 'border border-amber-400/30 bg-gradient-to-r from-amber-400/20 via-amber-400/10 to-transparent text-white shadow-[0_12px_30px_-18px_rgba(249,115,22,0.65)]'
+                                            : 'text-white/70 hover:border hover:border-white/20 hover:bg-white/10 hover:text-white',
                                     )}
                                 >
                                     {isActive && (
                                         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-amber-400/10 via-transparent to-transparent opacity-50" />
                                     )}
                                     {item.icon && (
-                                        <div className={cn(
-                                            'flex items-center justify-center rounded-xl p-2 transition-all',
-                                            isActive
-                                                ? 'bg-gradient-to-br from-amber-400/30 to-amber-500/20 border border-amber-400/40'
-                                                : 'bg-white/5 border border-white/10 group-hover:border-white/20 group-hover:bg-white/10',
-                                        )}>
-                                            <item.icon className={cn(
-                                                'h-4 w-4 transition-colors',
-                                                isActive ? 'text-amber-300' : 'text-white/60 group-hover:text-white',
-                                            )} />
+                                        <div
+                                            className={cn(
+                                                'flex items-center justify-center rounded-xl p-2 transition-all',
+                                                isActive
+                                                    ? 'border border-amber-400/40 bg-gradient-to-br from-amber-400/30 to-amber-500/20'
+                                                    : 'border border-white/10 bg-white/5 group-hover:border-white/20 group-hover:bg-white/10',
+                                            )}
+                                        >
+                                            <item.icon
+                                                className={cn(
+                                                    'h-4 w-4 transition-colors',
+                                                    isActive
+                                                        ? 'text-amber-300'
+                                                        : 'text-white/60 group-hover:text-white',
+                                                )}
+                                            />
                                         </div>
                                     )}
                                     <span>{item.title}</span>
@@ -131,12 +130,10 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
                     </nav>
                 </aside>
 
-                <Separator className="my-6 lg:hidden border-white/10" />
+                <Separator className="my-6 border-white/10 lg:hidden" />
 
-                <div className="flex-1 min-w-0">
-                    <div className="space-y-8">
-                        {children}
-                    </div>
+                <div className="min-w-0 flex-1">
+                    <div className="space-y-8">{children}</div>
                 </div>
             </div>
         </div>

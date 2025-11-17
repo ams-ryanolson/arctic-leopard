@@ -73,7 +73,7 @@ test('authenticated users with completed profile can create stories', function (
     $uploadResponse = $this->postJson('/uploads/tmp', [
         'file' => $file,
     ])->assertSuccessful();
-    
+
     $identifier = $uploadResponse->json('id') ?? $uploadResponse->json('identifier');
 
     // Step 2: Create story with identifier

@@ -2,11 +2,15 @@
 
 namespace Database\Seeders;
 
+use App\Enums\Payments\PaymentSubscriptionStatus;
 use App\Enums\PostAudience;
 use App\Enums\PostType;
 use App\Enums\TimelineVisibilitySource;
 use App\Models\Hashtag;
 use App\Models\Interest;
+use App\Models\Payments\PaymentMethod;
+use App\Models\Payments\PaymentSubscription;
+use App\Models\Payments\SubscriptionPlan;
 use App\Models\Post;
 use App\Models\PostMedia;
 use App\Models\PostPoll;
@@ -22,17 +26,15 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use App\Enums\Payments\PaymentSubscriptionStatus;
-use App\Models\Payments\PaymentMethod;
-use App\Models\Payments\PaymentSubscription;
-use App\Models\Payments\SubscriptionPlan;
 
 class BusySiteSeeder extends Seeder
 {
     use DownloadsUnsplashMedia;
 
     protected int $creatorCount = 60;
+
     protected int $viewerCount = 40;
+
     protected int $postTarget = 500;
 
     /**
@@ -762,4 +764,3 @@ class BusySiteSeeder extends Seeder
         );
     }
 }
-

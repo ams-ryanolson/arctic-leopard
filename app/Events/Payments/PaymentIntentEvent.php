@@ -11,9 +11,7 @@ abstract class PaymentIntentEvent
     use Dispatchable;
     use SerializesModels;
 
-    public function __construct(public PaymentIntent $intent)
-    {
-    }
+    public function __construct(public PaymentIntent $intent) {}
 
     /**
      * @return array{
@@ -35,4 +33,3 @@ abstract class PaymentIntentEvent
         ];
     }
 }
-

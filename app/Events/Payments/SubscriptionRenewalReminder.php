@@ -14,6 +14,5 @@ class SubscriptionRenewalReminder
     public function __construct(
         public readonly PaymentSubscription $subscription,
         public readonly bool $gracePeriod = false
-    ) {
-    }
+    ) {}
 }

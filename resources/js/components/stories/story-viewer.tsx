@@ -1,17 +1,21 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import StoryReactions from './story-reactions';
-import type { StoryResponse } from '@/lib/story-client';
-import storiesRoutes from '@/routes/stories';
 import { getCsrfToken } from '@/lib/csrf';
+import type { StoryResponse } from '@/lib/story-client';
+import { cn } from '@/lib/utils';
+import storiesRoutes from '@/routes/stories';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import StoryReactions from './story-reactions';
 
 type StoryViewerProps = {
     storyId: number;
     onClose: () => void;
-    onStoryChange?: (storyId: number, nextStoryId: number | null, previousStoryId: number | null) => void;
+    onStoryChange?: (
+        storyId: number,
+        nextStoryId: number | null,
+        previousStoryId: number | null,
+    ) => void;
 };
 
 const STORY_DURATION = 7000; // 7 seconds in milliseconds
@@ -46,13 +50,18 @@ export default function StoryViewer({
             setError(null);
             setProgress(0); // Reset progress when loading new story
 
-            const response = await fetch(storiesRoutes.show({ story: id }).url, {
-                headers: {
-                    Accept: 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    ...(getCsrfToken() ? { 'X-XSRF-TOKEN': getCsrfToken()! } : {}),
+            const response = await fetch(
+                storiesRoutes.show({ story: id }).url,
+                {
+                    headers: {
+                        Accept: 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        ...(getCsrfToken()
+                            ? { 'X-XSRF-TOKEN': getCsrfToken()! }
+                            : {}),
+                    },
                 },
-            });
+            );
 
             if (!response.ok) {
                 throw new Error('Failed to fetch story');
@@ -80,14 +89,18 @@ export default function StoryViewer({
                     headers: {
                         Accept: 'application/json',
                         'X-Requested-With': 'XMLHttpRequest',
-                        ...(getCsrfToken() ? { 'X-XSRF-TOKEN': getCsrfToken()! } : {}),
+                        ...(getCsrfToken()
+                            ? { 'X-XSRF-TOKEN': getCsrfToken()! }
+                            : {}),
                     },
                 });
             } catch {
                 // Silently fail if marking as viewed fails
             }
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to load story');
+            setError(
+                err instanceof Error ? err.message : 'Failed to load story',
+            );
         } finally {
             setLoading(false);
         }
@@ -173,7 +186,7 @@ export default function StoryViewer({
         }
         startTimeRef.current = null;
         pausedTimeRef.current = null;
-        
+
         fetchStory(currentStoryId);
     }, [currentStoryId, fetchStory]);
 
@@ -249,7 +262,10 @@ export default function StoryViewer({
 
     const isImage = story.media?.mime_type?.startsWith('image/') ?? false;
     const isVideo = story.media?.mime_type?.startsWith('video/') ?? false;
-    const mediaUrl = story.media?.url;
+    // Use optimized_url for images when available, fall back to url
+    const mediaUrl = isImage && story.media?.optimized_url
+        ? story.media.optimized_url
+        : story.media?.url;
 
     return (
         <div
@@ -259,7 +275,7 @@ export default function StoryViewer({
             onMouseLeave={handleMouseUp}
         >
             {/* Progress bar */}
-            <div className="absolute top-0 left-0 right-0 z-[9999] h-1 bg-white/20">
+            <div className="absolute top-0 right-0 left-0 z-[9999] h-1 bg-white/20">
                 <div
                     className="h-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 transition-all duration-75"
                     style={{ width: `${progress}%` }}
@@ -269,7 +285,7 @@ export default function StoryViewer({
             {/* Close button */}
             <button
                 onClick={onClose}
-                className="absolute right-4 top-4 z-10 rounded-full bg-black/60 p-2 text-white transition hover:bg-black/80"
+                className="absolute top-4 right-4 z-10 rounded-full bg-black/60 p-2 text-white transition hover:bg-black/80"
             >
                 <X className="size-5" />
             </button>
@@ -299,11 +315,11 @@ export default function StoryViewer({
             </div>
 
             {/* Navigation buttons - visible on hover */}
-            <div className="absolute inset-0 flex items-center pointer-events-none">
+            <div className="pointer-events-none absolute inset-0 flex items-center">
                 {previousStoryId && (
                     <button
                         onClick={handlePrevious}
-                        className="absolute left-4 z-10 rounded-full bg-black/60 p-2 text-white transition hover:bg-black/80 pointer-events-auto"
+                        className="pointer-events-auto absolute left-4 z-10 rounded-full bg-black/60 p-2 text-white transition hover:bg-black/80"
                         aria-label="Previous story"
                     >
                         <ChevronLeft className="size-6" />
@@ -312,7 +328,7 @@ export default function StoryViewer({
                 {nextStoryId && (
                     <button
                         onClick={handleNext}
-                        className="absolute right-4 z-10 rounded-full bg-black/60 p-2 text-white transition hover:bg-black/80 pointer-events-auto"
+                        className="pointer-events-auto absolute right-4 z-10 rounded-full bg-black/60 p-2 text-white transition hover:bg-black/80"
                         aria-label="Next story"
                     >
                         <ChevronRight className="size-6" />
@@ -356,22 +372,30 @@ export default function StoryViewer({
 
                 {/* Author info overlay */}
                 {story.author && (
-                    <div className="absolute left-4 top-16 z-10 flex items-center gap-3">
+                    <div className="absolute top-16 left-4 z-10 flex items-center gap-3">
                         <Avatar className="size-10 border-2 border-white/50">
-                            <AvatarImage src={story.author.avatar_url ?? undefined} alt={story.author.username} />
+                            <AvatarImage
+                                src={story.author.avatar_url ?? undefined}
+                                alt={story.author.username}
+                            />
                             <AvatarFallback className="bg-white/10 text-white/70">
                                 {story.author.username[0].toUpperCase()}
                             </AvatarFallback>
                         </Avatar>
                         <div className="text-white">
-                            <p className="font-semibold">{story.author.display_name ?? story.author.username}</p>
-                            <p className="text-xs text-white/70">{story.views_count} views</p>
+                            <p className="font-semibold">
+                                {story.author.display_name ??
+                                    story.author.username}
+                            </p>
+                            <p className="text-xs text-white/70">
+                                {story.views_count} views
+                            </p>
                         </div>
                     </div>
                 )}
 
                 {/* Reactions */}
-                <div className="absolute bottom-4 right-4 z-10">
+                <div className="absolute right-4 bottom-4 z-10">
                     <StoryReactions
                         storyId={story.id}
                         reactions={story.reactions ?? []}
@@ -382,4 +406,3 @@ export default function StoryViewer({
         </div>
     );
 }
-

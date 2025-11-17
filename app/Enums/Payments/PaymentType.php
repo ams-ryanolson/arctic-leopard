@@ -12,4 +12,3 @@ enum PaymentType: string
     case Recurring = 'recurring';
     case Adjustment = 'adjustment';
 }
-

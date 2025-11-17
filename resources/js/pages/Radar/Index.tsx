@@ -1,6 +1,17 @@
-import AppLayout from '@/layouts/app-layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
     Dialog,
     DialogContent,
@@ -9,45 +20,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import { cn } from '@/lib/utils';
-import { radar } from '@/routes';
-import profileRoutes from '@/routes/profile';
-import usersRoutes from '@/routes/users';
-import { getCsrfToken } from '@/lib/csrf';
-import { type SharedData } from '@/types';
-import { Head, Link, router, usePage } from '@inertiajs/react';
-import {
-    Activity,
-    HelpCircle,
-    MapPin,
-    Plane,
-    Radar as RadarIcon,
-    Sparkles,
-    Waves,
-    Zap,
-    Loader2,
-    ChevronUp,
-    ChevronDown,
-} from 'lucide-react';
-import {
-    useCallback,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-} from 'react';
-import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -55,9 +29,29 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { X } from 'lucide-react';
+import AppLayout from '@/layouts/app-layout';
+import { getCsrfToken } from '@/lib/csrf';
+import { cn } from '@/lib/utils';
+import { radar } from '@/routes';
+import profileRoutes from '@/routes/profile';
+import usersRoutes from '@/routes/users';
+import { type SharedData } from '@/types';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import {
+    Activity,
+    ChevronDown,
+    ChevronUp,
+    HelpCircle,
+    Loader2,
+    MapPin,
+    Plane,
+    Radar as RadarIcon,
+    Sparkles,
+    Waves,
+    X,
+    Zap,
+} from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 type RadarProfile = {
     id: number;
@@ -171,9 +165,13 @@ export default function RadarIndex() {
     const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
     const [isRequestingLocation, setIsRequestingLocation] = useState(false);
     const [locationError, setLocationError] = useState<string | null>(null);
-    const [travelBeaconActive, setTravelBeaconActive] = useState(viewer.travelBeacon);
+    const [travelBeaconActive, setTravelBeaconActive] = useState(
+        viewer.travelBeacon,
+    );
     const [isTravelBeaconLoading, setIsTravelBeaconLoading] = useState(false);
-    const [travelBeaconError, setTravelBeaconError] = useState<string | null>(null);
+    const [travelBeaconError, setTravelBeaconError] = useState<string | null>(
+        null,
+    );
 
     const [boostInfo, setBoostInfo] = useState(viewer.boostInfo);
     const [isBoostLoading, setIsBoostLoading] = useState(false);
@@ -186,28 +184,35 @@ export default function RadarIndex() {
         }
 
         try {
-            const value = window.localStorage.getItem(RADAR_HEADER_COLLAPSED_KEY);
+            const value = window.localStorage.getItem(
+                RADAR_HEADER_COLLAPSED_KEY,
+            );
             return value === 'true';
         } catch {
             return false;
         }
     });
 
-    const [isFiltersCollapsed, setIsFiltersCollapsed] = useState<boolean>(() => {
-        if (typeof window === 'undefined') {
-            return false;
-        }
+    const [isFiltersCollapsed, setIsFiltersCollapsed] = useState<boolean>(
+        () => {
+            if (typeof window === 'undefined') {
+                return false;
+            }
 
-        try {
-            const value = window.localStorage.getItem(RADAR_FILTERS_COLLAPSED_KEY);
-            return value === 'true';
-        } catch {
-            return false;
-        }
-    });
+            try {
+                const value = window.localStorage.getItem(
+                    RADAR_FILTERS_COLLAPSED_KEY,
+                );
+                return value === 'true';
+            } catch {
+                return false;
+            }
+        },
+    );
 
     // Filter state management
-    const [activeFilters, setActiveFilters] = useState<ActiveFilters>(initialActiveFilters);
+    const [activeFilters, setActiveFilters] =
+        useState<ActiveFilters>(initialActiveFilters);
 
     const [pages, setPages] = useState<RadarScrollPayload[]>([initialRadar]);
     const [hasMore, setHasMore] = useState(
@@ -218,7 +223,6 @@ export default function RadarIndex() {
     const sentinelRef = useRef<HTMLDivElement | null>(null);
     const appendRef = useRef(false);
 
-     
     useEffect(() => {
         setTravelBeaconActive(viewer.travelBeacon);
     }, [viewer.travelBeacon]);
@@ -253,7 +257,6 @@ export default function RadarIndex() {
         }
     }, [isFiltersCollapsed]);
 
-     
     useEffect(() => {
         if (typeof document === 'undefined') {
             return;
@@ -261,7 +264,9 @@ export default function RadarIndex() {
 
         const hasPrompted = document.cookie
             .split('; ')
-            .some((cookie) => cookie.trim().startsWith(`${LOCATION_PROMPT_COOKIE}=`));
+            .some((cookie) =>
+                cookie.trim().startsWith(`${LOCATION_PROMPT_COOKIE}=`),
+            );
 
         if (!hasPrompted) {
             document.cookie = `${LOCATION_PROMPT_COOKIE}=1;path=/;max-age=${LOCATION_COOKIE_MAX_AGE};SameSite=Lax`;
@@ -269,7 +274,6 @@ export default function RadarIndex() {
         }
     }, []);
 
-     
     useEffect(() => {
         if (appendRef.current) {
             appendRef.current = false;
@@ -313,8 +317,7 @@ export default function RadarIndex() {
             return;
         }
 
-        const currentPage =
-            pages[pages.length - 1]?.meta.current_page ?? 1;
+        const currentPage = pages[pages.length - 1]?.meta.current_page ?? 1;
         const nextPage = currentPage + 1;
 
         appendRef.current = true;
@@ -382,7 +385,9 @@ export default function RadarIndex() {
                         setLocationError(null);
                     },
                     onError: () => {
-                        setLocationError('We could not save your updated location. Please try again.');
+                        setLocationError(
+                            'We could not save your updated location. Please try again.',
+                        );
                     },
                     onFinish: () => {
                         setIsRequestingLocation(false);
@@ -426,7 +431,9 @@ export default function RadarIndex() {
                 setTravelBeaconError(null);
             },
             onError: () => {
-                setTravelBeaconError('We could not update your traveler beacon. Please try again.');
+                setTravelBeaconError(
+                    'We could not update your traveler beacon. Please try again.',
+                );
             },
             onFinish: () => {
                 setIsTravelBeaconLoading(false);
@@ -564,38 +571,40 @@ export default function RadarIndex() {
                         <CardHeader className="gap-3 px-4 py-4 sm:gap-4 sm:px-6 sm:py-6">
                             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                                 {isHeaderCollapsed ? (
-                                    <div className="flex-1 min-w-0">
+                                    <div className="min-w-0 flex-1">
                                         <CardTitle className="inline-flex flex-wrap items-center gap-2 text-base font-semibold tracking-tight sm:text-lg">
                                             <span className="flex size-6 items-center justify-center rounded-full bg-gradient-to-br from-amber-400/30 via-rose-500/35 to-violet-600/30 text-amber-200 sm:size-7">
                                                 <RadarIcon className="size-3.5 sm:size-4" />
                                             </span>
                                             Radar is live
                                             {travelBeaconActive ? (
-                                                <Badge className="ml-1 flex items-center gap-1 rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[0.6rem] uppercase tracking-[0.3em] text-white/75">
+                                                <Badge className="ml-1 flex items-center gap-1 rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[0.6rem] tracking-[0.3em] text-white/75 uppercase">
                                                     <Plane className="size-2.5" />
                                                     Visiting
                                                 </Badge>
                                             ) : null}
                                         </CardTitle>
                                         <CardDescription className="mt-1 text-xs text-white/55 sm:text-sm">
-                                            Calibrated to {locationLabel} • Stats, prompts, and traveler controls
+                                            Calibrated to {locationLabel} •
+                                            Stats, prompts, and traveler
+                                            controls
                                         </CardDescription>
                                     </div>
                                 ) : (
-                                    <div className="flex-1 space-y-2 min-w-0">
+                                    <div className="min-w-0 flex-1 space-y-2">
                                         <CardTitle className="inline-flex flex-wrap items-center gap-2 text-xl font-semibold tracking-tight sm:text-2xl">
                                             <span className="flex size-8 items-center justify-center rounded-full bg-gradient-to-br from-amber-400/30 via-rose-500/35 to-violet-600/30 text-amber-200 sm:size-9">
                                                 <RadarIcon className="size-4 sm:size-5" />
                                             </span>
                                             Radar is live
                                             {travelBeaconActive ? (
-                                                <Badge className="ml-1 flex items-center gap-1 rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[0.65rem] uppercase tracking-[0.3em] text-white/75 sm:px-3 sm:py-1 sm:text-xs">
+                                                <Badge className="ml-1 flex items-center gap-1 rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[0.65rem] tracking-[0.3em] text-white/75 uppercase sm:px-3 sm:py-1 sm:text-xs">
                                                     <Plane className="size-2.5 sm:size-3" />
                                                     Visiting
                                                 </Badge>
                                             ) : null}
                                         </CardTitle>
-                                        <CardDescription className="text-sm text-white/65 sm:text-base sm:max-w-2xl">
+                                        <CardDescription className="text-sm text-white/65 sm:max-w-2xl sm:text-base">
                                             Calibrated to {locationLabel}.{' '}
                                             {travelBeaconActive
                                                 ? 'Your traveler beacon is broadcasting so locals know you are visiting.'
@@ -604,33 +613,55 @@ export default function RadarIndex() {
                                     </div>
                                 )}
 
-                                <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-2 sm:flex-shrink-0">
+                                <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-shrink-0 sm:flex-row sm:items-center sm:gap-2">
                                     <div className="flex items-center gap-2">
                                         <Button
                                             size="lg"
                                             onClick={handleBoostClick}
-                                            disabled={isBoostLoading || !boostInfo.can_boost || boostInfo.is_boosting}
+                                            disabled={
+                                                isBoostLoading ||
+                                                !boostInfo.can_boost ||
+                                                boostInfo.is_boosting
+                                            }
                                             className="flex-1 rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-4 text-xs font-semibold text-white shadow-[0_18px_40px_-12px_rgba(249,115,22,0.55)] transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none sm:px-6 sm:text-sm"
                                         >
                                             {isBoostLoading ? (
                                                 <>
                                                     <Loader2 className="mr-2 inline size-3.5 animate-spin sm:size-4" />
-                                                    <span className="hidden sm:inline">Activating…</span>
-                                                    <span className="sm:hidden">Activating</span>
+                                                    <span className="hidden sm:inline">
+                                                        Activating…
+                                                    </span>
+                                                    <span className="sm:hidden">
+                                                        Activating
+                                                    </span>
                                                 </>
                                             ) : boostInfo.is_boosting ? (
                                                 'Boosting'
                                             ) : (
                                                 <>
-                                                    <span className="hidden sm:inline">Boost me for 1 hour{boostInfo.daily_limit > 0 ? ` (${boostInfo.boosts_used_today}/${boostInfo.daily_limit})` : ''}</span>
-                                                    <span className="sm:hidden">Boost{boostInfo.daily_limit > 0 ? ` (${boostInfo.boosts_used_today}/${boostInfo.daily_limit})` : ''}</span>
+                                                    <span className="hidden sm:inline">
+                                                        Boost me for 1 hour
+                                                        {boostInfo.daily_limit >
+                                                        0
+                                                            ? ` (${boostInfo.boosts_used_today}/${boostInfo.daily_limit})`
+                                                            : ''}
+                                                    </span>
+                                                    <span className="sm:hidden">
+                                                        Boost
+                                                        {boostInfo.daily_limit >
+                                                        0
+                                                            ? ` (${boostInfo.boosts_used_today}/${boostInfo.daily_limit})`
+                                                            : ''}
+                                                    </span>
                                                 </>
                                             )}
                                         </Button>
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            onClick={() => setIsBoostHelpOpen(true)}
+                                            onClick={() =>
+                                                setIsBoostHelpOpen(true)
+                                            }
                                             className="flex-shrink-0 rounded-full border border-white/10 bg-white/5 p-2 text-white/70 hover:border-white/30 hover:bg-white/10 hover:text-white"
                                             aria-label="What is boost?"
                                         >
@@ -641,7 +672,11 @@ export default function RadarIndex() {
                                                 variant="ghost"
                                                 size="sm"
                                                 className="flex-shrink-0 rounded-full border border-white/10 bg-white/5 p-2 text-white/70 hover:border-white/30 hover:bg-white/10 hover:text-white sm:hidden"
-                                                aria-label={isHeaderCollapsed ? 'Expand section' : 'Collapse section'}
+                                                aria-label={
+                                                    isHeaderCollapsed
+                                                        ? 'Expand section'
+                                                        : 'Collapse section'
+                                                }
                                             >
                                                 {isHeaderCollapsed ? (
                                                     <ChevronDown className="size-4" />
@@ -657,13 +692,20 @@ export default function RadarIndex() {
                                         {boostError}
                                     </p>
                                 ) : null}
-                                
-                                <CollapsibleTrigger asChild className="hidden sm:block">
+
+                                <CollapsibleTrigger
+                                    asChild
+                                    className="hidden sm:block"
+                                >
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="absolute right-4 top-4 flex-shrink-0 rounded-full border border-white/10 bg-white/5 p-2 text-white/70 hover:border-white/30 hover:bg-white/10 hover:text-white"
-                                        aria-label={isHeaderCollapsed ? 'Expand section' : 'Collapse section'}
+                                        className="absolute top-4 right-4 flex-shrink-0 rounded-full border border-white/10 bg-white/5 p-2 text-white/70 hover:border-white/30 hover:bg-white/10 hover:text-white"
+                                        aria-label={
+                                            isHeaderCollapsed
+                                                ? 'Expand section'
+                                                : 'Collapse section'
+                                        }
                                     >
                                         {isHeaderCollapsed ? (
                                             <ChevronDown className="size-4" />
@@ -699,7 +741,7 @@ export default function RadarIndex() {
                                 </div>
 
                                 {/* Main Content Section */}
-                                <div className="grid gap-4 px-4 pb-4 pt-4 sm:gap-6 sm:px-6 sm:pb-6 sm:pt-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+                                <div className="grid gap-4 px-4 pt-4 pb-4 sm:gap-6 sm:px-6 sm:pt-6 sm:pb-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
                                     {/* Left Column - Quick Prompts & Traveler Mode */}
                                     <div className="space-y-4 border-b border-white/10 pb-4 sm:space-y-6 sm:pb-0 lg:border-b-0 lg:pb-0">
                                         <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
@@ -710,20 +752,22 @@ export default function RadarIndex() {
                                                         <div className="flex size-8 items-center justify-center rounded-xl border border-amber-400/20 bg-gradient-to-br from-amber-400/20 via-amber-300/15 to-amber-400/10 text-amber-300 shadow-[0_4px_16px_-8px_rgba(251,191,36,0.3)] sm:size-10 sm:rounded-2xl">
                                                             <Zap className="size-4 sm:size-5" />
                                                         </div>
-                                                        <h3 className="text-xs font-semibold uppercase tracking-[0.3em] text-white/85 sm:text-sm">
+                                                        <h3 className="text-xs font-semibold tracking-[0.3em] text-white/85 uppercase sm:text-sm">
                                                             Quick prompts
                                                         </h3>
                                                     </div>
                                                     <div className="space-y-2 sm:space-y-2.5">
-                                                        {quickPrompts.map((prompt) => (
-                                                            <button
-                                                                key={prompt}
-                                                                type="button"
-                                                                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-left text-xs font-medium text-white/80 backdrop-blur-sm transition-all hover:border-amber-400/30 hover:bg-gradient-to-r hover:from-amber-400/10 hover:via-transparent hover:to-transparent hover:text-white hover:shadow-[0_4px_16px_-8px_rgba(251,191,36,0.2)] sm:rounded-2xl sm:px-4 sm:py-3 sm:text-sm"
-                                                            >
-                                                                {prompt}
-                                                            </button>
-                                                        ))}
+                                                        {quickPrompts.map(
+                                                            (prompt) => (
+                                                                <button
+                                                                    key={prompt}
+                                                                    type="button"
+                                                                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-left text-xs font-medium text-white/80 backdrop-blur-sm transition-all hover:border-amber-400/30 hover:bg-gradient-to-r hover:from-amber-400/10 hover:via-transparent hover:to-transparent hover:text-white hover:shadow-[0_4px_16px_-8px_rgba(251,191,36,0.2)] sm:rounded-2xl sm:px-4 sm:py-3 sm:text-sm"
+                                                                >
+                                                                    {prompt}
+                                                                </button>
+                                                            ),
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
@@ -735,7 +779,7 @@ export default function RadarIndex() {
                                                         <div className="flex size-8 items-center justify-center rounded-xl border border-violet-400/20 bg-gradient-to-br from-violet-400/20 via-violet-300/15 to-violet-400/10 text-violet-300 shadow-[0_4px_16px_-8px_rgba(139,92,246,0.3)] sm:size-10 sm:rounded-2xl">
                                                             <Plane className="size-4 sm:size-5" />
                                                         </div>
-                                                        <h3 className="text-xs font-semibold uppercase tracking-[0.3em] text-white/85 sm:text-sm">
+                                                        <h3 className="text-xs font-semibold tracking-[0.3em] text-white/85 uppercase sm:text-sm">
                                                             Traveler mode
                                                         </h3>
                                                     </div>
@@ -750,13 +794,22 @@ export default function RadarIndex() {
                                                             className="w-full rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-white/80 backdrop-blur-sm transition-all hover:border-white/25 hover:bg-white/10 hover:text-white sm:px-4 sm:py-2.5 sm:text-sm"
                                                         >
                                                             <Waves className="mr-2 size-3.5 sm:size-4" />
-                                                            <span className="hidden sm:inline">Schedule a beacon</span>
-                                                            <span className="sm:hidden">Schedule</span>
+                                                            <span className="hidden sm:inline">
+                                                                Schedule a
+                                                                beacon
+                                                            </span>
+                                                            <span className="sm:hidden">
+                                                                Schedule
+                                                            </span>
                                                         </Button>
                                                         <Button
                                                             variant="ghost"
-                                                            onClick={handleToggleTravelBeacon}
-                                                            disabled={isTravelBeaconLoading}
+                                                            onClick={
+                                                                handleToggleTravelBeacon
+                                                            }
+                                                            disabled={
+                                                                isTravelBeaconLoading
+                                                            }
                                                             className="w-full rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-white/80 backdrop-blur-sm transition-all hover:border-white/25 hover:bg-white/10 hover:text-white disabled:opacity-50 sm:px-4 sm:py-2.5 sm:text-sm"
                                                         >
                                                             {isTravelBeaconLoading ? (
@@ -764,16 +817,29 @@ export default function RadarIndex() {
                                                             ) : (
                                                                 <Plane className="mr-2 size-3.5 sm:size-4" />
                                                             )}
-                                                            <span className="hidden sm:inline">{travelBeaconActive ? 'Disable traveler beacon' : 'Set a traveler beacon'}</span>
-                                                            <span className="sm:hidden">{travelBeaconActive ? 'Disable' : 'Set beacon'}</span>
+                                                            <span className="hidden sm:inline">
+                                                                {travelBeaconActive
+                                                                    ? 'Disable traveler beacon'
+                                                                    : 'Set a traveler beacon'}
+                                                            </span>
+                                                            <span className="sm:hidden">
+                                                                {travelBeaconActive
+                                                                    ? 'Disable'
+                                                                    : 'Set beacon'}
+                                                            </span>
                                                         </Button>
                                                         <Button
                                                             variant="ghost"
                                                             className="w-full rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-white/80 backdrop-blur-sm transition-all hover:border-white/25 hover:bg-white/10 hover:text-white sm:px-4 sm:py-2.5 sm:text-sm"
                                                         >
                                                             <MapPin className="mr-2 size-3.5 sm:size-4" />
-                                                            <span className="hidden sm:inline">Share a meet-up window</span>
-                                                            <span className="sm:hidden">Meet-up</span>
+                                                            <span className="hidden sm:inline">
+                                                                Share a meet-up
+                                                                window
+                                                            </span>
+                                                            <span className="sm:hidden">
+                                                                Meet-up
+                                                            </span>
                                                         </Button>
                                                     </div>
                                                     {travelBeaconError ? (
@@ -790,7 +856,14 @@ export default function RadarIndex() {
                                     <div className="hidden lg:block">
                                         <div className="space-y-6">
                                             {spotlights
-                                                .filter((spotlight) => !spotlight.title.toLowerCase().includes('heat surge'))
+                                                .filter(
+                                                    (spotlight) =>
+                                                        !spotlight.title
+                                                            .toLowerCase()
+                                                            .includes(
+                                                                'heat surge',
+                                                            ),
+                                                )
                                                 .map((spotlight) => (
                                                     <div
                                                         key={spotlight.title}
@@ -801,12 +874,16 @@ export default function RadarIndex() {
                                                                 <div className="flex size-10 items-center justify-center rounded-2xl border border-rose-400/20 bg-gradient-to-br from-rose-400/20 via-rose-300/15 to-rose-400/10 text-rose-300 shadow-[0_4px_16px_-8px_rgba(244,63,94,0.3)]">
                                                                     <Sparkles className="size-5" />
                                                                 </div>
-                                                                <h3 className="text-sm font-semibold uppercase tracking-[0.3em] text-white/85">
-                                                                    {spotlight.title}
+                                                                <h3 className="text-sm font-semibold tracking-[0.3em] text-white/85 uppercase">
+                                                                    {
+                                                                        spotlight.title
+                                                                    }
                                                                 </h3>
                                                             </div>
                                                             <p className="text-sm leading-relaxed text-white/70">
-                                                                {spotlight.description}
+                                                                {
+                                                                    spotlight.description
+                                                                }
                                                             </p>
                                                         </div>
                                                     </div>
@@ -819,7 +896,7 @@ export default function RadarIndex() {
                     </Card>
                 </Collapsible>
 
-                <FiltersBar 
+                <FiltersBar
                     filters={filters}
                     activeFilters={activeFilters}
                     onFiltersChange={setActiveFilters}
@@ -838,12 +915,14 @@ export default function RadarIndex() {
                                     No profiles available
                                 </h3>
                                 <p className="text-xs leading-relaxed text-white/65 sm:text-sm">
-                                    There are no profiles matching your current filters. Try adjusting your filters or check back later.
+                                    There are no profiles matching your current
+                                    filters. Try adjusting your filters or check
+                                    back later.
                                 </p>
                             </div>
                         ) : (
                             <>
-                                <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                                <div className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
                                     {matches.map((profile) => (
                                         <ProfileCard
                                             key={`${profile.id}-${profile.username}-${profile.display_name}`}
@@ -854,7 +933,11 @@ export default function RadarIndex() {
 
                                 {/* Intersection Observer sentinel for infinite scrolling - hidden visually */}
                                 {matches.length > 0 ? (
-                                    <div ref={sentinelRef} className="h-px w-full pointer-events-none" aria-hidden="true" />
+                                    <div
+                                        ref={sentinelRef}
+                                        className="pointer-events-none h-px w-full"
+                                        aria-hidden="true"
+                                    />
                                 ) : null}
 
                                 {errorMessage ? (
@@ -881,7 +964,9 @@ export default function RadarIndex() {
                                             Full radar pulse complete
                                         </h3>
                                         <p className="text-xs leading-relaxed text-white/65 sm:text-sm">
-                                            You've seen all available profiles for tonight. Toggle traveler mode or boost to refresh sooner.
+                                            You've seen all available profiles
+                                            for tonight. Toggle traveler mode or
+                                            boost to refresh sooner.
                                         </p>
                                     </div>
                                 ) : null}
@@ -911,9 +996,10 @@ export default function RadarIndex() {
                             Share your location?
                         </DialogTitle>
                         <DialogDescription className="text-sm text-white/70">
-                            We use your coordinates to tune Radar to the closest players. We will only update
-                            your latitude and longitude on your profile. If you skip, we will keep using the
-                            last saved location.
+                            We use your coordinates to tune Radar to the closest
+                            players. We will only update your latitude and
+                            longitude on your profile. If you skip, we will keep
+                            using the last saved location.
                         </DialogDescription>
                     </DialogHeader>
                     {locationError ? (
@@ -926,14 +1012,14 @@ export default function RadarIndex() {
                             variant="ghost"
                             disabled={isRequestingLocation}
                             onClick={handleLocationModalDecline}
-                            className="rounded-full border border-white/10 bg-white/5 px-4 text-xs uppercase tracking-[0.3em] text-white/80 hover:border-white/30 hover:bg-white/10 hover:text-white"
+                            className="rounded-full border border-white/10 bg-white/5 px-4 text-xs tracking-[0.3em] text-white/80 uppercase hover:border-white/30 hover:bg-white/10 hover:text-white"
                         >
                             Keep last location
                         </Button>
                         <Button
                             onClick={handleLocationModalConfirm}
                             disabled={isRequestingLocation}
-                            className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-6 text-xs font-semibold uppercase tracking-[0.3em] text-white shadow-[0_18px_40px_-12px_rgba(249,115,22,0.55)] hover:scale-[1.02] disabled:opacity-70"
+                            className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-6 text-xs font-semibold tracking-[0.3em] text-white uppercase shadow-[0_18px_40px_-12px_rgba(249,115,22,0.55)] hover:scale-[1.02] disabled:opacity-70"
                         >
                             {isRequestingLocation ? (
                                 <Loader2 className="mr-2 size-4 animate-spin" />
@@ -945,10 +1031,7 @@ export default function RadarIndex() {
             </Dialog>
 
             {/* Boost Help Modal */}
-            <Dialog
-                open={isBoostHelpOpen}
-                onOpenChange={setIsBoostHelpOpen}
-            >
+            <Dialog open={isBoostHelpOpen} onOpenChange={setIsBoostHelpOpen}>
                 <DialogContent className="border-white/10 bg-neutral-950 text-white sm:max-w-md">
                     <DialogHeader className="space-y-2 text-left">
                         <DialogTitle className="text-xl font-semibold">
@@ -957,18 +1040,26 @@ export default function RadarIndex() {
                         <DialogDescription className="text-sm text-white/70">
                             <div className="space-y-4 pt-2">
                                 <p>
-                                    Boost puts your profile at the top of Radar for 1 hour, giving you maximum visibility to nearby players.
+                                    Boost puts your profile at the top of Radar
+                                    for 1 hour, giving you maximum visibility to
+                                    nearby players.
                                 </p>
                                 <div>
-                                    <h4 className="mb-2 font-semibold text-white/90">Daily Limits:</h4>
+                                    <h4 className="mb-2 font-semibold text-white/90">
+                                        Daily Limits:
+                                    </h4>
                                     <ul className="ml-4 list-disc space-y-1 text-white/70">
                                         <li>Free users: 1 boost per day</li>
                                         <li>Paid members: 2 boosts per day</li>
-                                        <li>Premium members: 3 boosts per day</li>
+                                        <li>
+                                            Premium members: 3 boosts per day
+                                        </li>
                                     </ul>
                                 </div>
                                 <p className="pt-2">
-                                    When you're boosting, your profile gets a special gold glow that makes it stand out to others browsing Radar.
+                                    When you're boosting, your profile gets a
+                                    special gold glow that makes it stand out to
+                                    others browsing Radar.
                                 </p>
                             </div>
                         </DialogDescription>
@@ -976,7 +1067,7 @@ export default function RadarIndex() {
                     <DialogFooter className="pt-4">
                         <Button
                             onClick={() => setIsBoostHelpOpen(false)}
-                            className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-6 text-xs font-semibold uppercase tracking-[0.3em] text-white shadow-[0_18px_40px_-12px_rgba(249,115,22,0.55)] hover:scale-[1.02]"
+                            className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-6 text-xs font-semibold tracking-[0.3em] text-white uppercase shadow-[0_18px_40px_-12px_rgba(249,115,22,0.55)] hover:scale-[1.02]"
                         >
                             Got it
                         </Button>
@@ -1001,23 +1092,25 @@ const StatTile = ({
             <div className="flex size-8 items-center justify-center rounded-lg border border-amber-400/20 bg-gradient-to-br from-amber-400/20 via-amber-300/15 to-amber-400/10 text-amber-300 shadow-[0_4px_16px_-8px_rgba(251,191,36,0.3)] transition-all group-hover:shadow-[0_6px_20px_-8px_rgba(251,191,36,0.4)] sm:size-10 sm:rounded-xl">
                 <Icon className="size-4 sm:size-5" />
             </div>
-            <div className="flex-1 min-w-0">
-                <p className="mb-1 text-[0.65rem] uppercase tracking-[0.3em] text-white/55 sm:text-xs">
+            <div className="min-w-0 flex-1">
+                <p className="mb-1 text-[0.65rem] tracking-[0.3em] text-white/55 uppercase sm:text-xs">
                     {label}
                 </p>
-                <p className="text-sm font-semibold text-white/95 sm:text-base">{value}</p>
+                <p className="text-sm font-semibold text-white/95 sm:text-base">
+                    {value}
+                </p>
             </div>
         </div>
     </div>
 );
 
-const FiltersBar = ({ 
+const FiltersBar = ({
     filters,
     activeFilters,
     onFiltersChange,
     isCollapsed,
     onCollapsedChange,
-}: { 
+}: {
     filters: RadarFilters;
     activeFilters: ActiveFilters;
     onFiltersChange: (filters: ActiveFilters) => void;
@@ -1025,7 +1118,8 @@ const FiltersBar = ({
     onCollapsedChange: (collapsed: boolean) => void;
 }) => {
     // Local state for filters (before applying)
-    const [localFilters, setLocalFilters] = useState<ActiveFilters>(activeFilters);
+    const [localFilters, setLocalFilters] =
+        useState<ActiveFilters>(activeFilters);
     const hasChanges = useMemo(() => {
         return JSON.stringify(localFilters) !== JSON.stringify(activeFilters);
     }, [localFilters, activeFilters]);
@@ -1042,64 +1136,96 @@ const FiltersBar = ({
             return filters.hashtags.slice(0, 20);
         }
         const search = hashtagSearch.toLowerCase();
-        return filters.hashtags.filter((tag) => tag.name.toLowerCase().includes(search)).slice(0, 20);
+        return filters.hashtags
+            .filter((tag) => tag.name.toLowerCase().includes(search))
+            .slice(0, 20);
     }, [filters.hashtags, hashtagSearch]);
 
     // Update local position values (inverted for display)
     // Default to full range: position_min=0, position_max=100 means no filter
-    const displayPositionMin = localFilters.position_max !== undefined && localFilters.position_max < 100 
-        ? 100 - localFilters.position_max 
-        : 0;
-    const displayPositionMax = localFilters.position_min !== undefined && localFilters.position_min > 0
-        ? 100 - localFilters.position_min
-        : 100;
-    
-    // Default to full age range: 18-100 means no filter
-    const localAgeMin = localFilters.age_min !== undefined && localFilters.age_min > 18
-        ? Math.max(18, Math.min(100, localFilters.age_min))
-        : 18;
-    const localAgeMax = localFilters.age_max !== undefined && localFilters.age_max < 100
-        ? Math.max(18, Math.min(100, localFilters.age_max))
-        : 100;
+    const displayPositionMin =
+        localFilters.position_max !== undefined &&
+        localFilters.position_max < 100
+            ? 100 - localFilters.position_max
+            : 0;
+    const displayPositionMax =
+        localFilters.position_min !== undefined && localFilters.position_min > 0
+            ? 100 - localFilters.position_min
+            : 100;
 
-    const buildQueryParams = useCallback((filters: ActiveFilters): Record<string, string | number | (string | number)[]> => {
-        const params: Record<string, string | number | (string | number)[]> = {};
-        if (filters.position_min !== undefined && filters.position_min > 0) {
-            params.position_min = filters.position_min;
-        }
-        if (filters.position_max !== undefined && filters.position_max < 100) {
-            params.position_max = filters.position_max;
-        }
-        if (filters.age_min !== undefined && filters.age_min > 18) {
-            params.age_min = filters.age_min;
-        }
-        if (filters.age_max !== undefined && filters.age_max < 100) {
-            params.age_max = filters.age_max;
-        }
-        if (filters.last_active !== undefined && filters.last_active !== null && filters.last_active !== 'any') {
-            params.last_active = filters.last_active;
-        }
-        if (filters.hashtags !== undefined && filters.hashtags.length > 0) {
-            params.hashtags = filters.hashtags;
-        }
-        if (filters.circles !== undefined && filters.circles.length > 0) {
-            params.circles = filters.circles;
-        }
-        if (filters.distance_km !== undefined && filters.distance_km > 0) {
-            params.distance_km = filters.distance_km;
-        }
-        return params;
-    }, []);
+    // Default to full age range: 18-100 means no filter
+    const localAgeMin =
+        localFilters.age_min !== undefined && localFilters.age_min > 18
+            ? Math.max(18, Math.min(100, localFilters.age_min))
+            : 18;
+    const localAgeMax =
+        localFilters.age_max !== undefined && localFilters.age_max < 100
+            ? Math.max(18, Math.min(100, localFilters.age_max))
+            : 100;
+
+    const buildQueryParams = useCallback(
+        (
+            filters: ActiveFilters,
+        ): Record<string, string | number | (string | number)[]> => {
+            const params: Record<
+                string,
+                string | number | (string | number)[]
+            > = {};
+            if (
+                filters.position_min !== undefined &&
+                filters.position_min > 0
+            ) {
+                params.position_min = filters.position_min;
+            }
+            if (
+                filters.position_max !== undefined &&
+                filters.position_max < 100
+            ) {
+                params.position_max = filters.position_max;
+            }
+            if (filters.age_min !== undefined && filters.age_min > 18) {
+                params.age_min = filters.age_min;
+            }
+            if (filters.age_max !== undefined && filters.age_max < 100) {
+                params.age_max = filters.age_max;
+            }
+            if (
+                filters.last_active !== undefined &&
+                filters.last_active !== null &&
+                filters.last_active !== 'any'
+            ) {
+                params.last_active = filters.last_active;
+            }
+            if (filters.hashtags !== undefined && filters.hashtags.length > 0) {
+                params.hashtags = filters.hashtags;
+            }
+            if (filters.circles !== undefined && filters.circles.length > 0) {
+                params.circles = filters.circles;
+            }
+            if (filters.distance_km !== undefined && filters.distance_km > 0) {
+                params.distance_km = filters.distance_km;
+            }
+            return params;
+        },
+        [],
+    );
 
     const handleReset = useCallback(() => {
         setLocalFilters({});
         onFiltersChange({});
-        router.get(radar.url(), {}, { preserveScroll: true, preserveState: false });
+        router.get(
+            radar.url(),
+            {},
+            { preserveScroll: true, preserveState: false },
+        );
     }, [onFiltersChange]);
 
     const handleApply = useCallback(() => {
         onFiltersChange(localFilters);
-        router.get(radar.url(), buildQueryParams(localFilters), { preserveScroll: true, preserveState: false });
+        router.get(radar.url(), buildQueryParams(localFilters), {
+            preserveScroll: true,
+            preserveState: false,
+        });
     }, [localFilters, onFiltersChange, buildQueryParams]);
 
     const handlePositionMinChange = useCallback((value: number) => {
@@ -1114,15 +1240,21 @@ const FiltersBar = ({
         setLocalFilters((prev) => ({ ...prev, position_min: storedMin }));
     }, []);
 
-    const handleAgeMinChange = useCallback((value: number) => {
-        const constrained = Math.max(18, Math.min(localAgeMax - 1, value));
-        setLocalFilters((prev) => ({ ...prev, age_min: constrained }));
-    }, [localAgeMax]);
+    const handleAgeMinChange = useCallback(
+        (value: number) => {
+            const constrained = Math.max(18, Math.min(localAgeMax - 1, value));
+            setLocalFilters((prev) => ({ ...prev, age_min: constrained }));
+        },
+        [localAgeMax],
+    );
 
-    const handleAgeMaxChange = useCallback((value: number) => {
-        const constrained = Math.max(localAgeMin + 1, Math.min(100, value));
-        setLocalFilters((prev) => ({ ...prev, age_max: constrained }));
-    }, [localAgeMin]);
+    const handleAgeMaxChange = useCallback(
+        (value: number) => {
+            const constrained = Math.max(localAgeMin + 1, Math.min(100, value));
+            setLocalFilters((prev) => ({ ...prev, age_max: constrained }));
+        },
+        [localAgeMin],
+    );
 
     const handleLastActiveChange = useCallback((value: string) => {
         setLocalFilters((prev) => {
@@ -1142,7 +1274,10 @@ const FiltersBar = ({
             const newIds = currentIds.includes(hashtagId)
                 ? currentIds.filter((id) => id !== hashtagId)
                 : [...currentIds, hashtagId];
-            const newFilters = { ...prev, hashtags: newIds.length > 0 ? newIds : undefined };
+            const newFilters = {
+                ...prev,
+                hashtags: newIds.length > 0 ? newIds : undefined,
+            };
             if (newIds.length === 0) {
                 delete newFilters.hashtags;
             }
@@ -1156,7 +1291,10 @@ const FiltersBar = ({
             const newIds = currentIds.includes(circleId)
                 ? currentIds.filter((id) => id !== circleId)
                 : [...currentIds, circleId];
-            const newFilters = { ...prev, circles: newIds.length > 0 ? newIds : undefined };
+            const newFilters = {
+                ...prev,
+                circles: newIds.length > 0 ? newIds : undefined,
+            };
             if (newIds.length === 0) {
                 delete newFilters.circles;
             }
@@ -1165,8 +1303,14 @@ const FiltersBar = ({
     }, []);
 
     // Update selected hashtag/circle IDs from local filters
-    const localSelectedHashtagIds = useMemo(() => localFilters.hashtags ?? [], [localFilters.hashtags]);
-    const localSelectedCircleIds = useMemo(() => localFilters.circles ?? [], [localFilters.circles]);
+    const localSelectedHashtagIds = useMemo(
+        () => localFilters.hashtags ?? [],
+        [localFilters.hashtags],
+    );
+    const localSelectedCircleIds = useMemo(
+        () => localFilters.circles ?? [],
+        [localFilters.circles],
+    );
     const localLastActive = localFilters.last_active ?? 'any';
     const localDistanceKm = localFilters.distance_km ?? 50; // Default to 50km
 
@@ -1191,7 +1335,7 @@ const FiltersBar = ({
                 <CardHeader className="gap-3 px-4 py-4 sm:gap-4 sm:px-6 sm:py-6">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                         {isCollapsed ? (
-                            <div className="flex-1 min-w-0">
+                            <div className="min-w-0 flex-1">
                                 <CardTitle className="inline-flex flex-wrap items-center gap-2 text-base font-semibold tracking-tight sm:text-lg">
                                     <span className="flex size-6 items-center justify-center rounded-full bg-gradient-to-br from-amber-400/30 via-rose-500/35 to-violet-600/30 text-amber-200 sm:size-7">
                                         <Zap className="size-3.5 sm:size-4" />
@@ -1199,19 +1343,21 @@ const FiltersBar = ({
                                     Tune the feed
                                 </CardTitle>
                                 <CardDescription className="mt-1 text-xs text-white/55 sm:text-sm">
-                                    Dial in positions and filters for tonight's radar.
+                                    Dial in positions and filters for tonight's
+                                    radar.
                                 </CardDescription>
                             </div>
                         ) : (
-                            <div className="flex-1 space-y-2 min-w-0">
+                            <div className="min-w-0 flex-1 space-y-2">
                                 <CardTitle className="inline-flex flex-wrap items-center gap-2 text-xl font-semibold tracking-tight sm:text-2xl">
                                     <span className="flex size-8 items-center justify-center rounded-full bg-gradient-to-br from-amber-400/30 via-rose-500/35 to-violet-600/30 text-amber-200 sm:size-9">
                                         <Zap className="size-4 sm:size-5" />
                                     </span>
                                     Tune the feed
                                 </CardTitle>
-                                <CardDescription className="text-sm text-white/65 sm:text-base sm:max-w-2xl">
-                                    Dial in positions and filters for tonight's radar.
+                                <CardDescription className="text-sm text-white/65 sm:max-w-2xl sm:text-base">
+                                    Dial in positions and filters for tonight's
+                                    radar.
                                 </CardDescription>
                             </div>
                         )}
@@ -1238,7 +1384,11 @@ const FiltersBar = ({
                                     variant="ghost"
                                     size="sm"
                                     className="flex-shrink-0 rounded-full border border-white/10 bg-white/5 p-2 text-white/70 hover:border-white/30 hover:bg-white/10 hover:text-white sm:hidden"
-                                    aria-label={isCollapsed ? 'Expand filters' : 'Collapse filters'}
+                                    aria-label={
+                                        isCollapsed
+                                            ? 'Expand filters'
+                                            : 'Collapse filters'
+                                    }
                                 >
                                     {isCollapsed ? (
                                         <ChevronDown className="size-4" />
@@ -1253,8 +1403,12 @@ const FiltersBar = ({
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                className="absolute right-4 top-4 flex-shrink-0 rounded-full border border-white/10 bg-white/5 p-2 text-white/70 hover:border-white/30 hover:bg-white/10 hover:text-white"
-                                aria-label={isCollapsed ? 'Expand filters' : 'Collapse filters'}
+                                className="absolute top-4 right-4 flex-shrink-0 rounded-full border border-white/10 bg-white/5 p-2 text-white/70 hover:border-white/30 hover:bg-white/10 hover:text-white"
+                                aria-label={
+                                    isCollapsed
+                                        ? 'Expand filters'
+                                        : 'Collapse filters'
+                                }
                             >
                                 {isCollapsed ? (
                                     <ChevronDown className="size-4" />
@@ -1271,212 +1425,279 @@ const FiltersBar = ({
                         <div className="grid gap-3 sm:gap-4">
                             {/* Row 1: Position and Age Range */}
                             <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
-                            {/* Position/Role Slider */}
-                            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3 sm:rounded-3xl sm:p-5 sm:space-y-4">
-                                <Label className="text-xs uppercase tracking-[0.3em] text-white/55">Position</Label>
-                                <div className="space-y-3 sm:space-y-4">
-                                    <div className="relative h-14 py-3 sm:h-12">
-                                        {/* Background track */}
-                                        <div className="absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-white/10" />
-                                        {/* Active range fill */}
-                                        <div
-                                            className="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-500 will-change-[left,width] transition-all duration-150 pointer-events-none"
-                                            style={{
-                                                left: `${Math.min(displayPositionMin, displayPositionMax)}%`,
-                                                width: `${Math.max(1, Math.abs(displayPositionMax - displayPositionMin))}%`,
-                                            }}
-                                        />
-                                        {/* Min slider - positioned first so it's underneath */}
-                                        <input
-                                            type="range"
-                                            min="0"
-                                            max="100"
-                                            step="1"
-                                            value={displayPositionMin}
-                                            onChange={(e) => {
-                                                const val = Number(e.target.value);
-                                                if (val <= displayPositionMax) {
-                                                    handlePositionMinChange(val);
-                                                }
-                                            }}
-                                            className="absolute inset-0 z-10 h-2 w-full appearance-none bg-transparent outline-none cursor-pointer touch-manipulation [&::-webkit-slider-runnable-track]:h-0 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:relative [&::-webkit-slider-thumb]:z-10 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white/40 [&::-webkit-slider-thumb]:bg-gradient-to-br [&::-webkit-slider-thumb]:from-amber-400 [&::-webkit-slider-thumb]:via-rose-500 [&::-webkit-slider-thumb]:to-violet-600 [&::-webkit-slider-thumb]:shadow-[0_4px_12px_rgba(249,115,22,0.6)] [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:duration-200 [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:hover:border-white/60 [&::-webkit-slider-thumb]:hover:shadow-[0_6px_16px_rgba(249,115,22,0.8)] [&::-webkit-slider-thumb]:active:scale-105 sm:[&::-webkit-slider-thumb]:h-5 sm:[&::-webkit-slider-thumb]:w-5 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white/40 [&::-moz-range-thumb]:bg-gradient-to-br [&::-moz-range-thumb]:from-amber-400 [&::-moz-range-thumb]:via-rose-500 [&::-moz-range-thumb]:to-violet-600 [&::-moz-range-thumb]:shadow-[0_4px_12px_rgba(249,115,22,0.6)] [&::-moz-range-thumb]:transition-all [&::-moz-range-thumb]:duration-200 [&::-moz-range-thumb]:hover:scale-110 [&::-moz-range-thumb]:hover:border-white/60 sm:[&::-moz-range-thumb]:h-5 sm:[&::-moz-range-thumb]:w-5"
-                                        />
-                                        {/* Max slider - positioned on top */}
-                                        <input
-                                            type="range"
-                                            min="0"
-                                            max="100"
-                                            step="1"
-                                            value={displayPositionMax}
-                                            onChange={(e) => {
-                                                const val = Number(e.target.value);
-                                                if (val >= displayPositionMin) {
-                                                    handlePositionMaxChange(val);
-                                                }
-                                            }}
-                                            className="absolute inset-0 z-20 h-2 w-full appearance-none bg-transparent outline-none cursor-pointer touch-manipulation [&::-webkit-slider-runnable-track]:h-0 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:relative [&::-webkit-slider-thumb]:z-20 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white/40 [&::-webkit-slider-thumb]:bg-gradient-to-br [&::-webkit-slider-thumb]:from-amber-400 [&::-webkit-slider-thumb]:via-rose-500 [&::-webkit-slider-thumb]:to-violet-600 [&::-webkit-slider-thumb]:shadow-[0_4px_12px_rgba(249,115,22,0.6)] [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:duration-200 [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:hover:border-white/60 [&::-webkit-slider-thumb]:hover:shadow-[0_6px_16px_rgba(249,115,22,0.8)] [&::-webkit-slider-thumb]:active:scale-105 sm:[&::-webkit-slider-thumb]:h-5 sm:[&::-webkit-slider-thumb]:w-5 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white/40 [&::-moz-range-thumb]:bg-gradient-to-br [&::-moz-range-thumb]:from-amber-400 [&::-moz-range-thumb]:via-rose-500 [&::-moz-range-thumb]:to-violet-600 [&::-moz-range-thumb]:shadow-[0_4px_12px_rgba(249,115,22,0.6)] [&::-moz-range-thumb]:transition-all [&::-moz-range-thumb]:duration-200 [&::-moz-range-thumb]:hover:scale-110 [&::-moz-range-thumb]:hover:border-white/60 sm:[&::-moz-range-thumb]:h-5 sm:[&::-moz-range-thumb]:w-5"
-                                        />
-                                    </div>
-                                    <div className="flex items-end justify-between gap-2 px-1 text-xs">
-                                        <div className="flex flex-col items-start gap-1">
-                                            <span className="font-semibold text-white">100% Dominant</span>
-                                            <span className="text-white/60">Min: {displayPositionMin}%</span>
+                                {/* Position/Role Slider */}
+                                <div className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4 sm:space-y-4 sm:rounded-3xl sm:p-5">
+                                    <Label className="text-xs tracking-[0.3em] text-white/55 uppercase">
+                                        Position
+                                    </Label>
+                                    <div className="space-y-3 sm:space-y-4">
+                                        <div className="relative h-14 py-3 sm:h-12">
+                                            {/* Background track */}
+                                            <div className="absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-white/10" />
+                                            {/* Active range fill */}
+                                            <div
+                                                className="pointer-events-none absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-500 transition-all duration-150 will-change-[left,width]"
+                                                style={{
+                                                    left: `${Math.min(displayPositionMin, displayPositionMax)}%`,
+                                                    width: `${Math.max(1, Math.abs(displayPositionMax - displayPositionMin))}%`,
+                                                }}
+                                            />
+                                            {/* Min slider - positioned first so it's underneath */}
+                                            <input
+                                                type="range"
+                                                min="0"
+                                                max="100"
+                                                step="1"
+                                                value={displayPositionMin}
+                                                onChange={(e) => {
+                                                    const val = Number(
+                                                        e.target.value,
+                                                    );
+                                                    if (
+                                                        val <=
+                                                        displayPositionMax
+                                                    ) {
+                                                        handlePositionMinChange(
+                                                            val,
+                                                        );
+                                                    }
+                                                }}
+                                                className="absolute inset-0 z-10 h-2 w-full cursor-pointer touch-manipulation appearance-none bg-transparent outline-none [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white/40 [&::-moz-range-thumb]:bg-gradient-to-br [&::-moz-range-thumb]:from-amber-400 [&::-moz-range-thumb]:via-rose-500 [&::-moz-range-thumb]:to-violet-600 [&::-moz-range-thumb]:shadow-[0_4px_12px_rgba(249,115,22,0.6)] [&::-moz-range-thumb]:transition-all [&::-moz-range-thumb]:duration-200 [&::-moz-range-thumb]:hover:scale-110 [&::-moz-range-thumb]:hover:border-white/60 sm:[&::-moz-range-thumb]:h-5 sm:[&::-moz-range-thumb]:w-5 [&::-webkit-slider-runnable-track]:h-0 [&::-webkit-slider-thumb]:relative [&::-webkit-slider-thumb]:z-10 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white/40 [&::-webkit-slider-thumb]:bg-gradient-to-br [&::-webkit-slider-thumb]:from-amber-400 [&::-webkit-slider-thumb]:via-rose-500 [&::-webkit-slider-thumb]:to-violet-600 [&::-webkit-slider-thumb]:shadow-[0_4px_12px_rgba(249,115,22,0.6)] [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:duration-200 [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:hover:border-white/60 [&::-webkit-slider-thumb]:hover:shadow-[0_6px_16px_rgba(249,115,22,0.8)] [&::-webkit-slider-thumb]:active:scale-105 sm:[&::-webkit-slider-thumb]:h-5 sm:[&::-webkit-slider-thumb]:w-5"
+                                            />
+                                            {/* Max slider - positioned on top */}
+                                            <input
+                                                type="range"
+                                                min="0"
+                                                max="100"
+                                                step="1"
+                                                value={displayPositionMax}
+                                                onChange={(e) => {
+                                                    const val = Number(
+                                                        e.target.value,
+                                                    );
+                                                    if (
+                                                        val >=
+                                                        displayPositionMin
+                                                    ) {
+                                                        handlePositionMaxChange(
+                                                            val,
+                                                        );
+                                                    }
+                                                }}
+                                                className="absolute inset-0 z-20 h-2 w-full cursor-pointer touch-manipulation appearance-none bg-transparent outline-none [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white/40 [&::-moz-range-thumb]:bg-gradient-to-br [&::-moz-range-thumb]:from-amber-400 [&::-moz-range-thumb]:via-rose-500 [&::-moz-range-thumb]:to-violet-600 [&::-moz-range-thumb]:shadow-[0_4px_12px_rgba(249,115,22,0.6)] [&::-moz-range-thumb]:transition-all [&::-moz-range-thumb]:duration-200 [&::-moz-range-thumb]:hover:scale-110 [&::-moz-range-thumb]:hover:border-white/60 sm:[&::-moz-range-thumb]:h-5 sm:[&::-moz-range-thumb]:w-5 [&::-webkit-slider-runnable-track]:h-0 [&::-webkit-slider-thumb]:relative [&::-webkit-slider-thumb]:z-20 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white/40 [&::-webkit-slider-thumb]:bg-gradient-to-br [&::-webkit-slider-thumb]:from-amber-400 [&::-webkit-slider-thumb]:via-rose-500 [&::-webkit-slider-thumb]:to-violet-600 [&::-webkit-slider-thumb]:shadow-[0_4px_12px_rgba(249,115,22,0.6)] [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:duration-200 [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:hover:border-white/60 [&::-webkit-slider-thumb]:hover:shadow-[0_6px_16px_rgba(249,115,22,0.8)] [&::-webkit-slider-thumb]:active:scale-105 sm:[&::-webkit-slider-thumb]:h-5 sm:[&::-webkit-slider-thumb]:w-5"
+                                            />
                                         </div>
-                                        <div className="flex flex-col items-end gap-1">
-                                            <span className="font-semibold text-white">100% Submissive</span>
-                                            <span className="text-white/60">Max: {displayPositionMax}%</span>
+                                        <div className="flex items-end justify-between gap-2 px-1 text-xs">
+                                            <div className="flex flex-col items-start gap-1">
+                                                <span className="font-semibold text-white">
+                                                    100% Dominant
+                                                </span>
+                                                <span className="text-white/60">
+                                                    Min: {displayPositionMin}%
+                                                </span>
+                                            </div>
+                                            <div className="flex flex-col items-end gap-1">
+                                                <span className="font-semibold text-white">
+                                                    100% Submissive
+                                                </span>
+                                                <span className="text-white/60">
+                                                    Max: {displayPositionMax}%
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Age Range Slider */}
-                            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3 sm:rounded-3xl sm:p-5 sm:space-y-4">
-                                <Label className="text-xs uppercase tracking-[0.3em] text-white/55">Age Range</Label>
-                                <div className="space-y-3 sm:space-y-4">
-                                    <div className="relative h-14 py-3 sm:h-12">
-                                        {/* Background track */}
-                                        <div className="absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-white/10" />
-                                        {/* Active range fill */}
-                                        <div
-                                            className="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-500 will-change-[left,width] transition-all duration-150 pointer-events-none"
-                                            style={{
-                                                left: `${((Math.min(localAgeMin, localAgeMax) - 18) / (100 - 18)) * 100}%`,
-                                                width: `${Math.max(1, ((Math.abs(localAgeMax - localAgeMin)) / (100 - 18)) * 100)}%`,
-                                            }}
-                                        />
-                                        {/* Min slider - positioned first so it's underneath */}
-                                        <input
-                                            type="range"
-                                            min="18"
-                                            max="100"
-                                            step="1"
-                                            value={localAgeMin}
-                                            onChange={(e) => {
-                                                const val = Number(e.target.value);
-                                                if (val <= localAgeMax) {
-                                                    handleAgeMinChange(val);
-                                                }
-                                            }}
-                                            className="absolute inset-0 z-10 h-2 w-full appearance-none bg-transparent outline-none cursor-pointer touch-manipulation [&::-webkit-slider-runnable-track]:h-0 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:relative [&::-webkit-slider-thumb]:z-10 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white/40 [&::-webkit-slider-thumb]:bg-gradient-to-br [&::-webkit-slider-thumb]:from-amber-400 [&::-webkit-slider-thumb]:via-rose-500 [&::-webkit-slider-thumb]:to-violet-600 [&::-webkit-slider-thumb]:shadow-[0_4px_12px_rgba(249,115,22,0.6)] [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:duration-200 [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:hover:border-white/60 [&::-webkit-slider-thumb]:hover:shadow-[0_6px_16px_rgba(249,115,22,0.8)] [&::-webkit-slider-thumb]:active:scale-105 sm:[&::-webkit-slider-thumb]:h-5 sm:[&::-webkit-slider-thumb]:w-5 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white/40 [&::-moz-range-thumb]:bg-gradient-to-br [&::-moz-range-thumb]:from-amber-400 [&::-moz-range-thumb]:via-rose-500 [&::-moz-range-thumb]:to-violet-600 [&::-moz-range-thumb]:shadow-[0_4px_12px_rgba(249,115,22,0.6)] [&::-moz-range-thumb]:transition-all [&::-moz-range-thumb]:duration-200 [&::-moz-range-thumb]:hover:scale-110 [&::-moz-range-thumb]:hover:border-white/60 sm:[&::-moz-range-thumb]:h-5 sm:[&::-moz-range-thumb]:w-5"
-                                        />
-                                        {/* Max slider - positioned on top */}
-                                        <input
-                                            type="range"
-                                            min="18"
-                                            max="100"
-                                            step="1"
-                                            value={localAgeMax}
-                                            onChange={(e) => {
-                                                const val = Number(e.target.value);
-                                                if (val >= localAgeMin) {
-                                                    handleAgeMaxChange(val);
-                                                }
-                                            }}
-                                            className="absolute inset-0 z-20 h-2 w-full appearance-none bg-transparent outline-none cursor-pointer touch-manipulation [&::-webkit-slider-runnable-track]:h-0 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:relative [&::-webkit-slider-thumb]:z-20 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white/40 [&::-webkit-slider-thumb]:bg-gradient-to-br [&::-webkit-slider-thumb]:from-amber-400 [&::-webkit-slider-thumb]:via-rose-500 [&::-webkit-slider-thumb]:to-violet-600 [&::-webkit-slider-thumb]:shadow-[0_4px_12px_rgba(249,115,22,0.6)] [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:duration-200 [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:hover:border-white/60 [&::-webkit-slider-thumb]:hover:shadow-[0_6px_16px_rgba(249,115,22,0.8)] [&::-webkit-slider-thumb]:active:scale-105 sm:[&::-webkit-slider-thumb]:h-5 sm:[&::-webkit-slider-thumb]:w-5 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white/40 [&::-moz-range-thumb]:bg-gradient-to-br [&::-moz-range-thumb]:from-amber-400 [&::-moz-range-thumb]:via-rose-500 [&::-moz-range-thumb]:to-violet-600 [&::-moz-range-thumb]:shadow-[0_4px_12px_rgba(249,115,22,0.6)] [&::-moz-range-thumb]:transition-all [&::-moz-range-thumb]:duration-200 [&::-moz-range-thumb]:hover:scale-110 [&::-moz-range-thumb]:hover:border-white/60 sm:[&::-moz-range-thumb]:h-5 sm:[&::-moz-range-thumb]:w-5"
-                                        />
-                                    </div>
-                                    <div className="flex items-center justify-between px-1 text-xs">
-                                        <span className="text-white/80">Min: {localAgeMin}</span>
-                                        <span className="text-white/80">Max: {localAgeMax}</span>
+                                {/* Age Range Slider */}
+                                <div className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4 sm:space-y-4 sm:rounded-3xl sm:p-5">
+                                    <Label className="text-xs tracking-[0.3em] text-white/55 uppercase">
+                                        Age Range
+                                    </Label>
+                                    <div className="space-y-3 sm:space-y-4">
+                                        <div className="relative h-14 py-3 sm:h-12">
+                                            {/* Background track */}
+                                            <div className="absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-white/10" />
+                                            {/* Active range fill */}
+                                            <div
+                                                className="pointer-events-none absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-500 transition-all duration-150 will-change-[left,width]"
+                                                style={{
+                                                    left: `${((Math.min(localAgeMin, localAgeMax) - 18) / (100 - 18)) * 100}%`,
+                                                    width: `${Math.max(1, (Math.abs(localAgeMax - localAgeMin) / (100 - 18)) * 100)}%`,
+                                                }}
+                                            />
+                                            {/* Min slider - positioned first so it's underneath */}
+                                            <input
+                                                type="range"
+                                                min="18"
+                                                max="100"
+                                                step="1"
+                                                value={localAgeMin}
+                                                onChange={(e) => {
+                                                    const val = Number(
+                                                        e.target.value,
+                                                    );
+                                                    if (val <= localAgeMax) {
+                                                        handleAgeMinChange(val);
+                                                    }
+                                                }}
+                                                className="absolute inset-0 z-10 h-2 w-full cursor-pointer touch-manipulation appearance-none bg-transparent outline-none [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white/40 [&::-moz-range-thumb]:bg-gradient-to-br [&::-moz-range-thumb]:from-amber-400 [&::-moz-range-thumb]:via-rose-500 [&::-moz-range-thumb]:to-violet-600 [&::-moz-range-thumb]:shadow-[0_4px_12px_rgba(249,115,22,0.6)] [&::-moz-range-thumb]:transition-all [&::-moz-range-thumb]:duration-200 [&::-moz-range-thumb]:hover:scale-110 [&::-moz-range-thumb]:hover:border-white/60 sm:[&::-moz-range-thumb]:h-5 sm:[&::-moz-range-thumb]:w-5 [&::-webkit-slider-runnable-track]:h-0 [&::-webkit-slider-thumb]:relative [&::-webkit-slider-thumb]:z-10 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white/40 [&::-webkit-slider-thumb]:bg-gradient-to-br [&::-webkit-slider-thumb]:from-amber-400 [&::-webkit-slider-thumb]:via-rose-500 [&::-webkit-slider-thumb]:to-violet-600 [&::-webkit-slider-thumb]:shadow-[0_4px_12px_rgba(249,115,22,0.6)] [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:duration-200 [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:hover:border-white/60 [&::-webkit-slider-thumb]:hover:shadow-[0_6px_16px_rgba(249,115,22,0.8)] [&::-webkit-slider-thumb]:active:scale-105 sm:[&::-webkit-slider-thumb]:h-5 sm:[&::-webkit-slider-thumb]:w-5"
+                                            />
+                                            {/* Max slider - positioned on top */}
+                                            <input
+                                                type="range"
+                                                min="18"
+                                                max="100"
+                                                step="1"
+                                                value={localAgeMax}
+                                                onChange={(e) => {
+                                                    const val = Number(
+                                                        e.target.value,
+                                                    );
+                                                    if (val >= localAgeMin) {
+                                                        handleAgeMaxChange(val);
+                                                    }
+                                                }}
+                                                className="absolute inset-0 z-20 h-2 w-full cursor-pointer touch-manipulation appearance-none bg-transparent outline-none [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white/40 [&::-moz-range-thumb]:bg-gradient-to-br [&::-moz-range-thumb]:from-amber-400 [&::-moz-range-thumb]:via-rose-500 [&::-moz-range-thumb]:to-violet-600 [&::-moz-range-thumb]:shadow-[0_4px_12px_rgba(249,115,22,0.6)] [&::-moz-range-thumb]:transition-all [&::-moz-range-thumb]:duration-200 [&::-moz-range-thumb]:hover:scale-110 [&::-moz-range-thumb]:hover:border-white/60 sm:[&::-moz-range-thumb]:h-5 sm:[&::-moz-range-thumb]:w-5 [&::-webkit-slider-runnable-track]:h-0 [&::-webkit-slider-thumb]:relative [&::-webkit-slider-thumb]:z-20 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white/40 [&::-webkit-slider-thumb]:bg-gradient-to-br [&::-webkit-slider-thumb]:from-amber-400 [&::-webkit-slider-thumb]:via-rose-500 [&::-webkit-slider-thumb]:to-violet-600 [&::-webkit-slider-thumb]:shadow-[0_4px_12px_rgba(249,115,22,0.6)] [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:duration-200 [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:hover:border-white/60 [&::-webkit-slider-thumb]:hover:shadow-[0_6px_16px_rgba(249,115,22,0.8)] [&::-webkit-slider-thumb]:active:scale-105 sm:[&::-webkit-slider-thumb]:h-5 sm:[&::-webkit-slider-thumb]:w-5"
+                                            />
+                                        </div>
+                                        <div className="flex items-center justify-between px-1 text-xs">
+                                            <span className="text-white/80">
+                                                Min: {localAgeMin}
+                                            </span>
+                                            <span className="text-white/80">
+                                                Max: {localAgeMax}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Last Active Dropdown */}
-                            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-2 sm:rounded-3xl sm:p-5 sm:space-y-3">
-                                <Label className="text-xs uppercase tracking-[0.3em] text-white/55">Last Active</Label>
-                                <Select value={localLastActive} onValueChange={handleLastActiveChange}>
-                                    <SelectTrigger className="h-auto w-full border-white/20 bg-white/5 py-2.5 text-sm text-white placeholder:text-white/50 focus:border-white/35 focus:bg-white/10 focus:ring-amber-500/40">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent className="border-white/20 bg-neutral-900 text-white">
-                                        {filters.lastActiveOptions.map((option) => (
+                                {/* Last Active Dropdown */}
+                                <div className="space-y-2 rounded-2xl border border-white/10 bg-white/5 p-4 sm:space-y-3 sm:rounded-3xl sm:p-5">
+                                    <Label className="text-xs tracking-[0.3em] text-white/55 uppercase">
+                                        Last Active
+                                    </Label>
+                                    <Select
+                                        value={localLastActive}
+                                        onValueChange={handleLastActiveChange}
+                                    >
+                                        <SelectTrigger className="h-auto w-full border-white/20 bg-white/5 py-2.5 text-sm text-white placeholder:text-white/50 focus:border-white/35 focus:bg-white/10 focus:ring-amber-500/40">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent className="border-white/20 bg-neutral-900 text-white">
+                                            {filters.lastActiveOptions.map(
+                                                (option) => (
+                                                    <SelectItem
+                                                        key={option.value}
+                                                        value={option.value}
+                                                        className="focus:bg-white/10 focus:text-white"
+                                                    >
+                                                        {option.label}
+                                                    </SelectItem>
+                                                ),
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                {/* Distance Range Dropdown */}
+                                <div className="space-y-2 rounded-2xl border border-white/10 bg-white/5 p-4 sm:space-y-3 sm:rounded-3xl sm:p-5">
+                                    <Label className="text-xs tracking-[0.3em] text-white/55 uppercase">
+                                        Distance Range
+                                    </Label>
+                                    <Select
+                                        value={
+                                            localDistanceKm?.toString() ?? '50'
+                                        }
+                                        onValueChange={handleDistanceChange}
+                                    >
+                                        <SelectTrigger className="h-auto w-full border-white/20 bg-white/5 py-2.5 text-sm text-white placeholder:text-white/50 focus:border-white/35 focus:bg-white/10 focus:ring-amber-500/40">
+                                            <SelectValue placeholder="Select distance" />
+                                        </SelectTrigger>
+                                        <SelectContent className="border-white/20 bg-neutral-900 text-white">
                                             <SelectItem
-                                                key={option.value}
-                                                value={option.value}
+                                                value="any"
                                                 className="focus:bg-white/10 focus:text-white"
                                             >
-                                                {option.label}
+                                                Any distance
                                             </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            {/* Distance Range Dropdown */}
-                            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-2 sm:rounded-3xl sm:p-5 sm:space-y-3">
-                                <Label className="text-xs uppercase tracking-[0.3em] text-white/55">Distance Range</Label>
-                                <Select 
-                                    value={localDistanceKm?.toString() ?? '50'} 
-                                    onValueChange={handleDistanceChange}
-                                >
-                                    <SelectTrigger className="h-auto w-full border-white/20 bg-white/5 py-2.5 text-sm text-white placeholder:text-white/50 focus:border-white/35 focus:bg-white/10 focus:ring-amber-500/40">
-                                        <SelectValue placeholder="Select distance" />
-                                    </SelectTrigger>
-                                    <SelectContent className="border-white/20 bg-neutral-900 text-white">
-                                        <SelectItem
-                                            value="any"
-                                            className="focus:bg-white/10 focus:text-white"
-                                        >
-                                            Any distance
-                                        </SelectItem>
-                                        {filters.distanceOptions.map((option) => (
-                                            <SelectItem
-                                                key={option.value}
-                                                value={option.value.toString()}
-                                                className="focus:bg-white/10 focus:text-white"
-                                            >
-                                                {option.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                                            {filters.distanceOptions.map(
+                                                (option) => (
+                                                    <SelectItem
+                                                        key={option.value}
+                                                        value={option.value.toString()}
+                                                        className="focus:bg-white/10 focus:text-white"
+                                                    >
+                                                        {option.label}
+                                                    </SelectItem>
+                                                ),
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
 
                             {/* Row 3: Hashtags */}
-                            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-2 sm:rounded-3xl sm:p-5 sm:space-y-3">
-                                <Label className="text-xs uppercase tracking-[0.3em] text-white/55">Hashtags</Label>
+                            <div className="space-y-2 rounded-2xl border border-white/10 bg-white/5 p-4 sm:space-y-3 sm:rounded-3xl sm:p-5">
+                                <Label className="text-xs tracking-[0.3em] text-white/55 uppercase">
+                                    Hashtags
+                                </Label>
                                 {localSelectedHashtagIds.length > 0 && (
                                     <div className="flex flex-wrap gap-2">
-                                        {localSelectedHashtagIds.map((hashtagId) => {
-                                            const hashtag = filters.hashtags.find((tag) => tag.id === hashtagId);
-                                            if (!hashtag) return null;
-                                            return (
-                                                <Badge
-                                                    key={hashtagId}
-                                                    className="flex items-center gap-1 rounded-full border border-amber-400/60 bg-amber-400/15 px-2.5 py-1 text-xs font-medium text-amber-200 sm:px-3"
-                                                >
-                                                    #{hashtag.name}
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => toggleHashtag(hashtagId)}
-                                                        className="ml-1 rounded-full p-0.5 hover:bg-amber-400/30 touch-manipulation"
-                                                        aria-label="Remove hashtag"
+                                        {localSelectedHashtagIds.map(
+                                            (hashtagId) => {
+                                                const hashtag =
+                                                    filters.hashtags.find(
+                                                        (tag) =>
+                                                            tag.id ===
+                                                            hashtagId,
+                                                    );
+                                                if (!hashtag) return null;
+                                                return (
+                                                    <Badge
+                                                        key={hashtagId}
+                                                        className="flex items-center gap-1 rounded-full border border-amber-400/60 bg-amber-400/15 px-2.5 py-1 text-xs font-medium text-amber-200 sm:px-3"
                                                     >
-                                                        <X className="size-3" />
-                                                    </button>
-                                                </Badge>
-                                            );
-                                        })}
+                                                        #{hashtag.name}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                toggleHashtag(
+                                                                    hashtagId,
+                                                                )
+                                                            }
+                                                            className="ml-1 touch-manipulation rounded-full p-0.5 hover:bg-amber-400/30"
+                                                            aria-label="Remove hashtag"
+                                                        >
+                                                            <X className="size-3" />
+                                                        </button>
+                                                    </Badge>
+                                                );
+                                            },
+                                        )}
                                     </div>
                                 )}
                                 <Input
                                     type="text"
                                     placeholder="Search hashtags..."
                                     value={hashtagSearch}
-                                    onChange={(e) => setHashtagSearch(e.target.value)}
+                                    onChange={(e) =>
+                                        setHashtagSearch(e.target.value)
+                                    }
                                     className="border-white/20 bg-white/5 text-sm text-white placeholder:text-white/50 focus:border-white/35 focus:bg-white/10"
                                 />
-                                <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto touch-manipulation">
+                                <div className="flex max-h-32 touch-manipulation flex-wrap gap-2 overflow-y-auto">
                                     {filteredHashtags.map((hashtag) => {
-                                        const isSelected = localSelectedHashtagIds.includes(hashtag.id);
+                                        const isSelected =
+                                            localSelectedHashtagIds.includes(
+                                                hashtag.id,
+                                            );
                                         return (
                                             <button
                                                 key={hashtag.id}
                                                 type="button"
-                                                onClick={() => toggleHashtag(hashtag.id)}
+                                                onClick={() =>
+                                                    toggleHashtag(hashtag.id)
+                                                }
                                                 className={cn(
                                                     'rounded-full border px-3 py-1 text-xs font-medium transition-all',
                                                     isSelected
@@ -1492,51 +1713,70 @@ const FiltersBar = ({
                             </div>
 
                             {/* Row 4: Circles */}
-                            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-2 sm:rounded-3xl sm:p-5 sm:space-y-3">
-                                <Label className="text-xs uppercase tracking-[0.3em] text-white/55">Circles</Label>
+                            <div className="space-y-2 rounded-2xl border border-white/10 bg-white/5 p-4 sm:space-y-3 sm:rounded-3xl sm:p-5">
+                                <Label className="text-xs tracking-[0.3em] text-white/55 uppercase">
+                                    Circles
+                                </Label>
                                 {localSelectedCircleIds.length > 0 && (
                                     <div className="flex flex-wrap gap-2">
-                                        {localSelectedCircleIds.map((circleId) => {
-                                            const circle = filters.circles.find((c) => c.id === circleId);
-                                            if (!circle) return null;
-                                            return (
-                                                <Badge
-                                                    key={circleId}
-                                                    className="flex items-center gap-1 rounded-full border border-amber-400/60 bg-amber-400/15 px-2.5 py-1 text-xs font-medium text-amber-200 sm:px-3"
-                                                >
-                                                    {circle.name}
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => toggleCircle(circleId)}
-                                                        className="ml-1 rounded-full p-0.5 hover:bg-amber-400/30 touch-manipulation"
-                                                        aria-label="Remove circle"
+                                        {localSelectedCircleIds.map(
+                                            (circleId) => {
+                                                const circle =
+                                                    filters.circles.find(
+                                                        (c) =>
+                                                            c.id === circleId,
+                                                    );
+                                                if (!circle) return null;
+                                                return (
+                                                    <Badge
+                                                        key={circleId}
+                                                        className="flex items-center gap-1 rounded-full border border-amber-400/60 bg-amber-400/15 px-2.5 py-1 text-xs font-medium text-amber-200 sm:px-3"
                                                     >
-                                                        <X className="size-3" />
-                                                    </button>
-                                                </Badge>
-                                            );
-                                        })}
+                                                        {circle.name}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                toggleCircle(
+                                                                    circleId,
+                                                                )
+                                                            }
+                                                            className="ml-1 touch-manipulation rounded-full p-0.5 hover:bg-amber-400/30"
+                                                            aria-label="Remove circle"
+                                                        >
+                                                            <X className="size-3" />
+                                                        </button>
+                                                    </Badge>
+                                                );
+                                            },
+                                        )}
                                     </div>
                                 )}
-                                <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto touch-manipulation">
-                                    {filters.circles.slice(0, 30).map((circle) => {
-                                        const isSelected = localSelectedCircleIds.includes(circle.id);
-                                        return (
-                                            <button
-                                                key={circle.id}
-                                                type="button"
-                                                onClick={() => toggleCircle(circle.id)}
-                                                className={cn(
-                                                    'rounded-full border px-3 py-1 text-xs font-medium transition-all',
-                                                    isSelected
-                                                        ? 'border-amber-400/60 bg-amber-400/15 text-amber-200'
-                                                        : 'border-white/20 bg-white/5 text-white/80 hover:border-white/35 hover:bg-white/10 hover:text-white',
-                                                )}
-                                            >
-                                                {circle.name}
-                                            </button>
-                                        );
-                                    })}
+                                <div className="flex max-h-32 touch-manipulation flex-wrap gap-2 overflow-y-auto">
+                                    {filters.circles
+                                        .slice(0, 30)
+                                        .map((circle) => {
+                                            const isSelected =
+                                                localSelectedCircleIds.includes(
+                                                    circle.id,
+                                                );
+                                            return (
+                                                <button
+                                                    key={circle.id}
+                                                    type="button"
+                                                    onClick={() =>
+                                                        toggleCircle(circle.id)
+                                                    }
+                                                    className={cn(
+                                                        'rounded-full border px-3 py-1 text-xs font-medium transition-all',
+                                                        isSelected
+                                                            ? 'border-amber-400/60 bg-amber-400/15 text-amber-200'
+                                                            : 'border-white/20 bg-white/5 text-white/80 hover:border-white/35 hover:bg-white/10 hover:text-white',
+                                                    )}
+                                                >
+                                                    {circle.name}
+                                                </button>
+                                            );
+                                        })}
                                 </div>
                             </div>
                         </div>
@@ -1547,11 +1787,7 @@ const FiltersBar = ({
     );
 };
 
-const ProfileCard = ({
-    profile,
-}: {
-    profile: RadarProfile;
-}) => {
+const ProfileCard = ({ profile }: { profile: RadarProfile }) => {
     const coverImage = profile.gallery[0] ?? null;
     const initials = profile.display_name
         .split(' ')
@@ -1592,7 +1828,8 @@ const ProfileCard = ({
             return;
         }
 
-        const method = isFollowing || hasPendingFollowRequest ? 'DELETE' : 'POST';
+        const method =
+            isFollowing || hasPendingFollowRequest ? 'DELETE' : 'POST';
         const endpoint =
             method === 'POST'
                 ? usersRoutes.follow.store.url(profile.id)
@@ -1628,11 +1865,13 @@ const ProfileCard = ({
 
             if (!response.ok || payload === null) {
                 const message =
-                    payload?.message ?? 'We could not update follow settings. Please try again.';
+                    payload?.message ??
+                    'We could not update follow settings. Please try again.';
                 throw new Error(message);
             }
 
-            const accepted = Boolean(payload.accepted) || payload.status === 'following';
+            const accepted =
+                Boolean(payload.accepted) || payload.status === 'following';
             const pending = Boolean(payload.pending) && !accepted;
 
             setIsFollowing(accepted);
@@ -1647,15 +1886,24 @@ const ProfileCard = ({
         } finally {
             setIsFollowProcessing(false);
         }
-    }, [canFollow, hasPendingFollowRequest, isFollowProcessing, isFollowing, profile.id]);
+    }, [
+        canFollow,
+        hasPendingFollowRequest,
+        isFollowProcessing,
+        isFollowing,
+        profile.id,
+    ]);
 
     return (
-        <Card className={cn(
-            "!py-2 group flex h-full flex-col border-white/10 bg-white/5 text-white shadow-[0_32px_85px_-40px_rgba(249,115,22,0.45)] transition hover:border-amber-400/35 hover:bg-white/10",
-            profile.is_boosting && "border-amber-400/50 bg-gradient-to-br from-amber-400/10 via-amber-300/5 to-amber-400/10 shadow-[0_32px_85px_-40px_rgba(251,191,36,0.65)] ring-2 ring-amber-400/30 hover:border-amber-400/70 hover:shadow-[0_32px_85px_-40px_rgba(251,191,36,0.75)]"
-        )}>
+        <Card
+            className={cn(
+                'group flex h-full flex-col border-white/10 bg-white/5 !py-2 text-white shadow-[0_32px_85px_-40px_rgba(249,115,22,0.45)] transition hover:border-amber-400/35 hover:bg-white/10',
+                profile.is_boosting &&
+                    'border-amber-400/50 bg-gradient-to-br from-amber-400/10 via-amber-300/5 to-amber-400/10 shadow-[0_32px_85px_-40px_rgba(251,191,36,0.65)] ring-2 ring-amber-400/30 hover:border-amber-400/70 hover:shadow-[0_32px_85px_-40px_rgba(251,191,36,0.75)]',
+            )}
+        >
             <CardContent className="flex flex-1 flex-col gap-4 p-4">
-                <Link 
+                <Link
                     href={profileRoutes.show.url(profile.username)}
                     className="relative block overflow-hidden rounded-3xl border border-white/10 bg-black/40 transition-all hover:border-white/20"
                 >
@@ -1671,7 +1919,7 @@ const ProfileCard = ({
                     <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/80" />
                     {profile.is_traveling ? (
                         <div className="absolute top-4 left-4">
-                            <Badge className="flex items-center gap-1 rounded-full border border-emerald-400/60 bg-emerald-400/15 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-emerald-200">
+                            <Badge className="flex items-center gap-1 rounded-full border border-emerald-400/60 bg-emerald-400/15 px-3 py-1 text-[0.65rem] font-semibold tracking-[0.35em] text-emerald-200 uppercase">
                                 <Plane className="size-3" />
                                 Visiting
                             </Badge>
@@ -1679,26 +1927,26 @@ const ProfileCard = ({
                     ) : null}
                     {profile.is_boosting ? (
                         <div className="absolute top-4 right-4">
-                            <Badge className="flex items-center gap-1 rounded-full border border-amber-400/60 bg-amber-400/15 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-amber-200 shadow-[0_4px_16px_-8px_rgba(251,191,36,0.4)]">
+                            <Badge className="flex items-center gap-1 rounded-full border border-amber-400/60 bg-amber-400/15 px-3 py-1 text-[0.65rem] font-semibold tracking-[0.35em] text-amber-200 uppercase shadow-[0_4px_16px_-8px_rgba(251,191,36,0.4)]">
                                 <Zap className="size-3" />
                                 Boosted
                             </Badge>
                         </div>
                     ) : (
                         <div className="absolute top-4 right-4">
-                            <Badge className="rounded-full border border-white/10 bg-black/40 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-white/80">
+                            <Badge className="rounded-full border border-white/10 bg-black/40 px-3 py-1 text-[0.65rem] font-semibold tracking-[0.35em] text-white/80 uppercase">
                                 {profile.mutuals} mutuals
                             </Badge>
                         </div>
                     )}
                     <div className="absolute bottom-4 left-4 flex items-center gap-3">
-                        <Link 
+                        <Link
                             href={profileRoutes.show.url(profile.username)}
                             className={cn(
-                                "relative block h-16 w-16 overflow-hidden rounded-3xl border-4 shadow-[0_18px_45px_-20px_rgba(249,115,22,0.5)] transition-transform hover:scale-105",
-                                profile.is_boosting 
-                                    ? "border-amber-400/60 shadow-[0_18px_45px_-20px_rgba(251,191,36,0.7)] ring-2 ring-amber-400/40" 
-                                    : "border-neutral-950"
+                                'relative block h-16 w-16 overflow-hidden rounded-3xl border-4 shadow-[0_18px_45px_-20px_rgba(249,115,22,0.5)] transition-transform hover:scale-105',
+                                profile.is_boosting
+                                    ? 'border-amber-400/60 shadow-[0_18px_45px_-20px_rgba(251,191,36,0.7)] ring-2 ring-amber-400/40'
+                                    : 'border-neutral-950',
                             )}
                             onClick={(e) => e.stopPropagation()}
                         >
@@ -1741,16 +1989,18 @@ const ProfileCard = ({
                         </span>
                         {profile.circles > 0 ? (
                             <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-white/80">
-                                {profile.circles} {profile.circles === 1 ? 'circle' : 'circles'}
+                                {profile.circles}{' '}
+                                {profile.circles === 1 ? 'circle' : 'circles'}
                             </span>
                         ) : null}
                         {profile.mutuals > 0 ? (
                             <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-emerald-200">
-                                {profile.mutuals} {profile.mutuals === 1 ? 'mutual' : 'mutuals'}
+                                {profile.mutuals}{' '}
+                                {profile.mutuals === 1 ? 'mutual' : 'mutuals'}
                             </span>
                         ) : null}
                     </div>
-                    
+
                     {profile.vibe ? (
                         <p className="line-clamp-2 text-sm leading-relaxed text-white/70">
                             {profile.vibe}
@@ -1785,5 +2035,3 @@ const ProfileCard = ({
         </Card>
     );
 };
-
-

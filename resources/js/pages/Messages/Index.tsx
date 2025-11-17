@@ -1,25 +1,27 @@
 import { Head, router, usePage } from '@inertiajs/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import MessageComposer from '@/components/messaging/message-composer';
-import ConversationList from '@/components/messaging/conversation-list';
 import ConversationHeader from '@/components/messaging/conversation-header';
+import ConversationList from '@/components/messaging/conversation-list';
+import MessageComposer from '@/components/messaging/message-composer';
 import MessageList from '@/components/messaging/message-list';
-import TypingIndicator from '@/components/messaging/typing-indicator';
-import AppLayout from '@/layouts/app-layout';
-import messagesRoutes from '@/routes/messages';
-import { getPresenceChannel, leaveEchoChannel } from '@/lib/echo';
-import http from '@/lib/http';
-import { normalizeNumeric, normalizeMessage } from '@/components/messaging/message-utils';
-import { useIsMobile } from '@/hooks/use-mobile';
+import {
+    normalizeMessage,
+    normalizeNumeric,
+} from '@/components/messaging/message-utils';
 import type {
-    Message,
-    Thread,
     ActiveConversation,
+    Message,
     PresenceMember,
     ReactionSummary,
+    Thread,
 } from '@/components/messaging/types';
-
+import TypingIndicator from '@/components/messaging/typing-indicator';
+import { useIsMobile } from '@/hooks/use-mobile';
+import AppLayout from '@/layouts/app-layout';
+import { getPresenceChannel, leaveEchoChannel } from '@/lib/echo';
+import http from '@/lib/http';
+import messagesRoutes from '@/routes/messages';
 
 type PageProps = {
     threads: Thread[];
@@ -48,31 +50,49 @@ type MessageDeletedEvent = {
 };
 
 export default function MessagesIndex() {
-    const { threads: threadsProp, activeConversation: activeProp, messages: messagesProp, messagesMeta, viewer } =
-        usePage<PageProps>().props;
+    const {
+        threads: threadsProp,
+        activeConversation: activeProp,
+        messages: messagesProp,
+        messagesMeta,
+        viewer,
+    } = usePage<PageProps>().props;
 
     const isMobile = useIsMobile();
     const [threadsState, setThreadsState] = useState<Thread[]>(threadsProp);
-    const [selectedConversationId, setSelectedConversationId] = useState<number | null>(activeProp?.id ?? null);
-    const [showConversationView, setShowConversationView] = useState<boolean>(false);
+    const [selectedConversationId, setSelectedConversationId] = useState<
+        number | null
+    >(activeProp?.id ?? null);
+    const [showConversationView, setShowConversationView] =
+        useState<boolean>(false);
     const [messages, setMessages] = useState<Message[]>(messagesProp ?? []);
     const [replyTo, setReplyTo] = useState<Message | null>(null);
-    const [expandedReactionsMessageId, setExpandedReactionsMessageId] = useState<number | null>(null);
-    const [hasMoreMessages, setHasMoreMessages] = useState<boolean>(messagesMeta?.has_more ?? false);
+    const [expandedReactionsMessageId, setExpandedReactionsMessageId] =
+        useState<number | null>(null);
+    const [hasMoreMessages, setHasMoreMessages] = useState<boolean>(
+        messagesMeta?.has_more ?? false,
+    );
     const [oldestMessageId, setOldestMessageId] = useState<number | null>(
-        messagesMeta?.oldest_id !== undefined && messagesMeta?.oldest_id !== null
+        messagesMeta?.oldest_id !== undefined &&
+            messagesMeta?.oldest_id !== null
             ? normalizeNumeric(messagesMeta.oldest_id)
             : null,
     );
-    const [presenceMembers, setPresenceMembers] = useState<PresenceMember[]>([]);
+    const [presenceMembers, setPresenceMembers] = useState<PresenceMember[]>(
+        [],
+    );
     const [isLoadingOlder, setIsLoadingOlder] = useState(false);
     const [shouldStickToBottom, setShouldStickToBottom] = useState(true);
     const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-    const conversationChannelRef = useRef<ReturnType<typeof getPresenceChannel> | null>(null);
+    const conversationChannelRef = useRef<ReturnType<
+        typeof getPresenceChannel
+    > | null>(null);
     const typingTimeoutsRef = useRef<Record<number, number>>({});
     const typingUsersRef = useRef<Map<number, string>>(new Map());
     const [typingUsers, setTypingUsers] = useState<string[]>([]);
-    const [tipRequestActionMessageId, setTipRequestActionMessageId] = useState<number | null>(null);
+    const [tipRequestActionMessageId, setTipRequestActionMessageId] = useState<
+        number | null
+    >(null);
     const threads = threadsState;
 
     const updateUnreadBadge = useCallback((list: Thread[]) => {
@@ -80,7 +100,10 @@ export default function MessagesIndex() {
             return;
         }
 
-        const total = list.reduce((sum, thread) => sum + (thread.unread_count ?? 0), 0);
+        const total = list.reduce(
+            (sum, thread) => sum + (thread.unread_count ?? 0),
+            0,
+        );
         window.dispatchEvent(
             new CustomEvent('messaging:unread-count', {
                 detail: { count: total, source: 'page' },
@@ -110,7 +133,10 @@ export default function MessagesIndex() {
             return;
         }
 
-        const remaining = container.scrollHeight - container.scrollTop - container.clientHeight;
+        const remaining =
+            container.scrollHeight -
+            container.scrollTop -
+            container.clientHeight;
         setShouldStickToBottom(remaining < 48);
     }, []);
     const sendTypingSignal = useCallback(() => {
@@ -125,7 +151,10 @@ export default function MessagesIndex() {
             name: viewer.display_name ?? viewer.username ?? 'You',
         });
     }, [viewer.display_name, viewer.id, viewer.username]);
-    const currentConversation = useMemo<ActiveConversation | null>(() => activeProp ?? null, [activeProp]);
+    const currentConversation = useMemo<ActiveConversation | null>(
+        () => activeProp ?? null,
+        [activeProp],
+    );
 
     useEffect(() => {
         setSelectedConversationId(activeProp?.id ?? null);
@@ -136,17 +165,22 @@ export default function MessagesIndex() {
             ...thread,
             id: normalizeNumeric(thread.id),
             unread_count: thread.unread_count ?? 0,
-            last_message: thread.last_message ? normalizeMessage(thread.last_message) : null,
+            last_message: thread.last_message
+                ? normalizeMessage(thread.last_message)
+                : null,
         }));
         updateThreads(initialThreads as Thread[]);
     }, [threadsProp, updateThreads]);
 
     useEffect(() => {
-        const initialMessages = (messagesProp ?? []).map((message) => normalizeMessage(message));
+        const initialMessages = (messagesProp ?? []).map((message) =>
+            normalizeMessage(message),
+        );
         setMessages(initialMessages);
         setHasMoreMessages(messagesMeta?.has_more ?? false);
         setOldestMessageId(
-            (messagesMeta?.oldest_id !== undefined && messagesMeta?.oldest_id !== null
+            (messagesMeta?.oldest_id !== undefined &&
+            messagesMeta?.oldest_id !== null
                 ? normalizeNumeric(messagesMeta.oldest_id)
                 : null) as number | null,
         );
@@ -159,7 +193,9 @@ export default function MessagesIndex() {
         setReplyTo(null);
         setExpandedReactionsMessageId(null);
         typingStore.clear();
-        Object.values(timeoutStore).forEach((timeout) => window.clearTimeout(timeout));
+        Object.values(timeoutStore).forEach((timeout) =>
+            window.clearTimeout(timeout),
+        );
         Object.keys(timeoutStore).forEach((key) => {
             delete timeoutStore[Number(key)];
         });
@@ -173,10 +209,16 @@ export default function MessagesIndex() {
         }
 
         const detail = { id: selectedConversationId ?? null };
-        window.dispatchEvent(new CustomEvent('messaging:active-conversation', { detail }));
+        window.dispatchEvent(
+            new CustomEvent('messaging:active-conversation', { detail }),
+        );
 
         return () => {
-            window.dispatchEvent(new CustomEvent('messaging:active-conversation', { detail: { id: null } }));
+            window.dispatchEvent(
+                new CustomEvent('messaging:active-conversation', {
+                    detail: { id: null },
+                }),
+            );
         };
     }, [selectedConversationId]);
 
@@ -209,9 +251,12 @@ export default function MessagesIndex() {
             }
 
             try {
-                await http.post(`/api/conversations/${selectedConversationId}/read`, {
-                    message_id: messageId ?? null,
-                });
+                await http.post(
+                    `/api/conversations/${selectedConversationId}/read`,
+                    {
+                        message_id: messageId ?? null,
+                    },
+                );
 
                 updateThreads((previous) =>
                     previous.map((thread) =>
@@ -236,7 +281,11 @@ export default function MessagesIndex() {
         }
 
         const sendHeartbeat = () => {
-            void http.post(`/api/conversations/${selectedConversationId}/presence/heartbeat`).catch(() => {});
+            void http
+                .post(
+                    `/api/conversations/${selectedConversationId}/presence/heartbeat`,
+                )
+                .catch(() => {});
         };
 
         sendHeartbeat();
@@ -270,7 +319,9 @@ export default function MessagesIndex() {
 
         if (channel.here) {
             channel.here((members: unknown[]) => {
-                setPresenceMembers((members as PresenceMember[]).map(mapMember));
+                setPresenceMembers(
+                    (members as PresenceMember[]).map(mapMember),
+                );
             });
         }
 
@@ -278,7 +329,9 @@ export default function MessagesIndex() {
             channel.joining((member: unknown) => {
                 const typedMember = member as PresenceMember;
                 setPresenceMembers((previous) => {
-                    const exists = previous.some((item) => item.id === Number(typedMember.id));
+                    const exists = previous.some(
+                        (item) => item.id === Number(typedMember.id),
+                    );
 
                     if (exists) {
                         return previous;
@@ -292,7 +345,11 @@ export default function MessagesIndex() {
         if (channel.leaving) {
             channel.leaving((member: unknown) => {
                 const typedMember = member as PresenceMember;
-                setPresenceMembers((previous) => previous.filter((item) => item.id !== Number(typedMember.id)));
+                setPresenceMembers((previous) =>
+                    previous.filter(
+                        (item) => item.id !== Number(typedMember.id),
+                    ),
+                );
             });
         }
 
@@ -301,7 +358,10 @@ export default function MessagesIndex() {
             const conversationId = normalisedMessage.conversation_id;
             const messageId = normalisedMessage.id;
 
-            if (!Number.isFinite(conversationId) || !Number.isFinite(messageId)) {
+            if (
+                !Number.isFinite(conversationId) ||
+                !Number.isFinite(messageId)
+            ) {
                 return;
             }
 
@@ -315,11 +375,14 @@ export default function MessagesIndex() {
 
                     found = true;
 
-                    const isCurrentConversation = conversationId === selectedConversationId;
-                    const isOwnMessage = normalisedMessage.author?.id === viewer.id;
-                    const unreadCount = isCurrentConversation || isOwnMessage
-                        ? 0
-                        : (thread.unread_count ?? 0) + 1;
+                    const isCurrentConversation =
+                        conversationId === selectedConversationId;
+                    const isOwnMessage =
+                        normalisedMessage.author?.id === viewer.id;
+                    const unreadCount =
+                        isCurrentConversation || isOwnMessage
+                            ? 0
+                            : (thread.unread_count ?? 0) + 1;
 
                     return {
                         ...thread,
@@ -340,7 +403,9 @@ export default function MessagesIndex() {
             }
 
             setMessages((previous) => {
-                const exists = previous.some((item) => Number(item.id) === messageId);
+                const exists = previous.some(
+                    (item) => Number(item.id) === messageId,
+                );
 
                 if (exists) {
                     return previous;
@@ -360,7 +425,10 @@ export default function MessagesIndex() {
             const conversationId = normalizeNumeric(event.conversation_id);
             const messageId = normalizeNumeric(event.message_id);
 
-            if (!Number.isFinite(conversationId) || conversationId !== selectedConversationId) {
+            if (
+                !Number.isFinite(conversationId) ||
+                conversationId !== selectedConversationId
+            ) {
                 return;
             }
 
@@ -383,7 +451,10 @@ export default function MessagesIndex() {
             setTypingUsers(Array.from(typingStore.values()));
         };
 
-        const handleTypingWhisper = (payload: { user_id?: number | string; name?: string }) => {
+        const handleTypingWhisper = (payload: {
+            user_id?: number | string;
+            name?: string;
+        }) => {
             const rawUserId = payload.user_id;
             const userId =
                 typeof rawUserId === 'number'
@@ -392,7 +463,11 @@ export default function MessagesIndex() {
                       ? Number.parseInt(rawUserId, 10)
                       : null;
 
-            if (userId === null || !Number.isFinite(userId) || userId === viewer.id) {
+            if (
+                userId === null ||
+                !Number.isFinite(userId) ||
+                userId === viewer.id
+            ) {
                 return;
             }
 
@@ -421,14 +496,21 @@ export default function MessagesIndex() {
             if (conversationChannelRef.current === channel) {
                 conversationChannelRef.current = null;
             }
-            Object.values(timeoutStore).forEach((timeout) => window.clearTimeout(timeout));
+            Object.values(timeoutStore).forEach((timeout) =>
+                window.clearTimeout(timeout),
+            );
             Object.keys(timeoutStore).forEach((key) => {
                 delete timeoutStore[Number(key)];
             });
             typingStore.clear();
             setTypingUsers([]);
         };
-    }, [markConversationRead, selectedConversationId, updateThreads, viewer.id]);
+    }, [
+        markConversationRead,
+        selectedConversationId,
+        updateThreads,
+        viewer.id,
+    ]);
 
     useEffect(() => {
         if (!selectedConversationId || messages.length === 0) {
@@ -437,7 +519,9 @@ export default function MessagesIndex() {
 
         const lastMessage = messages[messages.length - 1];
         const lastMessageId = Number(lastMessage.id);
-        void markConversationRead(Number.isFinite(lastMessageId) ? lastMessageId : undefined);
+        void markConversationRead(
+            Number.isFinite(lastMessageId) ? lastMessageId : undefined,
+        );
     }, [markConversationRead, messages, selectedConversationId]);
 
     const handleOpenConversation = useCallback(
@@ -490,12 +574,17 @@ export default function MessagesIndex() {
             const conversationId = normalisedMessage.conversation_id;
             const messageId = normalisedMessage.id;
 
-            if (!Number.isFinite(conversationId) || !Number.isFinite(messageId)) {
+            if (
+                !Number.isFinite(conversationId) ||
+                !Number.isFinite(messageId)
+            ) {
                 return;
             }
 
             setMessages((previous) => {
-                const exists = previous.some((item) => Number(item.id) === messageId);
+                const exists = previous.some(
+                    (item) => Number(item.id) === messageId,
+                );
 
                 if (exists) {
                     return previous;
@@ -507,7 +596,9 @@ export default function MessagesIndex() {
             });
 
             updateThreads((previous) => {
-                const filtered = previous.filter((thread) => Number(thread.id) !== conversationId);
+                const filtered = previous.filter(
+                    (thread) => Number(thread.id) !== conversationId,
+                );
                 const currentThread = previous.find(
                     (thread) => Number(thread.id) === conversationId,
                 );
@@ -537,53 +628,71 @@ export default function MessagesIndex() {
         [updateThreads, markConversationRead],
     );
 
-    const handleReactionChange = useCallback((messageId: number, summary: ReactionSummary[]) => {
-        const targetId = normalizeNumeric(messageId);
+    const handleReactionChange = useCallback(
+        (messageId: number, summary: ReactionSummary[]) => {
+            const targetId = normalizeNumeric(messageId);
 
-        setMessages((previous) =>
-            previous.map((message) =>
-                Number(message.id) === targetId
-                    ? {
-                          ...message,
-                          reaction_summary: summary,
-                      }
-                    : message,
-            ),
-        );
-    }, []);
+            setMessages((previous) =>
+                previous.map((message) =>
+                    Number(message.id) === targetId
+                        ? {
+                              ...message,
+                              reaction_summary: summary,
+                          }
+                        : message,
+                ),
+            );
+        },
+        [],
+    );
 
     const handleLoadOlder = useCallback(async () => {
-        if (!selectedConversationId || !hasMoreMessages || isLoadingOlder || !oldestMessageId) {
+        if (
+            !selectedConversationId ||
+            !hasMoreMessages ||
+            isLoadingOlder ||
+            !oldestMessageId
+        ) {
             return;
         }
 
         setIsLoadingOlder(true);
         const container = scrollContainerRef.current;
-        const previousOffsetFromBottom = container ? container.scrollHeight - container.scrollTop : 0;
+        const previousOffsetFromBottom = container
+            ? container.scrollHeight - container.scrollTop
+            : 0;
 
         try {
-            const response = await http.get(`/api/conversations/${selectedConversationId}/messages`, {
-                params: {
-                    before: oldestMessageId,
+            const response = await http.get(
+                `/api/conversations/${selectedConversationId}/messages`,
+                {
+                    params: {
+                        before: oldestMessageId,
+                    },
                 },
-            });
+            );
 
             const payload = response.data;
             const data = (payload?.data as Message[]) ?? [];
 
             setMessages((previous) => {
-                const existingIds = new Set(previous.map((message) => String(message.id)));
+                const existingIds = new Set(
+                    previous.map((message) => String(message.id)),
+                );
                 const incoming = data
                     .map((message) => normalizeMessage(message))
                     .filter((message) => !existingIds.has(String(message.id)));
                 const merged = [...incoming, ...previous];
 
-                return merged.sort((a, b) => Number(a.sequence) - Number(b.sequence));
+                return merged.sort(
+                    (a, b) => Number(a.sequence) - Number(b.sequence),
+                );
             });
 
             setHasMoreMessages(Boolean(payload?.meta?.has_more));
             setOldestMessageId(
-                payload?.meta?.oldest_id !== undefined && payload?.meta?.oldest_id !== null
+                payload?.meta?.oldest_id !== undefined &&
+                    payload?.meta?.oldest_id !== null
                     ? normalizeNumeric(payload.meta.oldest_id)
                     : null,
             );
@@ -595,17 +704,23 @@ export default function MessagesIndex() {
                     return;
                 }
 
-                target.scrollTop = target.scrollHeight - previousOffsetFromBottom;
+                target.scrollTop =
+                    target.scrollHeight - previousOffsetFromBottom;
             });
         } catch (error) {
             console.error(error);
         } finally {
             setIsLoadingOlder(false);
         }
-    }, [hasMoreMessages, isLoadingOlder, oldestMessageId, selectedConversationId]);
+    }, [
+        hasMoreMessages,
+        isLoadingOlder,
+        oldestMessageId,
+        selectedConversationId,
+    ]);
 
     const filteredThreads = useMemo(() => threads, [threads]);
-    
+
     const handleTipRequestAction = useCallback(
         async (messageId: number, action: 'accept' | 'decline') => {
             if (!viewer?.id) {
@@ -641,12 +756,18 @@ export default function MessagesIndex() {
 
                     updateThreads((previous) =>
                         previous.map((thread) =>
-                            Number(thread.id) === Number(updated.conversation_id)
+                            Number(thread.id) ===
+                            Number(updated.conversation_id)
                                 ? {
                                       ...thread,
                                       last_message:
-                                          thread.last_message && Number(thread.last_message.id) === Number(updated.id)
-                                              ? { ...thread.last_message, ...updated }
+                                          thread.last_message &&
+                                          Number(thread.last_message.id) ===
+                                              Number(updated.id)
+                                              ? {
+                                                    ...thread.last_message,
+                                                    ...updated,
+                                                }
                                               : thread.last_message,
                                   }
                                 : thread,
@@ -700,8 +821,12 @@ export default function MessagesIndex() {
                                 <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
                                     <ConversationList
                                         threads={filteredThreads}
-                                        selectedConversationId={selectedConversationId}
-                                        onSelectConversation={handleOpenConversation}
+                                        selectedConversationId={
+                                            selectedConversationId
+                                        }
+                                        onSelectConversation={
+                                            handleOpenConversation
+                                        }
                                     />
                                 </div>
                             ) : currentConversation ? (
@@ -720,19 +845,34 @@ export default function MessagesIndex() {
                                             conversation={currentConversation}
                                             hasMoreMessages={hasMoreMessages}
                                             isLoadingOlder={isLoadingOlder}
-                                            expandedReactionsMessageId={expandedReactionsMessageId}
-                                            tipRequestActionMessageId={tipRequestActionMessageId}
+                                            expandedReactionsMessageId={
+                                                expandedReactionsMessageId
+                                            }
+                                            tipRequestActionMessageId={
+                                                tipRequestActionMessageId
+                                            }
                                             onLoadOlder={handleLoadOlder}
                                             onToggleReactions={(messageId) =>
-                                                setExpandedReactionsMessageId((current) =>
-                                                    current === messageId ? null : messageId,
+                                                setExpandedReactionsMessageId(
+                                                    (current) =>
+                                                        current === messageId
+                                                            ? null
+                                                            : messageId,
                                                 )
                                             }
                                             onReply={setReplyTo}
-                                            onReactionChange={handleReactionChange}
-                                            onTipRequestAccept={handleTipRequestAccept}
-                                            onTipRequestDecline={handleTipRequestDecline}
-                                            scrollContainerRef={scrollContainerRef}
+                                            onReactionChange={
+                                                handleReactionChange
+                                            }
+                                            onTipRequestAccept={
+                                                handleTipRequestAccept
+                                            }
+                                            onTipRequestDecline={
+                                                handleTipRequestDecline
+                                            }
+                                            scrollContainerRef={
+                                                scrollContainerRef
+                                            }
                                             onScroll={handleMessagesScroll}
                                         />
 
@@ -740,8 +880,12 @@ export default function MessagesIndex() {
 
                                         <div className="border-t border-white/10 px-4 py-3">
                                             <MessageComposer
-                                                conversationId={currentConversation.id}
-                                                onMessageSent={handleMessageSent}
+                                                conversationId={
+                                                    currentConversation.id
+                                                }
+                                                onMessageSent={
+                                                    handleMessageSent
+                                                }
                                                 replyTo={
                                                     replyTo
                                                         ? {
@@ -751,7 +895,9 @@ export default function MessagesIndex() {
                                                           }
                                                         : null
                                                 }
-                                                onCancelReply={() => setReplyTo(null)}
+                                                onCancelReply={() =>
+                                                    setReplyTo(null)
+                                                }
                                                 onTyping={sendTypingSignal}
                                                 viewer={viewer}
                                             />
@@ -783,31 +929,59 @@ export default function MessagesIndex() {
                                             <MessageList
                                                 messages={messages}
                                                 viewerId={viewer.id}
-                                                conversation={currentConversation}
-                                                hasMoreMessages={hasMoreMessages}
+                                                conversation={
+                                                    currentConversation
+                                                }
+                                                hasMoreMessages={
+                                                    hasMoreMessages
+                                                }
                                                 isLoadingOlder={isLoadingOlder}
-                                                expandedReactionsMessageId={expandedReactionsMessageId}
-                                                tipRequestActionMessageId={tipRequestActionMessageId}
+                                                expandedReactionsMessageId={
+                                                    expandedReactionsMessageId
+                                                }
+                                                tipRequestActionMessageId={
+                                                    tipRequestActionMessageId
+                                                }
                                                 onLoadOlder={handleLoadOlder}
-                                                onToggleReactions={(messageId) =>
-                                                    setExpandedReactionsMessageId((current) =>
-                                                        current === messageId ? null : messageId,
+                                                onToggleReactions={(
+                                                    messageId,
+                                                ) =>
+                                                    setExpandedReactionsMessageId(
+                                                        (current) =>
+                                                            current ===
+                                                            messageId
+                                                                ? null
+                                                                : messageId,
                                                     )
                                                 }
                                                 onReply={setReplyTo}
-                                                onReactionChange={handleReactionChange}
-                                                onTipRequestAccept={handleTipRequestAccept}
-                                                onTipRequestDecline={handleTipRequestDecline}
-                                                scrollContainerRef={scrollContainerRef}
+                                                onReactionChange={
+                                                    handleReactionChange
+                                                }
+                                                onTipRequestAccept={
+                                                    handleTipRequestAccept
+                                                }
+                                                onTipRequestDecline={
+                                                    handleTipRequestDecline
+                                                }
+                                                scrollContainerRef={
+                                                    scrollContainerRef
+                                                }
                                                 onScroll={handleMessagesScroll}
                                             />
 
-                                            <TypingIndicator users={typingUsers} />
+                                            <TypingIndicator
+                                                users={typingUsers}
+                                            />
 
                                             <div className="border-t border-white/10 px-4 py-3 sm:px-6 sm:py-4">
                                                 <MessageComposer
-                                                    conversationId={currentConversation.id}
-                                                    onMessageSent={handleMessageSent}
+                                                    conversationId={
+                                                        currentConversation.id
+                                                    }
+                                                    onMessageSent={
+                                                        handleMessageSent
+                                                    }
                                                     replyTo={
                                                         replyTo
                                                             ? {
@@ -817,7 +991,9 @@ export default function MessagesIndex() {
                                                               }
                                                             : null
                                                     }
-                                                    onCancelReply={() => setReplyTo(null)}
+                                                    onCancelReply={() =>
+                                                        setReplyTo(null)
+                                                    }
                                                     onTyping={sendTypingSignal}
                                                     viewer={viewer}
                                                 />
@@ -826,14 +1002,18 @@ export default function MessagesIndex() {
                                     </>
                                 ) : (
                                     <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center text-white/40">
-                                        <p className="text-sm font-medium">Select a thread to begin messaging.</p>
-                                        <p className="text-xs text-white/50">Your conversations will appear on the left once you start chatting.</p>
+                                        <p className="text-sm font-medium">
+                                            Select a thread to begin messaging.
+                                        </p>
+                                        <p className="text-xs text-white/50">
+                                            Your conversations will appear on
+                                            the left once you start chatting.
+                                        </p>
                                     </div>
                                 )}
                             </div>
                         </>
                     )}
-
                 </div>
             </div>
         </AppLayout>

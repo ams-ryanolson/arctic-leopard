@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\Messaging\ConversationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+
 use function Pest\Laravel\actingAs;
 
 uses(RefreshDatabase::class);

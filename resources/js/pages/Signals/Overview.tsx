@@ -27,7 +27,13 @@ interface SignalsOverviewProps {
     tutorials: OverviewTutorial[];
 }
 
-export default function SignalsOverview({ headline, subheading, highlights, metrics, tutorials }: SignalsOverviewProps) {
+export default function SignalsOverview({
+    headline,
+    subheading,
+    highlights,
+    metrics,
+    tutorials,
+}: SignalsOverviewProps) {
     return (
         <AppLayout
             breadcrumbs={[
@@ -46,10 +52,19 @@ export default function SignalsOverview({ headline, subheading, highlights, metr
 
                 <section className="grid gap-4 md:grid-cols-3">
                     {metrics.map((metric) => (
-                        <div key={metric.label} className="rounded-3xl border border-white/10 bg-white/5 p-6">
-                            <p className="text-xs uppercase tracking-[0.3em] text-white/50">{metric.label}</p>
-                            <p className="mt-3 text-2xl font-semibold text-white">{metric.value}</p>
-                            <p className="mt-2 text-xs text-emerald-200">{metric.delta}</p>
+                        <div
+                            key={metric.label}
+                            className="rounded-3xl border border-white/10 bg-white/5 p-6"
+                        >
+                            <p className="text-xs tracking-[0.3em] text-white/50 uppercase">
+                                {metric.label}
+                            </p>
+                            <p className="mt-3 text-2xl font-semibold text-white">
+                                {metric.value}
+                            </p>
+                            <p className="mt-2 text-xs text-emerald-200">
+                                {metric.delta}
+                            </p>
                         </div>
                     ))}
                 </section>
@@ -60,16 +75,23 @@ export default function SignalsOverview({ headline, subheading, highlights, metr
                             key={highlight.title}
                             className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[0_20px_60px_-45px_rgba(59,130,246,0.35)]"
                         >
-                            <h2 className="text-lg font-semibold text-white">{highlight.title}</h2>
-                            <p className="mt-3 text-sm text-white/70">{highlight.body}</p>
+                            <h2 className="text-lg font-semibold text-white">
+                                {highlight.title}
+                            </h2>
+                            <p className="mt-3 text-sm text-white/70">
+                                {highlight.body}
+                            </p>
                         </div>
                     ))}
                 </section>
 
                 <section className="rounded-3xl border border-white/10 bg-white/5 p-6">
-                    <h2 className="text-lg font-semibold text-white">Start with the playbooks</h2>
+                    <h2 className="text-lg font-semibold text-white">
+                        Start with the playbooks
+                    </h2>
                     <p className="mt-2 text-sm text-white/70">
-                        Watch or read the latest tutorials to unlock more value from your signals data.
+                        Watch or read the latest tutorials to unlock more value
+                        from your signals data.
                     </p>
                     <div className="mt-6 grid gap-4 md:grid-cols-3">
                         {tutorials.map((tutorial) => (
@@ -79,9 +101,15 @@ export default function SignalsOverview({ headline, subheading, highlights, metr
                                 prefetch
                                 className="rounded-2xl border border-white/10 bg-black/20 p-4 text-left transition hover:border-amber-400/40 hover:bg-white/5"
                             >
-                                <p className="text-xs uppercase tracking-[0.3em] text-white/50">{tutorial.category}</p>
-                                <p className="mt-2 text-sm font-semibold text-white">{tutorial.title}</p>
-                                <p className="mt-2 text-xs text-white/60">{tutorial.duration}</p>
+                                <p className="text-xs tracking-[0.3em] text-white/50 uppercase">
+                                    {tutorial.category}
+                                </p>
+                                <p className="mt-2 text-sm font-semibold text-white">
+                                    {tutorial.title}
+                                </p>
+                                <p className="mt-2 text-xs text-white/60">
+                                    {tutorial.duration}
+                                </p>
                             </Link>
                         ))}
                     </div>
@@ -90,5 +118,3 @@ export default function SignalsOverview({ headline, subheading, highlights, metr
         </AppLayout>
     );
 }
-
-

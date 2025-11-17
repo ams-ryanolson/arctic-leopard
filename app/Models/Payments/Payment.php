@@ -125,4 +125,3 @@ class Payment extends Model
             ->where('payable_id', $payable->getKey());
     }
 }
-

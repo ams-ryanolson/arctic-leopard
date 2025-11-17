@@ -1,4 +1,4 @@
-import AppLayout from '@/layouts/app-layout';
+import { SuggestCircleDialog } from '@/components/circles/suggest-circle-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,11 +10,21 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Pagination } from '@/components/ui/pagination';
-import type { Circle, CircleCollection, CircleFacet, CircleFilterState } from '@/types/circles';
+import AppLayout from '@/layouts/app-layout';
+import {
+    join as circleJoin,
+    leave as circleLeave,
+    index as circlesIndex,
+    show as circlesShow,
+} from '@/routes/circles';
+import type {
+    Circle,
+    CircleCollection,
+    CircleFacet,
+    CircleFilterState,
+} from '@/types/circles';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { index as circlesIndex, join as circleJoin, leave as circleLeave, show as circlesShow } from '@/routes/circles';
-import { Compass, Users, CheckCircle2, Layers, Lightbulb } from 'lucide-react';
-import { SuggestCircleDialog } from '@/components/circles/suggest-circle-dialog';
+import { CheckCircle2, Compass, Layers, Lightbulb, Users } from 'lucide-react';
 
 type InterestOption = {
     id: number;
@@ -39,7 +49,9 @@ type CircleFacetRelationship = {
     data?: CircleFacet[] | null;
 };
 
-const extractFacets = (facets: CircleFacet[] | CircleFacetRelationship): CircleFacet[] => {
+const extractFacets = (
+    facets: CircleFacet[] | CircleFacetRelationship,
+): CircleFacet[] => {
     if (Array.isArray(facets)) {
         return facets;
     }
@@ -52,7 +64,9 @@ const extractFacets = (facets: CircleFacet[] | CircleFacetRelationship): CircleF
 };
 
 const JoinedCircleCard = ({ circle }: CircleCardProps) => {
-    const facets = extractFacets(circle.facets as CircleFacet[] | CircleFacetRelationship);
+    const facets = extractFacets(
+        circle.facets as CircleFacet[] | CircleFacetRelationship,
+    );
     const memberCount = Number.isFinite(circle.membersCount)
         ? circle.membersCount
         : 0;
@@ -72,12 +86,12 @@ const JoinedCircleCard = ({ circle }: CircleCardProps) => {
 
             <div className="relative flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
                 <div className="flex min-w-0 flex-1 items-start gap-4 sm:items-center">
-                    <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border border-emerald-400/20">
+                    <div className="flex size-12 shrink-0 items-center justify-center rounded-xl border border-emerald-400/20 bg-gradient-to-br from-emerald-500/20 to-emerald-600/10">
                         <CheckCircle2 className="size-6 text-emerald-400" />
                     </div>
                     <div className="min-w-0 flex-1 space-y-1.5">
                         <div className="flex flex-wrap items-center gap-2">
-                            <CardTitle className="text-lg font-semibold leading-tight">
+                            <CardTitle className="text-lg leading-tight font-semibold">
                                 <Link
                                     href={circlesShow.url(circle.slug)}
                                     className="transition-colors hover:text-emerald-400/90"
@@ -86,13 +100,13 @@ const JoinedCircleCard = ({ circle }: CircleCardProps) => {
                                 </Link>
                             </CardTitle>
                             {circle.interest && (
-                                <Badge className="rounded-full border-white/15 bg-white/10 px-2.5 py-0.5 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-white/70">
+                                <Badge className="rounded-full border-white/15 bg-white/10 px-2.5 py-0.5 text-[0.65rem] font-medium tracking-[0.3em] text-white/70 uppercase">
                                     {circle.interest.name}
                                 </Badge>
                             )}
                         </div>
                         {circle.tagline && (
-                            <p className="text-sm leading-snug text-white/65 line-clamp-1">
+                            <p className="line-clamp-1 text-sm leading-snug text-white/65">
                                 {circle.tagline}
                             </p>
                         )}
@@ -104,14 +118,15 @@ const JoinedCircleCard = ({ circle }: CircleCardProps) => {
                             {hasFacetOptions && (
                                 <span className="flex items-center gap-1.5">
                                     <Layers className="size-3.5" />
-                                    {facets.length} segment{facets.length !== 1 ? 's' : ''}
+                                    {facets.length} segment
+                                    {facets.length !== 1 ? 's' : ''}
                                 </span>
                             )}
                         </div>
                     </div>
                 </div>
 
-                <div className="flex shrink-0 items-center gap-3 border-t border-white/10 pt-4 sm:border-t-0 sm:border-l sm:border-white/10 sm:pl-6 sm:pt-0">
+                <div className="flex shrink-0 items-center gap-3 border-t border-white/10 pt-4 sm:border-t-0 sm:border-l sm:border-white/10 sm:pt-0 sm:pl-6">
                     <Button
                         type="button"
                         variant="secondary"
@@ -135,7 +150,9 @@ const JoinedCircleCard = ({ circle }: CircleCardProps) => {
 };
 
 const CircleCard = ({ circle }: CircleCardProps) => {
-    const facets = extractFacets(circle.facets as CircleFacet[] | CircleFacetRelationship);
+    const facets = extractFacets(
+        circle.facets as CircleFacet[] | CircleFacetRelationship,
+    );
     const memberCount = Number.isFinite(circle.membersCount)
         ? circle.membersCount
         : 0;
@@ -173,7 +190,7 @@ const CircleCard = ({ circle }: CircleCardProps) => {
             <CardHeader className="relative space-y-3 pb-4">
                 <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0 flex-1">
-                        <CardTitle className="text-xl font-semibold leading-tight">
+                        <CardTitle className="text-xl leading-tight font-semibold">
                             <Link
                                 href={circlesShow.url(circle.slug)}
                                 className="transition-colors hover:text-amber-400/90"
@@ -217,51 +234,51 @@ const CircleCard = ({ circle }: CircleCardProps) => {
                 )}
 
                 {circle.description && !circle.tagline && (
-                    <p className="text-sm leading-relaxed text-white/60 line-clamp-2">
+                    <p className="line-clamp-2 text-sm leading-relaxed text-white/60">
                         {circle.description}
                     </p>
                 )}
             </CardContent>
 
             <CardFooter className="relative mt-auto flex items-center justify-between gap-3 border-t border-white/10 pt-4">
-                    {isJoined ? (
-                        <>
-                            <Button
-                                type="button"
-                                variant="secondary"
-                                size="sm"
-                                className="rounded-full border-white/20 bg-white/10 px-4 text-xs font-medium text-white transition-colors hover:border-rose-400/40 hover:bg-rose-500/20 hover:text-rose-50"
-                                onClick={handleLeave}
-                                disabled={form.processing}
-                            >
-                                Leave circle
-                            </Button>
-                            <Link
-                                href={circlesShow.url(circle.slug)}
-                                className="rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 px-5 py-2 text-xs font-semibold text-white shadow-[0_4px_12px_-4px_rgba(16,185,129,0.4)] transition-all hover:scale-[1.02] hover:shadow-[0_6px_16px_-4px_rgba(16,185,129,0.5)]"
-                            >
-                                Enter →
-                            </Link>
-                        </>
-                    ) : (
-                        <>
-                            <Button
-                                type="button"
-                                size="sm"
-                                className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-5 text-xs font-semibold text-white shadow-[0_18px_40px_-20px_rgba(249,115,22,0.6)] transition-all hover:scale-[1.02] hover:shadow-[0_22px_50px_-20px_rgba(249,115,22,0.7)]"
-                                onClick={handleJoin}
-                                disabled={form.processing}
-                            >
-                                Join circle
-                            </Button>
-                            <Link
-                                href={circlesShow.url(circle.slug)}
-                                className="text-xs font-medium text-white/75 underline-offset-4 transition-colors hover:text-white hover:underline"
-                            >
-                                Preview →
-                            </Link>
-                        </>
-                    )}
+                {isJoined ? (
+                    <>
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            className="rounded-full border-white/20 bg-white/10 px-4 text-xs font-medium text-white transition-colors hover:border-rose-400/40 hover:bg-rose-500/20 hover:text-rose-50"
+                            onClick={handleLeave}
+                            disabled={form.processing}
+                        >
+                            Leave circle
+                        </Button>
+                        <Link
+                            href={circlesShow.url(circle.slug)}
+                            className="rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 px-5 py-2 text-xs font-semibold text-white shadow-[0_4px_12px_-4px_rgba(16,185,129,0.4)] transition-all hover:scale-[1.02] hover:shadow-[0_6px_16px_-4px_rgba(16,185,129,0.5)]"
+                        >
+                            Enter →
+                        </Link>
+                    </>
+                ) : (
+                    <>
+                        <Button
+                            type="button"
+                            size="sm"
+                            className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-5 text-xs font-semibold text-white shadow-[0_18px_40px_-20px_rgba(249,115,22,0.6)] transition-all hover:scale-[1.02] hover:shadow-[0_22px_50px_-20px_rgba(249,115,22,0.7)]"
+                            onClick={handleJoin}
+                            disabled={form.processing}
+                        >
+                            Join circle
+                        </Button>
+                        <Link
+                            href={circlesShow.url(circle.slug)}
+                            className="text-xs font-medium text-white/75 underline-offset-4 transition-colors hover:text-white hover:underline"
+                        >
+                            Preview →
+                        </Link>
+                    </>
+                )}
             </CardFooter>
         </Card>
     );
@@ -324,22 +341,26 @@ export default function CirclesIndex({
     const heroHighlights = [
         {
             title: 'Join niche communities',
-            description: 'Connect with circles organized around specific interests, kinks, and scenes. Each circle has its own feed, members, and culture.',
+            description:
+                'Connect with circles organized around specific interests, kinks, and scenes. Each circle has its own feed, members, and culture.',
             icon: Users,
         },
         {
             title: 'Explore circle segments',
-            description: 'Many circles offer specialized segments or facets, letting you focus on specific aspects that matter most to you.',
+            description:
+                'Many circles offer specialized segments or facets, letting you focus on specific aspects that matter most to you.',
             icon: Layers,
         },
         {
             title: 'Discover by interest',
-            description: 'Browse circles anchored to curated interests, making it easy to find communities that align with your preferences.',
+            description:
+                'Browse circles anchored to curated interests, making it easy to find communities that align with your preferences.',
             icon: Compass,
         },
         {
             title: 'Suggest a new circle',
-            description: 'Have an idea for a circle that doesn\'t exist yet? Suggest it to our team and we\'ll consider adding it to the directory.',
+            description:
+                "Have an idea for a circle that doesn't exist yet? Suggest it to our team and we'll consider adding it to the directory.",
             icon: Lightbulb,
         },
     ] as const;
@@ -352,11 +373,17 @@ export default function CirclesIndex({
         hasMorePages: circleCollection.meta.has_more_pages,
     };
 
-    const applyFilters = (next: Partial<CircleFilterState & { page?: number }>) => {
-        router.get(circlesIndex.url(), buildQuery(safeFilters, next) as Record<string, string | number>, {
-            preserveState: true,
-            preserveScroll: true,
-        });
+    const applyFilters = (
+        next: Partial<CircleFilterState & { page?: number }>,
+    ) => {
+        router.get(
+            circlesIndex.url(),
+            buildQuery(safeFilters, next) as Record<string, string | number>,
+            {
+                preserveState: true,
+                preserveScroll: true,
+            },
+        );
     };
 
     return (
@@ -372,31 +399,46 @@ export default function CirclesIndex({
                 <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 via-white/5 to-black/20 shadow-[0_60px_120px_-70px_rgba(249,115,22,0.6)]">
                     <div className="pointer-events-none absolute inset-0">
                         <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-amber-400/25 via-amber-400/10 to-transparent blur-3xl" />
-                        <div className="absolute -left-32 top-1/2 size-[520px] -translate-y-1/2 rounded-full bg-rose-500/20 blur-3xl" />
-                        <div className="absolute -right-36 top-16 size-[460px] rounded-full bg-violet-600/20 blur-3xl" />
+                        <div className="absolute top-1/2 -left-32 size-[520px] -translate-y-1/2 rounded-full bg-rose-500/20 blur-3xl" />
+                        <div className="absolute top-16 -right-36 size-[460px] rounded-full bg-violet-600/20 blur-3xl" />
                     </div>
 
                     <div className="relative grid gap-12 p-10 sm:p-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
                         <div className="space-y-10">
                             <div className="space-y-5">
-                                <h1 className="text-balance text-4xl font-semibold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+                                <h1 className="text-4xl leading-tight font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
                                     Discover the crews shaping{' '}
                                     <span className="bg-gradient-to-br from-amber-400 via-rose-500 to-violet-600 bg-clip-text text-transparent">
                                         kink culture
                                     </span>
                                 </h1>
                                 <p className="max-w-2xl text-base leading-relaxed text-white/75 sm:text-lg">
-                                    Filter by niche interests, tease out invite-only houses, and join circles where
-                                    conversations, drops, and aftercare rituals match your exact scene.
+                                    Filter by niche interests, tease out
+                                    invite-only houses, and join circles where
+                                    conversations, drops, and aftercare rituals
+                                    match your exact scene.
                                 </p>
                             </div>
                             <div className="grid gap-4 sm:grid-cols-3">
                                 {[
-                                    { label: 'Circles live', value: numberFormatter.format(totalCircles) },
-                                    { label: 'Curated interests', value: numberFormatter.format(interestOptions.length) },
+                                    {
+                                        label: 'Circles live',
+                                        value: numberFormatter.format(
+                                            totalCircles,
+                                        ),
+                                    },
+                                    {
+                                        label: 'Curated interests',
+                                        value: numberFormatter.format(
+                                            interestOptions.length,
+                                        ),
+                                    },
                                     {
                                         label: 'Your memberships',
-                                        value: joinedCirclesCount > 0 ? joinedCirclesCount : 'Tap in',
+                                        value:
+                                            joinedCirclesCount > 0
+                                                ? joinedCirclesCount
+                                                : 'Tap in',
                                     },
                                 ].map((stat) => (
                                     <div
@@ -405,8 +447,10 @@ export default function CirclesIndex({
                                     >
                                         <div className="absolute inset-0 bg-gradient-to-br from-amber-400/5 via-transparent to-violet-600/5 opacity-0 transition-opacity group-hover:opacity-100" />
                                         <div className="relative">
-                                            <p className="text-3xl font-semibold text-white">{stat.value}</p>
-                                            <p className="mt-2 text-[0.7rem] font-medium uppercase tracking-[0.35em] text-white/60">
+                                            <p className="text-3xl font-semibold text-white">
+                                                {stat.value}
+                                            </p>
+                                            <p className="mt-2 text-[0.7rem] font-medium tracking-[0.35em] text-white/60 uppercase">
                                                 {stat.label}
                                             </p>
                                         </div>
@@ -417,45 +461,63 @@ export default function CirclesIndex({
 
                         <div className="space-y-6 rounded-3xl border border-white/10 bg-black/40 p-7 backdrop-blur-sm">
                             <div>
-                                <p className="text-xs font-medium uppercase tracking-[0.35em] text-white/60">
+                                <p className="text-xs font-medium tracking-[0.35em] text-white/60 uppercase">
                                     What you'll find here
                                 </p>
                             </div>
                             <div className="space-y-6">
-                                {heroHighlights.map(({ title, description, icon: Icon }) => (
-                                    <div key={title} className="flex items-start gap-4">
-                                        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-white/15 to-white/5 text-white shadow-sm">
-                                            <Icon className="size-5" />
+                                {heroHighlights.map(
+                                    ({ title, description, icon: Icon }) => (
+                                        <div
+                                            key={title}
+                                            className="flex items-start gap-4"
+                                        >
+                                            <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-white/15 to-white/5 text-white shadow-sm">
+                                                <Icon className="size-5" />
+                                            </div>
+                                            <div className="min-w-0 flex-1 space-y-1.5">
+                                                <p className="text-sm leading-snug font-semibold text-white">
+                                                    {title}
+                                                </p>
+                                                <p className="text-xs leading-relaxed text-white/65">
+                                                    {description}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div className="space-y-1.5 min-w-0 flex-1">
-                                            <p className="text-sm font-semibold leading-snug text-white">{title}</p>
-                                            <p className="text-xs leading-relaxed text-white/65">{description}</p>
-                                        </div>
-                                    </div>
-                                ))}
+                                    ),
+                                )}
                             </div>
                         </div>
                     </div>
                 </section>
 
                 {joinedCirclesList.length > 0 && (
-                    <section className="space-y-6 rounded-3xl border border-white/10 bg-gradient-to-br from-emerald-500/10 via-transparent to-emerald-600/5 p-6 sm:p-8 shadow-[0_50px_110px_-70px_rgba(16,185,129,0.4)]">
+                    <section className="space-y-6 rounded-3xl border border-white/10 bg-gradient-to-br from-emerald-500/10 via-transparent to-emerald-600/5 p-6 shadow-[0_50px_110px_-70px_rgba(16,185,129,0.4)] sm:p-8">
                         <header className="flex flex-wrap items-center justify-between gap-3">
                             <div className="space-y-1">
-                                <h2 className="text-2xl font-semibold tracking-tight">Your circles</h2>
+                                <h2 className="text-2xl font-semibold tracking-tight">
+                                    Your circles
+                                </h2>
                                 <p className="text-sm text-white/65">
-                                    Circles you've joined and are actively participating in.
+                                    Circles you've joined and are actively
+                                    participating in.
                                 </p>
                             </div>
-                            <Badge className="rounded-full border-emerald-400/40 bg-emerald-500/20 px-3 py-1 text-[0.6rem] font-medium uppercase tracking-[0.35em] text-emerald-100">
+                            <Badge className="rounded-full border-emerald-400/40 bg-emerald-500/20 px-3 py-1 text-[0.6rem] font-medium tracking-[0.35em] text-emerald-100 uppercase">
                                 <CheckCircle2 className="mr-1.5 inline-block size-3" />
-                                {joinedCirclesList.length} {joinedCirclesList.length === 1 ? 'circle' : 'circles'}
+                                {joinedCirclesList.length}{' '}
+                                {joinedCirclesList.length === 1
+                                    ? 'circle'
+                                    : 'circles'}
                             </Badge>
                         </header>
 
                         <div className="space-y-3">
                             {joinedCirclesList.map((circle) => (
-                                <JoinedCircleCard key={`joined-${circle.id}`} circle={circle} />
+                                <JoinedCircleCard
+                                    key={`joined-${circle.id}`}
+                                    circle={circle}
+                                />
                             ))}
                         </div>
                     </section>
@@ -464,17 +526,23 @@ export default function CirclesIndex({
                 <section className="space-y-6">
                     <header className="flex flex-wrap items-center justify-between gap-3">
                         <div className="space-y-1">
-                            <h2 className="text-2xl font-semibold tracking-tight">All circles</h2>
+                            <h2 className="text-2xl font-semibold tracking-tight">
+                                All circles
+                            </h2>
                             <p className="text-sm text-white/65">
                                 Page {circleCollection.meta.current_page} of{' '}
                                 {Math.max(
                                     1,
                                     Math.ceil(
-                                        (circleCollection.meta.total || circleCollection.data.length) /
-                                            (circleCollection.meta.per_page || circleCollection.data.length || 1),
+                                        (circleCollection.meta.total ||
+                                            circleCollection.data.length) /
+                                            (circleCollection.meta.per_page ||
+                                                circleCollection.data.length ||
+                                                1),
                                     ),
                                 )}{' '}
-                                · Showing {circleCollection.data.length} results.
+                                · Showing {circleCollection.data.length}{' '}
+                                results.
                             </p>
                         </div>
                         <SuggestCircleDialog
@@ -494,7 +562,10 @@ export default function CirclesIndex({
                         <>
                             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                                 {circleCollection.data.map((circle) => (
-                                    <CircleCard key={circle.id} circle={circle} />
+                                    <CircleCard
+                                        key={circle.id}
+                                        circle={circle}
+                                    />
                                 ))}
                             </div>
 
@@ -506,7 +577,9 @@ export default function CirclesIndex({
                         </>
                     ) : (
                         <div className="rounded-3xl border border-white/10 bg-black/30 p-12 text-center">
-                            <p className="text-white/70">No circles found matching your filters.</p>
+                            <p className="text-white/70">
+                                No circles found matching your filters.
+                            </p>
                         </div>
                     )}
                 </section>

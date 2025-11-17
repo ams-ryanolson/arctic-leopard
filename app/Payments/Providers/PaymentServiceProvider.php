@@ -39,4 +39,3 @@ class PaymentServiceProvider extends ServiceProvider
         });
     }
 }
-

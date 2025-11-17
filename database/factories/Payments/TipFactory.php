@@ -35,4 +35,3 @@ class TipFactory extends Factory
         ];
     }
 }
-

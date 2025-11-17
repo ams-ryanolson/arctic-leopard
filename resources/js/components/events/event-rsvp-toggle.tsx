@@ -1,13 +1,13 @@
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import eventsRsvps from '@/routes/events/rsvps';
-import { router } from '@inertiajs/react';
-import { useCallback, useState } from 'react';
 import {
     type Event,
     type EventRsvpStatus,
     formatEventDateRange,
 } from '@/types/events';
+import { router } from '@inertiajs/react';
+import { useCallback, useState } from 'react';
 
 type EventRsvpToggleProps = {
     event: Event;
@@ -124,4 +124,3 @@ export function EventRsvpToggle({ event, onUpdated }: EventRsvpToggleProps) {
         </div>
     );
 }
-

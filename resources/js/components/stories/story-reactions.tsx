@@ -1,10 +1,10 @@
-import { useCallback, useState } from 'react';
-import { Smile } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import type { StoryReaction, StoryResponse } from '@/lib/story-client';
-import storiesRoutes from '@/routes/stories';
 import { getCsrfToken } from '@/lib/csrf';
+import type { StoryReaction, StoryResponse } from '@/lib/story-client';
+import { cn } from '@/lib/utils';
+import storiesRoutes from '@/routes/stories';
+import { Smile } from 'lucide-react';
+import { useCallback, useState } from 'react';
 
 type StoryReactionsProps = {
     storyId: number;
@@ -14,10 +14,15 @@ type StoryReactionsProps = {
 
 const ALLOWED_REACTIONS = ['❤️', '🔥', '👍', '😍', '😮'];
 
-export default function StoryReactions({ storyId, reactions, onUpdate }: StoryReactionsProps) {
+export default function StoryReactions({
+    storyId,
+    reactions,
+    onUpdate,
+}: StoryReactionsProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [isToggling, setIsToggling] = useState<string | null>(null);
-    const [localReactions, setLocalReactions] = useState<StoryReaction[]>(reactions);
+    const [localReactions, setLocalReactions] =
+        useState<StoryReaction[]>(reactions);
 
     const handleToggleReaction = useCallback(
         async (emoji: string) => {
@@ -28,16 +33,21 @@ export default function StoryReactions({ storyId, reactions, onUpdate }: StoryRe
             setIsToggling(emoji);
 
             try {
-                const response = await fetch(storiesRoutes.reactions.store({ story: storyId }).url, {
-                    method: 'POST',
-                    headers: {
-                        Accept: 'application/json',
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest',
-                        ...(getCsrfToken() ? { 'X-XSRF-TOKEN': getCsrfToken()! } : {}),
+                const response = await fetch(
+                    storiesRoutes.reactions.store({ story: storyId }).url,
+                    {
+                        method: 'POST',
+                        headers: {
+                            Accept: 'application/json',
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            ...(getCsrfToken()
+                                ? { 'X-XSRF-TOKEN': getCsrfToken()! }
+                                : {}),
+                        },
+                        body: JSON.stringify({ emoji }),
                     },
-                    body: JSON.stringify({ emoji }),
-                });
+                );
 
                 if (!response.ok) {
                     throw new Error('Failed to toggle reaction');
@@ -63,7 +73,10 @@ export default function StoryReactions({ storyId, reactions, onUpdate }: StoryRe
         [storyId, isToggling, onUpdate],
     );
 
-    const reactionCount = localReactions.reduce((sum, reaction) => sum + reaction.count, 0);
+    const reactionCount = localReactions.reduce(
+        (sum, reaction) => sum + reaction.count,
+        0,
+    );
 
     return (
         <div className="relative">
@@ -75,15 +88,19 @@ export default function StoryReactions({ storyId, reactions, onUpdate }: StoryRe
             >
                 <Smile className="size-5" />
                 {reactionCount > 0 && (
-                    <span className="ml-2 text-sm font-semibold">{reactionCount}</span>
+                    <span className="ml-2 text-sm font-semibold">
+                        {reactionCount}
+                    </span>
                 )}
             </Button>
 
             {isOpen && (
-                <div className="absolute bottom-full right-0 mb-3 rounded-2xl bg-black/90 p-3 backdrop-blur-md shadow-xl ring-1 ring-white/10">
+                <div className="absolute right-0 bottom-full mb-3 rounded-2xl bg-black/90 p-3 shadow-xl ring-1 ring-white/10 backdrop-blur-md">
                     <div className="flex flex-col gap-2">
                         {ALLOWED_REACTIONS.map((emoji) => {
-                            const reaction = localReactions.find((r) => r.emoji === emoji);
+                            const reaction = localReactions.find(
+                                (r) => r.emoji === emoji,
+                            );
                             const isActive = reaction?.reacted ?? false;
                             const isTogglingThis = isToggling === emoji;
                             const count = reaction?.count ?? 0;
@@ -104,7 +121,9 @@ export default function StoryReactions({ storyId, reactions, onUpdate }: StoryRe
                                 >
                                     <span className="text-2xl">{emoji}</span>
                                     {count > 0 && (
-                                        <span className="text-sm font-semibold text-white">{count}</span>
+                                        <span className="text-sm font-semibold text-white">
+                                            {count}
+                                        </span>
                                     )}
                                 </button>
                             );
@@ -115,4 +134,3 @@ export default function StoryReactions({ storyId, reactions, onUpdate }: StoryRe
         </div>
     );
 }
-

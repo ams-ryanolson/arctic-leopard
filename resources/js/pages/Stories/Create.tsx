@@ -1,8 +1,8 @@
-import AppLayout from '@/layouts/app-layout';
 import StoryComposer from '@/components/stories/story-composer';
-import { Head } from '@inertiajs/react';
+import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import type { BreadcrumbItem, SharedData } from '@/types';
+import { Head } from '@inertiajs/react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -40,4 +40,3 @@ export default function StoriesCreate({ audiences }: StoriesCreateProps) {
         </AppLayout>
     );
 }
-

@@ -1,16 +1,23 @@
-import { index as followingFeedIndex } from '@/actions/App/Http/Controllers/Feed/FollowingFeedController';
-import { show as circleFeedShow } from '@/actions/App/Http/Controllers/Feed/CircleFeedController';
-import { index as userFeedIndex } from '@/actions/App/Http/Controllers/Feed/UserFeedController';
 import { index as bookmarkIndex } from '@/actions/App/Http/Controllers/Bookmarks/BookmarkController';
-import { store as likeStore, destroy as unlikeRoute } from '@/routes/posts/like';
+import { show as circleFeedShow } from '@/actions/App/Http/Controllers/Feed/CircleFeedController';
+import { index as followingFeedIndex } from '@/actions/App/Http/Controllers/Feed/FollowingFeedController';
+import { index as userFeedIndex } from '@/actions/App/Http/Controllers/Feed/UserFeedController';
 import {
-    store as bookmarkStore,
     destroy as bookmarkDestroyRoute,
+    store as bookmarkStore,
 } from '@/actions/App/Http/Controllers/Posts/PostBookmarkController';
-import { store as purchaseStore } from '@/actions/App/Http/Controllers/Posts/PurchaseController';
 import { store as viewStore } from '@/actions/App/Http/Controllers/Posts/PostViewController';
-import type { FeedPost, PostCollectionPayload, TimelinePayload } from '@/types/feed';
+import { store as purchaseStore } from '@/actions/App/Http/Controllers/Posts/PurchaseController';
 import { getCsrfToken } from '@/lib/csrf';
+import {
+    store as likeStore,
+    destroy as unlikeRoute,
+} from '@/routes/posts/like';
+import type {
+    FeedPost,
+    PostCollectionPayload,
+    TimelinePayload,
+} from '@/types/feed';
 
 type FetchFeedOptions = {
     page?: number;
@@ -66,7 +73,9 @@ function extractLocationQuery(): Record<string, string> {
         return {};
     }
 
-    return Object.fromEntries(new URLSearchParams(window.location.search).entries());
+    return Object.fromEntries(
+        new URLSearchParams(window.location.search).entries(),
+    );
 }
 
 function normalizeQueryValue(value: unknown): string | undefined {
@@ -102,15 +111,18 @@ function resolveQueryParameters(
         [pageName]: page,
     };
 
-    return Object.entries(resolved).reduce<Record<string, string>>((accumulator, [key, value]) => {
-        const normalized = normalizeQueryValue(value);
+    return Object.entries(resolved).reduce<Record<string, string>>(
+        (accumulator, [key, value]) => {
+            const normalized = normalizeQueryValue(value);
 
-        if (normalized !== undefined && normalized !== '') {
-            accumulator[key] = normalized;
-        }
+            if (normalized !== undefined && normalized !== '') {
+                accumulator[key] = normalized;
+            }
 
-        return accumulator;
-    }, {});
+            return accumulator;
+        },
+        {},
+    );
 }
 
 async function parseResponse<T>(response: Response): Promise<T> {
@@ -125,9 +137,9 @@ async function parseResponse<T>(response: Response): Promise<T> {
 
         const message =
             (typeof problem === 'object' &&
-                problem !== null &&
-                'message' in problem &&
-                typeof (problem as { message: unknown }).message === 'string'
+            problem !== null &&
+            'message' in problem &&
+            typeof (problem as { message: unknown }).message === 'string'
                 ? (problem as { message: string }).message
                 : undefined) ??
             (typeof problem === 'object' &&
@@ -171,7 +183,12 @@ export async function fetchProfileFeedPage(
 ): Promise<PostCollectionPayload> {
     const { page = 1, signal, query = {}, mergeQuery, pageName } = options;
 
-    const resolvedQuery = resolveQueryParameters(page, query, mergeQuery, pageName);
+    const resolvedQuery = resolveQueryParameters(
+        page,
+        query,
+        mergeQuery,
+        pageName,
+    );
 
     const url = userFeedIndex.url({
         user,
@@ -194,7 +211,12 @@ export async function fetchCircleFeedPage(
 ): Promise<PostCollectionPayload> {
     const { page = 1, signal, query = {}, mergeQuery, pageName } = options;
 
-    const resolvedQuery = resolveQueryParameters(page, query, mergeQuery, pageName);
+    const resolvedQuery = resolveQueryParameters(
+        page,
+        query,
+        mergeQuery,
+        pageName,
+    );
 
     const url = circleFeedShow.url(circle, {
         query: resolvedQuery,
@@ -221,7 +243,12 @@ export async function fetchBookmarksPage(
         pageName = 'bookmarks',
     } = options;
 
-    const resolvedQuery = resolveQueryParameters(page, query, mergeQuery, pageName);
+    const resolvedQuery = resolveQueryParameters(
+        page,
+        query,
+        mergeQuery,
+        pageName,
+    );
 
     const url = bookmarkIndex.url({
         query: resolvedQuery,
@@ -319,7 +346,9 @@ export async function recordPostView(
 
     if (payload.context) {
         const filteredContext = Object.fromEntries(
-            Object.entries(payload.context).filter(([, value]) => value !== undefined && value !== null),
+            Object.entries(payload.context).filter(
+                ([, value]) => value !== undefined && value !== null,
+            ),
         );
 
         if (Object.keys(filteredContext).length > 0) {
@@ -358,9 +387,12 @@ export async function purchasePost(
     const body = await parseResponse<{ data: { post?: FeedPost } }>(response);
 
     if (!body.data.post) {
-        throw new FeedRequestError('Purchase completed but post payload was missing.', response.status, body);
+        throw new FeedRequestError(
+            'Purchase completed but post payload was missing.',
+            response.status,
+            body,
+        );
     }
 
     return body.data.post;
 }
-

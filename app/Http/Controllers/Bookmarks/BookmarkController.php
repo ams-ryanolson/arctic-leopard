@@ -58,8 +58,8 @@ class BookmarkController extends Controller
                 ->pluck('post')
                 ->filter();
 
-                $user->attachLikeStatus($posts);
-                $user->attachBookmarkStatus($posts);
+            $user->attachLikeStatus($posts);
+            $user->attachBookmarkStatus($posts);
 
             return BookmarkResource::collection($bookmarks)
                 ->toResponse($request)

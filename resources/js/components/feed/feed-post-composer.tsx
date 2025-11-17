@@ -1,3 +1,17 @@
+import PostComposerController from '@/actions/App/Http/Controllers/Posts/PostComposerController';
+import FeedMediaUploader, {
+    type FeedUploadedMedia,
+    type FeedUploaderItemSummary,
+} from '@/components/feed/feed-media-uploader';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
+import type { SharedData } from '@/types';
+import type { FeedComposerConfig } from '@/types/feed';
 import { useForm, usePage } from '@inertiajs/react';
 import type { LucideIcon } from 'lucide-react';
 import {
@@ -17,20 +31,6 @@ import {
 } from 'lucide-react';
 import type { JSX } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import FeedMediaUploader, {
-    type FeedUploadedMedia,
-    type FeedUploaderItemSummary,
-} from '@/components/feed/feed-media-uploader';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import PostComposerController from '@/actions/App/Http/Controllers/Posts/PostComposerController';
-import type { FeedComposerConfig } from '@/types/feed';
-import type { SharedData } from '@/types';
-import { cn } from '@/lib/utils';
 
 type FeedPostComposerProps = {
     config: FeedComposerConfig;
@@ -111,7 +111,8 @@ const AUDIENCE_ICON_MAP: Record<string, LucideIcon> = {
     private: Lock,
 };
 
-const FOCUS_RING = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white';
+const FOCUS_RING =
+    'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white';
 
 const MAX_MEDIA_FILES = 6;
 const MAX_POLL_OPTIONS = 6;
@@ -155,8 +156,8 @@ function IconToggle({
         tone === 'primary'
             ? 'text-amber-200'
             : tone === 'danger'
-                ? 'text-rose-200'
-                : 'text-white/70';
+              ? 'text-rose-200'
+              : 'text-white/70';
 
     return (
         <button
@@ -164,7 +165,7 @@ function IconToggle({
             onClick={onClick}
             disabled={disabled}
             className={cn(
-                'group flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium uppercase tracking-[0.25em] transition disabled:cursor-not-allowed disabled:opacity-60',
+                'group flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium tracking-[0.25em] uppercase transition disabled:cursor-not-allowed disabled:opacity-60',
                 active
                     ? 'border-white/40 bg-white/15 text-white shadow-[0_14px_30px_-22px_rgba(249,115,22,0.8)]'
                     : 'hover:border-white/25 hover:bg-white/10 hover:text-white',
@@ -198,7 +199,13 @@ type ComposerIconButtonProps = {
     disabled?: boolean;
 };
 
-function ComposerIconButton({ icon: Icon, label, active = false, onClick, disabled = false }: ComposerIconButtonProps) {
+function ComposerIconButton({
+    icon: Icon,
+    label,
+    active = false,
+    onClick,
+    disabled = false,
+}: ComposerIconButtonProps) {
     return (
         <button
             type="button"
@@ -208,7 +215,8 @@ function ComposerIconButton({ icon: Icon, label, active = false, onClick, disabl
             aria-pressed={active}
             className={cn(
                 'flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/30 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-60',
-                active && 'border-white/40 bg-white/20 text-white shadow-[0_14px_30px_-22px_rgba(249,115,22,0.8)]',
+                active &&
+                    'border-white/40 bg-white/20 text-white shadow-[0_14px_30px_-22px_rgba(249,115,22,0.8)]',
                 FOCUS_RING,
             )}
         >
@@ -245,7 +253,10 @@ const createDefaultPoll = (): PollDraft => ({
 });
 
 function generateOptionId(): string {
-    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    if (
+        typeof crypto !== 'undefined' &&
+        typeof crypto.randomUUID === 'function'
+    ) {
         return crypto.randomUUID();
     }
 
@@ -288,11 +299,7 @@ function ComposerAvatar(): JSX.Element {
     const { auth } = usePage<SharedData>().props;
     const user = auth?.user;
     const initials = useMemo(() => {
-        const source =
-            user?.display_name ??
-            user?.name ??
-            user?.username ??
-            '';
+        const source = user?.display_name ?? user?.name ?? user?.username ?? '';
 
         if (source.trim() === '') {
             return 'RK';
@@ -307,7 +314,10 @@ function ComposerAvatar(): JSX.Element {
 
     return (
         <Avatar className="flex size-12 shrink-0 border border-white/10 bg-white/10">
-            <AvatarImage src={user?.avatar_url ?? undefined} alt={user?.display_name ?? user?.username ?? 'You'} />
+            <AvatarImage
+                src={user?.avatar_url ?? undefined}
+                alt={user?.display_name ?? user?.username ?? 'You'}
+            />
             <AvatarFallback className="bg-white/10 text-sm font-semibold text-white/80">
                 {initials}
             </AvatarFallback>
@@ -315,7 +325,10 @@ function ComposerAvatar(): JSX.Element {
     );
 }
 
-export default function FeedPostComposer({ config, onSubmitted }: FeedPostComposerProps) {
+export default function FeedPostComposer({
+    config,
+    onSubmitted,
+}: FeedPostComposerProps) {
     const defaultTypeValue = useMemo(
         () => config.post_types[0]?.value ?? 'text',
         [config.post_types],
@@ -325,9 +338,9 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
         [config.audiences],
     );
 
-    const initialMode: ComposerMode = (['text', 'media', 'poll'] as readonly ComposerMode[]).includes(
-        defaultTypeValue as ComposerMode,
-    )
+    const initialMode: ComposerMode = (
+        ['text', 'media', 'poll'] as readonly ComposerMode[]
+    ).includes(defaultTypeValue as ComposerMode)
         ? (defaultTypeValue as ComposerMode)
         : 'text';
 
@@ -343,14 +356,20 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
         paywall_price: null,
         paywall_currency: 'USD',
         extra_attributes: null,
-    post_to_circles: false,
+        post_to_circles: false,
     });
     const formData = form.data;
     const setFormData = form.setData;
 
     const [uploadedMedia, setUploadedMedia] = useState<FeedUploadedMedia[]>([]);
-    const [uploaderItems, setUploaderItems] = useState<FeedUploaderItemSummary[]>([]);
-    const [uploaderKey, setUploaderKey] = useState(() => (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : String(Date.now())));
+    const [uploaderItems, setUploaderItems] = useState<
+        FeedUploaderItemSummary[]
+    >([]);
+    const [uploaderKey, setUploaderKey] = useState(() =>
+        typeof crypto !== 'undefined' && crypto.randomUUID
+            ? crypto.randomUUID()
+            : String(Date.now()),
+    );
     const [pollDraft, setPollDraft] = useState<PollDraft>(createDefaultPoll);
     const [paywallPriceInput, setPaywallPriceInput] = useState('');
     const [paywallError, setPaywallError] = useState<string | null>(null);
@@ -371,7 +390,8 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
 
     const resetUploader = useCallback(() => {
         const nextKey =
-            typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+            typeof crypto !== 'undefined' &&
+            typeof crypto.randomUUID === 'function'
                 ? crypto.randomUUID()
                 : String(Date.now());
         setUploaderKey(nextKey);
@@ -384,7 +404,10 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
         [config.audiences],
     );
     const paywallActive = formData.audience === 'pay_to_view';
-    const pollHasContent = useMemo(() => pollDraftHasContent(pollDraft), [pollDraft]);
+    const pollHasContent = useMemo(
+        () => pollDraftHasContent(pollDraft),
+        [pollDraft],
+    );
 
     const mediaUploadsInProgress = useMemo(
         () => uploaderItems.some((item) => item.status === 'uploading'),
@@ -433,7 +456,14 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
         }
 
         setMediaTrayOpen(true);
-    }, [clearPoll, config.can_post, form.processing, mediaTrayOpen, pollActive, uploaderItems.length]);
+    }, [
+        clearPoll,
+        config.can_post,
+        form.processing,
+        mediaTrayOpen,
+        pollActive,
+        uploaderItems.length,
+    ]);
 
     const handleMediaTrayClose = useCallback(() => {
         setMediaTrayOpen(false);
@@ -459,32 +489,48 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
 
         setMediaTrayOpen(false);
         setPollTrayOpen(true);
-    }, [clearPoll, config.can_post, form.processing, pollActive, resetUploader, uploaderItems.length]);
+    }, [
+        clearPoll,
+        config.can_post,
+        form.processing,
+        pollActive,
+        resetUploader,
+        uploaderItems.length,
+    ]);
 
     const handlePollTrayClose = useCallback(() => {
         setPollTrayOpen(false);
         clearPoll();
     }, [clearPoll]);
 
-    const validatePaywallPrice = useCallback((rawValue: string): { cents: number | null; error: string | null } => {
-        const trimmed = rawValue.trim();
+    const validatePaywallPrice = useCallback(
+        (rawValue: string): { cents: number | null; error: string | null } => {
+            const trimmed = rawValue.trim();
 
-        if (trimmed === '') {
-            return { cents: null, error: 'Add a paywall price to continue.' };
-        }
+            if (trimmed === '') {
+                return {
+                    cents: null,
+                    error: 'Add a paywall price to continue.',
+                };
+            }
 
-        const cents = toCurrencyCents(trimmed);
+            const cents = toCurrencyCents(trimmed);
 
-        if (cents === null) {
-            return { cents: null, error: 'Enter a valid amount (e.g. 19.99).' };
-        }
+            if (cents === null) {
+                return {
+                    cents: null,
+                    error: 'Enter a valid amount (e.g. 19.99).',
+                };
+            }
 
-        if (cents < MIN_CURRENCY_CENTS) {
-            return { cents: null, error: 'Minimum amount is $1.00.' };
-        }
+            if (cents < MIN_CURRENCY_CENTS) {
+                return { cents: null, error: 'Minimum amount is $1.00.' };
+            }
 
-        return { cents, error: null };
-    }, []);
+            return { cents, error: null };
+        },
+        [],
+    );
 
     const resetPaywall = useCallback(() => {
         setPaywallPriceInput('');
@@ -516,25 +562,37 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
         [formData.paywall_price, setFormData, validatePaywallPrice],
     );
 
-    const validateTipGoalAmount = useCallback((rawValue: string): { cents: number | null; error: string | null } => {
-        const trimmed = rawValue.trim();
+    const validateTipGoalAmount = useCallback(
+        (rawValue: string): { cents: number | null; error: string | null } => {
+            const trimmed = rawValue.trim();
 
-        if (trimmed === '') {
-            return { cents: null, error: 'Enter a tip goal amount (e.g. 150 or 250.00).' };
-        }
+            if (trimmed === '') {
+                return {
+                    cents: null,
+                    error: 'Enter a tip goal amount (e.g. 150 or 250.00).',
+                };
+            }
 
-        const cents = toCurrencyCents(trimmed);
+            const cents = toCurrencyCents(trimmed);
 
-        if (cents === null) {
-            return { cents: null, error: 'Enter a tip goal amount (e.g. 150 or 250.00).' };
-        }
+            if (cents === null) {
+                return {
+                    cents: null,
+                    error: 'Enter a tip goal amount (e.g. 150 or 250.00).',
+                };
+            }
 
-        if (cents < MIN_CURRENCY_CENTS) {
-            return { cents: null, error: 'Tip goal must be at least $1.00.' };
-        }
+            if (cents < MIN_CURRENCY_CENTS) {
+                return {
+                    cents: null,
+                    error: 'Tip goal must be at least $1.00.',
+                };
+            }
 
-        return { cents, error: null };
-    }, []);
+            return { cents, error: null };
+        },
+        [],
+    );
 
     const syncTipGoalExtra = useCallback(
         (
@@ -577,7 +635,10 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
                 },
             };
 
-            if (JSON.stringify(formData.extra_attributes ?? null) !== JSON.stringify(nextExtra)) {
+            if (
+                JSON.stringify(formData.extra_attributes ?? null) !==
+                JSON.stringify(nextExtra)
+            ) {
                 setFormData('extra_attributes', nextExtra);
             }
         },
@@ -606,13 +667,19 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
         setFormData(
             'media',
             uploadedMedia
-                .filter((media) => typeof media.identifier === 'string' && media.identifier.trim() !== '')
+                .filter(
+                    (media) =>
+                        typeof media.identifier === 'string' &&
+                        media.identifier.trim() !== '',
+                )
                 .map((media, index) => {
                     const { isPrimary } = media as FeedUploadedMedia & {
                         isPrimary?: boolean;
                     };
 
-                    const extractFilename = (path?: string | null): string | null => {
+                    const extractFilename = (
+                        path?: string | null,
+                    ): string | null => {
                         if (!path) {
                             return null;
                         }
@@ -622,7 +689,8 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
 
                     return {
                         identifier: media.identifier ?? '',
-                        mime_type: media.mime_type ?? 'application/octet-stream',
+                        mime_type:
+                            media.mime_type ?? 'application/octet-stream',
                         width: media.width ?? null,
                         height: media.height ?? null,
                         duration: media.duration ?? null,
@@ -649,7 +717,9 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
             question: pollDraft.question,
             options: pollDraft.options.map((option) => option.value),
             allow_multiple: pollDraft.allow_multiple,
-            max_choices: pollDraft.allow_multiple ? pollDraft.max_choices : null,
+            max_choices: pollDraft.allow_multiple
+                ? pollDraft.max_choices
+                : null,
             closes_at: pollDraft.closes_at ? pollDraft.closes_at : null,
         };
 
@@ -659,11 +729,14 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
             currentPoll !== undefined &&
             currentPoll.question === nextPoll.question &&
             !!currentPoll.allow_multiple === !!nextPoll.allow_multiple &&
-            (currentPoll.max_choices ?? null) === (nextPoll.max_choices ?? null) &&
+            (currentPoll.max_choices ?? null) ===
+                (nextPoll.max_choices ?? null) &&
             (currentPoll.closes_at ?? null) === (nextPoll.closes_at ?? null) &&
             Array.isArray(currentPoll.options) &&
             currentPoll.options.length === nextPoll.options.length &&
-            currentPoll.options.every((option, index) => option === nextPoll.options[index]);
+            currentPoll.options.every(
+                (option, index) => option === nextPoll.options[index],
+            );
 
         if (!isSame) {
             setFormData('poll', nextPoll);
@@ -674,7 +747,10 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
         (value: string) => {
             setFormData('body', value);
 
-            const extracted = extractHashtagsFromBody(value).slice(0, MAX_HASHTAGS);
+            const extracted = extractHashtagsFromBody(value).slice(
+                0,
+                MAX_HASHTAGS,
+            );
             setFormData('hashtags', extracted);
         },
         [setFormData],
@@ -690,7 +766,11 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
 
     const handleAudienceSelect = useCallback(
         (value: string) => {
-            if (!config.can_post || form.processing || value === formData.audience) {
+            if (
+                !config.can_post ||
+                form.processing ||
+                value === formData.audience
+            ) {
                 return;
             }
 
@@ -769,7 +849,12 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
 
             applyPaywallValidation(value);
         },
-        [applyPaywallValidation, formData.paywall_price, paywallActive, setFormData],
+        [
+            applyPaywallValidation,
+            formData.paywall_price,
+            paywallActive,
+            setFormData,
+        ],
     );
 
     const handleScheduleToggle = useCallback(() => {
@@ -802,7 +887,13 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
                 setTipGoalCurrency('USD');
                 syncTipGoalExtra(false, '', 'USD', '', '');
             } else {
-                syncTipGoalExtra(true, tipGoalAmountInput, tipGoalCurrency, tipGoalLabel, tipGoalDeadline);
+                syncTipGoalExtra(
+                    true,
+                    tipGoalAmountInput,
+                    tipGoalCurrency,
+                    tipGoalLabel,
+                    tipGoalDeadline,
+                );
             }
 
             return nextOpen;
@@ -820,7 +911,13 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
     const handleTipGoalAmountChange = useCallback(
         (value: string) => {
             setTipGoalAmountInput(value);
-            syncTipGoalExtra(true, value, tipGoalCurrency, tipGoalLabel, tipGoalDeadline);
+            syncTipGoalExtra(
+                true,
+                value,
+                tipGoalCurrency,
+                tipGoalLabel,
+                tipGoalDeadline,
+            );
         },
         [syncTipGoalExtra, tipGoalCurrency, tipGoalDeadline, tipGoalLabel],
     );
@@ -828,15 +925,32 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
     const handleTipGoalLabelChange = useCallback(
         (value: string) => {
             setTipGoalLabel(value);
-            syncTipGoalExtra(true, tipGoalAmountInput, tipGoalCurrency, value, tipGoalDeadline);
+            syncTipGoalExtra(
+                true,
+                tipGoalAmountInput,
+                tipGoalCurrency,
+                value,
+                tipGoalDeadline,
+            );
         },
-        [syncTipGoalExtra, tipGoalAmountInput, tipGoalCurrency, tipGoalDeadline],
+        [
+            syncTipGoalExtra,
+            tipGoalAmountInput,
+            tipGoalCurrency,
+            tipGoalDeadline,
+        ],
     );
 
     const handleTipGoalDeadlineChange = useCallback(
         (value: string) => {
             setTipGoalDeadline(value);
-            syncTipGoalExtra(true, tipGoalAmountInput, tipGoalCurrency, tipGoalLabel, value);
+            syncTipGoalExtra(
+                true,
+                tipGoalAmountInput,
+                tipGoalCurrency,
+                tipGoalLabel,
+                value,
+            );
         },
         [syncTipGoalExtra, tipGoalAmountInput, tipGoalCurrency, tipGoalLabel],
     );
@@ -844,7 +958,13 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
     const handleTipGoalCurrencyChange = useCallback(
         (currency: string) => {
             setTipGoalCurrency(currency);
-            syncTipGoalExtra(true, tipGoalAmountInput, currency, tipGoalLabel, tipGoalDeadline);
+            syncTipGoalExtra(
+                true,
+                tipGoalAmountInput,
+                currency,
+                tipGoalLabel,
+                tipGoalDeadline,
+            );
         },
         [syncTipGoalExtra, tipGoalAmountInput, tipGoalDeadline, tipGoalLabel],
     );
@@ -855,7 +975,12 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
         }
 
         setFormData('post_to_circles', !formData.post_to_circles);
-    }, [config.can_post, form.processing, formData.post_to_circles, setFormData]);
+    }, [
+        config.can_post,
+        form.processing,
+        formData.post_to_circles,
+        setFormData,
+    ]);
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -888,7 +1013,9 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
             },
             onError: (errors) => {
                 if (errors && Object.keys(errors).length > 0) {
-                    setSubmitError('Please fix the highlighted fields and try again.');
+                    setSubmitError(
+                        'Please fix the highlighted fields and try again.',
+                    );
                 } else {
                     setSubmitError('Unable to publish post.');
                 }
@@ -911,7 +1038,12 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
 
         const escaped = escapeHtml(formData.body);
         const pattern = /(@[a-zA-Z0-9_]{1,30}|#[a-z0-9_]{1,120})/g;
-        return escaped.replace(pattern, (match) => `<span class="text-amber-200">${match}</span>`).replace(/\n/g, '<br />');
+        return escaped
+            .replace(
+                pattern,
+                (match) => `<span class="text-amber-200">${match}</span>`,
+            )
+            .replace(/\n/g, '<br />');
     }, [formData.body]);
 
     const overlayContent = useMemo(() => {
@@ -970,15 +1102,22 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
 
     return (
         <Card className="border border-white/10 bg-white/5 text-sm text-white/80">
-            
-
-            <form action={PostComposerController.url()} method="post" noValidate onSubmit={handleSubmit}>
+            <form
+                action={PostComposerController.url()}
+                method="post"
+                noValidate
+                onSubmit={handleSubmit}
+            >
                 <CardContent className="space-y-6">
                     {!config.can_post && (
-                        <Alert variant="destructive" className="border-rose-500/40 bg-rose-500/10 text-sm text-rose-100">
+                        <Alert
+                            variant="destructive"
+                            className="border-rose-500/40 bg-rose-500/10 text-sm text-rose-100"
+                        >
                             <Shield className="size-4" />
                             <AlertDescription>
-                                Finish onboarding to unlock posting. Head to profile basics to complete your setup.
+                                Finish onboarding to unlock posting. Head to
+                                profile basics to complete your setup.
                             </AlertDescription>
                         </Alert>
                     )}
@@ -999,30 +1138,43 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
                                         ref={overlayRef}
                                         className="pointer-events-none absolute inset-0 overflow-y-auto rounded-3xl px-5 py-4 text-base leading-relaxed text-white"
                                     >
-                                        <span dangerouslySetInnerHTML={{ __html: overlayContent }} />
+                                        <span
+                                            dangerouslySetInnerHTML={{
+                                                __html: overlayContent,
+                                            }}
+                                        />
                                     </div>
                                     <textarea
                                         ref={textareaRef}
                                         value={formData.body}
-                                        onChange={(event) => handleBodyChange(event.target.value)}
+                                        onChange={(event) =>
+                                            handleBodyChange(event.target.value)
+                                        }
                                         onScroll={syncOverlayScroll}
                                         placeholder=""
-                                        className="relative z-10 min-h-[170px] w-full resize-none rounded-3xl border border-transparent bg-transparent px-5 py-4 text-base text-transparent caret-white focus:outline-none focus:ring-2 focus:ring-rose-500/30 disabled:opacity-60"
+                                        className="relative z-10 min-h-[170px] w-full resize-none rounded-3xl border border-transparent bg-transparent px-5 py-4 text-base text-transparent caret-white focus:ring-2 focus:ring-rose-500/30 focus:outline-none disabled:opacity-60"
                                         maxLength={BODY_CHARACTER_LIMIT}
-                                        disabled={!config.can_post || form.processing}
+                                        disabled={
+                                            !config.can_post || form.processing
+                                        }
                                     />
                                     <div
                                         className={cn(
-                                            'pointer-events-none absolute bottom-4 right-5 text-[0.65rem]',
+                                            'pointer-events-none absolute right-5 bottom-4 text-[0.65rem]',
                                             bodyCounterClass,
                                         )}
                                         aria-live="polite"
                                     >
-                                        {bodyCharacterCount.toLocaleString()}/{BODY_CHARACTER_LIMIT.toLocaleString()}
+                                        {bodyCharacterCount.toLocaleString()}/
+                                        {BODY_CHARACTER_LIMIT.toLocaleString()}
                                     </div>
                                 </div>
-                                
-                                {form.errors.body && <p className="text-xs text-rose-300">{form.errors.body}</p>}
+
+                                {form.errors.body && (
+                                    <p className="text-xs text-rose-300">
+                                        {form.errors.body}
+                                    </p>
+                                )}
                             </div>
 
                             <div className="mb-3 flex flex-col gap-2">
@@ -1054,7 +1206,10 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
                                             label="Toggle paywall"
                                             onClick={handlePaywallToggle}
                                             active={paywallActive}
-                                            disabled={toolbarDisabled || !payToViewAvailable}
+                                            disabled={
+                                                toolbarDisabled ||
+                                                !payToViewAvailable
+                                            }
                                         />
                                         <ComposerIconButton
                                             icon={Target}
@@ -1080,94 +1235,150 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
                                     </div>
                                     <select
                                         value={formData.audience}
-                                        onChange={(event) => handleAudienceSelect(event.target.value)}
+                                        onChange={(event) =>
+                                            handleAudienceSelect(
+                                                event.target.value,
+                                            )
+                                        }
                                         disabled={toolbarDisabled}
                                         aria-label="Select audience"
-                                        className="rounded-full border border-white/10 bg-black/40 px-4 py-2 text-sm text-white/80 focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-rose-500/30 disabled:cursor-not-allowed disabled:opacity-60 sm:min-w-[180px]"
+                                        className="rounded-full border border-white/10 bg-black/40 px-4 py-2 text-sm text-white/80 focus:border-white/40 focus:ring-2 focus:ring-rose-500/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60 sm:min-w-[180px]"
                                     >
-                                        {audienceOptions.map(({ value, label }) => (
-                                            <option key={value} value={value}>
-                                                {label}
-                                            </option>
-                                        ))}
+                                        {audienceOptions.map(
+                                            ({ value, label }) => (
+                                                <option
+                                                    key={value}
+                                                    value={value}
+                                                >
+                                                    {label}
+                                                </option>
+                                            ),
+                                        )}
                                     </select>
                                 </div>
                             </div>
 
                             {scheduleOpen && (
                                 <div className="space-y-2 rounded-2xl border border-white/10 bg-white/5 p-5">
-                                    <Label className="text-xs uppercase tracking-[0.3em] text-white/45">
+                                    <Label className="text-xs tracking-[0.3em] text-white/45 uppercase">
                                         Schedule publish
                                     </Label>
                                     <Input
                                         type="datetime-local"
                                         value={formData.scheduled_at ?? ''}
                                         onChange={(event) =>
-                                            setFormData('scheduled_at', event.target.value ? event.target.value : null)
+                                            setFormData(
+                                                'scheduled_at',
+                                                event.target.value
+                                                    ? event.target.value
+                                                    : null,
+                                            )
                                         }
-                                        disabled={!config.can_post || form.processing}
+                                        disabled={
+                                            !config.can_post || form.processing
+                                        }
                                         className="border-white/10 bg-white/5 text-white/90"
                                     />
                                     <span className="text-[0.65rem] text-white/55">
-                                        Leave blank to share immediately. Times use your local timezone.
+                                        Leave blank to share immediately. Times
+                                        use your local timezone.
                                     </span>
                                 </div>
                             )}
 
                             {paywallActive && (
                                 <div className="space-y-4 rounded-2xl border border-amber-400/40 bg-gradient-to-br from-amber-400/15 via-rose-500/10 to-violet-500/10 p-5">
-                                    <p className="text-[0.65rem] uppercase tracking-[0.3em] text-amber-100/80">Paywall</p>
+                                    <p className="text-[0.65rem] tracking-[0.3em] text-amber-100/80 uppercase">
+                                        Paywall
+                                    </p>
                                     <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
                                         <div className="space-y-1">
-                                            <Label className="text-xs uppercase tracking-[0.25em] text-white/50">Price</Label>
+                                            <Label className="text-xs tracking-[0.25em] text-white/50 uppercase">
+                                                Price
+                                            </Label>
                                             <Input
                                                 type="text"
                                                 inputMode="decimal"
                                                 placeholder="19.99"
                                                 value={paywallPriceInput}
-                                                onChange={(event) => handlePaywallPriceChange(event.target.value)}
-                                                disabled={!config.can_post || form.processing}
+                                                onChange={(event) =>
+                                                    handlePaywallPriceChange(
+                                                        event.target.value,
+                                                    )
+                                                }
+                                                disabled={
+                                                    !config.can_post ||
+                                                    form.processing
+                                                }
                                                 className="border-white/20 bg-black/30 text-white/90"
                                             />
                                             <span className="text-[0.65rem] text-white/60">
-                                                Minimum $1.00. Unlocks grant access instantly.
+                                                Minimum $1.00. Unlocks grant
+                                                access instantly.
                                             </span>
                                         </div>
                                         <div className="space-y-1">
-                                            <Label className="text-xs uppercase tracking-[0.25em] text-white/50">Currency</Label>
+                                            <Label className="text-xs tracking-[0.25em] text-white/50 uppercase">
+                                                Currency
+                                            </Label>
                                             <div className="flex flex-wrap gap-2">
-                                                {supportedCurrencies.map((currency) => (
-                                                    <button
-                                                        key={currency}
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setFormData('paywall_currency', currency);
+                                                {supportedCurrencies.map(
+                                                    (currency) => (
+                                                        <button
+                                                            key={currency}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setFormData(
+                                                                    'paywall_currency',
+                                                                    currency,
+                                                                );
 
-                                                            if (paywallActive) {
-                                                                applyPaywallValidation(paywallPriceInput);
+                                                                if (
+                                                                    paywallActive
+                                                                ) {
+                                                                    applyPaywallValidation(
+                                                                        paywallPriceInput,
+                                                                    );
+                                                                }
+                                                            }}
+                                                            disabled={
+                                                                !config.can_post ||
+                                                                form.processing
                                                             }
-                                                        }}
-                                                        disabled={!config.can_post || form.processing}
-                                                        className={cn(
-                                                        'rounded-full border px-3 py-1 text-xs transition disabled:cursor-not-allowed',
-                                                        FOCUS_RING,
-                                                            formData.paywall_currency === currency
-                                                                ? 'border-white/40 bg-white/20 text-white'
-                                                                : 'border-white/15 bg-black/20 text-white/65 hover:border-white/30 hover:bg-white/10 hover:text-white',
-                                                            (!config.can_post || form.processing) && 'opacity-60',
-                                                        )}
-                                                    >
-                                                        {currency}
-                                                    </button>
-                                                ))}
+                                                            className={cn(
+                                                                'rounded-full border px-3 py-1 text-xs transition disabled:cursor-not-allowed',
+                                                                FOCUS_RING,
+                                                                formData.paywall_currency ===
+                                                                    currency
+                                                                    ? 'border-white/40 bg-white/20 text-white'
+                                                                    : 'border-white/15 bg-black/20 text-white/65 hover:border-white/30 hover:bg-white/10 hover:text-white',
+                                                                (!config.can_post ||
+                                                                    form.processing) &&
+                                                                    'opacity-60',
+                                                            )}
+                                                        >
+                                                            {currency}
+                                                        </button>
+                                                    ),
+                                                )}
                                             </div>
                                         </div>
                                     </div>
-                                    {form.errors.paywall_price && <p className="text-xs text-rose-300">{form.errors.paywall_price}</p>}
-                                    {form.errors.paywall_currency && (
-                                        <p className="text-xs text-rose-300">{form.errors.paywall_currency}</p>
+                                    {form.errors.paywall_price && (
+                                        <p className="text-xs text-rose-300">
+                                            {form.errors.paywall_price}
+                                        </p>
                                     )}
-                                    {paywallError && <p className="text-xs text-rose-300">{paywallError}</p>}
+                                    {form.errors.paywall_currency && (
+                                        <p className="text-xs text-rose-300">
+                                            {form.errors.paywall_currency}
+                                        </p>
+                                    )}
+                                    {paywallError && (
+                                        <p className="text-xs text-rose-300">
+                                            {paywallError}
+                                        </p>
+                                    )}
                                 </div>
                             )}
 
@@ -1175,75 +1386,121 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
                                 <div className="space-y-4 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-5">
                                     <div className="grid gap-3 sm:grid-cols-2">
                                         <div className="space-y-1">
-                                            <Label className="text-xs uppercase tracking-[0.25em] text-white/55">Goal amount</Label>
+                                            <Label className="text-xs tracking-[0.25em] text-white/55 uppercase">
+                                                Goal amount
+                                            </Label>
                                             <Input
                                                 type="text"
                                                 inputMode="decimal"
                                                 placeholder="250"
                                                 value={tipGoalAmountInput}
-                                                onChange={(event) => handleTipGoalAmountChange(event.target.value)}
-                                                disabled={!config.can_post || form.processing}
+                                                onChange={(event) =>
+                                                    handleTipGoalAmountChange(
+                                                        event.target.value,
+                                                    )
+                                                }
+                                                disabled={
+                                                    !config.can_post ||
+                                                    form.processing
+                                                }
                                                 className="border-white/20 bg-black/30 text-white/90"
                                             />
                                         </div>
                                         <div className="space-y-1">
-                                            <Label className="text-xs uppercase tracking-[0.25em] text-white/55">Currency</Label>
+                                            <Label className="text-xs tracking-[0.25em] text-white/55 uppercase">
+                                                Currency
+                                            </Label>
                                             <div className="flex flex-wrap gap-2">
-                                                {supportedCurrencies.map((currency) => (
-                                                    <button
-                                                        key={currency}
-                                                        type="button"
-                                                        onClick={() => handleTipGoalCurrencyChange(currency)}
-                                                        disabled={!config.can_post || form.processing}
-                                                        className={cn(
-                                                            'rounded-full border px-3 py-1 text-xs transition disabled:cursor-not-allowed',
-                                                            FOCUS_RING,
-                                                            tipGoalCurrency === currency
-                                                                ? 'border-white/40 bg-white/20 text-white'
-                                                                : 'border-white/15 bg-black/20 text-white/65 hover:border-white/30 hover:bg-white/10 hover:text-white',
-                                                            (!config.can_post || form.processing) && 'opacity-60',
-                                                        )}
-                                                    >
-                                                        {currency}
-                                                    </button>
-                                                ))}
+                                                {supportedCurrencies.map(
+                                                    (currency) => (
+                                                        <button
+                                                            key={currency}
+                                                            type="button"
+                                                            onClick={() =>
+                                                                handleTipGoalCurrencyChange(
+                                                                    currency,
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                !config.can_post ||
+                                                                form.processing
+                                                            }
+                                                            className={cn(
+                                                                'rounded-full border px-3 py-1 text-xs transition disabled:cursor-not-allowed',
+                                                                FOCUS_RING,
+                                                                tipGoalCurrency ===
+                                                                    currency
+                                                                    ? 'border-white/40 bg-white/20 text-white'
+                                                                    : 'border-white/15 bg-black/20 text-white/65 hover:border-white/30 hover:bg-white/10 hover:text-white',
+                                                                (!config.can_post ||
+                                                                    form.processing) &&
+                                                                    'opacity-60',
+                                                            )}
+                                                        >
+                                                            {currency}
+                                                        </button>
+                                                    ),
+                                                )}
                                             </div>
                                         </div>
                                     </div>
                                     <div className="grid gap-3 sm:grid-cols-2">
                                         <div className="space-y-1">
-                                            <Label className="text-xs uppercase tracking-[0.25em] text-white/55">Goal headline</Label>
+                                            <Label className="text-xs tracking-[0.25em] text-white/55 uppercase">
+                                                Goal headline
+                                            </Label>
                                             <Input
                                                 type="text"
                                                 placeholder="Unlock the wax cascade ritual"
                                                 value={tipGoalLabel}
-                                                onChange={(event) => handleTipGoalLabelChange(event.target.value)}
-                                                disabled={!config.can_post || form.processing}
+                                                onChange={(event) =>
+                                                    handleTipGoalLabelChange(
+                                                        event.target.value,
+                                                    )
+                                                }
+                                                disabled={
+                                                    !config.can_post ||
+                                                    form.processing
+                                                }
                                                 className="border-white/20 bg-black/30 text-white/90"
                                             />
                                         </div>
                                         <div className="space-y-1">
-                                            <Label className="text-xs uppercase tracking-[0.25em] text-white/55">Deadline (optional)</Label>
+                                            <Label className="text-xs tracking-[0.25em] text-white/55 uppercase">
+                                                Deadline (optional)
+                                            </Label>
                                             <Input
                                                 type="datetime-local"
                                                 value={tipGoalDeadline}
-                                                onChange={(event) => handleTipGoalDeadlineChange(event.target.value)}
-                                                disabled={!config.can_post || form.processing}
+                                                onChange={(event) =>
+                                                    handleTipGoalDeadlineChange(
+                                                        event.target.value,
+                                                    )
+                                                }
+                                                disabled={
+                                                    !config.can_post ||
+                                                    form.processing
+                                                }
                                                 className="border-white/20 bg-black/30 text-white/90"
                                             />
                                         </div>
                                     </div>
-                                    {tipGoalError && <p className="text-xs text-rose-300">{tipGoalError}</p>}
+                                    {tipGoalError && (
+                                        <p className="text-xs text-rose-300">
+                                            {tipGoalError}
+                                        </p>
+                                    )}
                                 </div>
                             )}
 
                             {mediaSectionVisible && (
                                 <div className="rounded-2xl border border-dashed border-white/15 bg-white/5 p-4">
-                                    <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-[0.3em] text-white/45">
+                                    <div className="flex items-center justify-between gap-3 text-xs tracking-[0.3em] text-white/45 uppercase">
                                         <span>Media & teasers</span>
                                         <div className="flex items-center gap-2">
                                             <span className="text-white/30">
-                                                {uploaderItems.length}/{MAX_MEDIA_FILES}
+                                                {uploaderItems.length}/
+                                                {MAX_MEDIA_FILES}
                                             </span>
                                             <button
                                                 type="button"
@@ -1263,17 +1520,24 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
                                         <FeedMediaUploader
                                             key={uploaderKey}
                                             maxFiles={MAX_MEDIA_FILES}
-                                            acceptedMimeTypes={config.media.accepted_mime_types}
+                                            acceptedMimeTypes={
+                                                config.media.accepted_mime_types
+                                            }
                                             disabled={toolbarDisabled}
                                             onChange={setUploadedMedia}
                                             onItemsChange={setUploaderItems}
                                         />
                                         {mediaHasErrors && !toolbarDisabled && (
                                             <p className="mt-2 text-xs text-rose-300">
-                                                Resolve upload errors before publishing.
+                                                Resolve upload errors before
+                                                publishing.
                                             </p>
                                         )}
-                                        {form.errors.media && <p className="text-xs text-rose-300">{form.errors.media}</p>}
+                                        {form.errors.media && (
+                                            <p className="text-xs text-rose-300">
+                                                {form.errors.media}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
                             )}
@@ -1282,7 +1546,7 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
                                 <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-5">
                                     <div className="space-y-2">
                                         <div className="flex items-center justify-between">
-                                            <Label className="text-xs uppercase tracking-[0.3em] text-white/50">
+                                            <Label className="text-xs tracking-[0.3em] text-white/50 uppercase">
                                                 Poll question
                                             </Label>
                                             <button
@@ -1304,104 +1568,155 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
                                             onChange={(event) =>
                                                 setPollDraft((previous) => ({
                                                     ...previous,
-                                                    question: event.target.value,
+                                                    question:
+                                                        event.target.value,
                                                 }))
                                             }
-                                            disabled={!config.can_post || form.processing}
+                                            disabled={
+                                                !config.can_post ||
+                                                form.processing
+                                            }
                                         />
                                     </div>
 
                                     <div className="space-y-3">
                                         <div className="flex items-center justify-between">
-                                            <Label className="text-xs uppercase tracking-[0.25em] text-white/50">Options</Label>
+                                            <Label className="text-xs tracking-[0.25em] text-white/50 uppercase">
+                                                Options
+                                            </Label>
                                             <button
                                                 type="button"
                                                 onClick={() =>
                                                     setPollDraft((previous) => {
                                                         const nextOptions = [
                                                             ...previous.options,
-                                                            { id: generateOptionId(), value: '' },
+                                                            {
+                                                                id: generateOptionId(),
+                                                                value: '',
+                                                            },
                                                         ];
 
                                                         return {
                                                             ...previous,
-                                                            options: nextOptions,
-                                                            max_choices: previous.allow_multiple
-                                                                ? Math.min(
-                                                                      previous.max_choices ?? nextOptions.length,
-                                                                      nextOptions.length,
-                                                                  )
-                                                                : null,
+                                                            options:
+                                                                nextOptions,
+                                                            max_choices:
+                                                                previous.allow_multiple
+                                                                    ? Math.min(
+                                                                          previous.max_choices ??
+                                                                              nextOptions.length,
+                                                                          nextOptions.length,
+                                                                      )
+                                                                    : null,
                                                         };
                                                     })
                                                 }
                                                 disabled={
-                                                    pollDraft.options.length >= MAX_POLL_OPTIONS ||
+                                                    pollDraft.options.length >=
+                                                        MAX_POLL_OPTIONS ||
                                                     !config.can_post ||
                                                     form.processing
                                                 }
                                                 className={cn(
-                                                    'flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs uppercase tracking-[0.3em] text-white/70 transition hover:border-white/30 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-60',
+                                                    'flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs tracking-[0.3em] text-white/70 uppercase transition hover:border-white/30 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-60',
                                                     FOCUS_RING,
                                                 )}
                                             >
-                                                <Plus className="size-3.5" /> Add option
+                                                <Plus className="size-3.5" />{' '}
+                                                Add option
                                             </button>
                                         </div>
 
                                         <div className="space-y-2">
-                                            {pollDraft.options.map((option, index) => (
-                                                <div key={option.id} className="flex items-center gap-2">
-                                                    <Input
-                                                        value={option.value}
-                                                        placeholder={`Option ${index + 1}`}
-                                                        onChange={(event) =>
-                                                            setPollDraft((previous) => ({
-                                                                ...previous,
-                                                                options: previous.options.map((existing) =>
-                                                                    existing.id === option.id
-                                                                        ? { ...existing, value: event.target.value }
-                                                                        : existing,
-                                                                ),
-                                                            }))
-                                                        }
-                                                        disabled={!config.can_post || form.processing}
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            setPollDraft((previous) => {
-                                                                const nextOptions = previous.options.filter(
-                                                                    (existing) => existing.id !== option.id,
-                                                                );
-
-                                                                return {
-                                                                    ...previous,
-                                                                    options: nextOptions,
-                                                                    max_choices: previous.allow_multiple
-                                                                        ? Math.min(
-                                                                              previous.max_choices ?? nextOptions.length,
-                                                                              nextOptions.length,
-                                                                          )
-                                                                        : null,
-                                                                };
-                                                            })
-                                                        }
-                                                        disabled={
-                                                            pollDraft.options.length <= MIN_POLL_OPTIONS ||
-                                                            !config.can_post ||
-                                                            form.processing
-                                                        }
-                                                        className={cn(
-                                                            'rounded-full border border-white/15 bg-black/40 p-1 text-white/70 transition hover:border-white/30 hover:bg-black/60 hover:text-white disabled:cursor-not-allowed disabled:opacity-60',
-                                                            FOCUS_RING,
-                                                        )}
-                                                        aria-label={`Remove option ${index + 1}`}
+                                            {pollDraft.options.map(
+                                                (option, index) => (
+                                                    <div
+                                                        key={option.id}
+                                                        className="flex items-center gap-2"
                                                     >
-                                                        <X className="size-3.5" />
-                                                    </button>
-                                                </div>
-                                            ))}
+                                                        <Input
+                                                            value={option.value}
+                                                            placeholder={`Option ${index + 1}`}
+                                                            onChange={(event) =>
+                                                                setPollDraft(
+                                                                    (
+                                                                        previous,
+                                                                    ) => ({
+                                                                        ...previous,
+                                                                        options:
+                                                                            previous.options.map(
+                                                                                (
+                                                                                    existing,
+                                                                                ) =>
+                                                                                    existing.id ===
+                                                                                    option.id
+                                                                                        ? {
+                                                                                              ...existing,
+                                                                                              value: event
+                                                                                                  .target
+                                                                                                  .value,
+                                                                                          }
+                                                                                        : existing,
+                                                                            ),
+                                                                    }),
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                !config.can_post ||
+                                                                form.processing
+                                                            }
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                setPollDraft(
+                                                                    (
+                                                                        previous,
+                                                                    ) => {
+                                                                        const nextOptions =
+                                                                            previous.options.filter(
+                                                                                (
+                                                                                    existing,
+                                                                                ) =>
+                                                                                    existing.id !==
+                                                                                    option.id,
+                                                                            );
+
+                                                                        return {
+                                                                            ...previous,
+                                                                            options:
+                                                                                nextOptions,
+                                                                            max_choices:
+                                                                                previous.allow_multiple
+                                                                                    ? Math.min(
+                                                                                          previous.max_choices ??
+                                                                                              nextOptions.length,
+                                                                                          nextOptions.length,
+                                                                                      )
+                                                                                    : null,
+                                                                        };
+                                                                    },
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                pollDraft
+                                                                    .options
+                                                                    .length <=
+                                                                    MIN_POLL_OPTIONS ||
+                                                                !config.can_post ||
+                                                                form.processing
+                                                            }
+                                                            className={cn(
+                                                                'rounded-full border border-white/15 bg-black/40 p-1 text-white/70 transition hover:border-white/30 hover:bg-black/60 hover:text-white disabled:cursor-not-allowed disabled:opacity-60',
+                                                                FOCUS_RING,
+                                                            )}
+                                                            aria-label={`Remove option ${index + 1}`}
+                                                        >
+                                                            <X className="size-3.5" />
+                                                        </button>
+                                                    </div>
+                                                ),
+                                            )}
                                         </div>
                                     </div>
 
@@ -1413,16 +1728,29 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
                                             onClick={() =>
                                                 setPollDraft((previous) => ({
                                                     ...previous,
-                                                    allow_multiple: !previous.allow_multiple,
-                                                    max_choices: !previous.allow_multiple
-                                                        ? Math.min(
-                                                              previous.max_choices ?? Math.min(previous.options.length, 2),
-                                                              previous.options.length,
-                                                          )
-                                                        : null,
+                                                    allow_multiple:
+                                                        !previous.allow_multiple,
+                                                    max_choices:
+                                                        !previous.allow_multiple
+                                                            ? Math.min(
+                                                                  previous.max_choices ??
+                                                                      Math.min(
+                                                                          previous
+                                                                              .options
+                                                                              .length,
+                                                                          2,
+                                                                      ),
+                                                                  previous
+                                                                      .options
+                                                                      .length,
+                                                              )
+                                                            : null,
                                                 }))
                                             }
-                                            disabled={!config.can_post || form.processing}
+                                            disabled={
+                                                !config.can_post ||
+                                                form.processing
+                                            }
                                             collapseLabel={false}
                                         />
 
@@ -1431,15 +1759,29 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
                                                 type="number"
                                                 min={2}
                                                 max={pollDraft.options.length}
-                                                value={pollDraft.max_choices ?? ''}
+                                                value={
+                                                    pollDraft.max_choices ?? ''
+                                                }
                                                 onChange={(event) => {
-                                                    const value = event.target.value.trim() === '' ? null : Number(event.target.value);
-                                                    setPollDraft((previous) => ({
-                                                        ...previous,
-                                                        max_choices: value,
-                                                    }));
+                                                    const value =
+                                                        event.target.value.trim() ===
+                                                        ''
+                                                            ? null
+                                                            : Number(
+                                                                  event.target
+                                                                      .value,
+                                                              );
+                                                    setPollDraft(
+                                                        (previous) => ({
+                                                            ...previous,
+                                                            max_choices: value,
+                                                        }),
+                                                    );
                                                 }}
-                                                disabled={!config.can_post || form.processing}
+                                                disabled={
+                                                    !config.can_post ||
+                                                    form.processing
+                                                }
                                                 className="w-full sm:w-32"
                                                 placeholder="Max choices"
                                             />
@@ -1447,17 +1789,23 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
                                     </div>
 
                                     <div className="space-y-1">
-                                        <Label className="text-xs uppercase tracking-[0.25em] text-white/50">Closes at (optional)</Label>
+                                        <Label className="text-xs tracking-[0.25em] text-white/50 uppercase">
+                                            Closes at (optional)
+                                        </Label>
                                         <Input
                                             type="datetime-local"
                                             value={pollDraft.closes_at}
                                             onChange={(event) =>
                                                 setPollDraft((previous) => ({
                                                     ...previous,
-                                                    closes_at: event.target.value,
+                                                    closes_at:
+                                                        event.target.value,
                                                 }))
                                             }
-                                            disabled={!config.can_post || form.processing}
+                                            disabled={
+                                                !config.can_post ||
+                                                form.processing
+                                            }
                                             className="sm:w-64"
                                         />
                                     </div>
@@ -1483,7 +1831,10 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
                                         !field.startsWith('poll.'),
                                 )
                                 .map(([field, message]) => (
-                                    <p key={field} className="text-xs text-rose-300">
+                                    <p
+                                        key={field}
+                                        className="text-xs text-rose-300"
+                                    >
                                         {message}
                                     </p>
                                 ))}
@@ -1504,5 +1855,3 @@ export default function FeedPostComposer({ config, onSubmitted }: FeedPostCompos
         </Card>
     );
 }
-
-

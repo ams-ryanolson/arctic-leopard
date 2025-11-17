@@ -1,12 +1,18 @@
-import AppLayout from '@/layouts/app-layout';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Head, Link, router } from '@inertiajs/react';
-import { CheckCircle2, Gift, ArrowLeft, ExternalLink, Heart, Sparkles } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { useInitials } from '@/hooks/use-initials';
+import AppLayout from '@/layouts/app-layout';
+import { Head, Link } from '@inertiajs/react';
+import { ArrowLeft, CheckCircle2, Gift, Heart, Sparkles } from 'lucide-react';
 
 type PurchaseSummary = {
     id: number;
@@ -71,9 +77,15 @@ export default function WishlistSuccess({ purchase }: WishlistSuccessProps) {
                     <div className="mb-6 inline-flex size-20 items-center justify-center rounded-full bg-emerald-400/10">
                         <CheckCircle2 className="size-10 text-emerald-400" />
                     </div>
-                    <h1 className="mb-2 text-3xl font-semibold text-white">Thank You!</h1>
+                    <h1 className="mb-2 text-3xl font-semibold text-white">
+                        Thank You!
+                    </h1>
                     <p className="text-lg text-white/70">
-                        Your {purchase.item.is_crowdfunded ? 'contribution' : 'purchase'} was successful
+                        Your{' '}
+                        {purchase.item.is_crowdfunded
+                            ? 'contribution'
+                            : 'purchase'}{' '}
+                        was successful
                     </p>
                 </div>
 
@@ -103,16 +115,22 @@ export default function WishlistSuccess({ purchase }: WishlistSuccessProps) {
                                 </div>
                             )}
                             <div className="flex-1">
-                                <h3 className="text-lg font-semibold text-white">{purchase.item.title}</h3>
+                                <h3 className="text-lg font-semibold text-white">
+                                    {purchase.item.title}
+                                </h3>
                                 {purchase.item.description && (
-                                    <p className="mt-1 text-sm text-white/60">{purchase.item.description}</p>
+                                    <p className="mt-1 text-sm text-white/60">
+                                        {purchase.item.description}
+                                    </p>
                                 )}
                                 <div className="mt-2 flex items-center gap-2">
                                     <Badge
                                         variant="outline"
                                         className="border-white/20 bg-white/5 text-xs text-white/70"
                                     >
-                                        {purchase.item.is_crowdfunded ? 'Crowdfunded' : 'Fixed Price'}
+                                        {purchase.item.is_crowdfunded
+                                            ? 'Crowdfunded'
+                                            : 'Fixed Price'}
                                     </Badge>
                                 </div>
                             </div>
@@ -124,7 +142,10 @@ export default function WishlistSuccess({ purchase }: WishlistSuccessProps) {
                         <div className="flex items-center gap-3">
                             <Avatar className="size-12 border-2 border-white/20">
                                 <AvatarImage
-                                    src={purchase.item.creator.avatar_url ?? undefined}
+                                    src={
+                                        purchase.item.creator.avatar_url ??
+                                        undefined
+                                    }
                                     alt={purchase.item.creator.display_name}
                                 />
                                 <AvatarFallback className="bg-gradient-to-br from-amber-400/80 via-rose-500/80 to-violet-600/80 text-sm font-semibold text-white">
@@ -135,7 +156,9 @@ export default function WishlistSuccess({ purchase }: WishlistSuccessProps) {
                                 <p className="text-sm font-medium text-white">
                                     {purchase.item.creator.display_name}
                                 </p>
-                                <p className="text-xs text-white/60">@{purchase.item.creator.username}</p>
+                                <p className="text-xs text-white/60">
+                                    @{purchase.item.creator.username}
+                                </p>
                             </div>
                         </div>
 
@@ -145,27 +168,43 @@ export default function WishlistSuccess({ purchase }: WishlistSuccessProps) {
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
                                 <span className="text-sm text-white/70">
-                                    {purchase.item.is_crowdfunded ? 'Contribution Amount' : 'Item Price'}
+                                    {purchase.item.is_crowdfunded
+                                        ? 'Contribution Amount'
+                                        : 'Item Price'}
                                 </span>
                                 <span className="text-lg font-semibold text-white">
-                                    {formatCurrency(purchase.amount, purchase.currency)}
+                                    {formatCurrency(
+                                        purchase.amount,
+                                        purchase.currency,
+                                    )}
                                 </span>
                             </div>
-                            {purchase.payment && purchase.payment.fee_amount > 0 && (
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-white/70">
-                                        Platform Fee {purchase.covers_fee && '(You covered)'}
-                                    </span>
-                                    <span className="text-sm font-medium text-white/80">
-                                        {formatCurrency(purchase.payment.fee_amount, purchase.currency)}
-                                    </span>
-                                </div>
-                            )}
+                            {purchase.payment &&
+                                purchase.payment.fee_amount > 0 && (
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm text-white/70">
+                                            Platform Fee{' '}
+                                            {purchase.covers_fee &&
+                                                '(You covered)'}
+                                        </span>
+                                        <span className="text-sm font-medium text-white/80">
+                                            {formatCurrency(
+                                                purchase.payment.fee_amount,
+                                                purchase.currency,
+                                            )}
+                                        </span>
+                                    </div>
+                                )}
                             {purchase.payment && (
                                 <div className="flex items-center justify-between">
-                                    <span className="text-sm text-white/70">Total Paid</span>
+                                    <span className="text-sm text-white/70">
+                                        Total Paid
+                                    </span>
                                     <span className="text-sm font-medium text-white/80">
-                                        {formatCurrency(purchase.payment.amount, purchase.currency)}
+                                        {formatCurrency(
+                                            purchase.payment.amount,
+                                            purchase.currency,
+                                        )}
                                     </span>
                                 </div>
                             )}
@@ -173,7 +212,7 @@ export default function WishlistSuccess({ purchase }: WishlistSuccessProps) {
                                 <>
                                     <Separator className="border-white/10" />
                                     <div>
-                                        <p className="mb-1 text-xs uppercase tracking-[0.3em] text-white/50">
+                                        <p className="mb-1 text-xs tracking-[0.3em] text-white/50 uppercase">
                                             Your Message
                                         </p>
                                         <p className="rounded-lg border border-white/10 bg-black/30 p-3 text-sm text-white/80">
@@ -190,7 +229,9 @@ export default function WishlistSuccess({ purchase }: WishlistSuccessProps) {
                         <div className="space-y-2 text-xs text-white/60">
                             <div className="flex items-center justify-between">
                                 <span>Purchase ID</span>
-                                <span className="font-mono text-white/80">{purchase.uuid}</span>
+                                <span className="font-mono text-white/80">
+                                    {purchase.uuid}
+                                </span>
                             </div>
                             {purchase.payment?.provider_payment_id && (
                                 <div className="flex items-center justify-between">
@@ -203,7 +244,10 @@ export default function WishlistSuccess({ purchase }: WishlistSuccessProps) {
                             <div className="flex items-center justify-between">
                                 <span>Date</span>
                                 <span className="text-white/80">
-                                    {new Date(purchase.fulfilled_at || purchase.created_at).toLocaleString()}
+                                    {new Date(
+                                        purchase.fulfilled_at ||
+                                            purchase.created_at,
+                                    ).toLocaleString()}
                                 </span>
                             </div>
                         </div>
@@ -251,11 +295,18 @@ export default function WishlistSuccess({ purchase }: WishlistSuccessProps) {
                                 <Heart className="size-5 text-emerald-400" />
                             </div>
                             <div>
-                                <h3 className="mb-1 font-semibold text-white">You're amazing!</h3>
+                                <h3 className="mb-1 font-semibold text-white">
+                                    You're amazing!
+                                </h3>
                                 <p className="text-sm text-white/70">
-                                    Your {purchase.item.is_crowdfunded ? 'contribution' : 'purchase'} helps{' '}
-                                    {purchase.item.creator.display_name} bring their creative vision to life. They'll
-                                    receive a notification and may reach out to thank you personally.
+                                    Your{' '}
+                                    {purchase.item.is_crowdfunded
+                                        ? 'contribution'
+                                        : 'purchase'}{' '}
+                                    helps {purchase.item.creator.display_name}{' '}
+                                    bring their creative vision to life. They'll
+                                    receive a notification and may reach out to
+                                    thank you personally.
                                 </p>
                             </div>
                         </div>
@@ -265,4 +316,3 @@ export default function WishlistSuccess({ purchase }: WishlistSuccessProps) {
         </AppLayout>
     );
 }
-

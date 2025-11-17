@@ -107,4 +107,3 @@ it('prevents recording a view for a post the viewer cannot access', function ():
 
     Bus::assertNothingDispatched();
 });
-

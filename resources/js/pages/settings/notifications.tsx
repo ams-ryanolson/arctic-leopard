@@ -1,5 +1,4 @@
 import NotificationsController from '@/actions/App/Http/Controllers/Settings/NotificationsController';
-import InputError from '@/components/input-error';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { type BreadcrumbItem } from '@/types';
@@ -8,7 +7,7 @@ import { Form, Head } from '@inertiajs/react';
 
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Bell, Users, Heart, MessageSquare } from 'lucide-react';
+import { Bell, Heart, MessageSquare, Users } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -46,13 +45,16 @@ export default function Notifications({
                         </div>
                         <div className="relative space-y-6 p-6 sm:p-8">
                             <div className="flex items-center gap-3">
-                                <div className="flex items-center justify-center rounded-xl bg-gradient-to-br from-rose-400/30 to-rose-500/20 border border-rose-400/40 p-3 shadow-[0_12px_30px_-18px_rgba(236,72,153,0.65)]">
+                                <div className="flex items-center justify-center rounded-xl border border-rose-400/40 bg-gradient-to-br from-rose-400/30 to-rose-500/20 p-3 shadow-[0_12px_30px_-18px_rgba(236,72,153,0.65)]">
                                     <Bell className="h-5 w-5 text-rose-300" />
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-semibold text-white">Notification preferences</h2>
+                                    <h2 className="text-xl font-semibold text-white">
+                                        Notification preferences
+                                    </h2>
                                     <p className="text-sm text-white/65">
-                                        Choose which notifications you want to receive
+                                        Choose which notifications you want to
+                                        receive
                                     </p>
                                 </div>
                             </div>
@@ -66,7 +68,9 @@ export default function Notifications({
                         }}
                         className="space-y-8"
                     >
-                        {({ processing, recentlySuccessful, errors: _errors }) => ( // eslint-disable-line @typescript-eslint/no-unused-vars
+                        {(
+                            { processing, recentlySuccessful, errors: _errors }, // eslint-disable-line @typescript-eslint/no-unused-vars
+                        ) => (
                             <>
                                 <div className="space-y-8">
                                     {/* Social Notifications */}
@@ -76,7 +80,7 @@ export default function Notifications({
                                         </div>
                                         <div className="relative space-y-6 p-6 sm:p-8">
                                             <div className="flex items-center gap-3">
-                                                <div className="flex items-center justify-center rounded-xl bg-gradient-to-br from-blue-400/30 to-blue-500/20 border border-blue-400/40 p-3 shadow-[0_12px_30px_-18px_rgba(59,130,246,0.65)]">
+                                                <div className="flex items-center justify-center rounded-xl border border-blue-400/40 bg-gradient-to-br from-blue-400/30 to-blue-500/20 p-3 shadow-[0_12px_30px_-18px_rgba(59,130,246,0.65)]">
                                                     <Users className="h-5 w-5 text-blue-300" />
                                                 </div>
                                                 <div>
@@ -84,7 +88,9 @@ export default function Notifications({
                                                         Social
                                                     </h3>
                                                     <p className="text-sm text-white/65">
-                                                        Notifications about follows and follow requests
+                                                        Notifications about
+                                                        follows and follow
+                                                        requests
                                                     </p>
                                                 </div>
                                             </div>
@@ -92,7 +98,7 @@ export default function Notifications({
                                             <div className="space-y-3">
                                                 <div className="rounded-2xl border border-white/10 bg-black/40 p-5">
                                                     <div className="flex items-start justify-between gap-4">
-                                                        <div className="space-y-1 flex-1">
+                                                        <div className="flex-1 space-y-1">
                                                             <Label
                                                                 htmlFor="follows"
                                                                 className="text-base font-semibold text-white"
@@ -100,7 +106,9 @@ export default function Notifications({
                                                                 New followers
                                                             </Label>
                                                             <p className="text-sm leading-relaxed text-white/70">
-                                                                Get notified when someone follows you
+                                                                Get notified
+                                                                when someone
+                                                                follows you
                                                             </p>
                                                         </div>
                                                         <input
@@ -113,15 +121,17 @@ export default function Notifications({
                                                             name="follows"
                                                             type="checkbox"
                                                             value="1"
-                                                            defaultChecked={preferences.follows}
-                                                            className="h-5 w-5 rounded border-white/30 bg-white/10 accent-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0"
+                                                            defaultChecked={
+                                                                preferences.follows
+                                                            }
+                                                            className="h-5 w-5 rounded border-white/30 bg-white/10 accent-emerald-400 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0 focus:outline-none"
                                                         />
                                                     </div>
                                                 </div>
 
                                                 <div className="rounded-2xl border border-white/10 bg-black/40 p-5">
                                                     <div className="flex items-start justify-between gap-4">
-                                                        <div className="space-y-1 flex-1">
+                                                        <div className="flex-1 space-y-1">
                                                             <Label
                                                                 htmlFor="follow_requests"
                                                                 className="text-base font-semibold text-white"
@@ -129,7 +139,10 @@ export default function Notifications({
                                                                 Follow requests
                                                             </Label>
                                                             <p className="text-sm leading-relaxed text-white/70">
-                                                                Get notified when someone requests to follow you
+                                                                Get notified
+                                                                when someone
+                                                                requests to
+                                                                follow you
                                                             </p>
                                                         </div>
                                                         <input
@@ -142,15 +155,17 @@ export default function Notifications({
                                                             name="follow_requests"
                                                             type="checkbox"
                                                             value="1"
-                                                            defaultChecked={preferences.follow_requests}
-                                                            className="h-5 w-5 rounded border-white/30 bg-white/10 accent-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0"
+                                                            defaultChecked={
+                                                                preferences.follow_requests
+                                                            }
+                                                            className="h-5 w-5 rounded border-white/30 bg-white/10 accent-emerald-400 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0 focus:outline-none"
                                                         />
                                                     </div>
                                                 </div>
 
                                                 <div className="rounded-2xl border border-white/10 bg-black/40 p-5">
                                                     <div className="flex items-start justify-between gap-4">
-                                                        <div className="space-y-1 flex-1">
+                                                        <div className="flex-1 space-y-1">
                                                             <Label
                                                                 htmlFor="follow_approvals"
                                                                 className="text-base font-semibold text-white"
@@ -158,7 +173,10 @@ export default function Notifications({
                                                                 Follow approvals
                                                             </Label>
                                                             <p className="text-sm leading-relaxed text-white/70">
-                                                                Get notified when your follow request is approved
+                                                                Get notified
+                                                                when your follow
+                                                                request is
+                                                                approved
                                                             </p>
                                                         </div>
                                                         <input
@@ -171,8 +189,10 @@ export default function Notifications({
                                                             name="follow_approvals"
                                                             type="checkbox"
                                                             value="1"
-                                                            defaultChecked={preferences.follow_approvals}
-                                                            className="h-5 w-5 rounded border-white/30 bg-white/10 accent-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0"
+                                                            defaultChecked={
+                                                                preferences.follow_approvals
+                                                            }
+                                                            className="h-5 w-5 rounded border-white/30 bg-white/10 accent-emerald-400 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0 focus:outline-none"
                                                         />
                                                     </div>
                                                 </div>
@@ -187,7 +207,7 @@ export default function Notifications({
                                         </div>
                                         <div className="relative space-y-6 p-6 sm:p-8">
                                             <div className="flex items-center gap-3">
-                                                <div className="flex items-center justify-center rounded-xl bg-gradient-to-br from-amber-400/30 to-amber-500/20 border border-amber-400/40 p-3 shadow-[0_12px_30px_-18px_rgba(249,115,22,0.65)]">
+                                                <div className="flex items-center justify-center rounded-xl border border-amber-400/40 bg-gradient-to-br from-amber-400/30 to-amber-500/20 p-3 shadow-[0_12px_30px_-18px_rgba(249,115,22,0.65)]">
                                                     <Heart className="h-5 w-5 text-amber-300" />
                                                 </div>
                                                 <div>
@@ -195,7 +215,8 @@ export default function Notifications({
                                                         Posts
                                                     </h3>
                                                     <p className="text-sm text-white/65">
-                                                        Notifications about your posts
+                                                        Notifications about your
+                                                        posts
                                                     </p>
                                                 </div>
                                             </div>
@@ -203,7 +224,7 @@ export default function Notifications({
                                             <div className="space-y-3">
                                                 <div className="rounded-2xl border border-white/10 bg-black/40 p-5">
                                                     <div className="flex items-start justify-between gap-4">
-                                                        <div className="space-y-1 flex-1">
+                                                        <div className="flex-1 space-y-1">
                                                             <Label
                                                                 htmlFor="post_likes"
                                                                 className="text-base font-semibold text-white"
@@ -211,7 +232,9 @@ export default function Notifications({
                                                                 Post likes
                                                             </Label>
                                                             <p className="text-sm leading-relaxed text-white/70">
-                                                                Get notified when someone likes your post
+                                                                Get notified
+                                                                when someone
+                                                                likes your post
                                                             </p>
                                                         </div>
                                                         <input
@@ -224,15 +247,17 @@ export default function Notifications({
                                                             name="post_likes"
                                                             type="checkbox"
                                                             value="1"
-                                                            defaultChecked={preferences.post_likes}
-                                                            className="h-5 w-5 rounded border-white/30 bg-white/10 accent-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0"
+                                                            defaultChecked={
+                                                                preferences.post_likes
+                                                            }
+                                                            className="h-5 w-5 rounded border-white/30 bg-white/10 accent-emerald-400 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0 focus:outline-none"
                                                         />
                                                     </div>
                                                 </div>
 
                                                 <div className="rounded-2xl border border-white/10 bg-black/40 p-5">
                                                     <div className="flex items-start justify-between gap-4">
-                                                        <div className="space-y-1 flex-1">
+                                                        <div className="flex-1 space-y-1">
                                                             <Label
                                                                 htmlFor="post_bookmarks"
                                                                 className="text-base font-semibold text-white"
@@ -240,7 +265,10 @@ export default function Notifications({
                                                                 Post bookmarks
                                                             </Label>
                                                             <p className="text-sm leading-relaxed text-white/70">
-                                                                Get notified when someone bookmarks your post
+                                                                Get notified
+                                                                when someone
+                                                                bookmarks your
+                                                                post
                                                             </p>
                                                         </div>
                                                         <input
@@ -253,8 +281,10 @@ export default function Notifications({
                                                             name="post_bookmarks"
                                                             type="checkbox"
                                                             value="1"
-                                                            defaultChecked={preferences.post_bookmarks}
-                                                            className="h-5 w-5 rounded border-white/30 bg-white/10 accent-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0"
+                                                            defaultChecked={
+                                                                preferences.post_bookmarks
+                                                            }
+                                                            className="h-5 w-5 rounded border-white/30 bg-white/10 accent-emerald-400 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0 focus:outline-none"
                                                         />
                                                     </div>
                                                 </div>
@@ -269,7 +299,7 @@ export default function Notifications({
                                         </div>
                                         <div className="relative space-y-6 p-6 sm:p-8">
                                             <div className="flex items-center gap-3">
-                                                <div className="flex items-center justify-center rounded-xl bg-gradient-to-br from-violet-400/30 to-violet-500/20 border border-violet-400/40 p-3 shadow-[0_12px_30px_-18px_rgba(124,58,237,0.65)]">
+                                                <div className="flex items-center justify-center rounded-xl border border-violet-400/40 bg-gradient-to-br from-violet-400/30 to-violet-500/20 p-3 shadow-[0_12px_30px_-18px_rgba(124,58,237,0.65)]">
                                                     <MessageSquare className="h-5 w-5 text-violet-300" />
                                                 </div>
                                                 <div>
@@ -277,7 +307,9 @@ export default function Notifications({
                                                         Messaging
                                                     </h3>
                                                     <p className="text-sm text-white/65">
-                                                        Notifications about messages, comments, and replies
+                                                        Notifications about
+                                                        messages, comments, and
+                                                        replies
                                                     </p>
                                                 </div>
                                             </div>
@@ -285,7 +317,7 @@ export default function Notifications({
                                             <div className="space-y-3">
                                                 <div className="rounded-2xl border border-white/10 bg-black/40 p-5">
                                                     <div className="flex items-start justify-between gap-4">
-                                                        <div className="space-y-1 flex-1">
+                                                        <div className="flex-1 space-y-1">
                                                             <Label
                                                                 htmlFor="messages"
                                                                 className="text-base font-semibold text-white"
@@ -293,7 +325,9 @@ export default function Notifications({
                                                                 New messages
                                                             </Label>
                                                             <p className="text-sm leading-relaxed text-white/70">
-                                                                Get notified when you receive a new message
+                                                                Get notified
+                                                                when you receive
+                                                                a new message
                                                             </p>
                                                         </div>
                                                         <input
@@ -306,15 +340,17 @@ export default function Notifications({
                                                             name="messages"
                                                             type="checkbox"
                                                             value="1"
-                                                            defaultChecked={preferences.messages}
-                                                            className="h-5 w-5 rounded border-white/30 bg-white/10 accent-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0"
+                                                            defaultChecked={
+                                                                preferences.messages
+                                                            }
+                                                            className="h-5 w-5 rounded border-white/30 bg-white/10 accent-emerald-400 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0 focus:outline-none"
                                                         />
                                                     </div>
                                                 </div>
 
                                                 <div className="rounded-2xl border border-white/10 bg-black/40 p-5">
                                                     <div className="flex items-start justify-between gap-4">
-                                                        <div className="space-y-1 flex-1">
+                                                        <div className="flex-1 space-y-1">
                                                             <Label
                                                                 htmlFor="comments"
                                                                 className="text-base font-semibold text-white"
@@ -322,7 +358,10 @@ export default function Notifications({
                                                                 New comments
                                                             </Label>
                                                             <p className="text-sm leading-relaxed text-white/70">
-                                                                Get notified when someone comments on your post
+                                                                Get notified
+                                                                when someone
+                                                                comments on your
+                                                                post
                                                             </p>
                                                         </div>
                                                         <input
@@ -335,15 +374,17 @@ export default function Notifications({
                                                             name="comments"
                                                             type="checkbox"
                                                             value="1"
-                                                            defaultChecked={preferences.comments}
-                                                            className="h-5 w-5 rounded border-white/30 bg-white/10 accent-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0"
+                                                            defaultChecked={
+                                                                preferences.comments
+                                                            }
+                                                            className="h-5 w-5 rounded border-white/30 bg-white/10 accent-emerald-400 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0 focus:outline-none"
                                                         />
                                                     </div>
                                                 </div>
 
                                                 <div className="rounded-2xl border border-white/10 bg-black/40 p-5">
                                                     <div className="flex items-start justify-between gap-4">
-                                                        <div className="space-y-1 flex-1">
+                                                        <div className="flex-1 space-y-1">
                                                             <Label
                                                                 htmlFor="replies"
                                                                 className="text-base font-semibold text-white"
@@ -351,7 +392,10 @@ export default function Notifications({
                                                                 New replies
                                                             </Label>
                                                             <p className="text-sm leading-relaxed text-white/70">
-                                                                Get notified when someone replies to your comment
+                                                                Get notified
+                                                                when someone
+                                                                replies to your
+                                                                comment
                                                             </p>
                                                         </div>
                                                         <input
@@ -364,8 +408,10 @@ export default function Notifications({
                                                             name="replies"
                                                             type="checkbox"
                                                             value="1"
-                                                            defaultChecked={preferences.replies}
-                                                            className="h-5 w-5 rounded border-white/30 bg-white/10 accent-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0"
+                                                            defaultChecked={
+                                                                preferences.replies
+                                                            }
+                                                            className="h-5 w-5 rounded border-white/30 bg-white/10 accent-emerald-400 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0 focus:outline-none"
                                                         />
                                                     </div>
                                                 </div>
@@ -379,9 +425,11 @@ export default function Notifications({
                                         type="submit"
                                         disabled={processing}
                                         data-test="update-notifications-button"
-                                        className="rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-2.5 text-sm font-semibold text-white shadow-[0_4px_12px_-4px_rgba(16,185,129,0.4)] transition-all hover:scale-[1.02] hover:shadow-[0_6px_16px_-4px_rgba(16,185,129,0.5)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                                        className="rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-2.5 text-sm font-semibold text-white shadow-[0_4px_12px_-4px_rgba(16,185,129,0.4)] transition-all hover:scale-[1.02] hover:shadow-[0_6px_16px_-4px_rgba(16,185,129,0.5)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
                                     >
-                                        {processing ? 'Saving...' : 'Save changes'}
+                                        {processing
+                                            ? 'Saving...'
+                                            : 'Save changes'}
                                     </Button>
 
                                     <Transition
@@ -394,7 +442,7 @@ export default function Notifications({
                                         leaveTo="opacity-0 scale-95"
                                     >
                                         <div className="flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-4 py-2">
-                                            <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                                            <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
                                             <p className="text-sm font-medium text-emerald-300">
                                                 Saved
                                             </p>

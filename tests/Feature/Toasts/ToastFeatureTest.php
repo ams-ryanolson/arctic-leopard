@@ -1,7 +1,7 @@
 <?php
 
-use App\Events\Toasts\ToastActionResolved;
 use App\Events\Toasts\ToastAcknowledged;
+use App\Events\Toasts\ToastActionResolved;
 use App\Events\Toasts\ToastPushed;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\User;
@@ -136,4 +136,3 @@ it('shares queued toasts through the inertia middleware', function (): void {
     expect($resolved)->toHaveCount(1);
     expect($resolved[0]['id'])->toBe($toast->id);
 });
-

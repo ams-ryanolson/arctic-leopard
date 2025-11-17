@@ -1,17 +1,17 @@
 import http from '@/lib/http';
 import type { FilePondFile } from 'filepond';
-import { useRef, useState, useCallback } from 'react';
 import { Coins, Film, Image, Loader2, Mic, Video, X } from 'lucide-react';
+import { useCallback, useRef, useState } from 'react';
 
 import FilePondUploader from '@/components/filepond-uploader';
-import type FilePond from 'react-filepond';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import AudioRecorder from '@/components/media/audio-recorder';
 import VideoRecorder from '@/components/media/video-recorder';
-import EmojiPickerInput from '@/components/ui/emoji-picker-input';
-import TipDialog from '@/components/messaging/tip-dialog';
 import AttachmentPreview from '@/components/messaging/attachment-preview';
+import TipDialog from '@/components/messaging/tip-dialog';
+import { Button } from '@/components/ui/button';
+import EmojiPickerInput from '@/components/ui/emoji-picker-input';
+import { cn } from '@/lib/utils';
+import type FilePond from 'react-filepond';
 
 type UploadPayload = {
     id: string;
@@ -115,7 +115,10 @@ export default function MessageComposer({
             return;
         }
 
-        setUploads((previous) => [...previous.filter((item) => item.id !== payload.id), payload]);
+        setUploads((previous) => [
+            ...previous.filter((item) => item.id !== payload.id),
+            payload,
+        ]);
         triggerTyping();
     }
 
@@ -127,7 +130,9 @@ export default function MessageComposer({
             return;
         }
 
-        setUploads((previous) => previous.filter((item) => item.id !== payload.id));
+        setUploads((previous) =>
+            previous.filter((item) => item.id !== payload.id),
+        );
         triggerTyping();
     }
 
@@ -140,22 +145,34 @@ export default function MessageComposer({
 
     const triggerPhotoUpload = useCallback(() => {
         const pond = photoUploaderRef.current;
-        if (pond && typeof (pond as { browse?: () => void }).browse === 'function') {
+        if (
+            pond &&
+            typeof (pond as { browse?: () => void }).browse === 'function'
+        ) {
             (pond as { browse: () => void }).browse();
         } else {
-            const wrapper = document.querySelector<HTMLElement>('[data-uploader="photos"]');
-            const input = wrapper?.querySelector<HTMLInputElement>('input[type="file"]');
+            const wrapper = document.querySelector<HTMLElement>(
+                '[data-uploader="photos"]',
+            );
+            const input =
+                wrapper?.querySelector<HTMLInputElement>('input[type="file"]');
             input?.click();
         }
     }, []);
 
     const triggerVideoUpload = useCallback(() => {
         const pond = videoUploaderRef.current;
-        if (pond && typeof (pond as { browse?: () => void }).browse === 'function') {
+        if (
+            pond &&
+            typeof (pond as { browse?: () => void }).browse === 'function'
+        ) {
             (pond as { browse: () => void }).browse();
         } else {
-            const wrapper = document.querySelector<HTMLElement>('[data-uploader="videos"]');
-            const input = wrapper?.querySelector<HTMLInputElement>('input[type="file"]');
+            const wrapper = document.querySelector<HTMLElement>(
+                '[data-uploader="videos"]',
+            );
+            const input =
+                wrapper?.querySelector<HTMLInputElement>('input[type="file"]');
             input?.click();
         }
     }, []);
@@ -210,18 +227,29 @@ export default function MessageComposer({
         setError(null);
 
         try {
-            const file = new File([audioBlob], `audio-clip-${Date.now()}.webm`, {
-                type: audioBlob.type || 'audio/webm',
-            });
+            const file = new File(
+                [audioBlob],
+                `audio-clip-${Date.now()}.webm`,
+                {
+                    type: audioBlob.type || 'audio/webm',
+                },
+            );
 
             const formData = new FormData();
             formData.append('file', file);
 
-            const csrfToken = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content;
+            const csrfToken = document.querySelector<HTMLMetaElement>(
+                'meta[name="csrf-token"]',
+            )?.content;
             const uploadResponse = await http.post('/uploads/tmp', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
-                    ...(csrfToken ? { 'X-CSRF-TOKEN': csrfToken, 'X-XSRF-TOKEN': csrfToken } : {}),
+                    ...(csrfToken
+                        ? {
+                              'X-CSRF-TOKEN': csrfToken,
+                              'X-XSRF-TOKEN': csrfToken,
+                          }
+                        : {}),
                 },
             });
 
@@ -231,11 +259,14 @@ export default function MessageComposer({
                 throw new Error('Failed to upload audio');
             }
 
-            const response = await http.post(`/api/conversations/${conversationId}/messages`, {
-                body: '',
-                attachments: [uploadPayload],
-                ...(replyTo ? { reply_to_id: replyTo.id } : {}),
-            });
+            const response = await http.post(
+                `/api/conversations/${conversationId}/messages`,
+                {
+                    body: '',
+                    attachments: [uploadPayload],
+                    ...(replyTo ? { reply_to_id: replyTo.id } : {}),
+                },
+            );
 
             const payload = response.data?.data ?? response.data;
 
@@ -251,7 +282,8 @@ export default function MessageComposer({
             onCancelReply?.();
         } catch (caught) {
             console.error('Error sending audio message:', caught);
-            const defaultMessage = 'We could not send your audio clip right now. Please try again.';
+            const defaultMessage =
+                'We could not send your audio clip right now. Please try again.';
 
             if (
                 typeof caught === 'object' &&
@@ -261,7 +293,9 @@ export default function MessageComposer({
                 caught.response !== null &&
                 'data' in caught.response
             ) {
-                const responseData = (caught as { response?: { data?: { message?: string } } }).response?.data;
+                const responseData = (
+                    caught as { response?: { data?: { message?: string } } }
+                ).response?.data;
                 const message = responseData?.message ?? defaultMessage;
                 setError(message);
             } else if (caught instanceof Error) {
@@ -272,7 +306,15 @@ export default function MessageComposer({
         } finally {
             setIsUploadingAudio(false);
         }
-    }, [audioBlob, conversationId, isUploadingAudio, onMessageSent, onCancelReply, replyTo, resetTypingState]);
+    }, [
+        audioBlob,
+        conversationId,
+        isUploadingAudio,
+        onMessageSent,
+        onCancelReply,
+        replyTo,
+        resetTypingState,
+    ]);
 
     const sendVideoMessage = useCallback(async () => {
         if (!videoBlob || isUploadingVideo) {
@@ -288,18 +330,29 @@ export default function MessageComposer({
         setError(null);
 
         try {
-            const file = new File([videoBlob], `video-clip-${Date.now()}.webm`, {
-                type: videoBlob.type || 'video/webm',
-            });
+            const file = new File(
+                [videoBlob],
+                `video-clip-${Date.now()}.webm`,
+                {
+                    type: videoBlob.type || 'video/webm',
+                },
+            );
 
             const formData = new FormData();
             formData.append('file', file);
 
-            const csrfToken = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content;
+            const csrfToken = document.querySelector<HTMLMetaElement>(
+                'meta[name="csrf-token"]',
+            )?.content;
             const uploadResponse = await http.post('/uploads/tmp', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
-                    ...(csrfToken ? { 'X-CSRF-TOKEN': csrfToken, 'X-XSRF-TOKEN': csrfToken } : {}),
+                    ...(csrfToken
+                        ? {
+                              'X-CSRF-TOKEN': csrfToken,
+                              'X-XSRF-TOKEN': csrfToken,
+                          }
+                        : {}),
                 },
             });
 
@@ -309,11 +362,14 @@ export default function MessageComposer({
                 throw new Error('Failed to upload video');
             }
 
-            const response = await http.post(`/api/conversations/${conversationId}/messages`, {
-                body: '',
-                attachments: [uploadPayload],
-                ...(replyTo ? { reply_to_id: replyTo.id } : {}),
-            });
+            const response = await http.post(
+                `/api/conversations/${conversationId}/messages`,
+                {
+                    body: '',
+                    attachments: [uploadPayload],
+                    ...(replyTo ? { reply_to_id: replyTo.id } : {}),
+                },
+            );
 
             const payload = response.data?.data ?? response.data;
 
@@ -329,7 +385,8 @@ export default function MessageComposer({
             onCancelReply?.();
         } catch (caught) {
             console.error('Error sending video message:', caught);
-            const defaultMessage = 'We could not send your video clip right now. Please try again.';
+            const defaultMessage =
+                'We could not send your video clip right now. Please try again.';
 
             if (
                 typeof caught === 'object' &&
@@ -339,7 +396,9 @@ export default function MessageComposer({
                 caught.response !== null &&
                 'data' in caught.response
             ) {
-                const responseData = (caught as { response?: { data?: { message?: string } } }).response?.data;
+                const responseData = (
+                    caught as { response?: { data?: { message?: string } } }
+                ).response?.data;
                 const message = responseData?.message ?? defaultMessage;
                 setError(message);
             } else if (caught instanceof Error) {
@@ -350,12 +409,26 @@ export default function MessageComposer({
         } finally {
             setIsUploadingVideo(false);
         }
-    }, [videoBlob, conversationId, isUploadingVideo, onMessageSent, onCancelReply, replyTo, resetTypingState]);
+    }, [
+        videoBlob,
+        conversationId,
+        isUploadingVideo,
+        onMessageSent,
+        onCancelReply,
+        replyTo,
+        resetTypingState,
+    ]);
 
     const handleTipConfirm = useCallback(
-        async (amount: number, mode: 'send' | 'request', paymentMethod?: string) => {
+        async (
+            amount: number,
+            mode: 'send' | 'request',
+            paymentMethod?: string,
+        ) => {
             if (!viewer?.id) {
-                throw new Error('We could not determine who is sending this tip.');
+                throw new Error(
+                    'We could not determine who is sending this tip.',
+                );
             }
 
             const payload = {
@@ -370,7 +443,10 @@ export default function MessageComposer({
                 },
             };
 
-            const response = await http.post(`/api/conversations/${conversationId}/messages`, payload);
+            const response = await http.post(
+                `/api/conversations/${conversationId}/messages`,
+                payload,
+            );
             const messagePayload = response.data?.data ?? response.data;
 
             if (messagePayload) {
@@ -416,11 +492,14 @@ export default function MessageComposer({
         setError(null);
 
         try {
-            const response = await http.post(`/api/conversations/${conversationId}/messages`, {
-                body,
-                attachments: uploads,
-                ...(replyTo ? { reply_to_id: replyTo.id } : {}),
-            });
+            const response = await http.post(
+                `/api/conversations/${conversationId}/messages`,
+                {
+                    body,
+                    attachments: uploads,
+                    ...(replyTo ? { reply_to_id: replyTo.id } : {}),
+                },
+            );
 
             const payload = response.data?.data ?? response.data;
 
@@ -434,7 +513,8 @@ export default function MessageComposer({
 
             onCancelReply?.();
         } catch (caught) {
-            const defaultMessage = 'We could not send your message right now. Please try again.';
+            const defaultMessage =
+                'We could not send your message right now. Please try again.';
 
             if (
                 typeof caught === 'object' &&
@@ -444,7 +524,9 @@ export default function MessageComposer({
                 caught.response !== null &&
                 'data' in caught.response
             ) {
-                const responseData = (caught as { response?: { data?: { message?: string } } }).response?.data;
+                const responseData = (
+                    caught as { response?: { data?: { message?: string } } }
+                ).response?.data;
                 const message = responseData?.message ?? defaultMessage;
                 setError(message);
             } else if (caught instanceof Error) {
@@ -471,27 +553,38 @@ export default function MessageComposer({
                     className,
                 )}
             >
-                <h3 className="text-base font-semibold text-white">Messaging unavailable</h3>
-                <p className="mt-2 text-xs text-white/60 sm:text-sm">{blockedNotice}</p>
+                <h3 className="text-base font-semibold text-white">
+                    Messaging unavailable
+                </h3>
+                <p className="mt-2 text-xs text-white/60 sm:text-sm">
+                    {blockedNotice}
+                </p>
             </div>
         );
     }
 
     return (
         <>
-            <form onSubmit={handleSubmit} className={cn('space-y-4', className)}>
+            <form
+                onSubmit={handleSubmit}
+                className={cn('space-y-4', className)}
+            >
                 <div className="rounded-3xl border border-white/15 bg-black/40 shadow-[0_20px_45px_-30px_rgba(255,255,255,0.45)]">
                     <div className="space-y-3 px-4 py-4 sm:px-5 sm:py-5">
                         {replyTo ? (
                             <div className="flex items-start justify-between gap-3 rounded-2xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-xs text-white/80 sm:text-sm">
                                 <div>
-                                    <p className="mb-1 text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-amber-200/80 sm:text-xs">
+                                    <p className="mb-1 text-[0.65rem] font-semibold tracking-[0.3em] text-amber-200/80 uppercase sm:text-xs">
                                         Replying to{' '}
-                                        {replyTo.author?.display_name ?? replyTo.author?.username ?? 'a message'}
+                                        {replyTo.author?.display_name ??
+                                            replyTo.author?.username ??
+                                            'a message'}
                                     </p>
-                                    <p className="whitespace-pre-wrap text-sm text-white/80">
+                                    <p className="text-sm whitespace-pre-wrap text-white/80">
                                         {(replyTo.body ?? '').slice(0, 140)}
-                                        {(replyTo.body ?? '').length > 140 ? '…' : ''}
+                                        {(replyTo.body ?? '').length > 140
+                                            ? '…'
+                                            : ''}
                                     </p>
                                 </div>
                                 <button
@@ -534,7 +627,14 @@ export default function MessageComposer({
                         )}
 
                         {hasAttachments && (
-                            <AttachmentPreview attachments={uploads} onRemove={(id) => setUploads((prev) => prev.filter((item) => item.id !== id))} />
+                            <AttachmentPreview
+                                attachments={uploads}
+                                onRemove={(id) =>
+                                    setUploads((prev) =>
+                                        prev.filter((item) => item.id !== id),
+                                    )
+                                }
+                            />
                         )}
 
                         {error && (
@@ -548,7 +648,7 @@ export default function MessageComposer({
                         <div className="flex items-center gap-2 sm:gap-3">
                             <button
                                 type="button"
-                                className="flex size-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40 sm:size-10"
+                                className="flex size-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:outline-none sm:size-10"
                                 aria-label="Attach photo"
                                 onClick={triggerPhotoUpload}
                             >
@@ -556,7 +656,7 @@ export default function MessageComposer({
                             </button>
                             <button
                                 type="button"
-                                className="flex size-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40 sm:size-10"
+                                className="flex size-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:outline-none sm:size-10"
                                 aria-label="Attach video file"
                                 onClick={triggerVideoUpload}
                             >
@@ -564,7 +664,7 @@ export default function MessageComposer({
                             </button>
                             <button
                                 type="button"
-                                className="flex size-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40 sm:size-10"
+                                className="flex size-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:outline-none sm:size-10"
                                 aria-label="Record video clip"
                                 onClick={handleVideoButtonClick}
                             >
@@ -572,7 +672,7 @@ export default function MessageComposer({
                             </button>
                             <button
                                 type="button"
-                                className="flex size-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40 sm:size-10"
+                                className="flex size-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:outline-none sm:size-10"
                                 aria-label="Send tip"
                                 onClick={() => setIsTipDialogOpen(true)}
                             >
@@ -580,7 +680,7 @@ export default function MessageComposer({
                             </button>
                             <button
                                 type="button"
-                                className="flex size-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40 sm:size-10"
+                                className="flex size-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:outline-none sm:size-10"
                                 aria-label="Record audio clip"
                                 onClick={handleAudioButtonClick}
                             >
@@ -601,8 +701,12 @@ export default function MessageComposer({
                                     ]}
                                     instantUpload
                                     className="filepond--compact filepond--dark"
-                                    onprocessfile={(_, file) => handleProcess(file)}
-                                    onremovefile={(_, file) => handleRemove(file)}
+                                    onprocessfile={(_, file) =>
+                                        handleProcess(file)
+                                    }
+                                    onremovefile={(_, file) =>
+                                        handleRemove(file)
+                                    }
                                 />
                             </div>
                             <div className="hidden" data-uploader="videos">
@@ -611,25 +715,40 @@ export default function MessageComposer({
                                     name="videos"
                                     allowMultiple
                                     maxFiles={6}
-                                    acceptedFileTypes={['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo']}
+                                    acceptedFileTypes={[
+                                        'video/mp4',
+                                        'video/webm',
+                                        'video/quicktime',
+                                        'video/x-msvideo',
+                                    ]}
                                     instantUpload
                                     className="filepond--compact filepond--dark"
-                                    onprocessfile={(_, file) => handleProcess(file)}
-                                    onremovefile={(_, file) => handleRemove(file)}
+                                    onprocessfile={(_, file) =>
+                                        handleProcess(file)
+                                    }
+                                    onremovefile={(_, file) =>
+                                        handleRemove(file)
+                                    }
                                 />
                             </div>
                         </div>
 
                         <div className="flex items-center justify-between gap-3 sm:justify-end">
-                            <span className="text-[0.65rem] uppercase tracking-[0.25em] text-white/40 sm:text-xs">
+                            <span className="text-[0.65rem] tracking-[0.25em] text-white/40 uppercase sm:text-xs">
                                 {bodyCharacterCount} chars
                             </span>
                             <Button
                                 type="submit"
-                                disabled={isSending || isUploadingAudio || isUploadingVideo}
+                                disabled={
+                                    isSending ||
+                                    isUploadingAudio ||
+                                    isUploadingVideo
+                                }
                                 className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-5 text-sm font-semibold text-white shadow-[0_20px_45px_-20px_rgba(249,115,22,0.65)] hover:from-amber-400/90 hover:via-rose-500/90 hover:to-violet-600/90 disabled:cursor-not-allowed disabled:opacity-60 sm:px-6"
                             >
-                                {isSending || isUploadingAudio || isUploadingVideo ? (
+                                {isSending ||
+                                isUploadingAudio ||
+                                isUploadingVideo ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                         Sending
@@ -652,7 +771,3 @@ export default function MessageComposer({
         </>
     );
 }
-
-
-
-

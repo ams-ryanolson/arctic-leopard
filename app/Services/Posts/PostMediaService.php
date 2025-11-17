@@ -4,31 +4,19 @@ namespace App\Services\Posts;
 
 use App\Models\Post;
 use App\Models\PostMedia;
+use App\Services\Media\MediaProcessingService;
+use App\Services\Media\Processors\PostImageProcessor;
 use App\Services\TemporaryUploadService;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Intervention\Image\Drivers\Gd\Driver;
-use Intervention\Image\ImageManager;
 use Throwable;
 
 class PostMediaService
 {
-    private const THUMBNAIL_SIZES = [
-        'small' => 400,
-        'medium' => 800,
-        'large' => 1200,
-    ];
-
-    private const BLUR_SIZE = 20;
-
     public function __construct(
         private TemporaryUploadService $temporaryUploads,
+        private MediaProcessingService $mediaProcessing,
     ) {}
-
-    private function imageManager(): ImageManager
-    {
-        return new ImageManager(new Driver);
-    }
 
     /**
      * @param  array<int, array<string, mixed>>  $mediaAttachments
@@ -79,7 +67,11 @@ class PostMediaService
             // Process images synchronously (real-time)
             if ($isImage) {
                 try {
-                    $processed = $this->processImage($disk, $promotedPath, $post->getKey());
+                    $baseDir = sprintf('posts/%d', $post->getKey());
+                    $baseFilename = pathinfo($promotedPath, PATHINFO_FILENAME);
+                    $processor = new PostImageProcessor($baseDir, $baseFilename);
+                    $processed = $this->mediaProcessing->processImage($disk, $promotedPath, $processor);
+
                     $optimizedPath = $processed['optimized_path'];
                     $thumbnailPath = $processed['thumbnail_path'];
                     $blurPath = $processed['blur_path'];
@@ -89,6 +81,11 @@ class PostMediaService
                     // Use optimized path as the main path for images
                     $promotedPath = $optimizedPath ?? $promotedPath;
                 } catch (Throwable $e) {
+                    \Log::warning('PostMediaService: Image processing failed', [
+                        'post_id' => $post->getKey(),
+                        'path' => $promotedPath,
+                        'error' => $e->getMessage(),
+                    ]);
                     $processingStatus = 'failed';
                     $processingMeta['error'] = $e->getMessage();
                 }
@@ -133,70 +130,6 @@ class PostMediaService
         }
 
         return $stored;
-    }
-
-    /**
-     * Process an image: optimize, generate thumbnails, and blur placeholder
-     *
-     * @return array{optimized_path: string|null, thumbnail_path: string|null, blur_path: string|null, width: int|null, height: int|null}
-     */
-    private function processImage(string $disk, string $path, int $postId): array
-    {
-        $storage = Storage::disk($disk);
-        $imageContents = $storage->get($path);
-
-        if (! is_string($imageContents)) {
-            throw new \RuntimeException('Unable to read image file');
-        }
-
-        $imageManager = $this->imageManager();
-        $image = $imageManager->read($imageContents);
-        $width = $image->width();
-        $height = $image->height();
-
-        $baseDir = sprintf('posts/%d', $postId);
-        $baseName = pathinfo($path, PATHINFO_FILENAME);
-
-        // Optimize: Convert to WebP with quality 85
-        $optimizedPath = null;
-        try {
-            $optimized = $image->toWebp(85);
-            $optimizedPath = sprintf('%s/%s-optimized.webp', $baseDir, $baseName);
-            $storage->put($optimizedPath, $optimized->toString(), ['visibility' => 'public']);
-        } catch (Throwable $e) {
-            // If WebP conversion fails, keep original
-            $optimizedPath = null;
-        }
-
-        // Generate thumbnail (medium size for now)
-        $thumbnailPath = null;
-        try {
-            $thumbnail = $image->scaleDown(self::THUMBNAIL_SIZES['medium']);
-            $thumbnailPath = sprintf('%s/%s-thumb-%d.webp', $baseDir, $baseName, self::THUMBNAIL_SIZES['medium']);
-            $storage->put($thumbnailPath, $thumbnail->toWebp(80)->toString(), ['visibility' => 'public']);
-        } catch (Throwable $e) {
-            // Thumbnail generation is optional
-        }
-
-        // Generate blurred placeholder
-        $blurPath = null;
-        try {
-            $blurred = $image
-                ->scaleDown(self::BLUR_SIZE)
-                ->blur(self::BLUR_SIZE);
-            $blurPath = sprintf('%s/%s-blur.webp', $baseDir, $baseName);
-            $storage->put($blurPath, $blurred->toWebp(60)->toString(), ['visibility' => 'public']);
-        } catch (Throwable $e) {
-            // Blur generation is optional
-        }
-
-        return [
-            'optimized_path' => $optimizedPath,
-            'thumbnail_path' => $thumbnailPath,
-            'blur_path' => $blurPath,
-            'width' => $width,
-            'height' => $height,
-        ];
     }
 
     /**

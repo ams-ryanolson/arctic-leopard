@@ -4,8 +4,8 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import AppLayout from '@/layouts/app-layout';
+import { cn } from '@/lib/utils';
 import eventsRoutes from '@/routes/events';
-import { Head, router } from '@inertiajs/react';
 import {
     type Event,
     formatEventDateRange,
@@ -13,7 +13,7 @@ import {
     formatEventModality,
     formatEventType,
 } from '@/types/events';
-import { cn } from '@/lib/utils';
+import { Head, router } from '@inertiajs/react';
 
 type EventShowProps = {
     event: Event;
@@ -31,14 +31,17 @@ export default function EventShow({ event }: EventShowProps) {
     const breadcrumbs = [
         { title: 'Home', href: '/dashboard' },
         { title: 'Events', href: eventsRoutes.index().url },
-        { title: event.title, href: eventsRoutes.show({ event: event.slug }).url },
+        {
+            title: event.title,
+            href: eventsRoutes.show({ event: event.slug }).url,
+        },
     ];
 
     const requirements = Array.isArray(event.requirements)
         ? event.requirements.filter(Boolean)
         : event.requirements && typeof event.requirements === 'object'
-        ? Object.values(event.requirements).filter(Boolean)
-        : [];
+          ? Object.values(event.requirements).filter(Boolean)
+          : [];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -63,16 +66,16 @@ export default function EventShow({ event }: EventShowProps) {
 
                         <div className="absolute top-6 left-6 flex flex-wrap items-center gap-3">
                             <EventStatusBadge status={event.status} />
-                            <Badge className="rounded-full border-white/20 bg-white/10 text-xs uppercase tracking-[0.35em] text-white/80">
+                            <Badge className="rounded-full border-white/20 bg-white/10 text-xs tracking-[0.35em] text-white/80 uppercase">
                                 {formatEventModality(event.modality)}
                             </Badge>
-                            <Badge className="rounded-full border-white/20 bg-white/10 text-xs uppercase tracking-[0.35em] text-white/80">
+                            <Badge className="rounded-full border-white/20 bg-white/10 text-xs tracking-[0.35em] text-white/80 uppercase">
                                 {formatEventType(event.type)}
                             </Badge>
                         </div>
 
                         <div className="absolute bottom-6 left-6 space-y-2">
-                            <p className="text-xs uppercase tracking-[0.4em] text-white/60">
+                            <p className="text-xs tracking-[0.4em] text-white/60 uppercase">
                                 {formatEventDateRange(event)}
                             </p>
                             <h1 className="max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -116,21 +119,24 @@ export default function EventShow({ event }: EventShowProps) {
                             {event.manager && (
                                 <DetailBlock
                                     label="Event manager"
-                                    value={event.manager.display_name ?? event.manager.username}
+                                    value={
+                                        event.manager.display_name ??
+                                        event.manager.username
+                                    }
                                 />
                             )}
                         </div>
 
                         <div className="space-y-2">
                             <h2 className="text-lg font-semibold">Overview</h2>
-                            <p className="whitespace-pre-line text-sm leading-relaxed text-white/70">
+                            <p className="text-sm leading-relaxed whitespace-pre-line text-white/70">
                                 {event.description}
                             </p>
                         </div>
 
                         {requirements.length > 0 && (
                             <div className="space-y-3 rounded-2xl border border-white/10 bg-black/40 p-4">
-                                <h3 className="text-sm font-semibold uppercase tracking-[0.35em] text-white/60">
+                                <h3 className="text-sm font-semibold tracking-[0.35em] text-white/60 uppercase">
                                     Requirements & expectations
                                 </h3>
                                 <ul className="space-y-2 text-sm text-white/75">
@@ -146,7 +152,7 @@ export default function EventShow({ event }: EventShowProps) {
 
                         {event.media.length > 0 && (
                             <div className="space-y-3">
-                                <h3 className="text-sm font-semibold uppercase tracking-[0.35em] text-white/60">
+                                <h3 className="text-sm font-semibold tracking-[0.35em] text-white/60 uppercase">
                                     Media
                                 </h3>
                                 <div className="grid gap-3 md:grid-cols-2">
@@ -165,7 +171,11 @@ export default function EventShow({ event }: EventShowProps) {
                                         >
                                             {media.media_type === 'video' && (
                                                 <div className="flex h-full items-center justify-center text-sm text-white/70">
-                                                    Video • {media.meta?.duration_seconds ?? '—'}s
+                                                    Video •{' '}
+                                                    {media.meta
+                                                        ?.duration_seconds ??
+                                                        '—'}
+                                                    s
                                                 </div>
                                             )}
                                         </div>
@@ -190,7 +200,8 @@ export default function EventShow({ event }: EventShowProps) {
                                     {event.viewer_rsvp && (
                                         <p className="text-emerald-300">
                                             You’re marked as{' '}
-                                            {event.viewer_rsvp.status === 'going'
+                                            {event.viewer_rsvp.status ===
+                                            'going'
                                                 ? 'going'
                                                 : 'tentative'}
                                             {event.viewer_rsvp.guest_count
@@ -208,7 +219,9 @@ export default function EventShow({ event }: EventShowProps) {
                                 ) : (
                                     <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-xs text-white/70">
                                         RSVPs are closed
-                                        {event.is_past ? ' (event has ended).' : '.'}
+                                        {event.is_past
+                                            ? ' (event has ended).'
+                                            : '.'}
                                     </div>
                                 )}
                             </CardContent>
@@ -217,7 +230,7 @@ export default function EventShow({ event }: EventShowProps) {
                         {event.occurrences.length > 0 && (
                             <Card className="border-white/10 bg-white/5">
                                 <CardContent className="space-y-3 p-5">
-                                    <h3 className="text-sm font-semibold uppercase tracking-[0.35em] text-white/60">
+                                    <h3 className="text-sm font-semibold tracking-[0.35em] text-white/60 uppercase">
                                         Upcoming occurrences
                                     </h3>
                                     <div className="space-y-3">
@@ -229,8 +242,12 @@ export default function EventShow({ event }: EventShowProps) {
                                                 <p className="font-semibold text-white">
                                                     {occurrence.title}
                                                 </p>
-                                                <p>{formatEventDateRange(occurrence)}</p>
-                                                <p className="text-xs uppercase tracking-[0.3em] text-white/55">
+                                                <p>
+                                                    {formatEventDateRange(
+                                                        occurrence,
+                                                    )}
+                                                </p>
+                                                <p className="text-xs tracking-[0.3em] text-white/55 uppercase">
                                                     {occurrence.status}
                                                 </p>
                                             </div>
@@ -242,7 +259,7 @@ export default function EventShow({ event }: EventShowProps) {
 
                         <Card className="border-white/10 bg-white/5">
                             <CardContent className="space-y-3 p-5">
-                                <h3 className="text-sm font-semibold uppercase tracking-[0.35em] text-white/60">
+                                <h3 className="text-sm font-semibold tracking-[0.35em] text-white/60 uppercase">
                                     Tags
                                 </h3>
                                 <div className="flex flex-wrap gap-2">
@@ -250,7 +267,7 @@ export default function EventShow({ event }: EventShowProps) {
                                         event.tags.map((tag) => (
                                             <Badge
                                                 key={tag.id}
-                                                className="rounded-full border-white/15 bg-white/10 text-[0.65rem] uppercase tracking-[0.3em] text-white/70"
+                                                className="rounded-full border-white/15 bg-white/10 text-[0.65rem] tracking-[0.3em] text-white/70 uppercase"
                                             >
                                                 {tag.name}
                                             </Badge>
@@ -278,7 +295,7 @@ type DetailBlockProps = {
 function DetailBlock({ label, value }: DetailBlockProps) {
     return (
         <div className="rounded-2xl border border-white/10 bg-black/40 p-4">
-            <p className="text-xs uppercase tracking-[0.35em] text-white/60">
+            <p className="text-xs tracking-[0.35em] text-white/60 uppercase">
                 {label}
             </p>
             <p className="mt-2 text-sm text-white/80">{value}</p>
@@ -297,4 +314,3 @@ EventShow.Skeleton = function EventShowSkeleton() {
         </div>
     );
 };
-

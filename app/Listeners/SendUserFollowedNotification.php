@@ -14,8 +14,7 @@ class SendUserFollowedNotification
 
     public function __construct(
         private readonly ToastBus $toastBus,
-    ) {
-    }
+    ) {}
 
     public function handle(UserFollowAccepted $event): void
     {
@@ -114,4 +113,3 @@ class SendUserFollowedNotification
         return $user->name ?? 'Someone';
     }
 }
-

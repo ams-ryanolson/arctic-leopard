@@ -57,9 +57,9 @@ async function parseResponse<T>(response: Response): Promise<T> {
 
         const message =
             (typeof problem === 'object' &&
-                problem !== null &&
-                'message' in problem &&
-                typeof (problem as { message: unknown }).message === 'string'
+            problem !== null &&
+            'message' in problem &&
+            typeof (problem as { message: unknown }).message === 'string'
                 ? (problem as { message: string }).message
                 : undefined) ??
             (typeof problem === 'object' &&
@@ -169,4 +169,3 @@ export async function unlikeComment(
 
     return body.data;
 }
-

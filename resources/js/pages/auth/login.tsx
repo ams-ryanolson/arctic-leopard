@@ -18,7 +18,11 @@ interface LoginProps {
     canRegister: boolean;
 }
 
-export default function Login({ status, canResetPassword, canRegister }: LoginProps) {
+export default function Login({
+    status,
+    canResetPassword,
+    canRegister,
+}: LoginProps) {
     return (
         <AuthLayout
             title="Welcome back, creator"
@@ -28,7 +32,7 @@ export default function Login({ status, canResetPassword, canRegister }: LoginPr
 
             <div className="space-y-6">
                 {status && (
-                    <div className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-center text-xs font-medium uppercase tracking-[0.3em] text-emerald-200">
+                    <div className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-center text-xs font-medium tracking-[0.3em] text-emerald-200 uppercase">
                         {status}
                     </div>
                 )}
@@ -40,15 +44,22 @@ export default function Login({ status, canResetPassword, canRegister }: LoginPr
                             <ShieldCheck className="size-5" />
                         </div>
                         <div>
-                            <p className="text-sm font-semibold tracking-tight text-white">Safeguarded sessions</p>
+                            <p className="text-sm font-semibold tracking-tight text-white">
+                                Safeguarded sessions
+                            </p>
                             <p className="text-xs text-white/70">
-                                Encrypted login, consent-first moderation, and 2FA-ready security tuned for fetish creators.
+                                Encrypted login, consent-first moderation, and
+                                2FA-ready security tuned for fetish creators.
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <Form {...store.form()} resetOnSuccess={["password"]} className="space-y-6 text-left">
+                <Form
+                    {...store.form()}
+                    resetOnSuccess={['password']}
+                    className="space-y-6 text-left"
+                >
                     {({ processing, errors }) => (
                         <>
                             <div className="grid gap-5">
@@ -69,9 +80,15 @@ export default function Login({ status, canResetPassword, canRegister }: LoginPr
 
                                 <div className="grid gap-2">
                                     <div className="flex items-center">
-                                        <Label htmlFor="password">Password</Label>
+                                        <Label htmlFor="password">
+                                            Password
+                                        </Label>
                                         {canResetPassword && (
-                                            <TextLink href={request()} className="ml-auto text-sm" tabIndex={5}>
+                                            <TextLink
+                                                href={request()}
+                                                className="ml-auto text-sm"
+                                                tabIndex={5}
+                                            >
                                                 Forgot password?
                                             </TextLink>
                                         )}
@@ -89,8 +106,14 @@ export default function Login({ status, canResetPassword, canRegister }: LoginPr
                                 </div>
 
                                 <div className="flex items-center gap-3">
-                                    <Checkbox id="remember" name="remember" tabIndex={3} />
-                                    <Label htmlFor="remember">Remember me on this device</Label>
+                                    <Checkbox
+                                        id="remember"
+                                        name="remember"
+                                        tabIndex={3}
+                                    />
+                                    <Label htmlFor="remember">
+                                        Remember me on this device
+                                    </Label>
                                 </div>
                             </div>
 
@@ -108,7 +131,11 @@ export default function Login({ status, canResetPassword, canRegister }: LoginPr
                             {canRegister && (
                                 <div className="text-center text-sm text-white/65">
                                     New here?{' '}
-                                    <TextLink href={register()} tabIndex={6} className="text-white">
+                                    <TextLink
+                                        href={register()}
+                                        tabIndex={6}
+                                        className="text-white"
+                                    >
                                         Start your creator profile
                                     </TextLink>
                                 </div>

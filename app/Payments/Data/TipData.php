@@ -8,7 +8,7 @@ use InvalidArgumentException;
 final class TipData
 {
     /**
-     * @param array<string, mixed> $metadata
+     * @param  array<string, mixed>  $metadata
      */
     public function __construct(
         public readonly int $senderId,
@@ -24,7 +24,7 @@ final class TipData
     }
 
     /**
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      */
     public static function fromArray(array $attributes): self
     {
@@ -58,4 +58,3 @@ final class TipData
         ];
     }
 }
-

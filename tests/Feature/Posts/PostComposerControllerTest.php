@@ -79,5 +79,3 @@ test('a post can be shared to all joined circles from the composer', function ()
     expect($post->circles->first()->getKey())->toBe($circle->getKey());
     expect((bool) $post->circles->first()->pivot->is_primary)->toBeTrue();
 });
-
-

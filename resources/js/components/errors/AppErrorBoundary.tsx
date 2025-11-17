@@ -60,12 +60,3 @@ export default class AppErrorBoundary extends Component<
         return this.props.children;
     }
 }
-
-
-
-
-
-
-
-
-

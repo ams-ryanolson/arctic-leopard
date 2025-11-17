@@ -13,8 +13,7 @@ class TipService
 {
     public function __construct(
         protected readonly PaymentService $payments
-    ) {
-    }
+    ) {}
 
     /**
      * Initiate a tip by creating the database record and payment intent.
@@ -53,4 +52,3 @@ class TipService
         });
     }
 }
-

@@ -1,46 +1,50 @@
+import { AlertTriangle, CheckCircle2, Info, X, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import {
-    AlertTriangle,
-    CheckCircle2,
-    Info,
-    X,
-    XCircle,
-} from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
+import {
+    useToasts,
+    type ToastInstance,
+} from '@/components/toasts/toast-context';
 import { useToastAutoDismiss } from '@/components/toasts/toast-provider';
-import { useToasts, type ToastInstance } from '@/components/toasts/toast-context';
-import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import http from '@/lib/http';
+import { cn } from '@/lib/utils';
 import type { ToastAction } from '@/types/toasts';
 
 const themes = {
     info: {
-        wrapper: 'border-white/10 bg-gradient-to-br from-sky-900/80 via-indigo-900/60 to-slate-950/90 text-sky-50',
+        wrapper:
+            'border-white/10 bg-gradient-to-br from-sky-900/80 via-indigo-900/60 to-slate-950/90 text-sky-50',
         accent: 'from-sky-400/90 via-sky-500/70 to-indigo-500/70',
         iconColor: 'text-sky-100',
         icon: Info,
     },
     success: {
-        wrapper: 'border-emerald-400/25 bg-gradient-to-br from-emerald-950/85 via-emerald-900/60 to-slate-950/90 text-emerald-50',
+        wrapper:
+            'border-emerald-400/25 bg-gradient-to-br from-emerald-950/85 via-emerald-900/60 to-slate-950/90 text-emerald-50',
         accent: 'from-emerald-400/90 via-emerald-500/70 to-teal-500/70',
         iconColor: 'text-emerald-100',
         icon: CheckCircle2,
     },
     warning: {
-        wrapper: 'border-amber-400/30 bg-gradient-to-br from-amber-950/90 via-amber-900/60 to-stone-950/90 text-amber-50',
+        wrapper:
+            'border-amber-400/30 bg-gradient-to-br from-amber-950/90 via-amber-900/60 to-stone-950/90 text-amber-50',
         accent: 'from-amber-400/90 via-orange-500/70 to-rose-500/70',
         iconColor: 'text-amber-100',
         icon: AlertTriangle,
     },
     danger: {
-        wrapper: 'border-rose-400/30 bg-gradient-to-br from-rose-950/90 via-rose-900/60 to-stone-950/90 text-rose-50',
+        wrapper:
+            'border-rose-400/30 bg-gradient-to-br from-rose-950/90 via-rose-900/60 to-stone-950/90 text-rose-50',
         accent: 'from-rose-400/95 via-fuchsia-500/70 to-purple-500/70',
         iconColor: 'text-rose-100',
         icon: XCircle,
     },
-} satisfies Record<string, { wrapper: string; accent: string; iconColor: string; icon: typeof Info }>;
+} satisfies Record<
+    string,
+    { wrapper: string; accent: string; iconColor: string; icon: typeof Info }
+>;
 
 function ToastCard({
     toast,
@@ -51,12 +55,17 @@ function ToastCard({
     onAcknowledge: (toastId: string) => Promise<void>;
     onResolve: (toastId: string, action: ToastAction) => Promise<void>;
 }) {
-    const theme = useMemo(() => themes[toast.level] ?? themes.info, [toast.level]);
+    const theme = useMemo(
+        () => themes[toast.level] ?? themes.info,
+        [toast.level],
+    );
     const ThemeIcon = theme.icon;
 
     const isProcessing = toast.status === 'processing';
     const rawConversationMeta =
-        toast.meta?.conversation_id ?? toast.meta?.conversationId ?? toast.meta?.conversation;
+        toast.meta?.conversation_id ??
+        toast.meta?.conversationId ??
+        toast.meta?.conversation;
     const parsedConversationId =
         typeof rawConversationMeta === 'number'
             ? rawConversationMeta
@@ -64,7 +73,9 @@ function ToastCard({
               ? Number.parseInt(rawConversationMeta, 10)
               : null;
     const conversationId =
-        parsedConversationId !== null && Number.isFinite(parsedConversationId) ? parsedConversationId : null;
+        parsedConversationId !== null && Number.isFinite(parsedConversationId)
+            ? parsedConversationId
+            : null;
     const canQuickReply = conversationId !== null;
     const [replyOpen, setReplyOpen] = useState(false);
     const [replyBody, setReplyBody] = useState('');
@@ -110,9 +121,11 @@ function ToastCard({
                 typeof error === 'object' &&
                 error !== null &&
                 'response' in error &&
-                typeof (error as { response?: { data?: { message?: string } } }).response === 'object'
-                    ? (error as { response?: { data?: { message?: string } } }).response?.data?.message ??
-                      'Unable to send reply right now.'
+                typeof (error as { response?: { data?: { message?: string } } })
+                    .response === 'object'
+                    ? ((error as { response?: { data?: { message?: string } } })
+                          .response?.data?.message ??
+                      'Unable to send reply right now.')
                     : 'Unable to send reply right now.';
             setReplyError(message);
         }
@@ -121,8 +134,8 @@ function ToastCard({
     return (
         <div
             className={cn(
-                'pointer-events-auto relative w-full max-w-sm overflow-hidden rounded-2xl border bg-opacity-90 backdrop-blur-xl transition duration-200',
-                'animate-in slide-in-from-top-4 fade-in shadow-[0_40px_80px_-48px_rgba(0,0,0,0.85)]',
+                'bg-opacity-90 pointer-events-auto relative w-full max-w-sm overflow-hidden rounded-2xl border backdrop-blur-xl transition duration-200',
+                'animate-in shadow-[0_40px_80px_-48px_rgba(0,0,0,0.85)] fade-in slide-in-from-top-4',
                 isProcessing ? 'opacity-80' : 'opacity-100',
                 theme.wrapper,
             )}
@@ -144,7 +157,7 @@ function ToastCard({
             <button
                 type="button"
                 onClick={handleDismiss}
-                className="absolute right-3 top-3 rounded-full p-1 text-white/75 transition hover:bg-white/10 hover:text-white"
+                className="absolute top-3 right-3 rounded-full p-1 text-white/75 transition hover:bg-white/10 hover:text-white"
                 aria-label="Dismiss"
                 disabled={isProcessing}
             >
@@ -163,7 +176,9 @@ function ToastCard({
                     </div>
                     <div className="space-y-1">
                         {toast.title ? (
-                            <p className="text-sm font-semibold tracking-tight text-white">{toast.title}</p>
+                            <p className="text-sm font-semibold tracking-tight text-white">
+                                {toast.title}
+                            </p>
                         ) : null}
                         <p className="text-sm text-white/80">{toast.body}</p>
                     </div>
@@ -181,22 +196,28 @@ function ToastCard({
                             key={action.key}
                             variant="ghost"
                             className={cn(
-                                'rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] text-white/75 transition hover:border-white hover:bg-white/20 hover:text-white',
-                                action.key === toast.activeActionKey && isProcessing ? 'border-white/30 bg-white/20 text-white' : null,
+                                'rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold tracking-[0.25em] text-white/75 uppercase transition hover:border-white hover:bg-white/20 hover:text-white',
+                                action.key === toast.activeActionKey &&
+                                    isProcessing
+                                    ? 'border-white/30 bg-white/20 text-white'
+                                    : null,
                             )}
                             disabled={isProcessing}
                             onClick={() => {
                                 void onResolve(toast.id, action);
                             }}
                         >
-                            {toast.activeActionKey === action.key && isProcessing ? 'Working…' : action.label}
+                            {toast.activeActionKey === action.key &&
+                            isProcessing
+                                ? 'Working…'
+                                : action.label}
                         </Button>
                     ))}
 
                     {canQuickReply && !replyOpen ? (
                         <Button
                             variant="ghost"
-                            className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] text-white/75 transition hover:border-white hover:bg-white/20 hover:text-white"
+                            className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold tracking-[0.25em] text-white/75 uppercase transition hover:border-white hover:bg-white/20 hover:text-white"
                             disabled={isProcessing}
                             onClick={() => {
                                 setReplyError(null);
@@ -209,7 +230,7 @@ function ToastCard({
 
                     <Button
                         variant="ghost"
-                        className="ml-auto rounded-full border border-white/15 bg-white/10 px-4 text-xs font-semibold uppercase tracking-[0.25em] text-white/75 transition hover:border-white hover:bg-white/20 hover:text-white"
+                        className="ml-auto rounded-full border border-white/15 bg-white/10 px-4 text-xs font-semibold tracking-[0.25em] text-white/75 uppercase transition hover:border-white hover:bg-white/20 hover:text-white"
                         disabled={isProcessing}
                         onClick={handleDismiss}
                     >
@@ -226,16 +247,18 @@ function ToastCard({
                                 setReplyError(null);
                             }}
                             placeholder="Send a quick reply…"
-                            className="h-20 w-full resize-none rounded-2xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white/90 placeholder:text-white/40 focus:border-amber-400/40 focus:outline-none focus:ring-2 focus:ring-amber-400/30"
+                            className="h-20 w-full resize-none rounded-2xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white/90 placeholder:text-white/40 focus:border-amber-400/40 focus:ring-2 focus:ring-amber-400/30 focus:outline-none"
                         />
                         {replyError ? (
-                            <div className="rounded-xl border border-rose-400/40 bg-rose-500/10 px-3 py-2 text-xs text-rose-100/90">{replyError}</div>
+                            <div className="rounded-xl border border-rose-400/40 bg-rose-500/10 px-3 py-2 text-xs text-rose-100/90">
+                                {replyError}
+                            </div>
                         ) : null}
                         <div className="flex items-center justify-end gap-2">
                             <Button
                                 type="button"
                                 variant="ghost"
-                                className="rounded-full border border-white/15 bg-white/10 px-4 text-xs uppercase tracking-[0.25em] text-white/70 transition hover:border-white/30 hover:bg-white/20 hover:text-white"
+                                className="rounded-full border border-white/15 bg-white/10 px-4 text-xs tracking-[0.25em] text-white/70 uppercase transition hover:border-white/30 hover:bg-white/20 hover:text-white"
                                 onClick={() => {
                                     setReplyOpen(false);
                                     setReplyBody('');
@@ -247,7 +270,7 @@ function ToastCard({
                             </Button>
                             <Button
                                 type="button"
-                                className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-5 text-xs font-semibold uppercase tracking-[0.3em] text-white shadow-[0_20px_45px_-18px_rgba(249,115,22,0.55)] transition hover:from-amber-400/90 hover:via-rose-500/90 hover:to-violet-600/90 disabled:cursor-not-allowed disabled:opacity-60"
+                                className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-5 text-xs font-semibold tracking-[0.3em] text-white uppercase shadow-[0_20px_45px_-18px_rgba(249,115,22,0.55)] transition hover:from-amber-400/90 hover:via-rose-500/90 hover:to-violet-600/90 disabled:cursor-not-allowed disabled:opacity-60"
                                 disabled={isReplying || replyBody.trim() === ''}
                                 onClick={() => {
                                     void handleQuickReply();
@@ -272,7 +295,6 @@ export default function ToastViewport(): JSX.Element | null {
             return;
         }
 
-         
         setMounted(true);
 
         return () => {
@@ -297,12 +319,22 @@ export default function ToastViewport(): JSX.Element | null {
                         toast={toast}
                         onAcknowledge={(id) =>
                             acknowledge(id).catch((error) => {
-                                console.error('Failed to dismiss toast.', error);
+                                console.error(
+                                    'Failed to dismiss toast.',
+                                    error,
+                                );
                             })
                         }
                         onResolve={(id, action) =>
-                            resolveAction(id, action.key, action.payload ?? {}).catch((error) => {
-                                console.error('Failed to resolve toast action.', error);
+                            resolveAction(
+                                id,
+                                action.key,
+                                action.payload ?? {},
+                            ).catch((error) => {
+                                console.error(
+                                    'Failed to resolve toast action.',
+                                    error,
+                                );
                             })
                         }
                     />
@@ -312,4 +344,3 @@ export default function ToastViewport(): JSX.Element | null {
         document.body,
     );
 }
-

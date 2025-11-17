@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Webhooks;
 
 use App\Enums\Payments\PaymentWebhookStatus;
 use App\Http\Controllers\Controller;
+use App\Jobs\Payments\ProcessPaymentWebhook;
 use App\Models\Payments\PaymentWebhook;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Jobs\Payments\ProcessPaymentWebhook;
 
 class PaymentWebhookController extends Controller
 {
@@ -31,4 +31,3 @@ class PaymentWebhookController extends Controller
         ], JsonResponse::HTTP_ACCEPTED);
     }
 }
-

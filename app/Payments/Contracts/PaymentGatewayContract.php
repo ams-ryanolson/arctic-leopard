@@ -24,14 +24,14 @@ interface PaymentGatewayContract
     /**
      * Confirm a previously created intent.
      *
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      */
     public function confirmIntent(string $providerIntentId, array $context = []): PaymentIntentResponse;
 
     /**
      * Cancel an intent that has not yet been captured.
      *
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      */
     public function cancelIntent(string $providerIntentId, array $context = []): PaymentIntentResponse;
 
@@ -45,4 +45,3 @@ interface PaymentGatewayContract
      */
     public function refundPayment(PaymentRefundData $data): PaymentRefundResponse;
 }
-

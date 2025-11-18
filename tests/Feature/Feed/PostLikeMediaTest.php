@@ -42,7 +42,7 @@ it('returns media attachments when liking and unliking a post', function (): voi
     expect($likedPayload)
         ->toBeArray()
         ->and($likedPayload['media'])->toBeArray()->toHaveCount(2)
-        ->and($likedPayload['media'][0])->toHaveKeys(['url', 'path', 'type', 'optimized_path', 'optimized_url'])
+        ->and($likedPayload['media'][0])->toHaveKeys(['url', 'path', 'type', 'optimized_path', 'optimized_url', 'blur_path', 'blur_url'])
         ->and($likedPayload['has_liked'])->toBeTrue();
 
     $unlikeResponse = $this->deleteJson("/api/posts/{$post->getKey()}/like");

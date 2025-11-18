@@ -26,6 +26,9 @@ class MessageAttachmentFactory extends Factory
             'type' => 'image',
             'disk' => $disk,
             'path' => sprintf('messages/%s/%s.%s', Str::random(8), Str::uuid(), $extension),
+            'original_path' => null,
+            'optimized_path' => null,
+            'blur_path' => null,
             'filename' => $this->faker->lexify('attachment-????').'.'.$extension,
             'mime_type' => 'image/'.$extension,
             'size' => $this->faker->numberBetween(10_000, 2_000_000),
@@ -39,6 +42,9 @@ class MessageAttachmentFactory extends Factory
                 'blurhash' => null,
             ],
             'transcode_job' => null,
+            'processing_status' => null,
+            'processing_meta' => null,
+            'processing_error' => null,
         ];
     }
 

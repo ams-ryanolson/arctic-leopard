@@ -39,6 +39,9 @@ class PostMediaResource extends JsonResource
         $optimizedUrl = $this->optimized_path
             ? $resolveUrl($this->optimized_path)
             : null;
+        $blurUrl = $this->blur_path
+            ? $resolveUrl($this->blur_path)
+            : null;
 
         return [
             'id' => $this->id,
@@ -49,6 +52,8 @@ class PostMediaResource extends JsonResource
             'thumbnail_url' => $thumbnailUrl,
             'optimized_path' => $this->optimized_path,
             'optimized_url' => $optimizedUrl,
+            'blur_path' => $this->blur_path,
+            'blur_url' => $blurUrl,
             'mime_type' => $this->mime_type,
             'type' => $this->mime_type,
             'position' => $this->position,

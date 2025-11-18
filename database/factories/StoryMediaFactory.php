@@ -22,14 +22,19 @@ class StoryMediaFactory extends Factory
             'story_id' => Story::factory(),
             'disk' => 'public',
             'path' => 'stories/'.$this->faker->uuid().'.jpg',
-            'blur_path' => null,
+            'original_path' => null,
+            'optimized_path' => null,
             'thumbnail_path' => null,
+            'blur_path' => null,
             'mime_type' => 'image/jpeg',
             'width' => $this->faker->numberBetween(400, 1920),
             'height' => $this->faker->numberBetween(600, 2560),
             'duration' => null,
             'size' => $this->faker->numberBetween(100000, 5000000),
             'meta' => [],
+            'processing_status' => 'completed',
+            'processing_meta' => null,
+            'processing_error' => null,
         ];
     }
 

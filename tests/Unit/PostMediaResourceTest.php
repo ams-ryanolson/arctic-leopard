@@ -76,6 +76,7 @@ it('includes all required fields including optimized fields', function () {
     Storage::disk('public')->put('uploads/example.jpg', 'content');
     Storage::disk('public')->put('uploads/example-thumb.jpg', 'thumbnail');
     Storage::disk('public')->put('uploads/example-optimized.webp', 'optimized');
+    Storage::disk('public')->put('uploads/example-blur.webp', 'blur');
 
     $media = PostMedia::factory()->make([
         'post_id' => null,
@@ -83,6 +84,7 @@ it('includes all required fields including optimized fields', function () {
         'path' => 'uploads/example.jpg',
         'thumbnail_path' => 'uploads/example-thumb.jpg',
         'optimized_path' => 'uploads/example-optimized.webp',
+        'blur_path' => 'uploads/example-blur.webp',
         'mime_type' => 'image/jpeg',
         'position' => 0,
         'width' => 1920,
@@ -102,6 +104,8 @@ it('includes all required fields including optimized fields', function () {
         'thumbnail_url',
         'optimized_path',
         'optimized_url',
+        'blur_path',
+        'blur_url',
         'mime_type',
         'type',
         'position',
@@ -112,4 +116,7 @@ it('includes all required fields including optimized fields', function () {
         'meta',
         'alt',
     ]);
+
+    expect($array['blur_url'])->toStartWith('http');
+    expect($array['blur_path'])->toBe('uploads/example-blur.webp');
 });

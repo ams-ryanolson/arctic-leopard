@@ -29,9 +29,12 @@ class EventMediaFactory extends Factory
             'path' => $mediaType === 'image'
                 ? 'events/'.$this->faker->uuid().'.jpg'
                 : 'events/'.$this->faker->uuid().'.mp4',
+            'original_path' => null,
+            'optimized_path' => null,
             'thumbnail_path' => $mediaType === 'video'
                 ? 'events/'.$this->faker->uuid().'_thumb.jpg'
                 : null,
+            'blur_path' => null,
             'media_type' => $mediaType,
             'title' => $this->faker->optional()->sentence(3),
             'caption' => $this->faker->optional()->sentence(),
@@ -39,6 +42,9 @@ class EventMediaFactory extends Factory
             'meta' => $mediaType === 'video'
                 ? ['duration_seconds' => $this->faker->numberBetween(30, 300)]
                 : ['dimensions' => '1920x1080'],
+            'processing_status' => null,
+            'processing_meta' => null,
+            'processing_error' => null,
         ];
     }
 

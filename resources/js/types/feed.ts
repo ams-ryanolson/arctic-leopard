@@ -5,6 +5,7 @@ export type FeedMedia = {
     alt: string | null;
     thumbnail_url: string | null;
     optimized_url: string | null;
+    blur_url: string | null;
 };
 
 export type FeedPollOption = {

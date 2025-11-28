@@ -143,13 +143,25 @@ class PaymentService
         });
     }
 
-    public function capture(PaymentIntent $intent, PaymentCaptureData $data, ?string $gateway = null): Payment
+    public function capture(PaymentIntent $intent, PaymentCaptureData $data, ?string $gateway = null, ?int $paymentMethodId = null): Payment
     {
         $gateway = $gateway ?? $intent->provider ?? $this->gateways->getDefaultDriver();
 
+        // If payment method ID is provided, add it to metadata for gateway use
+        if ($paymentMethodId !== null) {
+            $data = new PaymentCaptureData(
+                providerIntentId: $data->providerIntentId,
+                amount: $data->amount,
+                metadata: array_merge($data->metadata, [
+                    'payment_method_id' => $paymentMethodId,
+                ]),
+                statementDescriptor: $data->statementDescriptor
+            );
+        }
+
         $response = $this->gateways->driver($gateway)->capturePayment($data);
 
-        return DB::transaction(function () use ($intent, $response) {
+        return DB::transaction(function () use ($intent, $response, $paymentMethodId) {
             $payment = $intent->payment()->lockForUpdate()->firstOrFail();
 
             $payment->provider_payment_id = $response->providerPaymentId;
@@ -159,6 +171,12 @@ class PaymentService
             $payment->net_amount = $response->amount->amount();
             $payment->captured_at = Carbon::now();
             $payment->succeeded_at = Carbon::now();
+
+            // Associate payment method if provided
+            if ($paymentMethodId !== null) {
+                $payment->payment_method_id = $paymentMethodId;
+            }
+
             $payment->metadata = array_merge($payment->metadata ?? [], [
                 'capture' => $response->raw,
             ]);

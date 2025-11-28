@@ -166,4 +166,126 @@ class ProfilePolicy
     {
         return $user->hasRole(['Admin', 'Super Admin']);
     }
+
+    /**
+     * Determine if the user can suspend other users (admin operation).
+     */
+    public function suspend(User $user, User $model): bool
+    {
+        // Super Admin can suspend anyone except themselves
+        if ($user->hasRole('Super Admin')) {
+            return ! $user->is($model);
+        }
+
+        // Admin can suspend users but not themselves, other admins, or super admins
+        if ($user->hasRole('Admin')) {
+            if ($user->is($model)) {
+                return false;
+            }
+
+            if ($model->hasRole(['Admin', 'Super Admin'])) {
+                return false;
+            }
+
+            return $user->can('suspend users');
+        }
+
+        return false;
+    }
+
+    /**
+     * Determine if the user can unsuspend other users (admin operation).
+     */
+    public function unsuspend(User $user, User $model): bool
+    {
+        return $this->suspend($user, $model);
+    }
+
+    /**
+     * Determine if the user can warn other users (admin/moderator operation).
+     */
+    public function warn(User $user, User $model): bool
+    {
+        // Super Admin can warn anyone except themselves
+        if ($user->hasRole('Super Admin')) {
+            return ! $user->is($model);
+        }
+
+        // Admin or Moderator can warn users but not themselves, other admins, or super admins
+        if ($user->hasRole(['Admin', 'Moderator'])) {
+            if ($user->is($model)) {
+                return false;
+            }
+
+            if ($model->hasRole(['Admin', 'Super Admin'])) {
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Determine if the user can grant free memberships (admin operation).
+     */
+    public function grantFreeMembership(User $user, User $model): bool
+    {
+        // Super Admin can grant memberships to anyone except themselves
+        if ($user->hasRole('Super Admin')) {
+            return ! $user->is($model);
+        }
+
+        // Admin can grant memberships but not to themselves, other admins, or super admins
+        if ($user->hasRole('Admin')) {
+            if ($user->is($model)) {
+                return false;
+            }
+
+            if ($model->hasRole(['Admin', 'Super Admin'])) {
+                return false;
+            }
+
+            return $user->can('grant free memberships');
+        }
+
+        return false;
+    }
+
+    /**
+     * Determine if the user can view warnings for a user.
+     */
+    public function viewWarnings(User $user, User $model): bool
+    {
+        // Users can view their own warnings
+        if ($user->is($model)) {
+            return true;
+        }
+
+        // Admins and moderators can view any user's warnings
+        return $user->hasRole(['Admin', 'Super Admin', 'Moderator']);
+    }
+
+    /**
+     * Determine if the user can view appeals for a user.
+     */
+    public function viewAppeals(User $user, User $model): bool
+    {
+        // Users can view their own appeals
+        if ($user->is($model)) {
+            return true;
+        }
+
+        // Admins and moderators can view any user's appeals
+        return $user->hasRole(['Admin', 'Super Admin', 'Moderator']);
+    }
+
+    /**
+     * Determine if the user can review appeals.
+     */
+    public function reviewAppeals(User $user): bool
+    {
+        return $user->hasRole(['Admin', 'Super Admin', 'Moderator']);
+    }
 }

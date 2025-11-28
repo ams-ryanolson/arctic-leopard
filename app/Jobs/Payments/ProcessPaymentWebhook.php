@@ -4,6 +4,7 @@ namespace App\Jobs\Payments;
 
 use App\Enums\Payments\PaymentWebhookStatus;
 use App\Models\Payments\PaymentWebhook;
+use App\Services\Payments\CCBillWebhookProcessor;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -23,7 +24,24 @@ class ProcessPaymentWebhook implements ShouldQueue
 
     public function handle(): void
     {
-        // Placeholder for provider specific logic. For now, simply mark as processed.
+        // Route to provider-specific processor
+        match ($this->webhook->provider) {
+            'ccbill' => $this->handleCCBill(),
+            default => $this->handleDefault(),
+        };
+    }
+
+    protected function handleCCBill(): void
+    {
+        $config = config('payments.webhooks.providers.ccbill', []);
+
+        $processor = new CCBillWebhookProcessor($config);
+        $processor->process($this->webhook);
+    }
+
+    protected function handleDefault(): void
+    {
+        // Placeholder for other providers. For now, simply mark as processed.
         $this->webhook->forceFill([
             'status' => PaymentWebhookStatus::Processed,
             'processed_at' => now(),

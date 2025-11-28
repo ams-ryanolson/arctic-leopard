@@ -165,7 +165,7 @@ function IconToggle({
             onClick={onClick}
             disabled={disabled}
             className={cn(
-                'group flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium tracking-[0.25em] uppercase transition disabled:cursor-not-allowed disabled:opacity-60',
+                'group flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-medium tracking-[0.25em] uppercase transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-0 sm:px-3 sm:py-1.5',
                 active
                     ? 'border-white/40 bg-white/15 text-white shadow-[0_14px_30px_-22px_rgba(249,115,22,0.8)]'
                     : 'hover:border-white/25 hover:bg-white/10 hover:text-white',
@@ -214,13 +214,13 @@ function ComposerIconButton({
             aria-label={label}
             aria-pressed={active}
             className={cn(
-                'flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/30 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-60',
+                'flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition active:scale-95 hover:border-white/30 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-60 sm:size-9',
                 active &&
                     'border-white/40 bg-white/20 text-white shadow-[0_14px_30px_-22px_rgba(249,115,22,0.8)]',
                 FOCUS_RING,
             )}
         >
-            <Icon className="size-4" />
+            <Icon className="size-3.5 sm:size-4" />
         </button>
     );
 }
@@ -313,12 +313,12 @@ function ComposerAvatar(): JSX.Element {
     }, [user?.display_name, user?.name, user?.username]);
 
     return (
-        <Avatar className="flex size-12 shrink-0 border border-white/10 bg-white/10">
+        <Avatar className="flex size-9 shrink-0 border border-white/10 bg-white/10 sm:size-12">
             <AvatarImage
                 src={user?.avatar_url ?? undefined}
                 alt={user?.display_name ?? user?.username ?? 'You'}
             />
-            <AvatarFallback className="bg-white/10 text-sm font-semibold text-white/80">
+            <AvatarFallback className="bg-white/10 text-[0.625rem] font-semibold text-white/80 sm:text-sm">
                 {initials}
             </AvatarFallback>
         </Avatar>
@@ -329,6 +329,9 @@ export default function FeedPostComposer({
     config,
     onSubmitted,
 }: FeedPostComposerProps) {
+    const { features } = usePage<SharedData>().props;
+    const circlesEnabled = features?.feature_circles_enabled ?? false;
+    
     const defaultTypeValue = useMemo(
         () => config.post_types[0]?.value ?? 'text',
         [config.post_types],
@@ -384,6 +387,8 @@ export default function FeedPostComposer({
     const [previousAudience, setPreviousAudience] = useState(defaultAudience);
     const [mediaTrayOpen, setMediaTrayOpen] = useState(false);
     const [pollTrayOpen, setPollTrayOpen] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [hasTyped, setHasTyped] = useState(false);
 
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
     const overlayRef = useRef<HTMLDivElement | null>(null);
@@ -445,6 +450,8 @@ export default function FeedPostComposer({
             return;
         }
 
+        setIsExpanded(true);
+
         if (mediaTrayOpen && uploaderItems.length === 0) {
             setMediaTrayOpen(false);
             return;
@@ -476,6 +483,8 @@ export default function FeedPostComposer({
         if (!config.can_post || form.processing) {
             return;
         }
+
+        setIsExpanded(true);
 
         if (pollActive) {
             setPollTrayOpen(false);
@@ -664,6 +673,12 @@ export default function FeedPostComposer({
     }, [currentMode, formData.type, setFormData]);
 
     useEffect(() => {
+        if (!circlesEnabled && formData.post_to_circles) {
+            setFormData('post_to_circles', false);
+        }
+    }, [circlesEnabled, formData.post_to_circles, setFormData]);
+
+    useEffect(() => {
         setFormData(
             'media',
             uploadedMedia
@@ -746,6 +761,7 @@ export default function FeedPostComposer({
     const handleBodyChange = useCallback(
         (value: string) => {
             setFormData('body', value);
+            setHasTyped(value.trim().length > 0);
 
             const extracted = extractHashtagsFromBody(value).slice(
                 0,
@@ -755,6 +771,31 @@ export default function FeedPostComposer({
         },
         [setFormData],
     );
+
+    const handleTextareaFocus = useCallback(() => {
+        setIsExpanded(true);
+    }, []);
+
+    const handleTextareaBlur = useCallback(() => {
+        // Only collapse if user hasn't typed anything and no media/poll is active
+        if (
+            !hasTyped &&
+            !mediaActive &&
+            !pollActive &&
+            !scheduleOpen &&
+            !tipGoalOpen &&
+            !paywallActive
+        ) {
+            setIsExpanded(false);
+        }
+    }, [
+        hasTyped,
+        mediaActive,
+        pollActive,
+        scheduleOpen,
+        tipGoalOpen,
+        paywallActive,
+    ]);
 
     const handlePinToggle = useCallback(() => {
         if (!config.can_post || form.processing) {
@@ -807,6 +848,8 @@ export default function FeedPostComposer({
         if (!payToViewAvailable || !config.can_post || form.processing) {
             return;
         }
+
+        setIsExpanded(true);
 
         if (paywallActive) {
             setFormData('audience', previousAudience);
@@ -862,6 +905,8 @@ export default function FeedPostComposer({
             return;
         }
 
+        setIsExpanded(true);
+
         setScheduleOpen((open) => {
             if (open) {
                 setFormData('scheduled_at', null);
@@ -875,6 +920,8 @@ export default function FeedPostComposer({
         if (!config.can_post || form.processing) {
             return;
         }
+
+        setIsExpanded(true);
 
         setTipGoalOpen((open) => {
             const nextOpen = !open;
@@ -990,7 +1037,7 @@ export default function FeedPostComposer({
 
         form.post(PostComposerController.url(), {
             preserveScroll: true,
-            onSuccess: () => {
+                onSuccess: () => {
                 resetUploader();
                 setPollDraft(createDefaultPoll());
                 setMediaTrayOpen(false);
@@ -1003,6 +1050,8 @@ export default function FeedPostComposer({
                 setTipGoalError(null);
                 setTipGoalCurrency('USD');
                 setPreviousAudience(defaultAudience);
+                setHasTyped(false);
+                setIsExpanded(false);
                 handleBodyChange('');
 
                 resetPaywall();
@@ -1100,15 +1149,37 @@ export default function FeedPostComposer({
         !tipGoalInvalid &&
         (!paywallError || !paywallActive);
 
+    // Keep expanded if there's content or active sections
+    const shouldStayExpanded =
+        hasTyped ||
+        mediaActive ||
+        pollActive ||
+        scheduleOpen ||
+        tipGoalOpen ||
+        paywallActive;
+
+    useEffect(() => {
+        if (shouldStayExpanded && !isExpanded) {
+            setIsExpanded(true);
+        }
+    }, [shouldStayExpanded, isExpanded]);
+
     return (
-        <Card className="border border-white/10 bg-white/5 text-sm text-white/80">
+        <Card className="border border-white/10 bg-white/5 text-sm text-white/80 !py-2">
             <form
                 action={PostComposerController.url()}
                 method="post"
                 noValidate
                 onSubmit={handleSubmit}
             >
-                <CardContent className="space-y-6">
+                <CardContent
+                    className={cn(
+                        'px-3 pt-3 sm:px-6 sm:py-2',
+                        isExpanded || shouldStayExpanded
+                            ? 'pb-3 space-y-3 sm:space-y-6'
+                            : 'pb-1 space-y-0 sm:space-y-6',
+                    )}
+                >
                     {!config.can_post && (
                         <Alert
                             variant="destructive"
@@ -1128,15 +1199,24 @@ export default function FeedPostComposer({
                         </Alert>
                     )}
 
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+                    <div className="flex gap-2.5 sm:gap-4 sm:items-start">
                         <ComposerAvatar />
-                        <div className="flex-1 space-y-3">
-                            <div className="space-y-3">
+                        <div
+                            className={cn(
+                                'flex-1 min-w-0',
+                                isExpanded || shouldStayExpanded
+                                    ? 'space-y-3'
+                                    : 'space-y-0',
+                            )}
+                        >
+                            <div className="space-y-2 sm:space-y-3">
                                 <div className="relative">
-                                    <div className="absolute inset-0 rounded-3xl border border-white/10 bg-black/30" />
+                                    <div className="absolute inset-0 rounded-2xl border border-white/10 bg-black/30 transition-all duration-300 sm:rounded-3xl" />
                                     <div
                                         ref={overlayRef}
-                                        className="pointer-events-none absolute inset-0 overflow-y-auto rounded-3xl px-5 py-4 text-base leading-relaxed text-white"
+                                        className={cn(
+                                            'pointer-events-none absolute inset-0 overflow-y-auto rounded-2xl px-3 py-2.5 text-sm leading-relaxed text-white transition-all duration-300 sm:rounded-3xl sm:px-5 sm:py-4 sm:text-base',
+                                        )}
                                     >
                                         <span
                                             dangerouslySetInnerHTML={{
@@ -1150,9 +1230,16 @@ export default function FeedPostComposer({
                                         onChange={(event) =>
                                             handleBodyChange(event.target.value)
                                         }
+                                        onFocus={handleTextareaFocus}
+                                        onBlur={handleTextareaBlur}
                                         onScroll={syncOverlayScroll}
                                         placeholder=""
-                                        className="relative z-10 min-h-[170px] w-full resize-none rounded-3xl border border-transparent bg-transparent px-5 py-4 text-base text-transparent caret-white focus:ring-2 focus:ring-rose-500/30 focus:outline-none disabled:opacity-60"
+                                        className={cn(
+                                            'relative z-10 w-full resize-none rounded-2xl border border-transparent bg-transparent px-3 py-2.5 text-sm text-transparent caret-white transition-all duration-300 focus:ring-2 focus:ring-rose-500/30 focus:outline-none disabled:opacity-60 sm:min-h-[170px] sm:rounded-3xl sm:px-5 sm:py-4 sm:text-base',
+                                            isExpanded
+                                                ? 'min-h-[100px]'
+                                                : 'min-h-[60px]',
+                                        )}
                                         maxLength={BODY_CHARACTER_LIMIT}
                                         disabled={
                                             !config.can_post || form.processing
@@ -1160,7 +1247,7 @@ export default function FeedPostComposer({
                                     />
                                     <div
                                         className={cn(
-                                            'pointer-events-none absolute right-5 bottom-4 text-[0.65rem]',
+                                            'pointer-events-none absolute right-2.5 bottom-2.5 text-[0.6rem] sm:right-5 sm:bottom-4 sm:text-[0.65rem]',
                                             bodyCounterClass,
                                         )}
                                         aria-live="polite"
@@ -1177,9 +1264,16 @@ export default function FeedPostComposer({
                                 )}
                             </div>
 
-                            <div className="mb-3 flex flex-col gap-2">
-                                <div className="flex flex-wrap items-center justify-between gap-3">
-                                    <div className="flex items-center gap-2">
+                            <div
+                                className={cn(
+                                    'mb-2 flex flex-col gap-2.5 overflow-hidden transition-all duration-300 sm:mb-3 sm:gap-3',
+                                    isExpanded
+                                        ? 'max-h-[500px] opacity-100'
+                                        : 'max-h-0 opacity-0 sm:max-h-[500px] sm:opacity-100',
+                                )}
+                            >
+                                <div className="flex flex-wrap items-center gap-1.5 sm:justify-between sm:gap-2">
+                                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                                         <ComposerIconButton
                                             icon={ImageIcon}
                                             label="Add media"
@@ -1225,13 +1319,15 @@ export default function FeedPostComposer({
                                             active={formData.is_pinned}
                                             disabled={toolbarDisabled}
                                         />
-                                        <ComposerIconButton
-                                            icon={Users}
-                                            label="Share to circles"
-                                            onClick={togglePostToCircles}
-                                            active={formData.post_to_circles}
-                                            disabled={toolbarDisabled}
-                                        />
+                                        {circlesEnabled && (
+                                            <ComposerIconButton
+                                                icon={Users}
+                                                label="Share to circles"
+                                                onClick={togglePostToCircles}
+                                                active={formData.post_to_circles}
+                                                disabled={toolbarDisabled}
+                                            />
+                                        )}
                                     </div>
                                     <select
                                         value={formData.audience}
@@ -1242,7 +1338,7 @@ export default function FeedPostComposer({
                                         }
                                         disabled={toolbarDisabled}
                                         aria-label="Select audience"
-                                        className="rounded-full border border-white/10 bg-black/40 px-4 py-2 text-sm text-white/80 focus:border-white/40 focus:ring-2 focus:ring-rose-500/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60 sm:min-w-[180px]"
+                                        className="h-9 w-full min-w-0 flex-1 rounded-full border border-white/10 bg-black/40 px-3 py-1.5 text-xs text-white/80 focus:border-white/40 focus:ring-2 focus:ring-rose-500/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60 sm:h-10 sm:w-auto sm:min-w-[180px] sm:flex-none sm:px-4 sm:py-2 sm:text-sm"
                                     >
                                         {audienceOptions.map(
                                             ({ value, label }) => (
@@ -1259,7 +1355,7 @@ export default function FeedPostComposer({
                             </div>
 
                             {scheduleOpen && (
-                                <div className="space-y-2 rounded-2xl border border-white/10 bg-white/5 p-5">
+                                <div className="space-y-2 rounded-xl border border-white/10 bg-white/5 p-4 sm:rounded-2xl sm:p-5">
                                     <Label className="text-xs tracking-[0.3em] text-white/45 uppercase">
                                         Schedule publish
                                     </Label>
@@ -1277,9 +1373,9 @@ export default function FeedPostComposer({
                                         disabled={
                                             !config.can_post || form.processing
                                         }
-                                        className="border-white/10 bg-white/5 text-white/90"
+                                        className="h-11 border-white/10 bg-white/5 text-sm text-white/90 sm:h-10"
                                     />
-                                    <span className="text-[0.65rem] text-white/55">
+                                    <span className="text-[0.65rem] leading-relaxed text-white/55">
                                         Leave blank to share immediately. Times
                                         use your local timezone.
                                     </span>
@@ -1287,12 +1383,12 @@ export default function FeedPostComposer({
                             )}
 
                             {paywallActive && (
-                                <div className="space-y-4 rounded-2xl border border-amber-400/40 bg-gradient-to-br from-amber-400/15 via-rose-500/10 to-violet-500/10 p-5">
+                                <div className="space-y-4 rounded-xl border border-amber-400/40 bg-gradient-to-br from-amber-400/15 via-rose-500/10 to-violet-500/10 p-4 sm:rounded-2xl sm:p-5">
                                     <p className="text-[0.65rem] tracking-[0.3em] text-amber-100/80 uppercase">
                                         Paywall
                                     </p>
-                                    <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-                                        <div className="space-y-1">
+                                    <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
+                                        <div className="space-y-2">
                                             <Label className="text-xs tracking-[0.25em] text-white/50 uppercase">
                                                 Price
                                             </Label>
@@ -1310,14 +1406,14 @@ export default function FeedPostComposer({
                                                     !config.can_post ||
                                                     form.processing
                                                 }
-                                                className="border-white/20 bg-black/30 text-white/90"
+                                                className="h-11 border-white/20 bg-black/30 text-sm text-white/90 sm:h-10"
                                             />
-                                            <span className="text-[0.65rem] text-white/60">
+                                            <span className="text-[0.65rem] leading-relaxed text-white/60">
                                                 Minimum $1.00. Unlocks grant
                                                 access instantly.
                                             </span>
                                         </div>
-                                        <div className="space-y-1">
+                                        <div className="space-y-2">
                                             <Label className="text-xs tracking-[0.25em] text-white/50 uppercase">
                                                 Currency
                                             </Label>
@@ -1346,7 +1442,7 @@ export default function FeedPostComposer({
                                                                 form.processing
                                                             }
                                                             className={cn(
-                                                                'rounded-full border px-3 py-1 text-xs transition disabled:cursor-not-allowed',
+                                                                'min-h-[44px] rounded-full border px-4 py-2 text-xs transition active:scale-95 disabled:cursor-not-allowed sm:min-h-0 sm:px-3 sm:py-1',
                                                                 FOCUS_RING,
                                                                 formData.paywall_currency ===
                                                                     currency
@@ -1383,9 +1479,9 @@ export default function FeedPostComposer({
                             )}
 
                             {tipGoalOpen && (
-                                <div className="space-y-4 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-5">
-                                    <div className="grid gap-3 sm:grid-cols-2">
-                                        <div className="space-y-1">
+                                <div className="space-y-4 rounded-xl border border-emerald-400/30 bg-emerald-500/10 p-4 sm:rounded-2xl sm:p-5">
+                                    <div className="grid gap-4 sm:grid-cols-2">
+                                        <div className="space-y-2">
                                             <Label className="text-xs tracking-[0.25em] text-white/55 uppercase">
                                                 Goal amount
                                             </Label>
@@ -1403,10 +1499,10 @@ export default function FeedPostComposer({
                                                     !config.can_post ||
                                                     form.processing
                                                 }
-                                                className="border-white/20 bg-black/30 text-white/90"
+                                                className="h-11 border-white/20 bg-black/30 text-sm text-white/90 sm:h-10"
                                             />
                                         </div>
-                                        <div className="space-y-1">
+                                        <div className="space-y-2">
                                             <Label className="text-xs tracking-[0.25em] text-white/55 uppercase">
                                                 Currency
                                             </Label>
@@ -1426,7 +1522,7 @@ export default function FeedPostComposer({
                                                                 form.processing
                                                             }
                                                             className={cn(
-                                                                'rounded-full border px-3 py-1 text-xs transition disabled:cursor-not-allowed',
+                                                                'min-h-[44px] rounded-full border px-4 py-2 text-xs transition active:scale-95 disabled:cursor-not-allowed sm:min-h-0 sm:px-3 sm:py-1',
                                                                 FOCUS_RING,
                                                                 tipGoalCurrency ===
                                                                     currency
@@ -1444,8 +1540,8 @@ export default function FeedPostComposer({
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="grid gap-3 sm:grid-cols-2">
-                                        <div className="space-y-1">
+                                    <div className="grid gap-4 sm:grid-cols-2">
+                                        <div className="space-y-2">
                                             <Label className="text-xs tracking-[0.25em] text-white/55 uppercase">
                                                 Goal headline
                                             </Label>
@@ -1462,10 +1558,10 @@ export default function FeedPostComposer({
                                                     !config.can_post ||
                                                     form.processing
                                                 }
-                                                className="border-white/20 bg-black/30 text-white/90"
+                                                className="h-11 border-white/20 bg-black/30 text-sm text-white/90 sm:h-10"
                                             />
                                         </div>
-                                        <div className="space-y-1">
+                                        <div className="space-y-2">
                                             <Label className="text-xs tracking-[0.25em] text-white/55 uppercase">
                                                 Deadline (optional)
                                             </Label>
@@ -1481,7 +1577,7 @@ export default function FeedPostComposer({
                                                     !config.can_post ||
                                                     form.processing
                                                 }
-                                                className="border-white/20 bg-black/30 text-white/90"
+                                                className="h-11 border-white/20 bg-black/30 text-sm text-white/90 sm:h-10"
                                             />
                                         </div>
                                     </div>
@@ -1494,7 +1590,7 @@ export default function FeedPostComposer({
                             )}
 
                             {mediaSectionVisible && (
-                                <div className="rounded-2xl border border-dashed border-white/15 bg-white/5 p-4">
+                                <div className="rounded-xl border border-dashed border-white/15 bg-white/5 p-3 sm:rounded-2xl sm:p-4">
                                     <div className="flex items-center justify-between gap-3 text-xs tracking-[0.3em] text-white/45 uppercase">
                                         <span>Media & teasers</span>
                                         <div className="flex items-center gap-2">
@@ -1506,7 +1602,7 @@ export default function FeedPostComposer({
                                                 type="button"
                                                 onClick={handleMediaTrayClose}
                                                 className={cn(
-                                                    'rounded-full bg-black/40 p-1 text-white/70 transition hover:bg-black/70',
+                                                    'flex size-10 items-center justify-center rounded-full bg-black/40 text-white/70 transition active:scale-95 hover:bg-black/70 sm:size-8 sm:p-1',
                                                     FOCUS_RING,
                                                 )}
                                                 aria-label="Remove media"
@@ -1543,9 +1639,9 @@ export default function FeedPostComposer({
                             )}
 
                             {pollSectionVisible && (
-                                <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-5">
+                                <div className="space-y-4 rounded-xl border border-white/10 bg-white/5 p-4 sm:rounded-2xl sm:p-5">
                                     <div className="space-y-2">
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex items-center justify-between gap-2">
                                             <Label className="text-xs tracking-[0.3em] text-white/50 uppercase">
                                                 Poll question
                                             </Label>
@@ -1553,7 +1649,7 @@ export default function FeedPostComposer({
                                                 type="button"
                                                 onClick={handlePollTrayClose}
                                                 className={cn(
-                                                    'rounded-full bg-black/30 px-3 py-1 text-xs text-white/70 transition hover:bg-black/50',
+                                                    'min-h-[44px] rounded-full bg-black/30 px-4 py-2 text-xs text-white/70 transition active:scale-95 hover:bg-black/50 sm:min-h-0 sm:px-3 sm:py-1',
                                                     FOCUS_RING,
                                                 )}
                                                 aria-label="Remove poll"
@@ -1576,11 +1672,12 @@ export default function FeedPostComposer({
                                                 !config.can_post ||
                                                 form.processing
                                             }
+                                            className="h-11 text-sm sm:h-10"
                                         />
                                     </div>
 
                                     <div className="space-y-3">
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                             <Label className="text-xs tracking-[0.25em] text-white/50 uppercase">
                                                 Options
                                             </Label>
@@ -1618,7 +1715,7 @@ export default function FeedPostComposer({
                                                     form.processing
                                                 }
                                                 className={cn(
-                                                    'flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs tracking-[0.3em] text-white/70 uppercase transition hover:border-white/30 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-60',
+                                                    'flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-xs tracking-[0.3em] text-white/70 uppercase transition active:scale-95 hover:border-white/30 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-0 sm:px-3 sm:py-1.5',
                                                     FOCUS_RING,
                                                 )}
                                             >
@@ -1665,6 +1762,7 @@ export default function FeedPostComposer({
                                                                 !config.can_post ||
                                                                 form.processing
                                                             }
+                                                            className="h-11 flex-1 text-sm sm:h-10"
                                                         />
                                                         <button
                                                             type="button"
@@ -1707,7 +1805,7 @@ export default function FeedPostComposer({
                                                                 form.processing
                                                             }
                                                             className={cn(
-                                                                'rounded-full border border-white/15 bg-black/40 p-1 text-white/70 transition hover:border-white/30 hover:bg-black/60 hover:text-white disabled:cursor-not-allowed disabled:opacity-60',
+                                                                'flex size-10 shrink-0 items-center justify-center rounded-full border border-white/15 bg-black/40 text-white/70 transition active:scale-95 hover:border-white/30 hover:bg-black/60 hover:text-white disabled:cursor-not-allowed disabled:opacity-60 sm:size-8 sm:p-1',
                                                                 FOCUS_RING,
                                                             )}
                                                             aria-label={`Remove option ${index + 1}`}
@@ -1782,13 +1880,13 @@ export default function FeedPostComposer({
                                                     !config.can_post ||
                                                     form.processing
                                                 }
-                                                className="w-full sm:w-32"
+                                                className="h-11 w-full text-sm sm:h-10 sm:w-32"
                                                 placeholder="Max choices"
                                             />
                                         )}
                                     </div>
 
-                                    <div className="space-y-1">
+                                    <div className="space-y-2">
                                         <Label className="text-xs tracking-[0.25em] text-white/50 uppercase">
                                             Closes at (optional)
                                         </Label>
@@ -1806,7 +1904,7 @@ export default function FeedPostComposer({
                                                 !config.can_post ||
                                                 form.processing
                                             }
-                                            className="sm:w-64"
+                                            className="h-11 w-full text-sm sm:h-10 sm:w-64"
                                         />
                                     </div>
 
@@ -1842,11 +1940,16 @@ export default function FeedPostComposer({
                     </div>
                 </CardContent>
 
-                <CardFooter className="flex justify-end border-t border-white/10 pt-4">
+                <CardFooter
+                    className={cn(
+                        'flex justify-end border-t border-white/10 p-3 pt-3 sm:p-6',
+                        !isExpanded && !shouldStayExpanded && 'hidden sm:flex',
+                    )}
+                >
                     <Button
                         type="submit"
                         disabled={!canSubmit}
-                        className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-6 text-sm font-semibold text-white shadow-[0_18px_40px_-12px_rgba(249,115,22,0.45)] transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60"
+                        className="h-10 w-full rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-5 text-sm font-semibold text-white shadow-[0_18px_40px_-12px_rgba(249,115,22,0.45)] transition active:scale-95 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60 sm:h-auto sm:w-auto sm:px-6"
                     >
                         {form.processing ? 'Publishing…' : 'Share update'}
                     </Button>

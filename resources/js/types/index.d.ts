@@ -74,6 +74,10 @@ export interface SharedData {
         unread_count: number;
     };
     features?: Record<string, boolean>;
+    support?: {
+        email?: string;
+        contact_url?: string;
+    };
     [key: string]: unknown;
 }
 

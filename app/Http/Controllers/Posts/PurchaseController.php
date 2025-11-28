@@ -27,7 +27,12 @@ class PurchaseController extends Controller
             [
                 'gateway' => $request->input('gateway'),
                 'method' => $request->input('method'),
-                'details' => $request->input('meta', []),
+                'payment_method_id' => $request->input('payment_method_id'),
+                'details' => array_merge($request->input('meta', []), [
+                    'payment_method_id' => $request->input('payment_method_id'),
+                    'payment_type' => 'one_time',
+                    'creator_id' => $post->user_id,
+                ]),
             ],
             $request->filled('expires_at') ? $request->date('expires_at') : null,
         );

@@ -2,6 +2,7 @@ import { index as bookmarkIndex } from '@/actions/App/Http/Controllers/Bookmarks
 import { show as circleFeedShow } from '@/actions/App/Http/Controllers/Feed/CircleFeedController';
 import { index as followingFeedIndex } from '@/actions/App/Http/Controllers/Feed/FollowingFeedController';
 import { index as userFeedIndex } from '@/actions/App/Http/Controllers/Feed/UserFeedController';
+import { posts as hashtagPosts } from '@/actions/App/Http/Controllers/Hashtags/HashtagController';
 import {
     destroy as bookmarkDestroyRoute,
     store as bookmarkStore,
@@ -219,6 +220,33 @@ export async function fetchCircleFeedPage(
     );
 
     const url = circleFeedShow.url(circle, {
+        query: resolvedQuery,
+    });
+
+    const response = await fetch(url, {
+        method: 'get',
+        headers: buildHeaders(),
+        credentials: 'include',
+        signal,
+    });
+
+    return parseResponse<PostCollectionPayload>(response);
+}
+
+export async function fetchHashtagPostsPage(
+    hashtag: string,
+    options: FetchFeedOptions = {},
+): Promise<PostCollectionPayload> {
+    const { page = 1, signal, query = {}, mergeQuery, pageName } = options;
+
+    const resolvedQuery = resolveQueryParameters(
+        page,
+        query,
+        mergeQuery,
+        pageName,
+    );
+
+    const url = hashtagPosts.url({ hashtag }, {
         query: resolvedQuery,
     });
 

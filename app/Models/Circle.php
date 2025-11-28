@@ -8,11 +8,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use Laravel\Scout\Searchable;
 
 class Circle extends Model
 {
     /** @use HasFactory<\Database\Factories\CircleFactory> */
     use HasFactory;
+
+    use Searchable;
 
     /**
      * @var list<string>
@@ -128,5 +131,28 @@ class Circle extends Model
         return $this->belongsToMany(Post::class, 'circle_post')
             ->withPivot('is_primary')
             ->withTimestamps();
+    }
+
+    /**
+     * Get the indexable data array for the model.
+     *
+     * @return array<string, mixed>
+     */
+    public function toSearchableArray(): array
+    {
+        return [
+            'name' => $this->name,
+            'tagline' => $this->tagline,
+            'description' => $this->description,
+            'slug' => $this->slug,
+        ];
+    }
+
+    /**
+     * Get the name of the index associated with the model.
+     */
+    public function searchableAs(): string
+    {
+        return 'circles';
     }
 }

@@ -156,8 +156,10 @@ export default function Dashboard() {
         null,
     );
 
-    const { timeline, composer, pulse, trending, sidebarAds, stories, viewer } =
+    const { timeline, composer, pulse, trending, sidebarAds, stories, viewer, features } =
         usePage<DashboardProps>().props;
+    
+    const adsEnabled = features?.feature_ads_enabled ?? false;
 
     const transformTimelinePayload = useCallback(
         (payload: TimelinePayload | PostCollectionPayload): TimelinePayload =>
@@ -287,10 +289,12 @@ export default function Dashboard() {
                 <Head title="Dashboard" />
 
                 <div className="space-y-8">
-                    <StoriesSection
-                        stories={stories}
-                        onStoryClick={(storyId) => setSelectedStoryId(storyId)}
-                    />
+                    {features?.feature_stories_enabled && (
+                        <StoriesSection
+                            stories={stories}
+                            onStoryClick={(storyId) => setSelectedStoryId(storyId)}
+                        />
+                    )}
 
                     <div className="flex flex-col gap-6 xl:flex-row">
                         <section className="min-w-0 flex-1 space-y-6">
@@ -382,7 +386,8 @@ export default function Dashboard() {
                                             // Render ad entries differently
                                             if (
                                                 entry.type === 'ad' &&
-                                                entry.ad
+                                                entry.ad &&
+                                                adsEnabled
                                             ) {
                                                 return (
                                                     <TimelineAd
@@ -522,25 +527,27 @@ export default function Dashboard() {
                                 <ScenePulseCard items={pulse} />
                             )}
 
-                            <Deferred data="sidebarAds" fallback={null}>
-                                {sidebarAds &&
-                                    sidebarAds.length > 0 &&
-                                    sidebarAds[0] && (
-                                        <SidebarAd
-                                            ad={sidebarAds[0]}
-                                            size={
-                                                sidebarAds[0].placement ===
-                                                'dashboard_sidebar_small'
-                                                    ? 'small'
-                                                    : sidebarAds[0]
-                                                            .placement ===
-                                                        'dashboard_sidebar_medium'
-                                                      ? 'medium'
-                                                      : 'large'
-                                            }
-                                        />
-                                    )}
-                            </Deferred>
+                            {adsEnabled && (
+                                <Deferred data="sidebarAds" fallback={null}>
+                                    {sidebarAds &&
+                                        sidebarAds.length > 0 &&
+                                        sidebarAds[0] && (
+                                            <SidebarAd
+                                                ad={sidebarAds[0]}
+                                                size={
+                                                    sidebarAds[0].placement ===
+                                                    'dashboard_sidebar_small'
+                                                        ? 'small'
+                                                        : sidebarAds[0]
+                                                                .placement ===
+                                                            'dashboard_sidebar_medium'
+                                                          ? 'medium'
+                                                          : 'large'
+                                                }
+                                            />
+                                        )}
+                                </Deferred>
+                            )}
 
                             <Card className="border-white/10 bg-white/5 text-white">
                                 <CardHeader>
@@ -625,25 +632,27 @@ export default function Dashboard() {
                                 </CardContent>
                             </Card>
 
-                            <Deferred data="sidebarAds" fallback={null}>
-                                {sidebarAds &&
-                                    sidebarAds.length > 1 &&
-                                    sidebarAds[1] && (
-                                        <SidebarAd
-                                            ad={sidebarAds[1]}
-                                            size={
-                                                sidebarAds[1].placement ===
-                                                'dashboard_sidebar_small'
-                                                    ? 'small'
-                                                    : sidebarAds[1]
-                                                            .placement ===
-                                                        'dashboard_sidebar_medium'
-                                                      ? 'medium'
-                                                      : 'large'
-                                            }
-                                        />
-                                    )}
-                            </Deferred>
+                            {adsEnabled && (
+                                <Deferred data="sidebarAds" fallback={null}>
+                                    {sidebarAds &&
+                                        sidebarAds.length > 1 &&
+                                        sidebarAds[1] && (
+                                            <SidebarAd
+                                                ad={sidebarAds[1]}
+                                                size={
+                                                    sidebarAds[1].placement ===
+                                                    'dashboard_sidebar_small'
+                                                        ? 'small'
+                                                        : sidebarAds[1]
+                                                                .placement ===
+                                                            'dashboard_sidebar_medium'
+                                                          ? 'medium'
+                                                          : 'large'
+                                                }
+                                            />
+                                        )}
+                                </Deferred>
+                            )}
                         </aside>
                     </div>
                 </div>
@@ -656,7 +665,7 @@ export default function Dashboard() {
             />
 
             {/* Story Viewer Modal */}
-            {selectedStoryId && (
+            {features?.feature_stories_enabled && selectedStoryId && (
                 <StoryViewer
                     storyId={selectedStoryId}
                     onClose={() => {

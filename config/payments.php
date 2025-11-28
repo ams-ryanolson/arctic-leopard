@@ -64,6 +64,27 @@ return [
                 'client_secret' => env('PAYMENTS_FAKE_CLIENT_SECRET'),
             ],
         ],
+        'ccbill' => [
+            'driver' => \App\Payments\Gateways\CCBill\CCBillGateway::class,
+            'options' => [
+                'frontend_app_id' => env('CCBILL_FRONTEND_APP_ID'),
+                'frontend_secret' => env('CCBILL_FRONTEND_SECRET'),
+                'backend_app_id' => env('CCBILL_BACKEND_APP_ID'),
+                'backend_secret' => env('CCBILL_BACKEND_SECRET'),
+                'api_base_url' => env('CCBILL_API_BASE_URL', 'https://api.ccbill.com'),
+                'low_risk_non_recurring' => [
+                    'client_accnum' => env('CCBILL_LOW_RISK_NON_RECURRING_ACCNUM'),
+                    'client_subacc' => env('CCBILL_LOW_RISK_NON_RECURRING_SUBACC'),
+                ],
+                'high_risk_non_recurring' => [
+                    'client_accnum' => env('CCBILL_HIGH_RISK_NON_RECURRING_ACCNUM'),
+                    'client_subacc' => env('CCBILL_HIGH_RISK_NON_RECURRING_SUBACC'),
+                ],
+                'oauth_cache_ttl' => env('CCBILL_OAUTH_CACHE_TTL', 3600),
+                'http_timeout' => env('CCBILL_HTTP_TIMEOUT', 10),
+                'retry_attempts' => env('CCBILL_RETRY_ATTEMPTS', 3),
+            ],
+        ],
     ],
 
     /*
@@ -81,6 +102,10 @@ return [
         'providers' => [
             'fake' => [
                 'secret' => env('PAYMENTS_FAKE_WEBHOOK_SECRET'),
+            ],
+            'ccbill' => [
+                'secret' => env('CCBILL_WEBHOOK_SECRET'),
+                'verify_signature' => env('CCBILL_VERIFY_WEBHOOK_SIGNATURE', true),
             ],
         ],
         'replay_window' => (int) env('PAYMENTS_WEBHOOK_REPLAY_WINDOW', 300),

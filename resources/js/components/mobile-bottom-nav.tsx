@@ -24,8 +24,9 @@ interface NavItem {
 export function MobileBottomNav() {
     const isMobile = useIsMobile();
     const page = usePage<SharedData>();
-    const { notifications, messaging } = page.props;
+    const { notifications, messaging, features } = page.props;
     const { setOpenMobile } = useSidebar();
+    const circlesEnabled = features?.feature_circles_enabled ?? false;
 
     const unreadNotifications =
         (typeof notifications === 'object' &&
@@ -50,11 +51,15 @@ export function MobileBottomNav() {
             href: dashboard(),
             icon: Flame,
         },
-        {
-            title: 'Circles',
-            href: '/circles',
-            icon: Users,
-        },
+        ...(circlesEnabled
+            ? [
+                  {
+                      title: 'Circles',
+                      href: '/circles',
+                      icon: Users,
+                  },
+              ]
+            : []),
         {
             title: 'Radar',
             href: radar(),

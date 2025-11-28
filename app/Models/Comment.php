@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Enums\ModerationStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Overtrue\LaravelLike\Traits\Likeable;
 
@@ -31,6 +34,11 @@ class Comment extends Model
         'replies_count',
         'edited_at',
         'extra_attributes',
+        'moderation_status',
+        'moderated_at',
+        'moderated_by_id',
+        'moderation_notes',
+        'rejection_reason',
     ];
 
     /**
@@ -46,6 +54,8 @@ class Comment extends Model
             'edited_at' => 'datetime',
             'deleted_at' => 'datetime',
             'extra_attributes' => 'array',
+            'moderation_status' => ModerationStatus::class,
+            'moderated_at' => 'datetime',
         ];
     }
 
@@ -100,5 +110,118 @@ class Comment extends Model
             : $this->author;
 
         return $author instanceof User && $viewer->hasBlockRelationshipWith($author);
+    }
+
+    /**
+     * Admin who moderated this comment.
+     *
+     * @return BelongsTo<User, Comment>
+     */
+    public function moderatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'moderated_by_id');
+    }
+
+    /**
+     * Moderation queue entry for this comment.
+     *
+     * @return MorphOne<ContentModerationQueue>
+     */
+    public function moderationQueue(): MorphOne
+    {
+        return $this->morphOne(ContentModerationQueue::class, 'moderatable');
+    }
+
+    /**
+     * Check if the comment is pending moderation.
+     */
+    public function isPendingModeration(): bool
+    {
+        return $this->moderation_status === ModerationStatus::Pending;
+    }
+
+    /**
+     * Check if the comment is approved.
+     */
+    public function isApproved(): bool
+    {
+        return $this->moderation_status === ModerationStatus::Approved;
+    }
+
+    /**
+     * Check if the comment is rejected.
+     */
+    public function isRejected(): bool
+    {
+        return $this->moderation_status === ModerationStatus::Rejected;
+    }
+
+    /**
+     * Check if moderation is required (based on feature flag).
+     */
+    public function requiresModeration(): bool
+    {
+        return \App\Models\AdminSetting::get('content_moderation_required', false);
+    }
+
+    /**
+     * Approve the comment for moderation.
+     */
+    public function approveModeration(User $moderator, ?string $notes = null): void
+    {
+        $this->update([
+            'moderation_status' => ModerationStatus::Approved,
+            'moderated_at' => now(),
+            'moderated_by_id' => $moderator->getKey(),
+            'moderation_notes' => $notes,
+        ]);
+
+        $this->moderationQueue?->approve($moderator, $notes);
+    }
+
+    /**
+     * Reject the comment for moderation.
+     */
+    public function rejectModeration(User $moderator, string $reason, ?string $notes = null): void
+    {
+        $this->update([
+            'moderation_status' => ModerationStatus::Rejected,
+            'moderated_at' => now(),
+            'moderated_by_id' => $moderator->getKey(),
+            'rejection_reason' => $reason,
+            'moderation_notes' => $notes,
+        ]);
+
+        $this->moderationQueue?->reject($moderator, $reason, $notes);
+    }
+
+    /**
+     * Scope to comments pending moderation.
+     *
+     * @param  Builder<Comment>  $query
+     */
+    public function scopePendingModeration(Builder $query): void
+    {
+        $query->where('moderation_status', ModerationStatus::Pending);
+    }
+
+    /**
+     * Scope to approved comments.
+     *
+     * @param  Builder<Comment>  $query
+     */
+    public function scopeApproved(Builder $query): void
+    {
+        $query->where('moderation_status', ModerationStatus::Approved);
+    }
+
+    /**
+     * Scope to rejected comments.
+     *
+     * @param  Builder<Comment>  $query
+     */
+    public function scopeRejected(Builder $query): void
+    {
+        $query->where('moderation_status', ModerationStatus::Rejected);
     }
 }

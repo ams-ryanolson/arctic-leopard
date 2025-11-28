@@ -40,6 +40,7 @@ type MessageComposerProps = {
     onTyping?: () => void;
     isConversationBlocked?: boolean;
     blockedMessage?: string;
+    keyboardHeight?: number;
     viewer: {
         id: number;
         display_name?: string | null;
@@ -57,6 +58,7 @@ export default function MessageComposer({
     onTyping,
     isConversationBlocked = false,
     blockedMessage,
+    keyboardHeight = 0,
     viewer,
 }: MessageComposerProps) {
     const [uploads, setUploads] = useState<UploadPayload[]>([]);
@@ -71,6 +73,11 @@ export default function MessageComposer({
     const [videoBlob, setVideoBlob] = useState<Blob | null>(null);
     const [isUploadingAudio, setIsUploadingAudio] = useState(false);
     const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+    const [failedMessage, setFailedMessage] = useState<{
+        body: string;
+        attachments: UploadPayload[];
+        replyTo: MessagePreview | null;
+    } | null>(null);
 
     const photoUploaderRef = useRef<{ click: () => void } | null>(null);
     const videoUploaderRef = useRef<{ click: () => void } | null>(null);
@@ -492,6 +499,13 @@ export default function MessageComposer({
 
         setIsSending(true);
         setError(null);
+        setFailedMessage(null);
+
+        const messageData = {
+            body,
+            attachments: uploads,
+            replyTo: replyTo ?? null,
+        };
 
         try {
             const response = await http.post(
@@ -508,6 +522,7 @@ export default function MessageComposer({
             setBody('');
             setUploads([]);
             resetTypingState();
+            setFailedMessage(null);
 
             if (typeof onMessageSent === 'function' && payload) {
                 onMessageSent(payload as Record<string, unknown>);
@@ -515,27 +530,41 @@ export default function MessageComposer({
 
             onCancelReply?.();
         } catch (caught) {
-            const defaultMessage =
-                'We could not send your message right now. Please try again.';
+            setFailedMessage(messageData);
+
+            let errorMessage = 'We could not send your message right now. Please try again.';
 
             if (
                 typeof caught === 'object' &&
                 caught !== null &&
                 'response' in caught &&
                 typeof caught.response === 'object' &&
-                caught.response !== null &&
-                'data' in caught.response
+                caught.response !== null
             ) {
-                const responseData = (
-                    caught as { response?: { data?: { message?: string } } }
-                ).response?.data;
-                const message = responseData?.message ?? defaultMessage;
-                setError(message);
+                const response = caught.response as { status?: number; data?: { message?: string } };
+                
+                if (response.status === 403) {
+                    errorMessage = 'You do not have permission to send messages in this conversation.';
+                } else if (response.status === 404) {
+                    errorMessage = 'This conversation no longer exists.';
+                } else if (response.status === 422) {
+                    errorMessage = response.data?.message ?? 'Your message could not be sent. Please check your input and try again.';
+                } else if (response.status === 429) {
+                    errorMessage = 'You are sending messages too quickly. Please wait a moment and try again.';
+                } else if (response.status === 500) {
+                    errorMessage = 'A server error occurred. Please try again in a moment.';
+                } else if (response.data?.message) {
+                    errorMessage = response.data.message;
+                }
             } else if (caught instanceof Error) {
-                setError(caught.message ?? defaultMessage);
-            } else {
-                setError(defaultMessage);
+                if (caught.message.includes('Network') || caught.message.includes('fetch')) {
+                    errorMessage = 'Network error. Please check your connection and try again.';
+                } else {
+                    errorMessage = caught.message;
+                }
             }
+
+            setError(errorMessage);
         } finally {
             setIsSending(false);
         }
@@ -579,11 +608,16 @@ export default function MessageComposer({
         );
     }
 
+    const composerStyle = keyboardHeight > 0
+        ? { paddingBottom: `${keyboardHeight}px` }
+        : {};
+
     return (
         <>
             <form
                 onSubmit={handleSubmit}
-                className={cn('space-y-4', className)}
+                className={cn('space-y-4 pb-safe', className)}
+                style={composerStyle}
             >
                 <div className="rounded-3xl border border-white/15 bg-black/40 shadow-[0_20px_45px_-30px_rgba(255,255,255,0.45)]">
                     <div className="space-y-3 px-4 py-4 sm:px-5 sm:py-5">
@@ -654,9 +688,31 @@ export default function MessageComposer({
                         )}
 
                         {error && (
-                            <p className="rounded-2xl border border-rose-500/40 bg-rose-500/10 px-4 py-2 text-xs text-rose-200 sm:text-sm">
-                                {error}
-                            </p>
+                            <div className="flex items-center justify-between gap-3 rounded-2xl border border-rose-500/40 bg-rose-500/10 px-4 py-2">
+                                <p className="flex-1 text-xs text-rose-200 sm:text-sm">
+                                    {error}
+                                </p>
+                                {failedMessage && (
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-7 shrink-0 text-xs text-rose-200 hover:bg-rose-500/20 hover:text-rose-100"
+                                        onClick={() => {
+                                            setBody(failedMessage.body);
+                                            setUploads(failedMessage.attachments);
+                                            if (failedMessage.replyTo) {
+                                                // Note: We can't set replyTo directly, but the user can re-reply
+                                            }
+                                            setFailedMessage(null);
+                                            setError(null);
+                                            void submitMessage();
+                                        }}
+                                    >
+                                        Retry
+                                    </Button>
+                                )}
+                            </div>
                         )}
                     </div>
 
@@ -664,7 +720,7 @@ export default function MessageComposer({
                         <div className="flex items-center gap-2 sm:gap-3">
                             <button
                                 type="button"
-                                className="flex size-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:outline-none sm:size-10"
+                                className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:outline-none sm:size-10"
                                 aria-label="Attach photo"
                                 onClick={triggerPhotoUpload}
                             >
@@ -672,7 +728,7 @@ export default function MessageComposer({
                             </button>
                             <button
                                 type="button"
-                                className="flex size-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:outline-none sm:size-10"
+                                className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:outline-none sm:size-10"
                                 aria-label="Attach video file"
                                 onClick={triggerVideoUpload}
                             >
@@ -680,7 +736,7 @@ export default function MessageComposer({
                             </button>
                             <button
                                 type="button"
-                                className="flex size-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:outline-none sm:size-10"
+                                className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:outline-none sm:size-10"
                                 aria-label="Record video clip"
                                 onClick={handleVideoButtonClick}
                             >
@@ -688,7 +744,7 @@ export default function MessageComposer({
                             </button>
                             <button
                                 type="button"
-                                className="flex size-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:outline-none sm:size-10"
+                                className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:outline-none sm:size-10"
                                 aria-label="Send tip"
                                 onClick={() => setIsTipDialogOpen(true)}
                             >
@@ -696,7 +752,7 @@ export default function MessageComposer({
                             </button>
                             <button
                                 type="button"
-                                className="flex size-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:outline-none sm:size-10"
+                                className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:outline-none sm:size-10"
                                 aria-label="Record audio clip"
                                 onClick={handleAudioButtonClick}
                             >

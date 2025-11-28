@@ -11,6 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
+import { CheckoutSummary } from '@/components/payments/CheckoutSummary';
+import { PaymentMethodSelector } from '@/components/payments/PaymentMethodSelector';
 import AppLayout from '@/layouts/app-layout';
 import membershipsRoutes from '@/routes/memberships';
 import { Head, useForm } from '@inertiajs/react';
@@ -32,9 +34,15 @@ type MembershipPlan = {
 
 type CheckoutPageProps = {
     plan: MembershipPlan;
+    ccbill_client_accnum?: number;
+    ccbill_client_subacc?: number;
 };
 
-export default function MembershipCheckout({ plan }: CheckoutPageProps) {
+export default function MembershipCheckout({
+    plan,
+    ccbill_client_accnum,
+    ccbill_client_subacc,
+}: CheckoutPageProps) {
     const [billingType, setBillingType] = useState<'recurring' | 'one_time'>(
         'recurring',
     );
@@ -48,14 +56,16 @@ export default function MembershipCheckout({ plan }: CheckoutPageProps) {
         final_price: number;
     } | null>(null);
     const [applyingDiscount, setApplyingDiscount] = useState(false);
+    const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<number | null>(null);
 
     const { data, setData, post, processing, errors } = useForm({
         plan_id: plan.id,
         billing_type: 'recurring',
         billing_interval: 'monthly',
         discount_code: undefined as string | undefined,
-        gateway: 'fake',
+        gateway: ccbill_client_accnum && ccbill_client_subacc ? 'ccbill' : 'fake',
         method: 'card',
+        payment_method_id: null as number | null,
     });
 
     const formatPrice = (cents: number, currency: string = 'USD'): string => {
@@ -137,6 +147,7 @@ export default function MembershipCheckout({ plan }: CheckoutPageProps) {
             billing_type: billingType,
             billing_interval: billingInterval,
             discount_code: discountApplied?.code || undefined,
+            payment_method_id: selectedPaymentMethodId,
         });
 
         post(membershipsRoutes.purchase().url, {
@@ -416,6 +427,33 @@ export default function MembershipCheckout({ plan }: CheckoutPageProps) {
                                     )}
                                 </CardContent>
                             </Card>
+
+                            <Card className="border-white/10 bg-white/5">
+                                <CardHeader>
+                                    <CardTitle className="text-white">
+                                        Payment Method
+                                    </CardTitle>
+                                    <CardDescription className="text-white/60">
+                                        Select a saved card or add a new one
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    {ccbill_client_accnum && ccbill_client_subacc ? (
+                                        <PaymentMethodSelector
+                                            selectedId={selectedPaymentMethodId}
+                                            onSelect={setSelectedPaymentMethodId}
+                                            onAddNew={() => {
+                                                window.location.href = '/settings/payment-methods';
+                                            }}
+                                            showAddButton={true}
+                                        />
+                                    ) : (
+                                        <p className="text-sm text-white/60">
+                                            Payment method selection will be available after CCBill is configured.
+                                        </p>
+                                    )}
+                                </CardContent>
+                            </Card>
                         </div>
 
                         <div className="lg:col-span-1">
@@ -425,85 +463,51 @@ export default function MembershipCheckout({ plan }: CheckoutPageProps) {
                                         Order Summary
                                     </CardTitle>
                                 </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between text-sm">
-                                            <span className="text-white/70">
-                                                Plan
-                                            </span>
-                                            <span className="font-medium text-white">
-                                                {plan.name}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center justify-between text-sm">
-                                            <span className="text-white/70">
-                                                Billing
-                                            </span>
-                                            <span className="font-medium text-white">
+                                <CardContent>
+                                    <CheckoutSummary
+                                        items={[
+                                            {
+                                                label: plan.name,
+                                                amount: basePrice,
+                                                currency: plan.currency,
+                                            },
+                                        ]}
+                                        subtotal={basePrice}
+                                        discount={
+                                            discountApplied
+                                                ? {
+                                                      label: `Discount (${discountApplied.code})`,
+                                                      amount: discountAmount,
+                                                  }
+                                                : undefined
+                                        }
+                                        total={finalPrice}
+                                        currency={plan.currency}
+                                    />
+                                    <div className="mt-4 space-y-2 text-xs text-white/60">
+                                        <div className="flex items-center justify-between">
+                                            <span>Billing</span>
+                                            <span>
                                                 {billingType === 'recurring'
                                                     ? `${billingInterval === 'yearly' ? 'Yearly' : 'Monthly'} (Recurring)`
                                                     : 'One-Time'}
                                             </span>
                                         </div>
-                                    </div>
-
-                                    <Separator className="bg-white/10" />
-
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-white/70">
-                                                Subtotal
-                                            </span>
-                                            <span className="text-white">
-                                                {formatPrice(
-                                                    basePrice,
-                                                    plan.currency,
-                                                )}
-                                            </span>
-                                        </div>
-                                        {discountApplied && (
-                                            <div className="flex items-center justify-between text-sm">
-                                                <span className="text-emerald-400">
-                                                    Discount (
-                                                    {discountApplied.code})
-                                                </span>
-                                                <span className="text-emerald-400">
-                                                    -
-                                                    {formatPrice(
-                                                        discountAmount,
-                                                        plan.currency,
-                                                    )}
-                                                </span>
-                                            </div>
+                                        {billingType === 'recurring' && (
+                                            <p className="text-xs text-white/50">
+                                                {billingInterval === 'yearly'
+                                                    ? 'Billed annually. Cancel anytime.'
+                                                    : 'Billed monthly. Cancel anytime.'}
+                                            </p>
                                         )}
                                     </div>
-
-                                    <Separator className="bg-white/10" />
-
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-lg font-semibold text-white">
-                                            Total
-                                        </span>
-                                        <span className="text-2xl font-bold text-white">
-                                            {formatPrice(
-                                                finalPrice,
-                                                plan.currency,
-                                            )}
-                                        </span>
-                                    </div>
-
-                                    {billingType === 'recurring' && (
-                                        <p className="text-xs text-white/50">
-                                            {billingInterval === 'yearly'
-                                                ? 'Billed annually. Cancel anytime.'
-                                                : 'Billed monthly. Cancel anytime.'}
-                                        </p>
-                                    )}
-
                                     <Button
                                         type="submit"
-                                        className="w-full"
-                                        disabled={processing}
+                                        className="mt-6 w-full"
+                                        disabled={
+                                            processing ||
+                                            (!selectedPaymentMethodId && ccbill_client_accnum && ccbill_client_subacc)
+                                        }
                                         size="lg"
                                     >
                                         {processing ? (
@@ -517,7 +521,7 @@ export default function MembershipCheckout({ plan }: CheckoutPageProps) {
                                     </Button>
 
                                     {errors.plan_id && (
-                                        <p className="text-sm text-red-400">
+                                        <p className="mt-2 text-sm text-red-400">
                                             {errors.plan_id}
                                         </p>
                                     )}

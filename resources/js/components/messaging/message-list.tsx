@@ -51,6 +51,7 @@ export default function MessageList({
     return (
         <div
             className="min-h-0 flex-1 overflow-y-auto px-6 py-5"
+            style={{ willChange: 'transform' }}
             ref={scrollContainerRef}
             onScroll={onScroll}
         >
@@ -141,7 +142,7 @@ export default function MessageList({
                             );
 
                         return (
-                            <>
+                            <div key={message.id}>
                                 {shouldShowDateSeparator && (
                                     <DateSeparator
                                         key={`date-${message.id}`}
@@ -153,7 +154,6 @@ export default function MessageList({
                                     />
                                 )}
                                 <MessageItem
-                                    key={message.id}
                                     message={message}
                                     isOwnMessage={isOwnMessage}
                                     showAuthor={showAuthor}
@@ -171,7 +171,7 @@ export default function MessageList({
                                     onTipRequestAccept={onTipRequestAccept}
                                     onTipRequestDecline={onTipRequestDecline}
                                 />
-                            </>
+                            </div>
                         );
                     })}
                 </div>

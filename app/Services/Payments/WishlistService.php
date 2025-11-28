@@ -88,6 +88,21 @@ class WishlistService
             $successUrl = route('wishlist.purchase.success', ['purchase' => $purchase->getKey()]);
             $failureUrl = route('wishlist.purchase.failure', ['purchase' => $purchase->getKey()]);
 
+            $metadata = array_merge($data->metadata, [
+                'wishlist_item_id' => $item->getKey(),
+                'covers_fee' => $data->coversFee,
+                'fee_amount' => $feeAmount->amount(),
+                'success_url' => $successUrl,
+                'failure_url' => $failureUrl,
+                'payment_type' => 'one_time',
+                'creator_id' => $data->creatorId,
+            ]);
+
+            // Add payment_method_id if provided
+            if (isset($data->metadata['payment_method_id'])) {
+                $metadata['payment_method_id'] = $data->metadata['payment_method_id'];
+            }
+
             $intentData = new PaymentIntentData(
                 payableType: WishlistPurchase::class,
                 payableId: $purchase->getKey(),
@@ -96,13 +111,7 @@ class WishlistService
                 payeeId: $data->creatorId,
                 type: PaymentType::OneTime,
                 method: $data->method,
-                metadata: array_merge($data->metadata, [
-                    'wishlist_item_id' => $item->getKey(),
-                    'covers_fee' => $data->coversFee,
-                    'fee_amount' => $feeAmount->amount(),
-                    'success_url' => $successUrl,
-                    'failure_url' => $failureUrl,
-                ]),
+                metadata: $metadata,
                 description: $data->message ?? "Wishlist purchase: {$item->title}",
                 returnUrl: $successUrl
             );

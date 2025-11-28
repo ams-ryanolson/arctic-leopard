@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Events\Content\ContentApproved;
+use App\Events\Content\ContentDismissed;
+use App\Events\Content\ContentQueuedForModeration;
+use App\Events\Content\ContentRejected;
 use App\Events\Memberships\MembershipCancelled;
 use App\Events\Memberships\MembershipExpired;
 use App\Events\Memberships\MembershipPurchased;
@@ -29,9 +33,20 @@ use App\Events\PostPublished;
 use App\Events\UserBlocked;
 use App\Events\UserFollowAccepted;
 use App\Events\UserFollowRequested;
+use App\Events\Users\AppealReviewed;
+use App\Events\Users\AppealSubmitted;
+use App\Events\Users\FreeMembershipGranted;
+use App\Events\Users\UserBanned;
+use App\Events\Users\UserSuspended;
+use App\Events\Users\UserUnbanned;
+use App\Events\Users\UserUnsuspended;
+use App\Events\Users\UserWarned;
 use App\Events\UserUnblocked;
 use App\Events\Wishlists\WishlistPurchaseCompleted;
 use App\Listeners\Ads\ActivateAdOnPaymentCaptured;
+use App\Listeners\Content\HandleContentApproval;
+use App\Listeners\Content\HandleContentRejection;
+use App\Listeners\Content\LogContentModeration;
 use App\Listeners\DispatchUserFollowedEvent;
 use App\Listeners\FlushTimelinesOnBlock;
 use App\Listeners\LogTwoFactorDisabled;
@@ -71,6 +86,13 @@ use App\Listeners\SendPostBookmarkedNotification;
 use App\Listeners\SendPostLikedNotification;
 use App\Listeners\SendUserFollowedNotification;
 use App\Listeners\SendUserFollowRequestedNotification;
+use App\Listeners\Users\HandleAppealApproval;
+use App\Listeners\Users\LogAppealReviewed;
+use App\Listeners\Users\LogAppealSubmitted;
+use App\Listeners\Users\LogFreeMembershipGrant;
+use App\Listeners\Users\LogUserBan;
+use App\Listeners\Users\LogUserSuspension;
+use App\Listeners\Users\LogUserWarning;
 use App\Listeners\Wishlists\SendWishlistThankYouNotification;
 use App\Listeners\Wishlists\UpdateWishlistItemStatus;
 use Illuminate\Auth\Events\Login;
@@ -160,6 +182,7 @@ class EventServiceProvider extends ServiceProvider
             ActivateAdOnPaymentCaptured::class,
             CreateMembershipOnPaymentCaptured::class,
             LogPaymentActivity::class.'@handlePaymentCaptured',
+            \App\Listeners\Dashboard\InvalidateFinancialCache::class,
         ],
         PaymentFailed::class => [
             LogPaymentLifecycle::class,
@@ -174,6 +197,7 @@ class EventServiceProvider extends ServiceProvider
             RefundWishlistPurchaseOnPaymentRefunded::class,
             RefundPostPurchaseOnPaymentRefunded::class,
             LogPaymentActivity::class.'@handlePaymentRefunded',
+            \App\Listeners\Dashboard\InvalidateFinancialCache::class,
         ],
         PaymentCancelled::class => [
             LogPaymentLifecycle::class,
@@ -207,23 +231,88 @@ class EventServiceProvider extends ServiceProvider
         ],
         MembershipPurchased::class => [
             AssignRoleOnMembershipPurchased::class,
+            \App\Listeners\Dashboard\InvalidateFinancialCache::class,
         ],
         MembershipUpgraded::class => [
             UpdateRoleOnMembershipUpgraded::class,
             LogMembershipUpgrade::class,
+            \App\Listeners\Dashboard\InvalidateFinancialCache::class,
         ],
         MembershipRenewed::class => [
             ProcessRecurringRenewal::class,
+            \App\Listeners\Dashboard\InvalidateFinancialCache::class,
         ],
         MembershipExpired::class => [
             RemoveRoleOnMembershipExpired::class,
+            \App\Listeners\Dashboard\InvalidateFinancialCache::class,
         ],
         MembershipCancelled::class => [
-            // Can add listeners here if needed
+            \App\Listeners\Dashboard\InvalidateFinancialCache::class,
         ],
         WishlistPurchaseCompleted::class => [
             UpdateWishlistItemStatus::class,
             SendWishlistThankYouNotification::class,
+        ],
+        // User Management Events
+        UserSuspended::class => [
+            LogUserSuspension::class,
+            \App\Listeners\Dashboard\InvalidateStatsCache::class,
+            \App\Listeners\Dashboard\InvalidateActivityCache::class,
+        ],
+        UserUnsuspended::class => [
+            \App\Listeners\Dashboard\InvalidateStatsCache::class,
+            \App\Listeners\Dashboard\InvalidateActivityCache::class,
+        ],
+        UserBanned::class => [
+            LogUserBan::class,
+            \App\Listeners\Dashboard\InvalidateStatsCache::class,
+            \App\Listeners\Dashboard\InvalidateActivityCache::class,
+        ],
+        UserUnbanned::class => [
+            \App\Listeners\Dashboard\InvalidateStatsCache::class,
+            \App\Listeners\Dashboard\InvalidateActivityCache::class,
+        ],
+        UserWarned::class => [
+            LogUserWarning::class,
+            \App\Listeners\Dashboard\InvalidateStatsCache::class,
+            \App\Listeners\Dashboard\InvalidateActivityCache::class,
+        ],
+        FreeMembershipGranted::class => [
+            LogFreeMembershipGrant::class,
+            \App\Listeners\Dashboard\InvalidateFinancialCache::class,
+            \App\Listeners\Dashboard\InvalidateActivityCache::class,
+        ],
+        AppealSubmitted::class => [
+            LogAppealSubmitted::class,
+            \App\Listeners\Dashboard\InvalidateStatsCache::class,
+            \App\Listeners\Dashboard\InvalidateActivityCache::class,
+        ],
+        AppealReviewed::class => [
+            LogAppealReviewed::class,
+            HandleAppealApproval::class,
+            \App\Listeners\Dashboard\InvalidateStatsCache::class,
+            \App\Listeners\Dashboard\InvalidateActivityCache::class,
+        ],
+        // Content Moderation Events
+        ContentQueuedForModeration::class => [
+            LogContentModeration::class,
+            \App\Listeners\Dashboard\InvalidateStatsCache::class,
+            \App\Listeners\Dashboard\InvalidateActivityCache::class,
+        ],
+        ContentApproved::class => [
+            HandleContentApproval::class,
+            \App\Listeners\Dashboard\InvalidateStatsCache::class,
+            \App\Listeners\Dashboard\InvalidateActivityCache::class,
+        ],
+        ContentRejected::class => [
+            HandleContentRejection::class,
+            \App\Listeners\Dashboard\InvalidateStatsCache::class,
+            \App\Listeners\Dashboard\InvalidateActivityCache::class,
+        ],
+        ContentDismissed::class => [
+            \App\Listeners\Content\LogContentDismissed::class,
+            \App\Listeners\Dashboard\InvalidateStatsCache::class,
+            \App\Listeners\Dashboard\InvalidateActivityCache::class,
         ],
     ];
 }

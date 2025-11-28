@@ -66,6 +66,15 @@ class PostLockService
                 'metadata' => $meta['details'] ?? [],
             ]);
 
+            $metadata = array_merge($meta['details'] ?? [], [
+                'payment_type' => 'one_time',
+                'creator_id' => $post->user_id,
+            ]);
+
+            if (isset($meta['payment_method_id'])) {
+                $metadata['payment_method_id'] = $meta['payment_method_id'];
+            }
+
             $intent = $this->payments->createIntent(
                 new PaymentIntentData(
                     payableType: PostPurchase::class,
@@ -75,7 +84,7 @@ class PostLockService
                     payeeId: $post->user_id,
                     type: PaymentType::OneTime,
                     method: $meta['method'] ?? null,
-                    metadata: $meta['details'] ?? [],
+                    metadata: $metadata,
                     description: "Unlock post {$post->getKey()}"
                 ),
                 $meta['gateway'] ?? null

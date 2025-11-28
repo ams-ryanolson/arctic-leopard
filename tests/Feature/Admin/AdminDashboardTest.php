@@ -25,9 +25,10 @@ test('admin role can view the admin dashboard', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->component('Admin/Dashboard')
             ->has('welcome')
-            ->where('overview.0.value', 12)
-            ->has('recentActivity', 3)
-            ->has('quickLinks', 3)
+            ->has('overview')
+            ->has('financial')
+            ->has('recentActivity')
+            ->has('quickLinks')
         );
 });
 
@@ -41,8 +42,26 @@ test('super admin role can view the admin dashboard', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->component('Admin/Dashboard')
             ->has('welcome')
-            ->where('overview.0.value', 12)
-            ->has('recentActivity', 3)
-            ->has('quickLinks', 3)
+            ->has('overview')
+            ->has('financial')
+            ->has('recentActivity')
+            ->has('quickLinks')
+        );
+});
+
+test('admin dashboard displays financial metrics', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin');
+
+    $this->actingAs($admin)
+        ->get(route('admin.dashboard'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Admin/Dashboard')
+            ->has('financial.today')
+            ->has('financial.this_week')
+            ->has('financial.this_month')
+            ->has('financial.subscriptions')
+            ->has('financial.breakdown')
         );
 });

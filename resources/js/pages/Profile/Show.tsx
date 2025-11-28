@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import CoverGradient from '@/components/cover-gradient';
 import CommentThreadSheet from '@/components/feed/comment-thread-sheet';
+import { useLightbox } from '@/components/feed/lightbox-context';
 import FeedLoadingPlaceholder from '@/components/feed/feed-loading-placeholder';
 import TimelineEntryCard from '@/components/feed/timeline-entry-card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -23,7 +24,19 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useFeed } from '@/hooks/use-feed';
 import { useInitials } from '@/hooks/use-initials';
 import AppLayout from '@/layouts/app-layout';
@@ -31,7 +44,6 @@ import { getCsrfToken } from '@/lib/csrf';
 import { fetchProfileFeedPage } from '@/lib/feed-client';
 import { SubscribeDialog, TipDialog } from '@/pages/Profile/dialogs';
 import type {
-    Availability,
     SubscriptionTier,
     TipOption,
     WishlistItem,
@@ -42,13 +54,26 @@ import usersRoutes from '@/routes/users';
 import type { SharedData, User as SharedUser } from '@/types';
 import type {
     FeedFiltersGroup,
+    FeedMedia,
     FeedPost,
     PostCollectionPayload,
     TimelineEntry,
     TimelinePayload,
 } from '@/types/feed';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { AlertCircle, Ban, Loader2, Plane } from 'lucide-react';
+import {
+    AlertCircle,
+    Ban,
+    BookmarkCheck,
+    CheckCircle2,
+    Coins,
+    FileText,
+    Gift,
+    Loader2,
+    MessageCircle,
+    MoreVertical,
+    Plane,
+} from 'lucide-react';
 
 type ProfileUser = SharedUser & {
     display_name?: string | null;
@@ -56,6 +81,11 @@ type ProfileUser = SharedUser & {
     bio?: string | null;
     interests: string[];
     hashtags: string[];
+    circles?: Array<{
+        id: number;
+        name: string;
+        slug: string;
+    }>;
     badges?: string[];
     role?: string | null;
     can_follow?: boolean;
@@ -68,6 +98,18 @@ type ProfileUser = SharedUser & {
     location_region?: string | null;
     location_country?: string | null;
     location?: string | null;
+    is_creator?: boolean;
+    is_verified?: boolean;
+};
+
+type MediaItem = {
+    id: number;
+    url: string;
+    thumbnail_url?: string | null;
+    mime_type?: string | null;
+    is_video: boolean;
+    post_id: number;
+    post?: FeedPost | null;
 };
 
 type ProfileViewer = {
@@ -101,8 +143,8 @@ type ProfilePageProps = SharedData & {
     viewer: ProfileViewer;
     subscriptionTiers?: SubscriptionTier[];
     tipOptions?: TipOption[];
-    availability?: Availability;
     wishlist?: WishlistItem[];
+    recentMedia?: MediaItem[];
 };
 
 const defaultSubscriptionTiers: SubscriptionTier[] = [
@@ -133,12 +175,6 @@ const defaultTipOptions: TipOption[] = [
     { amount: '$35', label: 'Trigger the wax cascade' },
     { amount: '$80', label: 'Sponsor a suspension' },
 ];
-
-const defaultAvailability: Availability = {
-    status: 'Accepting IRL Collaborations',
-    window: 'West Coast · Jan - Mar 2026',
-    note: 'DM with references. Remote consults available weekly.',
-};
 
 const defaultWishlist: WishlistItem[] = [
     {
@@ -179,11 +215,12 @@ export default function ProfileShow() {
         viewer,
         subscriptionTiers: providedSubscriptionTiers,
         tipOptions: providedTipOptions,
-        availability: providedAvailability,
         wishlist: providedWishlist,
+        recentMedia = [],
         features: sharedFeatures,
     } = usePage<ProfilePageProps>().props;
     const features = (sharedFeatures ?? {}) as Record<string, boolean>;
+    const { openLightbox } = useLightbox();
     const getInitials = useInitials();
     const initials = getInitials(user.display_name ?? user.username ?? '');
     const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
@@ -215,7 +252,6 @@ export default function ProfileShow() {
         [user.location_city, user.location_region, user.location_country]
             .filter((value) => Boolean(value && value.trim()))
             .join(', ');
-    const availability = providedAvailability ?? defaultAvailability;
     const wishlist = providedWishlist?.length
         ? providedWishlist
         : defaultWishlist;
@@ -234,12 +270,53 @@ export default function ProfileShow() {
             followers: followersCount,
         };
 
-        return Object.entries(withFollowers).map(([key, value]) => ({
-            label: formatStatLabel(key),
-            value: Number.isFinite(value)
-                ? Number(value).toLocaleString()
-                : String(value),
-        }));
+        // Filter out followers, following, and subscribers - they'll be in the header
+        // Also exclude: likes, circles, events, stories, tips_sent
+        const excludedKeys = [
+            'followers',
+            'following',
+            'subscribers',
+            'likes',
+            'circles',
+            'events',
+            'stories',
+            'tips_sent',
+        ];
+        
+        // Filter out stats for disabled features
+        const signalsEnabled = features.feature_signals_enabled ?? false;
+        const wishlistEnabled = features.feature_wishlist_enabled ?? false;
+        
+        if (!signalsEnabled || !wishlistEnabled) {
+            excludedKeys.push('wishlist_items');
+        }
+        
+        const iconMap: Record<string, typeof FileText> = {
+            posts: FileText,
+            comments: MessageCircle,
+            bookmarks: BookmarkCheck,
+            wishlist_items: Gift,
+        };
+
+        return Object.entries(withFollowers)
+            .filter(([key]) => !excludedKeys.includes(key))
+            .map(([key, value]) => ({
+                key,
+                label: formatStatLabel(key),
+                value: Number.isFinite(value)
+                    ? Number(value).toLocaleString()
+                    : String(value),
+                icon: iconMap[key] ?? FileText,
+            }));
+    }, [stats, followersCount, features.feature_signals_enabled, features.feature_wishlist_enabled]);
+
+    // Extract social stats for header display
+    const socialStats = useMemo(() => {
+        return {
+            followers: followersCount,
+            following: stats.following ?? 0,
+            subscribers: stats.subscribers ?? 0,
+        };
     }, [stats, followersCount]);
     const requiresApproval = Boolean(user.requires_follow_approval);
     const canFollowProfile =
@@ -476,8 +553,8 @@ export default function ProfileShow() {
                 />
 
                 <div className="space-y-8">
-                    <section className="rounded-3xl border border-white/15 bg-black/30">
-                        <div className="relative h-48 w-full overflow-hidden rounded-t-3xl md:h-56">
+                    <section className="relative rounded-2xl border border-white/15 bg-black/30 sm:rounded-3xl">
+                        <div className="relative h-40 w-full overflow-hidden rounded-t-2xl sm:h-48 md:h-56 sm:rounded-t-3xl">
                             {user.cover_url ? (
                                 <div
                                     className="h-full w-full bg-cover bg-center"
@@ -489,11 +566,13 @@ export default function ProfileShow() {
                                 <CoverGradient className="h-full w-full" />
                             )}
                             <div className="pointer-events-none absolute inset-0 bg-black/20" />
+                            {/* Darken gradient at bottom for better text readability */}
+                            <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/80 via-black/40 to-transparent sm:h-32" />
                         </div>
-                        <div className="p-6 sm:p-8">
-                            <div className="-mt-14 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-                                <div className="flex items-end gap-4">
-                                    <div className="relative -mt-2 h-28 w-28 overflow-hidden rounded-3xl border-4 border-neutral-950 shadow-[0_18px_45px_-20px_rgba(249,115,22,0.5)]">
+                        <div className="relative z-10 p-4 sm:p-6 md:p-8">
+                            <div className="-mt-10 flex flex-col gap-4 sm:-mt-14 sm:gap-6 lg:flex-row lg:items-end lg:justify-between">
+                                <div className="flex items-start gap-3 sm:gap-4">
+                                    <div className="relative z-10 -mt-2 h-20 w-20 shrink-0 overflow-hidden rounded-2xl border-4 border-neutral-950 shadow-[0_18px_45px_-20px_rgba(249,115,22,0.5)] sm:h-28 sm:w-28 sm:rounded-3xl">
                                         {user.avatar_url ? (
                                             <img
                                                 src={user.avatar_url}
@@ -505,36 +584,80 @@ export default function ProfileShow() {
                                                 className="h-full w-full object-cover"
                                             />
                                         ) : (
-                                            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-amber-400/80 via-rose-500/80 to-violet-600/80 text-2xl font-semibold text-white">
+                                            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-amber-400/80 via-rose-500/80 to-violet-600/80 text-xl font-semibold text-white sm:text-2xl">
                                                 {initials}
                                             </div>
                                         )}
                                     </div>
-                                    <div className="space-y-1 pt-4 text-white">
-                                        <div className="flex flex-wrap items-center gap-2">
-                                            <h1 className="text-3xl leading-tight font-semibold sm:text-4xl">
-                                                {user.display_name ??
-                                                    user.username ??
-                                                    'Creator'}
-                                            </h1>
+                                    <div className="min-w-0 flex-1 space-y-1.5 text-white sm:space-y-2">
+                                        <h1 className="break-words text-2xl leading-tight font-semibold sm:truncate sm:text-3xl md:text-4xl">
+                                            {user.display_name ??
+                                                user.username ??
+                                                'Creator'}
+                                        </h1>
+                                        {user.username && (
+                                            <p className="truncate text-xs tracking-[0.3em] text-white/50 uppercase sm:text-sm sm:tracking-[0.4em]">
+                                                @{user.username}
+                                            </p>
+                                        )}
+                                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                                            {user.is_verified && (
+                                                <Badge className="flex items-center gap-0.5 rounded-full border border-blue-400/60 bg-blue-400/15 px-2 py-0.5 text-[0.6rem] tracking-[0.3em] text-blue-200 uppercase sm:gap-1 sm:px-3 sm:py-1 sm:text-[0.65rem] sm:tracking-[0.35em]">
+                                                    <CheckCircle2 className="size-2.5 sm:size-3" />
+                                                    Verified
+                                                </Badge>
+                                            )}
                                             {user.is_traveling ? (
-                                                <Badge className="flex items-center gap-1 rounded-full border border-emerald-400/60 bg-emerald-400/15 px-3 py-1 text-[0.65rem] tracking-[0.35em] text-emerald-200 uppercase">
-                                                    <Plane className="size-3" />
+                                                <Badge className="flex items-center gap-0.5 rounded-full border border-emerald-400/60 bg-emerald-400/15 px-2 py-0.5 text-[0.6rem] tracking-[0.3em] text-emerald-200 uppercase sm:gap-1 sm:px-3 sm:py-1 sm:text-[0.65rem] sm:tracking-[0.35em]">
+                                                    <Plane className="size-2.5 sm:size-3" />
                                                     Visiting
                                                 </Badge>
                                             ) : null}
                                         </div>
-                                        {user.username && (
-                                            <p className="text-sm tracking-[0.4em] text-white/50 uppercase">
-                                                @{user.username}
-                                            </p>
-                                        )}
+                                        {/* Social Stats */}
+                                        <div className="flex flex-wrap items-center gap-3 pt-0.5 text-xs sm:gap-4 sm:pt-1 sm:text-sm">
+                                            <Link
+                                                href={`/f/${user.username}/followers`}
+                                                className="flex items-center gap-1 text-white/70 transition hover:text-white sm:gap-1.5"
+                                            >
+                                                <span className="font-semibold text-white">
+                                                    {socialStats.followers.toLocaleString()}
+                                                </span>
+                                                <span className="text-[0.65rem] tracking-[0.15em] uppercase sm:text-xs sm:tracking-[0.2em]">
+                                                    Followers
+                                                </span>
+                                            </Link>
+                                            <Link
+                                                href={`/f/${user.username}/following`}
+                                                className="flex items-center gap-1 text-white/70 transition hover:text-white sm:gap-1.5"
+                                            >
+                                                <span className="font-semibold text-white">
+                                                    {socialStats.following.toLocaleString()}
+                                                </span>
+                                                <span className="text-[0.65rem] tracking-[0.15em] uppercase sm:text-xs sm:tracking-[0.2em]">
+                                                    Following
+                                                </span>
+                                            </Link>
+                                            {features.feature_signals_enabled && (
+                                                <button
+                                                    type="button"
+                                                    className="flex items-center gap-1 text-white/70 transition hover:text-white sm:gap-1.5"
+                                                >
+                                                    <span className="font-semibold text-white">
+                                                        {socialStats.subscribers.toLocaleString()}
+                                                    </span>
+                                                    <span className="text-[0.65rem] tracking-[0.15em] uppercase sm:text-xs sm:tracking-[0.2em]">
+                                                        Subscribers
+                                                    </span>
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="flex flex-col gap-2 text-sm text-white/70 lg:mb-5 lg:items-end lg:self-end">
-                                    <div className="flex flex-wrap items-center gap-2 text-xs tracking-[0.35em] text-white/55 uppercase">
+                                <div className="flex flex-col gap-1.5 text-xs text-white/70 sm:gap-2 sm:text-sm lg:mb-5 lg:items-end lg:self-end">
+                                    <div className="flex flex-wrap items-center gap-1.5 text-[0.65rem] tracking-[0.3em] text-white/55 uppercase sm:gap-2 sm:text-xs sm:tracking-[0.35em]">
                                         {locationLabel && (
-                                            <span>{locationLabel}</span>
+                                            <span className="truncate">{locationLabel}</span>
                                         )}
                                         {locationLabel && user.pronouns && (
                                             <span className="text-white/45">
@@ -542,15 +665,15 @@ export default function ProfileShow() {
                                             </span>
                                         )}
                                         {user.pronouns && (
-                                            <span>{user.pronouns}</span>
+                                            <span className="truncate">{user.pronouns}</span>
                                         )}
                                     </div>
                                     {topInterests.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 lg:justify-end">
+                                        <div className="flex flex-wrap gap-1.5 sm:gap-2 lg:justify-end">
                                             {topInterests.map((interest) => (
                                                 <Badge
                                                     key={interest}
-                                                    className="rounded-full border-white/20 bg-white/10 text-xs text-white/70"
+                                                    className="rounded-full border-white/20 bg-white/10 text-[0.65rem] text-white/70 sm:text-xs"
                                                 >
                                                     {interest}
                                                 </Badge>
@@ -559,21 +682,21 @@ export default function ProfileShow() {
                                     )}
                                 </div>
                             </div>
-                            <Separator className="my-6 border-white/10" />
-                            <div className="space-y-4 text-sm text-white/70">
+                            <Separator className="my-4 border-white/10 sm:my-6" />
+                            <div className="space-y-3 text-xs text-white/70 sm:space-y-4 sm:text-sm">
                                 <div
-                                    className="[&_br]:block [&_p:not(:first-child)]:mt-3 [&_s]:line-through [&_strong]:font-semibold [&_u]:underline"
+                                    className="[&_br]:block [&_p:not(:first-child)]:mt-2 [&_s]:line-through [&_strong]:font-semibold [&_u]:underline sm:[&_p:not(:first-child)]:mt-3"
                                     dangerouslySetInnerHTML={{
                                         __html: user.bio ?? '',
                                     }}
                                 />
                                 {user.hashtags.length > 0 && (
-                                    <div className="flex flex-wrap gap-2">
+                                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
                                         {user.hashtags.map((tag) => (
                                             <Badge
                                                 key={tag}
                                                 variant="secondary"
-                                                className="rounded-full border-white/20 bg-white/5 text-xs text-white/60"
+                                                className="rounded-full border-white/20 bg-white/5 text-[0.65rem] text-white/60 sm:text-xs"
                                             >
                                                 #{tag}
                                             </Badge>
@@ -581,105 +704,172 @@ export default function ProfileShow() {
                                     </div>
                                 )}
                             </div>
-                            <div className="mt-4 flex flex-wrap gap-2">
+                            <div className="mt-3 flex flex-wrap items-start gap-2 sm:mt-4 sm:items-center sm:gap-3">
+                                {/* Primary Action: Follow */}
                                 {canFollowProfile && (
-                                    <div className="flex flex-col gap-1">
+                                    <div className="flex flex-col gap-0.5 sm:gap-1">
                                         <Button
                                             type="button"
                                             variant={followButtonVariant}
-                                            className={followButtonClassName}
+                                            className={`${followButtonClassName} text-xs sm:text-sm`}
                                             onClick={handleFollowClick}
                                             disabled={followButtonDisabled}
                                         >
                                             {isFollowProcessing && (
-                                                <Loader2 className="mr-2 size-4 animate-spin" />
+                                                <Loader2 className="mr-1.5 size-3 animate-spin sm:mr-2 sm:size-4" />
                                             )}
                                             {followButtonLabel}
                                         </Button>
                                         {followError ? (
-                                            <span className="text-xs text-rose-300">
+                                            <span className="text-[0.65rem] text-rose-300 sm:text-xs">
                                                 {followError}
                                             </span>
                                         ) : hasPendingFollowRequest ? (
-                                            <span className="text-xs text-white/60">
+                                            <span className="text-[0.65rem] text-white/60 sm:text-xs">
                                                 Awaiting approval — tap to
                                                 cancel.
                                             </span>
                                         ) : requiresApproval && !isFollowing ? (
-                                            <span className="text-xs text-white/60">
+                                            <span className="text-[0.65rem] text-white/60 sm:text-xs">
                                                 This creator approves each
                                                 follower before granting access.
                                             </span>
                                         ) : null}
                                     </div>
                                 )}
+
+                                {/* Support Actions: Subscribe */}
                                 {canSupportCreator &&
+                                    features.feature_signals_enabled &&
                                     subscriptionTiers.length > 0 && (
                                         <SubscribeDialog
                                             tiers={subscriptionTiers}
                                             trigger={
-                                                <Button className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-6 text-sm font-semibold text-white shadow-[0_18px_40px_-12px_rgba(249,115,22,0.45)] hover:scale-[1.02]">
+                                                <Button className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-3 text-xs font-semibold text-white shadow-[0_18px_40px_-12px_rgba(249,115,22,0.45)] hover:scale-[1.02] sm:px-4 sm:text-sm">
                                                     Subscribe
                                                 </Button>
                                             }
                                         />
                                     )}
-                                {canSupportCreator && tipOptions.length > 0 && (
-                                    <TipDialog
-                                        options={tipOptions}
-                                        trigger={
-                                            <Button
-                                                variant="outline"
-                                                className="rounded-full border-white/25 bg-white/10 text-white hover:border-white/40 hover:bg-white/20"
-                                            >
-                                                Send Tip
-                                            </Button>
-                                        }
-                                    />
-                                )}
-                                {canSupportCreator &&
-                                    features.feature_signals_enabled &&
-                                    features.feature_wishlist_enabled && (
-                                        <Button
-                                            asChild
-                                            variant="ghost"
-                                            className="rounded-full text-white/80 hover:bg-white/10 hover:text-white"
-                                        >
-                                            <Link
-                                                href={`/w/${user.username ?? ''}`}
-                                            >
-                                                Wishlist
-                                            </Link>
-                                        </Button>
-                                    )}
-                                {canMessage && messageHref && (
-                                    <Button
-                                        asChild
-                                        variant="outline"
-                                        className="rounded-full border-white/25 bg-white/10 text-white hover:border-white/40 hover:bg-white/20"
-                                    >
-                                        <Link href={messageHref}>Message</Link>
-                                    </Button>
-                                )}
-                                {canBlockProfile && (
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        className="rounded-full border-rose-500/40 bg-rose-500/10 text-rose-100 hover:border-rose-500/60 hover:bg-rose-500/20 hover:text-rose-50"
-                                        onClick={() => {
-                                            if (isBlockProcessing) {
-                                                return;
-                                            }
 
-                                            setBlockError(null);
-                                            setIsBlockDialogOpen(true);
-                                        }}
-                                        disabled={isBlockProcessing}
-                                    >
-                                        <Ban className="mr-2 size-4" />
-                                        Block
-                                    </Button>
-                                )}
+                                {/* Quick Actions: Icon Buttons */}
+                                <TooltipProvider delayDuration={300}>
+                                    <div className="flex items-center gap-1.5 sm:ml-auto sm:gap-2">
+                                        {canMessage &&
+                                            features.feature_messaging_enabled &&
+                                            messageHref && (
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            asChild
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="size-9 rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 hover:text-white sm:size-10"
+                                                        >
+                                                            <Link href={messageHref}>
+                                                                <MessageCircle className="size-3.5 sm:size-4" />
+                                                            </Link>
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent
+                                                        side="bottom"
+                                                        className="border-white/10 bg-black/95 backdrop-blur-xl text-white shadow-[0_28px_85px_-58px_rgba(249,115,22,0.5)] ring-1 ring-amber-400/20"
+                                                    >
+                                                        Message
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            )}
+                                        {canSupportCreator &&
+                                            features.feature_signals_enabled &&
+                                            features.feature_wishlist_enabled && (
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            asChild
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="size-9 rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 hover:text-white sm:size-10"
+                                                        >
+                                                            <Link
+                                                                href={`/w/${user.username ?? ''}`}
+                                                            >
+                                                                <Gift className="size-3.5 sm:size-4" />
+                                                            </Link>
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent
+                                                        side="bottom"
+                                                        className="border-white/10 bg-black/95 backdrop-blur-xl text-white shadow-[0_28px_85px_-58px_rgba(249,115,22,0.5)] ring-1 ring-amber-400/20"
+                                                    >
+                                                        Wishlist
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            )}
+                                        {canSupportCreator &&
+                                            features.feature_signals_enabled &&
+                                            tipOptions.length > 0 && (
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <TipDialog
+                                                            options={tipOptions}
+                                                            trigger={
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="size-9 rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 hover:text-white sm:size-10"
+                                                                >
+                                                                    <Coins className="size-3.5 sm:size-4" />
+                                                                </Button>
+                                                            }
+                                                        />
+                                                    </TooltipTrigger>
+                                                    <TooltipContent
+                                                        side="bottom"
+                                                        className="border-white/10 bg-black/95 backdrop-blur-xl text-white shadow-[0_28px_85px_-58px_rgba(249,115,22,0.5)] ring-1 ring-amber-400/20"
+                                                    >
+                                                        Send tip
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            )}
+                                        {canBlockProfile &&
+                                            features.blocking && (
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="size-9 rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 hover:text-white sm:size-10"
+                                                            title="More options"
+                                                        >
+                                                            <MoreVertical className="size-3.5 sm:size-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                <DropdownMenuContent
+                                                    align="end"
+                                                    className="w-48 border border-amber-400/30 bg-black/95 backdrop-blur-xl shadow-[0_28px_85px_-58px_rgba(249,115,22,0.5)] ring-1 ring-amber-400/20"
+                                                >
+                                                    <DropdownMenuItem
+                                                        className="cursor-pointer text-rose-100 focus:bg-rose-500/20 focus:text-rose-50"
+                                                        onClick={() => {
+                                                            if (isBlockProcessing) {
+                                                                return;
+                                                            }
+
+                                                            setBlockError(null);
+                                                            setIsBlockDialogOpen(
+                                                                true,
+                                                            );
+                                                        }}
+                                                        disabled={isBlockProcessing}
+                                                    >
+                                                        <Ban className="mr-2 size-4" />
+                                                        Block profile
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        )}
+                                    </div>
+                                </TooltipProvider>
                             </div>
                         </div>
                     </section>
@@ -697,20 +887,30 @@ export default function ProfileShow() {
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent>
-                                        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                                            {statEntries.map((stat) => (
-                                                <div
-                                                    key={stat.label}
-                                                    className="rounded-2xl border border-white/10 bg-black/40 px-4 py-5"
-                                                >
-                                                    <p className="text-xs tracking-[0.35em] text-white/50 uppercase">
-                                                        {stat.label}
-                                                    </p>
-                                                    <p className="mt-2 text-2xl font-semibold text-white">
-                                                        {stat.value}
-                                                    </p>
-                                                </div>
-                                            ))}
+                                        <div className="grid gap-4 sm:grid-cols-2">
+                                            {statEntries.map((stat) => {
+                                                const Icon = stat.icon;
+                                                return (
+                                                    <div
+                                                        key={stat.key}
+                                                        className="group relative overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-black/50 via-black/40 to-black/50 px-4 py-4 shadow-[0_4px_24px_-12px_rgba(0,0,0,0.4)] backdrop-blur-sm transition-all hover:border-white/20 hover:shadow-[0_8px_32px_-16px_rgba(249,115,22,0.2)] sm:rounded-2xl sm:px-5 sm:py-5"
+                                                    >
+                                                        <div className="relative flex items-center gap-3 sm:gap-4">
+                                                            <div className="flex size-9 items-center justify-center rounded-lg border border-amber-400/20 bg-gradient-to-br from-amber-400/20 via-amber-300/15 to-amber-400/10 text-amber-300 shadow-[0_4px_16px_-8px_rgba(251,191,36,0.3)] transition-all group-hover:shadow-[0_6px_20px_-8px_rgba(251,191,36,0.4)] sm:size-10 sm:rounded-xl">
+                                                                <Icon className="size-4 sm:size-5" />
+                                                            </div>
+                                                            <div className="min-w-0 flex-1">
+                                                                <p className="mb-0.5 text-xs font-semibold text-white sm:text-sm">
+                                                                    {stat.value}
+                                                                </p>
+                                                                <p className="text-[0.65rem] tracking-[0.3em] text-white/55 uppercase sm:text-xs">
+                                                                    {stat.label}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -838,164 +1038,304 @@ export default function ProfileShow() {
                         </section>
 
                         <aside className="space-y-6">
+                            {/* Media Card - Shows for everyone */}
                             <Card className="border-white/10 bg-white/5 text-white">
                                 <CardHeader>
                                     <CardTitle className="text-lg font-semibold">
-                                        Availability
+                                        Media
                                     </CardTitle>
                                     <CardDescription className="text-white/60">
-                                        Updated weekly for collaborators.
+                                        Recent photos and videos.
                                     </CardDescription>
                                 </CardHeader>
-                                <CardContent className="space-y-2 text-sm text-white/75">
-                                    <p className="text-base font-semibold text-white">
-                                        {availability.status}
-                                    </p>
-                                    <p className="text-white/65">
-                                        {availability.window}
-                                    </p>
-                                    <p>{availability.note}</p>
+                                <CardContent>
+                                    {recentMedia.length === 0 ? (
+                                        <div className="py-8 text-center text-sm text-white/60">
+                                            No media yet
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {recentMedia.slice(0, 9).map((media, index) => {
+                                                const handleClick = () => {
+                                                    // Find the post for this media item
+                                                    const post = media.post;
+
+                                                    // If we have a post, use its media array; otherwise build from recentMedia
+                                                    let feedMedia: FeedMedia[];
+                                                    if (post?.media && Array.isArray(post.media) && post.media.length > 0) {
+                                                        // Use the post's media array
+                                                        feedMedia = post.media;
+                                                        // Find the index of the clicked media within the post's media
+                                                        const mediaIndex = feedMedia.findIndex((m) => m.id === media.id);
+                                                        if (mediaIndex >= 0) {
+                                                            openLightbox(feedMedia, {
+                                                                startIndex: mediaIndex,
+                                                                post: post,
+                                                            });
+                                                        } else {
+                                                            // Fallback: use clicked media as start
+                                                            openLightbox(feedMedia, {
+                                                                startIndex: 0,
+                                                                post: post,
+                                                            });
+                                                        }
+                                                    } else {
+                                                        // Fallback: convert MediaItem[] to FeedMedia[] format
+                                                        feedMedia = recentMedia.map((m) => ({
+                                                            id: m.id,
+                                                            url: m.url,
+                                                            type: m.mime_type ?? (m.is_video ? 'video/mp4' : 'image/jpeg'),
+                                                            alt: null,
+                                                            thumbnail_url: m.thumbnail_url ?? null,
+                                                            optimized_url: null,
+                                                            blur_url: null,
+                                                        }));
+
+                                                        openLightbox(feedMedia, {
+                                                            startIndex: index,
+                                                            post: post ?? null,
+                                                        });
+                                                    }
+                                                };
+
+                                                return (
+                                                    <button
+                                                        key={media.id}
+                                                        type="button"
+                                                        onClick={handleClick}
+                                                        className="group relative aspect-square overflow-hidden rounded-lg border border-white/10 bg-black/40 transition hover:border-white/20 cursor-pointer"
+                                                    >
+                                                        {media.is_video ? (
+                                                            <>
+                                                                {media.thumbnail_url ? (
+                                                                    <img
+                                                                        src={media.thumbnail_url}
+                                                                        alt="Video thumbnail"
+                                                                        className="size-full object-cover"
+                                                                    />
+                                                                ) : (
+                                                                    <div className="flex size-full items-center justify-center bg-gradient-to-br from-black/50 to-black/30">
+                                                                        <Plane className="size-6 text-white/40" />
+                                                                    </div>
+                                                                )}
+                                                                <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity group-hover:opacity-100">
+                                                                    <div className="rounded-full bg-black/60 p-2">
+                                                                        <Plane className="size-4 text-white" />
+                                                                    </div>
+                                                                </div>
+                                                            </>
+                                                        ) : (
+                                                            <img
+                                                                src={media.thumbnail_url ?? media.url}
+                                                                alt="Media"
+                                                                className="size-full object-cover transition group-hover:scale-105"
+                                                            />
+                                                        )}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
                                 </CardContent>
-                                <CardFooter>
-                                    <Button
-                                        variant="ghost"
-                                        className="w-full rounded-full text-white/80 hover:bg-white/10 hover:text-white"
-                                    >
-                                        Request collaboration
-                                    </Button>
-                                </CardFooter>
                             </Card>
 
-                            {subscriptionTiers.length > 0 && (
-                                <Card className="border-white/10 bg-white/5 text-white">
-                                    <CardHeader>
-                                        <CardTitle className="text-lg font-semibold">
-                                            Membership tiers
-                                        </CardTitle>
-                                        <CardDescription className="text-white/60">
-                                            Choose your level of access and
-                                            perks.
-                                        </CardDescription>
-                                    </CardHeader>
-                                    <CardContent className="space-y-4">
-                                        {subscriptionTiers.map((tier) => (
-                                            <div
-                                                key={tier.name}
-                                                className="space-y-3 rounded-2xl border border-white/10 bg-black/35 p-4"
-                                            >
-                                                <div className="flex items-center justify-between gap-2">
-                                                    <h3 className="text-sm font-semibold text-white">
-                                                        {tier.name}
-                                                    </h3>
-                                                    <Badge className="rounded-full border-white/15 bg-white/10 text-xs text-white/70">
-                                                        {tier.price}
-                                                    </Badge>
-                                                </div>
-                                                <p className="text-xs text-white/65">
-                                                    {tier.description}
-                                                </p>
-                                                <ul className="space-y-2 text-xs text-white/60">
-                                                    {tier.perks.map((perk) => (
-                                                        <li
-                                                            key={perk}
-                                                            className="flex items-start gap-2"
+                            {/* Creator-specific cards */}
+                            {user.is_creator && (
+                                <>
+                                    {features.feature_signals_enabled &&
+                                        subscriptionTiers.length > 0 && (
+                                            <Card className="border-white/10 bg-white/5 text-white">
+                                                <CardHeader>
+                                                    <CardTitle className="text-lg font-semibold">
+                                                        Membership tiers
+                                                    </CardTitle>
+                                                    <CardDescription className="text-white/60">
+                                                        Choose your level of access and
+                                                        perks.
+                                                    </CardDescription>
+                                                </CardHeader>
+                                                <CardContent className="space-y-4">
+                                                    {subscriptionTiers.map((tier) => (
+                                                        <div
+                                                            key={tier.name}
+                                                            className="space-y-3 rounded-2xl border border-white/10 bg-black/35 p-4"
                                                         >
-                                                            <span className="mt-1 size-1.5 rounded-full bg-amber-400" />
-                                                            <span>{perk}</span>
-                                                        </li>
+                                                            <div className="flex items-center justify-between gap-2">
+                                                                <h3 className="text-sm font-semibold text-white">
+                                                                    {tier.name}
+                                                                </h3>
+                                                                <Badge className="rounded-full border-white/15 bg-white/10 text-xs text-white/70">
+                                                                    {tier.price}
+                                                                </Badge>
+                                                            </div>
+                                                            <p className="text-xs text-white/65">
+                                                                {tier.description}
+                                                            </p>
+                                                            <ul className="space-y-2 text-xs text-white/60">
+                                                                {tier.perks.map((perk) => (
+                                                                    <li
+                                                                        key={perk}
+                                                                        className="flex items-start gap-2"
+                                                                    >
+                                                                        <span className="mt-1 size-1.5 rounded-full bg-amber-400" />
+                                                                        <span>{perk}</span>
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                            <Button className="w-full rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 text-xs font-semibold">
+                                                                Join tier
+                                                            </Button>
+                                                        </div>
                                                     ))}
-                                                </ul>
-                                                <Button className="w-full rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 text-xs font-semibold">
-                                                    Join tier
-                                                </Button>
-                                            </div>
-                                        ))}
-                                    </CardContent>
-                                </Card>
+                                                </CardContent>
+                                            </Card>
+                                        )}
+
+                                    {features.feature_signals_enabled &&
+                                        tipOptions.length > 0 && (
+                                            <Card className="border-white/10 bg-white/5 text-white">
+                                                <CardHeader>
+                                                    <CardTitle className="text-lg font-semibold">
+                                                        Tip jar
+                                                    </CardTitle>
+                                                    <CardDescription className="text-white/60">
+                                                        Boost the next scene or unlock
+                                                        bonuses instantly.
+                                                    </CardDescription>
+                                                </CardHeader>
+                                                <CardContent className="flex flex-wrap gap-2">
+                                                    {tipOptions.map((tip) => (
+                                                        <Button
+                                                            key={tip.amount}
+                                                            variant="ghost"
+                                                            className="rounded-full border border-white/15 bg-white/5 px-4 text-sm text-white/80 hover:border-white/40 hover:bg-white/10 hover:text-white"
+                                                        >
+                                                            <span className="font-semibold text-white">
+                                                                {tip.amount}
+                                                            </span>
+                                                            <span className="ml-2 text-xs text-white/70">
+                                                                {tip.label}
+                                                            </span>
+                                                        </Button>
+                                                    ))}
+                                                </CardContent>
+                                                <CardFooter>
+                                                    <TipDialog
+                                                        options={tipOptions}
+                                                        trigger={
+                                                            <Button className="w-full rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 text-sm font-semibold">
+                                                                Custom tip
+                                                            </Button>
+                                                        }
+                                                    />
+                                                </CardFooter>
+                                            </Card>
+                                        )}
+
+                                    {features.feature_signals_enabled &&
+                                        features.feature_wishlist_enabled &&
+                                        wishlist.length > 0 && (
+                                            <Card className="border-white/10 bg-white/5 text-white">
+                                                <CardHeader>
+                                                    <CardTitle className="text-lg font-semibold">
+                                                        Wishlist
+                                                    </CardTitle>
+                                                    <CardDescription className="text-white/60">
+                                                        Help unlock new gear, travel, and
+                                                        production upgrades.
+                                                    </CardDescription>
+                                                </CardHeader>
+                                                <CardContent className="space-y-3">
+                                                    {wishlist.map((item) => (
+                                                        <div
+                                                            key={item.title}
+                                                            className="rounded-2xl border border-white/10 bg-black/35 p-4 text-sm text-white/75"
+                                                        >
+                                                            <div className="flex items-center justify-between gap-2 text-white">
+                                                                <p className="font-semibold">
+                                                                    {item.title}
+                                                                </p>
+                                                                <span className="text-xs tracking-[0.3em] text-white/55 uppercase">
+                                                                    {item.price}
+                                                                </span>
+                                                            </div>
+                                                            <p className="mt-2 text-xs text-white/60">
+                                                                {user.display_name ??
+                                                                    user.username ??
+                                                                    'This creator'}{' '}
+                                                                will shout you out on the
+                                                                next drop.
+                                                            </p>
+                                                            <Button
+                                                                variant="ghost"
+                                                                className="mt-3 w-full rounded-full border border-white/10 bg-white/5 text-white/80 hover:border-white/30 hover:bg-white/10 hover:text-white"
+                                                            >
+                                                                Gift this
+                                                            </Button>
+                                                        </div>
+                                                    ))}
+                                                </CardContent>
+                                            </Card>
+                                        )}
+                                </>
                             )}
 
-                            {tipOptions.length > 0 && (
-                                <Card className="border-white/10 bg-white/5 text-white">
-                                    <CardHeader>
-                                        <CardTitle className="text-lg font-semibold">
-                                            Tip jar
-                                        </CardTitle>
-                                        <CardDescription className="text-white/60">
-                                            Boost the next scene or unlock
-                                            bonuses instantly.
-                                        </CardDescription>
-                                    </CardHeader>
-                                    <CardContent className="flex flex-wrap gap-2">
-                                        {tipOptions.map((tip) => (
-                                            <Button
-                                                key={tip.amount}
-                                                variant="ghost"
-                                                className="rounded-full border border-white/15 bg-white/5 px-4 text-sm text-white/80 hover:border-white/40 hover:bg-white/10 hover:text-white"
-                                            >
-                                                <span className="font-semibold text-white">
-                                                    {tip.amount}
-                                                </span>
-                                                <span className="ml-2 text-xs text-white/70">
-                                                    {tip.label}
-                                                </span>
-                                            </Button>
-                                        ))}
-                                    </CardContent>
-                                    <CardFooter>
-                                        <TipDialog
-                                            options={tipOptions}
-                                            trigger={
-                                                <Button className="w-full rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 text-sm font-semibold">
-                                                    Custom tip
-                                                </Button>
-                                            }
-                                        />
-                                    </CardFooter>
-                                </Card>
-                            )}
-
-                            {wishlist.length > 0 && (
-                                <Card className="border-white/10 bg-white/5 text-white">
-                                    <CardHeader>
-                                        <CardTitle className="text-lg font-semibold">
-                                            Wishlist
-                                        </CardTitle>
-                                        <CardDescription className="text-white/60">
-                                            Help unlock new gear, travel, and
-                                            production upgrades.
-                                        </CardDescription>
-                                    </CardHeader>
-                                    <CardContent className="space-y-3">
-                                        {wishlist.map((item) => (
-                                            <div
-                                                key={item.title}
-                                                className="rounded-2xl border border-white/10 bg-black/35 p-4 text-sm text-white/75"
-                                            >
-                                                <div className="flex items-center justify-between gap-2 text-white">
-                                                    <p className="font-semibold">
-                                                        {item.title}
-                                                    </p>
-                                                    <span className="text-xs tracking-[0.3em] text-white/55 uppercase">
-                                                        {item.price}
-                                                    </span>
+                            {/* Regular user sidebar content */}
+                            {!user.is_creator && (
+                                <>
+                                    {user.circles && user.circles.length > 0 && (
+                                        <Card className="border-white/10 bg-white/5 text-white">
+                                            <CardHeader>
+                                                <CardTitle className="text-lg font-semibold">
+                                                    Circles
+                                                </CardTitle>
+                                                <CardDescription className="text-white/60">
+                                                    Communities {user.display_name ?? user.username ?? 'they'} belong to.
+                                                </CardDescription>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {user.circles.map((circle) => (
+                                                        <Link
+                                                            key={circle.id}
+                                                            href={`/circles/${circle.slug}`}
+                                                        >
+                                                            <Badge className="rounded-full border-white/15 bg-white/10 px-3 py-1 text-xs text-white/70 transition hover:border-white/30 hover:bg-white/15">
+                                                                {circle.name}
+                                                            </Badge>
+                                                        </Link>
+                                                    ))}
                                                 </div>
-                                                <p className="mt-2 text-xs text-white/60">
-                                                    {user.display_name ??
-                                                        user.username ??
-                                                        'This creator'}{' '}
-                                                    will shout you out on the
-                                                    next drop.
-                                                </p>
-                                                <Button
-                                                    variant="ghost"
-                                                    className="mt-3 w-full rounded-full border border-white/10 bg-white/5 text-white/80 hover:border-white/30 hover:bg-white/10 hover:text-white"
-                                                >
-                                                    Gift this
-                                                </Button>
-                                            </div>
-                                        ))}
-                                    </CardContent>
-                                </Card>
+                                            </CardContent>
+                                        </Card>
+                                    )}
+                                    {user.hashtags && user.hashtags.length > 0 && (
+                                        <Card className="border-white/10 bg-white/5 text-white">
+                                            <CardHeader>
+                                                <CardTitle className="text-lg font-semibold">
+                                                    Hashtags
+                                                </CardTitle>
+                                                <CardDescription className="text-white/60">
+                                                    Tags {user.display_name ?? user.username ?? 'they'} use.
+                                                </CardDescription>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {user.hashtags.map((hashtag) => (
+                                                        <Link
+                                                            key={hashtag}
+                                                            href={`/hashtags/${hashtag.replace('#', '')}`}
+                                                        >
+                                                            <Badge className="rounded-full border-white/15 bg-white/10 px-3 py-1 text-xs text-white/70 transition hover:border-white/30 hover:bg-white/15">
+                                                                #{hashtag.replace('#', '')}
+                                                            </Badge>
+                                                        </Link>
+                                                    ))}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    )}
+                                </>
                             )}
                         </aside>
                     </div>

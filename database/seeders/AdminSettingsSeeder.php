@@ -189,6 +189,13 @@ class AdminSettingsSeeder extends Seeder
                 'category' => 'features',
             ],
             [
+                'key' => 'feature_circles_enabled',
+                'value' => '1',
+                'description' => 'Enable circles (community groups organized around interests and locations).',
+                'type' => 'boolean',
+                'category' => 'features',
+            ],
+            [
                 'key' => 'feature_events_enabled',
                 'value' => '1',
                 'description' => 'Enable events (creation, RSVPs, calendar).',
@@ -242,9 +249,9 @@ class AdminSettingsSeeder extends Seeder
             [
                 'key' => 'feature_stories_enabled',
                 'value' => '1',
-                'description' => null,
-                'type' => 'string',
-                'category' => 'general',
+                'description' => 'Enable stories (24-hour ephemeral content).',
+                'type' => 'boolean',
+                'category' => 'features',
             ],
             [
                 'key' => 'global_announcement_dismissible',

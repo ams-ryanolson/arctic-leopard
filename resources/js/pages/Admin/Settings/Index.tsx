@@ -45,6 +45,7 @@ import {
     Sparkles,
     ToggleLeft,
     Upload,
+    Users,
     Video,
     X,
 } from 'lucide-react';
@@ -108,6 +109,8 @@ export default function AdminSettingsIndex({
         feature_messaging_enabled: boolean;
         feature_events_enabled: boolean;
         feature_bookmarks_enabled: boolean;
+        feature_circles_enabled: boolean;
+        feature_stories_enabled: boolean;
         feature_beta_enabled: boolean;
         // SEO & Social
         seo_default_title: string;
@@ -185,6 +188,8 @@ export default function AdminSettingsIndex({
         feature_messaging_enabled: true,
         feature_events_enabled: true,
         feature_bookmarks_enabled: true,
+        feature_circles_enabled: true,
+        feature_stories_enabled: true,
         feature_beta_enabled: false,
         // SEO & Social
         seo_default_title: '',
@@ -1957,6 +1962,22 @@ export default function AdminSettingsIndex({
                                                     'Save posts and profiles to your library.',
                                                 icon: Bookmark,
                                                 bg: 'from-sky-500/20 via-indigo-500/15 to-violet-500/10',
+                                            },
+                                            {
+                                                key: 'feature_circles_enabled' as const,
+                                                title: 'Circles',
+                                                description:
+                                                    'Community groups organized around interests and locations.',
+                                                icon: Users,
+                                                bg: 'from-blue-500/20 via-indigo-500/15 to-purple-500/10',
+                                            },
+                                            {
+                                                key: 'feature_stories_enabled' as const,
+                                                title: 'Stories',
+                                                description:
+                                                    '24-hour ephemeral content and story viewer.',
+                                                icon: ImageIcon,
+                                                bg: 'from-orange-500/20 via-red-500/15 to-pink-500/10',
                                             },
                                             {
                                                 key: 'feature_beta_enabled' as const,

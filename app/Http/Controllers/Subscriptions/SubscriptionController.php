@@ -48,6 +48,15 @@ class SubscriptionController extends Controller
 
         $subscription = $this->subscriptions->create($data, $plan, $request->input('gateway'));
 
+        $metadata = array_merge($request->input('metadata', []), [
+            'payment_type' => 'recurring',
+            'creator_id' => $plan->creator_id,
+        ]);
+
+        if ($request->filled('payment_method_id')) {
+            $metadata['payment_method_id'] = $request->input('payment_method_id');
+        }
+
         $intent = $this->payments->createIntent(
             new PaymentIntentData(
                 payableType: PaymentSubscription::class,
@@ -57,7 +66,7 @@ class SubscriptionController extends Controller
                 payeeId: $subscription->creator_id,
                 type: PaymentType::Recurring,
                 method: $request->input('method'),
-                metadata: $request->input('metadata', []),
+                metadata: $metadata,
                 description: "Subscription to {$plan->name}"
             ),
             $request->input('gateway')

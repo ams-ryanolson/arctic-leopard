@@ -26,15 +26,21 @@ class ConversationMessageController extends Controller
         $beforeId = $request->input('before');
 
         $query = $conversation->messages()
-            ->with(['author', 'attachments', 'reactions'])
+            ->select(['id', 'ulid', 'conversation_id', 'user_id', 'reply_to_id', 'type', 'sequence', 'body', 'fragments', 'metadata', 'visible_at', 'edited_at', 'redacted_at', 'undo_expires_at', 'deleted_at', 'created_at', 'updated_at'])
+            ->with(['author:id,name,username,display_name,avatar_url', 'attachments', 'reactions'])
             ->orderByDesc('sequence');
 
         if ($beforeId) {
-            $pivot = Message::query()
+            $pivotSequence = Message::query()
                 ->where('conversation_id', $conversation->getKey())
-                ->findOrFail($beforeId);
+                ->where('id', $beforeId)
+                ->value('sequence');
 
-            $query->where('sequence', '<', $pivot->sequence);
+            if ($pivotSequence === null) {
+                abort(Response::HTTP_NOT_FOUND, 'Message not found.');
+            }
+
+            $query->where('sequence', '<', $pivotSequence);
         }
 
         $messages = $query->take($perPage + 1)->get();

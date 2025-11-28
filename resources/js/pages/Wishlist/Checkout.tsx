@@ -1,4 +1,6 @@
 import InputError from '@/components/input-error';
+import { CheckoutSummary } from '@/components/payments/CheckoutSummary';
+import { PaymentMethodSelector } from '@/components/payments/PaymentMethodSelector';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -50,6 +52,8 @@ type CheckoutPageProps = {
     item: WishlistItem;
     fee_percent: number;
     minimum_contribution: number;
+    ccbill_client_accnum?: number;
+    ccbill_client_subacc?: number;
 };
 
 function formatCurrency(
@@ -71,11 +75,14 @@ export default function WishlistCheckout({
     item,
     fee_percent,
     minimum_contribution,
+    ccbill_client_accnum,
+    ccbill_client_subacc,
 }: CheckoutPageProps) {
     const [coversFee, setCoversFee] = useState(false);
     const [contributionAmount, setContributionAmount] = useState<string>(
         item.is_crowdfunded ? '' : item.amount ? String(item.amount / 100) : '',
     );
+    const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<number | null>(null);
 
     const { data, setData, post, processing, errors } = useForm({
         amount: item.is_crowdfunded
@@ -84,8 +91,9 @@ export default function WishlistCheckout({
         currency: item.currency ?? 'USD',
         covers_fee: false,
         message: '',
-        gateway: 'fake',
+        gateway: ccbill_client_accnum && ccbill_client_subacc ? 'ccbill' : 'fake',
         method: 'card',
+        payment_method_id: null as number | null,
     });
 
     const baseAmount = item.is_crowdfunded
@@ -122,6 +130,7 @@ export default function WishlistCheckout({
             ...data,
             covers_fee: coversFee,
             amount: baseAmount,
+            payment_method_id: selectedPaymentMethodId,
         });
 
         post(wishlistRoutes.purchase.url(item.id), {
@@ -348,6 +357,27 @@ export default function WishlistCheckout({
                                         )}
                                     </div>
 
+                                    <Separator className="border-white/10" />
+
+                                    <div className="space-y-2">
+                                        <Label>Payment Method</Label>
+                                        {ccbill_client_accnum && ccbill_client_subacc ? (
+                                            <PaymentMethodSelector
+                                                selectedId={selectedPaymentMethodId}
+                                                onSelect={setSelectedPaymentMethodId}
+                                                onAddNew={() => {
+                                                    // Could open a modal or navigate to settings
+                                                    window.location.href = '/settings/payment-methods';
+                                                }}
+                                                showAddButton={true}
+                                            />
+                                        ) : (
+                                            <p className="text-sm text-white/60">
+                                                Payment method selection will be available after CCBill is configured.
+                                            </p>
+                                        )}
+                                    </div>
+
                                     <Button
                                         type="submit"
                                         disabled={
@@ -358,7 +388,8 @@ export default function WishlistCheckout({
                                                         contributionAmount,
                                                     ) *
                                                         100 <
-                                                        minimum_contribution))
+                                                        minimum_contribution)) ||
+                                            (!selectedPaymentMethodId && ccbill_client_accnum && ccbill_client_subacc)
                                         }
                                         className="w-full rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 text-white"
                                     >
@@ -388,47 +419,31 @@ export default function WishlistCheckout({
                                     Order Summary
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between text-sm">
-                                        <span className="text-white/70">
-                                            {item.is_crowdfunded
+                            <CardContent>
+                                <CheckoutSummary
+                                    items={[
+                                        {
+                                            label: item.is_crowdfunded
                                                 ? 'Contribution'
-                                                : 'Item Price'}
-                                        </span>
-                                        <span className="font-semibold">
-                                            {formatCurrency(
-                                                baseAmount,
-                                                item.currency,
-                                            )}
-                                        </span>
-                                    </div>
-                                    {coversFee && (
-                                        <div className="flex items-center justify-between text-sm">
-                                            <span className="text-white/70">
-                                                Platform Fee ({fee_percent}%)
-                                            </span>
-                                            <span className="font-semibold">
-                                                {formatCurrency(
-                                                    feeAmount,
-                                                    item.currency ?? 'USD',
-                                                )}
-                                            </span>
-                                        </div>
-                                    )}
-                                    <Separator className="border-white/10" />
-                                    <div className="flex items-center justify-between">
-                                        <span className="font-semibold">
-                                            Total
-                                        </span>
-                                        <span className="text-xl font-semibold text-emerald-200">
-                                            {formatCurrency(
-                                                totalAmount,
-                                                item.currency ?? 'USD',
-                                            )}
-                                        </span>
-                                    </div>
-                                </div>
+                                                : 'Item Price',
+                                            amount: baseAmount,
+                                            currency: item.currency ?? 'USD',
+                                        },
+                                    ]}
+                                    fees={
+                                        coversFee
+                                            ? [
+                                                  {
+                                                      label: `Platform Fee (${fee_percent}%)`,
+                                                      amount: feeAmount,
+                                                      currency: item.currency ?? 'USD',
+                                                  },
+                                              ]
+                                            : []
+                                    }
+                                    total={totalAmount}
+                                    currency={item.currency ?? 'USD'}
+                                />
                             </CardContent>
                         </Card>
                     </div>

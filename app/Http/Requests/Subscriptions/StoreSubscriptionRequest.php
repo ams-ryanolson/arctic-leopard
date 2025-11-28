@@ -19,6 +19,7 @@ class StoreSubscriptionRequest extends FormRequest
         return [
             'plan_id' => ['required', 'integer', 'exists:subscription_plans,id'],
             'payment_method_token' => ['nullable', 'string', 'max:255'],
+            'payment_method_id' => ['nullable', 'integer', 'exists:payment_methods,id'],
             'provider_customer_id' => ['nullable', 'string', 'max:255'],
             'gateway' => ['nullable', 'string', 'max:100'],
             'auto_renews' => ['sometimes', 'boolean'],

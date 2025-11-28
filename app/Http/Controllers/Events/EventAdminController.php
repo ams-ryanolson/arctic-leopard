@@ -262,6 +262,9 @@ class EventAdminController extends Controller
         $event->approved_by_id = $request->user()?->getKey();
         $event->save();
 
+        // Clear dashboard cache for stats
+        \Illuminate\Support\Facades\Cache::tags(['dashboard', 'stats'])->flush();
+
         if ($request->wantsJson()) {
             return (new EventResource($event->fresh(['tags', 'manager', 'creator', 'submitter', 'approver'])))->toResponse($request);
         }
@@ -278,6 +281,9 @@ class EventAdminController extends Controller
         $event->status = EventStatus::Published;
         $event->published_at ??= Carbon::now();
         $event->save();
+
+        // Clear dashboard cache for stats
+        \Illuminate\Support\Facades\Cache::tags(['dashboard', 'stats'])->flush();
 
         if ($request->wantsJson()) {
             return (new EventResource($event->fresh(['tags', 'manager', 'creator', 'submitter', 'approver'])))->toResponse($request);
@@ -300,6 +306,9 @@ class EventAdminController extends Controller
         }
 
         $event->save();
+
+        // Clear dashboard cache for stats
+        \Illuminate\Support\Facades\Cache::tags(['dashboard', 'stats'])->flush();
 
         if ($request->wantsJson()) {
             return (new EventResource($event->fresh(['tags', 'manager', 'creator', 'submitter', 'approver'])))->toResponse($request);

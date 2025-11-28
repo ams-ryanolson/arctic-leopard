@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model as EloquentModel;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -30,6 +31,7 @@ use Illuminate\Support\LazyCollection;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
+use Laravel\Scout\Searchable;
 use Overtrue\LaravelFavorite\Traits\Favoriter;
 use Overtrue\LaravelFollow\Traits\Followable;
 use Overtrue\LaravelFollow\Traits\Follower;
@@ -49,6 +51,7 @@ class User extends Authenticatable
     use HasRoles;
     use Liker;
     use Notifiable;
+    use Searchable;
     use TwoFactorAuthenticatable;
 
     /**
@@ -80,6 +83,15 @@ class User extends Authenticatable
         'avatar_path',
         'cover_path',
         'requires_follow_approval',
+        'suspended_at',
+        'suspended_until',
+        'suspended_reason',
+        'suspended_by_id',
+        'banned_at',
+        'banned_reason',
+        'banned_by_id',
+        'warning_count',
+        'last_warned_at',
     ];
 
     /**
@@ -92,6 +104,16 @@ class User extends Authenticatable
         'two_factor_secret',
         'two_factor_recovery_codes',
         'remember_token',
+    ];
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var list<string>
+     */
+    protected $appends = [
+        'avatar_url',
+        'cover_url',
     ];
 
     /**
@@ -114,6 +136,10 @@ class User extends Authenticatable
             'requires_follow_approval' => 'bool',
             'is_traveling' => 'bool',
             'creator_status_disabled_at' => 'datetime',
+            'suspended_at' => 'datetime',
+            'suspended_until' => 'datetime',
+            'banned_at' => 'datetime',
+            'last_warned_at' => 'datetime',
         ];
     }
 
@@ -761,6 +787,56 @@ class User extends Authenticatable
     }
 
     /**
+     * User who suspended this user.
+     *
+     * @return BelongsTo<User, User>
+     */
+    public function suspendedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'suspended_by_id');
+    }
+
+    /**
+     * User who banned this user.
+     *
+     * @return BelongsTo<User, User>
+     */
+    public function bannedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'banned_by_id');
+    }
+
+    /**
+     * Warnings issued to this user.
+     *
+     * @return HasMany<UserWarning>
+     */
+    public function warnings(): HasMany
+    {
+        return $this->hasMany(UserWarning::class);
+    }
+
+    /**
+     * Active (non-expired) warnings for this user.
+     *
+     * @return HasMany<UserWarning>
+     */
+    public function activeWarnings(): HasMany
+    {
+        return $this->warnings()->active();
+    }
+
+    /**
+     * Appeals submitted by this user.
+     *
+     * @return HasMany<UserAppeal>
+     */
+    public function appeals(): HasMany
+    {
+        return $this->hasMany(UserAppeal::class);
+    }
+
+    /**
      * Latest verification for the user.
      *
      * @return HasOne<Verification>
@@ -858,5 +934,210 @@ class User extends Authenticatable
         if ($latest !== null && $latest->creator_status_disabled_at === null) {
             $latest->update(['creator_status_disabled_at' => now()]);
         }
+    }
+
+    /**
+     * Get the indexable data array for the model.
+     *
+     * @return array<string, mixed>
+     */
+    public function toSearchableArray(): array
+    {
+        return [
+            'username' => $this->username,
+            'username_lower' => $this->username_lower,
+            'display_name' => $this->display_name,
+        ];
+    }
+
+    /**
+     * Get the name of the index associated with the model.
+     */
+    public function searchableAs(): string
+    {
+        return 'users';
+    }
+
+    /**
+     * Check if the user is currently suspended.
+     */
+    public function isSuspended(): bool
+    {
+        if ($this->suspended_at === null) {
+            return false;
+        }
+
+        // If there's a suspension end date, check if it's in the future
+        if ($this->suspended_until !== null) {
+            return $this->suspended_until->isFuture();
+        }
+
+        // If no end date, suspension is permanent (until manually lifted)
+        return true;
+    }
+
+    /**
+     * Check if the user is currently banned.
+     */
+    public function isBanned(): bool
+    {
+        return $this->banned_at !== null;
+    }
+
+    /**
+     * Check if the user has active warnings.
+     */
+    public function hasActiveWarnings(): bool
+    {
+        return $this->activeWarnings()->exists();
+    }
+
+    /**
+     * Get active warnings for this user.
+     *
+     * @return Collection<int, UserWarning>
+     */
+    public function getActiveWarnings(): Collection
+    {
+        return $this->activeWarnings()->get();
+    }
+
+    /**
+     * Get the current warning count (number of active warnings).
+     */
+    public function getWarningCount(): int
+    {
+        return $this->activeWarnings()->count();
+    }
+
+    /**
+     * Suspend the user.
+     */
+    public function suspend(?Carbon $until = null, ?string $reason = null, ?User $admin = null): void
+    {
+        $this->update([
+            'suspended_at' => now(),
+            'suspended_until' => $until,
+            'suspended_reason' => $reason,
+            'suspended_by_id' => $admin?->getKey(),
+        ]);
+    }
+
+    /**
+     * Unsuspend the user.
+     */
+    public function unsuspend(): void
+    {
+        $this->update([
+            'suspended_at' => null,
+            'suspended_until' => null,
+            'suspended_reason' => null,
+            'suspended_by_id' => null,
+        ]);
+    }
+
+    /**
+     * Ban the user.
+     */
+    public function ban(?string $reason = null, ?User $admin = null): void
+    {
+        $this->update([
+            'banned_at' => now(),
+            'banned_reason' => $reason,
+            'banned_by_id' => $admin?->getKey(),
+        ]);
+    }
+
+    /**
+     * Unban the user.
+     */
+    public function unban(): void
+    {
+        $this->update([
+            'banned_at' => null,
+            'banned_reason' => null,
+            'banned_by_id' => null,
+        ]);
+    }
+
+    /**
+     * Warn the user.
+     */
+    public function warn(string $reason, ?string $notes = null, ?User $admin = null): UserWarning
+    {
+        $expiresAt = now()->addDays(90);
+
+        $warning = $this->warnings()->create([
+            'reason' => $reason,
+            'notes' => $notes,
+            'warned_by_id' => $admin?->getKey(),
+            'expires_at' => $expiresAt,
+        ]);
+
+        // Update warning count cache
+        $this->refresh();
+        $this->update([
+            'warning_count' => $this->activeWarnings()->count(),
+            'last_warned_at' => now(),
+        ]);
+
+        return $warning;
+    }
+
+    /**
+     * Check if the user can submit an appeal.
+     */
+    public function canAppeal(): bool
+    {
+        if (! $this->isSuspended() && ! $this->isBanned()) {
+            return false;
+        }
+
+        // Check if there's a pending appeal for the current status
+        $appealType = $this->isBanned()
+            ? \App\Enums\AppealType::Ban
+            : \App\Enums\AppealType::Suspension;
+
+        $hasPendingAppeal = $this->appeals()
+            ->where('status', \App\Enums\AppealStatus::Pending)
+            ->where('appeal_type', $appealType)
+            ->exists();
+
+        return ! $hasPendingAppeal;
+    }
+
+    /**
+     * Scope to only suspended users.
+     *
+     * @param  Builder<User>  $query
+     */
+    public function scopeSuspended(Builder $query): void
+    {
+        $query->whereNotNull('suspended_at')
+            ->where(function ($q): void {
+                $q->whereNull('suspended_until')
+                    ->orWhere('suspended_until', '>', now());
+            });
+    }
+
+    /**
+     * Scope to only banned users.
+     *
+     * @param  Builder<User>  $query
+     */
+    public function scopeBanned(Builder $query): void
+    {
+        $query->whereNotNull('banned_at');
+    }
+
+    /**
+     * Scope to only active (not suspended or banned) users.
+     *
+     * @param  Builder<User>  $query
+     */
+    public function scopeActive(Builder $query): void
+    {
+        $query->whereNull('suspended_at')
+            ->whereNull('banned_at');
     }
 }

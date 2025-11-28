@@ -237,7 +237,7 @@ export default function MessageItem({
                 {/* Message Bubble */}
                 <div
                     className={cn(
-                        'relative max-w-[85%] rounded-2xl px-4 py-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.3)] transition-all duration-200 lg:max-w-[65%]',
+                        'relative max-w-[90%] rounded-2xl px-4 py-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.3)] transition-all duration-200 sm:max-w-[85%] lg:max-w-[65%]',
                         shouldShowEmojiStyle ? 'px-6 py-5' : '',
                         isOwnMessage
                             ? 'border border-emerald-400/30 bg-gradient-to-br from-emerald-500/20 to-emerald-600/25 text-emerald-50 shadow-emerald-500/10'

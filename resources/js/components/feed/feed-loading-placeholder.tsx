@@ -11,3 +11,5 @@ const FeedLoadingPlaceholder = () => (
 );
 
 export default FeedLoadingPlaceholder;
+
+

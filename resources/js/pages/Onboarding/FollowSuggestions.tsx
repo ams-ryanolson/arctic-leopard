@@ -1,12 +1,10 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 
-import { COVER_GRADIENT_STYLE } from '@/components/cover-gradient';
+import { UserCard } from '@/components/users/user-card';
 import { Button } from '@/components/ui/button';
 import OnboardingLayout from '@/layouts/onboarding-layout';
-import { getCsrfToken } from '@/lib/csrf';
 import onboardingRoutes from '@/routes/onboarding';
-import usersRoutes from '@/routes/users';
 import {
     ArrowLeft,
     ArrowRight,
@@ -43,123 +41,15 @@ export default function FollowSuggestions({
     >({});
     const [isFinishing, setIsFinishing] = useState(false);
 
-    const getFollowState = useCallback(
-        (userId: number) => {
-            return (
-                followStates[userId] ?? {
-                    isFollowing: false,
-                    isPending: false,
-                    isProcessing: false,
-                }
-            );
-        },
-        [followStates],
-    );
-
-    const updateFollowState = useCallback(
-        (
-            userId: number,
-            updates: Partial<{
-                isFollowing: boolean;
-                isPending: boolean;
-                isProcessing: boolean;
-            }>,
-        ) => {
-            setFollowStates((prev) => ({
-                ...prev,
-                [userId]: { ...getFollowState(userId), ...updates },
-            }));
-        },
-        [getFollowState],
-    );
-
-    const handleFollowClick = useCallback(
-        async (user: SuggestedUser) => {
-            const currentState = getFollowState(user.id);
-            if (currentState.isProcessing) {
-                return;
+    const getFollowState = (userId: number) => {
+        return (
+            followStates[userId] ?? {
+                isFollowing: false,
+                isPending: false,
+                isProcessing: false,
             }
-
-            const method =
-                currentState.isFollowing || currentState.isPending
-                    ? 'DELETE'
-                    : 'POST';
-            const endpoint =
-                method === 'POST'
-                    ? usersRoutes.follow.store.url(user.id)
-                    : usersRoutes.follow.destroy.url(user.id);
-
-            updateFollowState(user.id, { isProcessing: true });
-
-            try {
-                const csrfToken = getCsrfToken();
-                const response = await fetch(endpoint, {
-                    method,
-                    headers: {
-                        Accept: 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest',
-                        ...(csrfToken ? { 'X-XSRF-TOKEN': csrfToken } : {}),
-                    },
-                    credentials: 'include',
-                });
-
-                let payload: {
-                    status?: string;
-                    pending?: boolean;
-                    accepted?: boolean;
-                    message?: string;
-                } | null = null;
-
-                try {
-                    payload = (await response.json()) as typeof payload;
-                } catch {
-                    payload = null;
-                }
-
-                if (!response.ok || payload === null) {
-                    const message =
-                        payload?.message ??
-                        'We could not update follow settings. Please try again.';
-                    throw new Error(message);
-                }
-
-                const accepted =
-                    Boolean(payload.accepted) || payload.status === 'following';
-                const pending = Boolean(payload.pending) && !accepted;
-
-                updateFollowState(user.id, {
-                    isFollowing: accepted,
-                    isPending: pending,
-                    isProcessing: false,
-                });
-            } catch (error) {
-                const message =
-                    error instanceof Error
-                        ? error.message
-                        : 'We could not update follow settings. Please try again.';
-                console.error('Follow error:', message);
-                updateFollowState(user.id, { isProcessing: false });
-            }
-        },
-        [getFollowState, updateFollowState],
-    );
-
-    const getFollowButtonLabel = useCallback(
-        (user: SuggestedUser) => {
-            const state = getFollowState(user.id);
-            if (state.isProcessing) {
-                return 'Processing...';
-            }
-            if (state.isPending) {
-                return 'Requested';
-            }
-            if (state.isFollowing) {
-                return 'Following';
-            }
-            return 'Follow';
-        },
-        [getFollowState],
-    );
+        );
+    };
 
     return (
         <OnboardingLayout
@@ -187,89 +77,33 @@ export default function FollowSuggestions({
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         {suggestedUsers.map((user) => {
                             const state = getFollowState(user.id);
-                            const isFollowing =
-                                state.isFollowing || state.isPending;
 
                             return (
-                                <div
+                                <UserCard
                                     key={user.id}
-                                    className="group relative overflow-hidden rounded-2xl border border-white/15 bg-white/5 text-left shadow-[0_28px_85px_-58px_rgba(249,115,22,0.5)] backdrop-blur transition hover:border-white/25 hover:bg-white/10"
-                                >
-                                    {/* Cover Image */}
-                                    <div className="relative h-32 w-full overflow-hidden">
-                                        {user.cover_url ? (
-                                            <img
-                                                src={user.cover_url}
-                                                alt=""
-                                                className="h-full w-full object-cover"
-                                            />
-                                        ) : (
-                                            <div
-                                                className="h-full w-full"
-                                                style={{
-                                                    backgroundImage:
-                                                        COVER_GRADIENT_STYLE,
-                                                }}
-                                            />
-                                        )}
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                                    </div>
-
-                                    {/* Avatar */}
-                                    <div className="relative -mt-12 px-5 pb-5">
-                                        <div className="relative inline-block">
-                                            {user.avatar_url ? (
-                                                <img
-                                                    src={user.avatar_url}
-                                                    alt={user.display_name}
-                                                    className="size-16 rounded-3xl border-4 border-black/50 object-cover"
-                                                />
-                                            ) : (
-                                                <div className="flex size-16 items-center justify-center rounded-3xl border-4 border-black/50 bg-gradient-to-br from-amber-500/80 via-rose-500/80 to-violet-600/80 text-lg font-semibold text-white">
-                                                    {user.display_name
-                                                        .charAt(0)
-                                                        .toUpperCase()}
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* User Info */}
-                                        <div className="mt-3 space-y-1">
-                                            <div>
-                                                <h3 className="text-base font-semibold text-white">
-                                                    {user.display_name}
-                                                </h3>
-                                                {user.pronouns && (
-                                                    <p className="text-xs text-white/60">
-                                                        {user.pronouns}
-                                                    </p>
-                                                )}
-                                            </div>
-                                            {user.bio && (
-                                                <p className="line-clamp-2 text-xs text-white/70">
-                                                    {user.bio}
-                                                </p>
-                                            )}
-                                        </div>
-
-                                        {/* Follow Button */}
-                                        <Button
-                                            onClick={() => {
-                                                handleFollowClick(user);
-                                            }}
-                                            disabled={state.isProcessing}
-                                            variant={
-                                                isFollowing
-                                                    ? 'secondary'
-                                                    : 'default'
-                                            }
-                                            size="sm"
-                                            className="mt-4 w-full rounded-full border border-white/20 bg-white/10 text-xs text-white transition hover:bg-white/15 disabled:opacity-50"
-                                        >
-                                            {getFollowButtonLabel(user)}
-                                        </Button>
-                                    </div>
-                                </div>
+                                    user={{
+                                        id: user.id,
+                                        username: user.username,
+                                        display_name: user.display_name,
+                                        pronouns: user.pronouns,
+                                        bio: user.bio,
+                                        avatar_url: user.avatar_url,
+                                        cover_url: user.cover_url,
+                                    }}
+                                    showFollowButton={true}
+                                    initialFollowing={state.isFollowing}
+                                    initialPending={state.isPending}
+                                    onFollowChange={(isFollowing, isPending) => {
+                                        setFollowStates((prev) => ({
+                                            ...prev,
+                                            [user.id]: {
+                                                isFollowing,
+                                                isPending,
+                                                isProcessing: false,
+                                            },
+                                        }));
+                                    }}
+                                />
                             );
                         })}
                     </div>

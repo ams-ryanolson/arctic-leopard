@@ -2,6 +2,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Search, Users } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { router } from '@inertiajs/react';
 import { formatRelativeTime } from './message-utils';
 import type { Thread, TipMessageMetadata } from './types';
 
@@ -9,15 +11,95 @@ type ConversationListProps = {
     threads: Thread[];
     selectedConversationId: number | null;
     onSelectConversation: (threadId: number) => void;
+    onRefresh?: () => void;
+    isLoading?: boolean;
 };
 
 export default function ConversationList({
     threads,
     selectedConversationId,
     onSelectConversation,
+    onRefresh,
+    isLoading = false,
 }: ConversationListProps) {
+    const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+    const [pullDistance, setPullDistance] = useState(0);
+    const [isPulling, setIsPulling] = useState(false);
+    const startYRef = useRef<number | null>(null);
+    const isRefreshingRef = useRef(false);
+
+    const handleTouchStart = useCallback((e: React.TouchEvent) => {
+        if (!scrollContainerRef.current || isRefreshingRef.current) {
+            return;
+        }
+
+        const container = scrollContainerRef.current;
+        if (container.scrollTop > 0) {
+            return;
+        }
+
+        startYRef.current = e.touches[0].clientY;
+    }, []);
+
+    const handleTouchMove = useCallback(
+        (e: React.TouchEvent) => {
+            if (
+                startYRef.current === null ||
+                !scrollContainerRef.current ||
+                isRefreshingRef.current
+            ) {
+                return;
+            }
+
+            const container = scrollContainerRef.current;
+            if (container.scrollTop > 0) {
+                startYRef.current = null;
+                setIsPulling(false);
+                setPullDistance(0);
+                return;
+            }
+
+            const currentY = e.touches[0].clientY;
+            const distance = Math.max(0, currentY - startYRef.current);
+            const maxPull = 80;
+
+            if (distance > 0) {
+                setIsPulling(true);
+                setPullDistance(Math.min(distance, maxPull));
+            }
+        },
+        [],
+    );
+
+    const handleTouchEnd = useCallback(() => {
+        if (startYRef.current === null || isRefreshingRef.current) {
+            return;
+        }
+
+        if (pullDistance > 50 && onRefresh) {
+            isRefreshingRef.current = true;
+            onRefresh();
+            setTimeout(() => {
+                isRefreshingRef.current = false;
+                setIsPulling(false);
+                setPullDistance(0);
+            }, 1000);
+        } else {
+            setIsPulling(false);
+            setPullDistance(0);
+        }
+
+        startYRef.current = null;
+    }, [pullDistance, onRefresh]);
+
+    useEffect(() => {
+        if (!isPulling) {
+            setPullDistance(0);
+        }
+    }, [isPulling]);
+
     return (
-        <div className="flex min-h-0 flex-col overflow-hidden border border-white/10 bg-white/5 text-white lg:w-[320px] lg:flex-none lg:rounded-3xl lg:border lg:bg-white/5">
+        <div className="flex h-full min-h-0 flex-col overflow-hidden border border-white/10 bg-white/5 text-white lg:h-auto lg:w-[320px] lg:flex-none lg:rounded-3xl lg:border lg:bg-white/5">
             <div className="border-b border-white/10 px-4 py-3 sm:py-4">
                 <div className="flex items-center justify-between gap-3">
                     <p className="text-sm font-semibold tracking-wide text-white">
@@ -41,9 +123,57 @@ export default function ConversationList({
                     </span>
                 </button>
             </div>
-            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-                {threads.length === 0 ? (
-                    <div className="flex min-h-full flex-col items-center justify-center gap-2 text-center text-white/40">
+            <div
+                ref={scrollContainerRef}
+                className="flex min-h-0 flex-1 flex-col overflow-y-auto"
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                style={{
+                    transform: isPulling
+                        ? `translateY(${pullDistance}px)`
+                        : undefined,
+                    transition: isPulling ? 'none' : 'transform 0.3s ease-out',
+                }}
+            >
+                {isPulling && pullDistance > 10 && (
+                    <div className="flex items-center justify-center py-4">
+                        <div
+                            className={cn(
+                                'flex items-center gap-2 text-xs text-white/60',
+                                pullDistance > 50 && 'text-white/80',
+                            )}
+                        >
+                            {pullDistance > 50 ? (
+                                <>
+                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white/80"></div>
+                                    <span>Release to refresh</span>
+                                </>
+                            ) : (
+                                <span>Pull to refresh</span>
+                            )}
+                        </div>
+                    </div>
+                )}
+                {isLoading ? (
+                    <ul className="flex flex-col gap-2 px-4 py-3 sm:gap-3 sm:py-4">
+                        {Array.from({ length: 5 }).map((_, index) => (
+                            <li key={index} className="min-w-0">
+                                <div className="w-full animate-pulse rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 sm:rounded-2xl sm:px-4 sm:py-3">
+                                    <div className="flex items-start gap-3">
+                                        <div className="size-11 rounded-full bg-white/10"></div>
+                                        <div className="min-w-0 flex-1 space-y-2">
+                                            <div className="h-4 w-3/4 rounded bg-white/10"></div>
+                                            <div className="h-3 w-1/2 rounded bg-white/5"></div>
+                                            <div className="h-3 w-full rounded bg-white/5"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                ) : threads.length === 0 ? (
+                    <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center text-white/40">
                         <Users className="h-10 w-10" />
                         <p className="text-sm font-medium">
                             No conversations yet

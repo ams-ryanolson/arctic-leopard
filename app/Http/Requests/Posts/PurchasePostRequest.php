@@ -18,6 +18,7 @@ class PurchasePostRequest extends FormRequest
             'currency' => ['required', 'string', 'size:3'],
             'gateway' => ['nullable', 'string', 'max:100'],
             'method' => ['nullable', 'string', 'max:100'],
+            'payment_method_id' => ['nullable', 'integer', 'exists:payment_methods,id'],
             'expires_at' => ['nullable', 'date', 'after:now'],
             'meta' => ['nullable', 'array'],
         ];

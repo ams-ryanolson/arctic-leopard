@@ -26,3 +26,4 @@ Schedule::job(new GenerateAdReport(Carbon::yesterday()))
     ->onOneServer();
 Schedule::job(new ExpireStoriesJob)->hourly();
 Schedule::job(new PublishScheduledStoriesJob)->everyFiveMinutes();
+Schedule::command('users:expire-warnings')->daily();

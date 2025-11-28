@@ -43,7 +43,8 @@ class FeedService
                         ->withBookmarkStateFor($viewer);
                 },
             ])
-            ->latest('created_at')
+            ->orderByDesc('visible_at')
+            ->orderByDesc('created_at')
             ->paginate(perPage: $perPage, page: $page, pageName: $pageName);
 
         $this->hydrateTimelineEntries($entries, $viewer);

@@ -9,6 +9,46 @@ use Inertia\Response;
 
 class LegalPageController extends Controller
 {
+    public function index(): Response
+    {
+        $legalPages = [
+            [
+                'slug' => 'terms',
+                'title' => 'Terms of Service',
+                'description' => 'Our terms and conditions for using the platform',
+                'href' => route('legal.terms'),
+            ],
+            [
+                'slug' => 'privacy',
+                'title' => 'Privacy Policy',
+                'description' => 'How we collect, use, and protect your data',
+                'href' => route('legal.privacy'),
+            ],
+            [
+                'slug' => 'guidelines',
+                'title' => 'Community Guidelines',
+                'description' => 'Rules and expectations for our community',
+                'href' => route('legal.guidelines'),
+            ],
+            [
+                'slug' => 'cookies',
+                'title' => 'Cookie Policy',
+                'description' => 'Information about how we use cookies',
+                'href' => route('legal.cookies'),
+            ],
+            [
+                'slug' => 'dmca',
+                'title' => 'DMCA Policy',
+                'description' => 'Copyright and intellectual property information',
+                'href' => route('legal.dmca'),
+            ],
+        ];
+
+        return Inertia::render('Legal/Index', [
+            'legalPages' => $legalPages,
+        ]);
+    }
+
     public function show(Request $request, string $page): Response
     {
         $map = [

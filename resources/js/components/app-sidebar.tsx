@@ -18,6 +18,7 @@ import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
     ArrowRight,
+    Ban,
     Banknote,
     BarChart3,
     Bell,
@@ -34,8 +35,10 @@ import {
     Megaphone,
     MessageCircle,
     Radar,
+    Scale,
     Shield,
     ShieldAlert,
+    ShieldCheck,
     Sparkles,
     Users,
     Video,
@@ -150,11 +153,15 @@ export function AppSidebar() {
             href: dashboard(),
             icon: Flame,
         },
-        {
-            title: 'Circles',
-            href: '/circles',
-            icon: Users,
-        },
+        ...(features.feature_circles_enabled
+            ? [
+                  {
+                      title: 'Circles',
+                      href: '/circles',
+                      icon: Users,
+                  },
+              ]
+            : []),
         ...(features.feature_radar_enabled
             ? [
                   {
@@ -303,6 +310,11 @@ export function AppSidebar() {
                               href: admin.users.index().url,
                               icon: Users,
                           },
+                          {
+                              title: 'Suspensions & Bans',
+                              href: admin.users.suspensions().url,
+                              icon: Ban,
+                          },
                           ...(features.feature_events_enabled
                               ? [
                                     {
@@ -325,6 +337,16 @@ export function AppSidebar() {
                               title: 'Roles',
                               href: admin.roles.index().url,
                               icon: ShieldAlert,
+                          },
+                          {
+                              title: 'Appeals',
+                              href: admin.appeals.index().url,
+                              icon: Scale,
+                          },
+                          {
+                              title: 'Content Moderation',
+                              href: admin.moderation.index().url,
+                              icon: ShieldCheck,
                           },
                           {
                               title: 'Memberships',

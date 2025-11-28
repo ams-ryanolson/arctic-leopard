@@ -37,3 +37,5 @@ export function EventStatusBadge({ status, className }: EventStatusBadgeProps) {
         </Badge>
     );
 }
+
+

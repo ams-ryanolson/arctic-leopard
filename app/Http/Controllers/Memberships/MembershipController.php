@@ -78,6 +78,8 @@ class MembershipController extends Controller
             abort(403, 'Administrators and moderators cannot purchase memberships.');
         }
 
+        $ccbillOptions = config('payments.gateways.ccbill.options', []);
+
         return Inertia::render('Memberships/Checkout', [
             'plan' => [
                 'id' => $plan->id,
@@ -91,6 +93,8 @@ class MembershipController extends Controller
                 'allows_recurring' => $plan->allows_recurring,
                 'allows_one_time' => $plan->allows_one_time,
             ],
+            'ccbill_client_accnum' => $ccbillOptions['low_risk_non_recurring']['client_accnum'] ?? null,
+            'ccbill_client_subacc' => $ccbillOptions['low_risk_non_recurring']['client_subacc'] ?? null,
         ]);
     }
 
@@ -103,6 +107,7 @@ class MembershipController extends Controller
             'discount_code' => ['nullable', 'string'],
             'gateway' => ['nullable', 'string'],
             'method' => ['nullable', 'string'],
+            'payment_method_id' => ['nullable', 'integer', 'exists:payment_methods,id'],
         ]);
 
         $user = $request->user();
@@ -222,13 +227,14 @@ class MembershipController extends Controller
                 type: $billingType === 'recurring' ? \App\Enums\Payments\PaymentType::Recurring : \App\Enums\Payments\PaymentType::OneTime,
                 method: $request->input('method'),
                 description: "Membership: {$plan->name}",
-                metadata: [
+                metadata: array_merge([
                     'membership_plan_id' => $plan->id,
                     'billing_type' => $billingType,
                     'billing_interval' => $billingInterval,
                     'discount_code' => $discount?->code,
                     'discount_amount' => $discountAmount,
-                ]
+                    'payment_type' => $billingType === 'recurring' ? 'recurring' : 'one_time',
+                ], $request->filled('payment_method_id') ? ['payment_method_id' => $request->input('payment_method_id')] : [])
             ),
             $request->input('gateway')
         );
@@ -360,7 +366,7 @@ class MembershipController extends Controller
                 type: $billingType === 'recurring' ? \App\Enums\Payments\PaymentType::Recurring : \App\Enums\Payments\PaymentType::OneTime,
                 method: $request->input('method'),
                 description: "Upgrade membership to {$newPlan->name}",
-                metadata: [
+                metadata: array_merge([
                     'membership_plan_id' => $newPlan->id,
                     'current_membership_id' => $membership->id,
                     'billing_type' => $billingType,
@@ -368,7 +374,8 @@ class MembershipController extends Controller
                     'discount_code' => $discount?->code,
                     'discount_amount' => $discountAmount,
                     'is_upgrade' => true,
-                ]
+                    'payment_type' => $billingType === 'recurring' ? 'recurring' : 'one_time',
+                ], $request->filled('payment_method_id') ? ['payment_method_id' => $request->input('payment_method_id')] : [])
             ),
             $request->input('gateway')
         );

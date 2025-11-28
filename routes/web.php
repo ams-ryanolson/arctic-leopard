@@ -16,6 +16,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Events\EventAdminController;
 use App\Http\Controllers\Events\EventController;
 use App\Http\Controllers\Events\EventRsvpController;
+use App\Http\Controllers\Hashtags\HashtagController;
 use App\Http\Controllers\LegalPageController;
 use App\Http\Controllers\Notifications\NotificationController;
 use App\Http\Controllers\Onboarding\CreatorSetupController;
@@ -30,8 +31,10 @@ use App\Http\Controllers\Posts\PostComposerController;
 use App\Http\Controllers\Profile\UpdateCoordinatesController;
 use App\Http\Controllers\Profile\UpdateTravelBeaconController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProfileFollowersController;
 use App\Http\Controllers\Radar\BoostController;
 use App\Http\Controllers\RadarController;
+use App\Http\Controllers\Search\SearchController;
 use App\Http\Controllers\Signals\SignalsAudienceController;
 use App\Http\Controllers\Signals\SignalsComplianceController;
 use App\Http\Controllers\Signals\SignalsMonetizationController;
@@ -189,6 +192,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ];
 
         Route::get('dashboard', DashboardController::class)->name('dashboard');
+        Route::get('search', [SearchController::class, 'index'])->name('search.index');
         Route::post('posts', PostComposerController::class)->name('posts.store');
         Route::post('posts/{post}/bookmarks', [PostBookmarkController::class, 'store'])
             ->name('posts.bookmarks.store')
@@ -221,12 +225,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::delete('{story}/reactions/{reaction}', [StoryReactionController::class, 'destroy'])->name('reactions.destroy');
         });
 
-        Route::prefix('circles')->as('circles.')->group(function () {
+        Route::prefix('circles')->as('circles.')->middleware('feature:feature_circles_enabled')->group(function () {
             Route::get('/', [CircleController::class, 'index'])->name('index');
             Route::post('suggest', [CircleController::class, 'suggest'])->name('suggest');
             Route::get('{circle:slug}', [CircleController::class, 'show'])->name('show');
             Route::post('{circle:slug}/join', [CircleMembershipController::class, 'store'])->name('join');
             Route::delete('{circle:slug}/leave', [CircleMembershipController::class, 'destroy'])->name('leave');
+        });
+
+        Route::prefix('hashtags')->as('hashtags.')->group(function () {
+            Route::get('/', [HashtagController::class, 'index'])->name('index');
+            Route::get('{hashtag:slug}', [HashtagController::class, 'show'])->name('show');
         });
 
         Route::prefix('signals')->as('signals.')->middleware('feature:feature_signals_enabled')->group(function () {
@@ -316,12 +325,33 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     Route::get('/', [AdminUserController::class, 'index'])
                         ->name('index')
                         ->can('viewAny', User::class);
+                    Route::get('/suspensions', [AdminUserController::class, 'suspensions'])
+                        ->name('suspensions')
+                        ->can('viewAny', User::class);
                     Route::patch('{user}/roles', [AdminUserController::class, 'update'])
                         ->name('roles.update')
                         ->can('updateRoles', 'user');
                     Route::post('{user}/require-reverification', [\App\Http\Controllers\Admin\AdminVerificationController::class, 'requireReverification'])
                         ->name('require-reverification')
                         ->can('manageUsers', User::class);
+                    Route::post('{user}/suspend', [AdminUserController::class, 'suspend'])
+                        ->name('suspend')
+                        ->can('suspend', 'user');
+                    Route::post('{user}/unsuspend', [AdminUserController::class, 'unsuspend'])
+                        ->name('unsuspend')
+                        ->can('unsuspend', 'user');
+                    Route::post('{user}/ban', [AdminUserController::class, 'ban'])
+                        ->name('ban')
+                        ->can('ban', 'user');
+                    Route::post('{user}/unban', [AdminUserController::class, 'unban'])
+                        ->name('unban')
+                        ->can('unban', 'user');
+                    Route::post('{user}/warn', [AdminUserController::class, 'warn'])
+                        ->name('warn')
+                        ->can('warn', 'user');
+                    Route::post('{user}/grant-free-membership', [AdminUserController::class, 'grantFreeMembership'])
+                        ->name('grant-free-membership')
+                        ->can('grantFreeMembership', 'user');
                 });
 
                 Route::prefix('settings')->as('settings.')->group(function () {
@@ -508,7 +538,47 @@ Route::middleware(['auth', 'verified'])->group(function () {
                         ->name('export')
                         ->can('viewAny', \App\Models\Ads\Ad::class);
                 });
+
+                Route::prefix('appeals')->as('appeals.')->group(function () {
+                    Route::get('/', [\App\Http\Controllers\Admin\AdminAppealController::class, 'index'])
+                        ->name('index')
+                        ->can('reviewAppeals', User::class);
+                    Route::get('{appeal}', [\App\Http\Controllers\Admin\AdminAppealController::class, 'show'])
+                        ->name('show')
+                        ->can('reviewAppeals', User::class);
+                    Route::post('{appeal}/review', [\App\Http\Controllers\Admin\AdminAppealController::class, 'review'])
+                        ->name('review')
+                        ->can('reviewAppeals', User::class);
+                });
+
+                Route::prefix('moderation')->as('moderation.')->middleware('role_or_permission:Admin|Super Admin|Moderator')->group(function () {
+                    Route::get('/', [\App\Http\Controllers\Admin\AdminModerationController::class, 'index'])
+                        ->name('index');
+                    Route::get('{type}/{id}', [\App\Http\Controllers\Admin\AdminModerationController::class, 'show'])
+                        ->name('show');
+                    Route::post('{type}/{id}/approve', [\App\Http\Controllers\Admin\AdminModerationController::class, 'approve'])
+                        ->name('approve');
+                    Route::post('{type}/{id}/reject', [\App\Http\Controllers\Admin\AdminModerationController::class, 'reject'])
+                        ->name('reject');
+                    Route::post('{type}/{id}/dismiss', [\App\Http\Controllers\Admin\AdminModerationController::class, 'dismiss'])
+                        ->name('dismiss');
+                    Route::post('bulk-approve', [\App\Http\Controllers\Admin\AdminModerationController::class, 'bulkApprove'])
+                        ->name('bulk-approve');
+                    Route::post('bulk-reject', [\App\Http\Controllers\Admin\AdminModerationController::class, 'bulkReject'])
+                        ->name('bulk-reject');
+                });
             });
+
+        Route::prefix('account')->as('account.')->group(function () {
+            Route::get('banned', [\App\Http\Controllers\AccountStatusController::class, 'banned'])->name('banned');
+            Route::get('suspended', [\App\Http\Controllers\AccountStatusController::class, 'suspended'])->name('suspended');
+        });
+
+        Route::prefix('account/appeal')->as('account.appeal.')->group(function () {
+            Route::get('create', [\App\Http\Controllers\UserAppealController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\UserAppealController::class, 'store'])->name('store');
+            Route::get('{appeal}', [\App\Http\Controllers\UserAppealController::class, 'show'])->name('show');
+        });
 
         Route::get('radar', RadarController::class)->middleware('feature:feature_radar_enabled')->name('radar');
         Route::post('radar/boost', [BoostController::class, 'store'])->middleware('feature:feature_radar_enabled')->name('radar.boost.store');
@@ -559,6 +629,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::get('p/{username}', [ProfileController::class, 'show'])
     ->name('profile.show');
 
+Route::get('f/{username}', [ProfileFollowersController::class, 'show'])
+    ->name('profile.followers');
+Route::get('f/{username}/{tab}', [ProfileFollowersController::class, 'show'])
+    ->name('profile.followers.tab')
+    ->where('tab', 'followers|following|mutual');
+
 Route::get('w/{username}', [\App\Http\Controllers\WishlistController::class, 'show'])
     ->middleware(['feature:feature_signals_enabled', 'feature:feature_wishlist_enabled'])
     ->name('wishlist.show');
@@ -577,6 +653,7 @@ require __DIR__.'/settings.php';
 
 // Public legal pages
 Route::prefix('legal')->group(function () {
+    Route::get('/', [LegalPageController::class, 'index'])->name('legal.index');
     Route::get('/terms', [LegalPageController::class, 'show'])->defaults('page', 'terms')->name('legal.terms');
     Route::get('/privacy', [LegalPageController::class, 'show'])->defaults('page', 'privacy')->name('legal.privacy');
     Route::get('/guidelines', [LegalPageController::class, 'show'])->defaults('page', 'guidelines')->name('legal.guidelines');

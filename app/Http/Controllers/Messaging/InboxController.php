@@ -25,7 +25,7 @@ class InboxController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $requestedConversationId = $request->integer('conversation');
+        $requestedConversationId = $request->integer('conversation') ?? $request->input('conversation');
         $composeHandle = trim((string) $request->query('compose', ''));
 
         if ($composeHandle !== '') {

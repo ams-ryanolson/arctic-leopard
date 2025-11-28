@@ -1,4 +1,5 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { SearchDropdown } from '@/components/search/search-dropdown';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,7 +15,7 @@ import {
     type HeaderSupportLink,
     type SharedData,
 } from '@/types';
-import { Link, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import {
     ArrowUpRight,
     ChevronDown,
@@ -23,7 +24,7 @@ import {
     Search,
     Sparkles,
 } from 'lucide-react';
-import { type ReactNode } from 'react';
+import { type ReactNode, useState, useCallback } from 'react';
 
 const defaultActions: HeaderAction[] = [
     {
@@ -123,6 +124,9 @@ export function AppSidebarHeader({
     const displayName = user?.display_name ?? user?.name ?? 'Scene Member';
     const initials = getInitials(displayName);
 
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
     const joinedDisplay = user?.created_at
         ? new Date(user.created_at).toLocaleDateString(undefined, {
               month: 'short',
@@ -134,6 +138,27 @@ export function AppSidebarHeader({
         ? `Scene ID #${String(user.id).padStart(4, '0')}`
         : 'Scene ID pending';
 
+    const handleSearchChange = useCallback((value: string) => {
+        setSearchQuery(value);
+        setIsDropdownOpen(value.length >= 2);
+    }, []);
+
+    const handleSearchKeyDown = useCallback(
+        (event: React.KeyboardEvent<HTMLInputElement>) => {
+            if (event.key === 'Enter' && searchQuery.trim()) {
+                router.visit(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+                setIsDropdownOpen(false);
+            }
+        },
+        [searchQuery],
+    );
+
+    const handleSearchFocus = useCallback(() => {
+        if (searchQuery.length >= 2) {
+            setIsDropdownOpen(true);
+        }
+    }, [searchQuery.length]);
+
     return (
         <header className="sticky top-0 z-40 border-b border-white/10 bg-black/45 backdrop-blur-2xl">
             <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-3 py-3 sm:gap-4 sm:px-4 sm:py-4 md:px-8">
@@ -142,9 +167,9 @@ export function AppSidebarHeader({
                     <div className="flex min-w-0 flex-1 items-center gap-2">
                         <SidebarTrigger className="h-9 w-9 rounded-full border border-white/15 text-white hover:bg-white/10" />
                         <Avatar className="size-9 border border-white/10 bg-white/10">
-                            {user?.avatar ? (
+                            {user?.avatar_url ? (
                                 <AvatarImage
-                                    src={user.avatar}
+                                    src={user.avatar_url}
                                     alt={displayName}
                                 />
                             ) : (
@@ -201,9 +226,9 @@ export function AppSidebarHeader({
                     <div className="flex min-w-0 flex-1 items-center gap-3">
                         <SidebarTrigger className="rounded-full border border-white/15 text-white hover:bg-white/10" />
                         <Avatar className="size-12 border border-white/10 bg-white/10">
-                            {user?.avatar ? (
+                            {user?.avatar_url ? (
                                 <AvatarImage
-                                    src={user.avatar}
+                                    src={user.avatar_url}
                                     alt={displayName}
                                 />
                             ) : (
@@ -240,7 +265,16 @@ export function AppSidebarHeader({
                             <Input
                                 type="search"
                                 placeholder="Search..."
+                                value={searchQuery}
+                                onChange={(e) => handleSearchChange(e.target.value)}
+                                onFocus={handleSearchFocus}
+                                onKeyDown={handleSearchKeyDown}
                                 className="h-9 rounded-full border-white/15 bg-white/10 pl-9 text-sm text-white placeholder:text-white/40 sm:h-11 sm:pl-11"
+                            />
+                            <SearchDropdown
+                                query={searchQuery}
+                                isOpen={isDropdownOpen}
+                                onClose={() => setIsDropdownOpen(false)}
                             />
                         </div>
                         <Badge className="hidden rounded-full border-white/20 bg-white/10 px-2.5 py-1 text-xs text-white/70 sm:flex">

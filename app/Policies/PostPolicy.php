@@ -134,4 +134,12 @@ class PostPolicy
 
         return $decision->audience() === PostAudience::PayToView && $decision->requiresPurchase();
     }
+
+    /**
+     * Determine whether the user can moderate the post.
+     */
+    public function moderate(User $user, Post $post): bool
+    {
+        return $user->hasRole(['Admin', 'Super Admin', 'Moderator']);
+    }
 }

@@ -13,8 +13,9 @@ import { Spark } from '@/components/ui/spark';
 import { recordPostView } from '@/lib/feed-client';
 import { cn } from '@/lib/utils';
 import profileRoutes from '@/routes/profile';
+import type { SharedData } from '@/types';
 import type { TimelineEntry } from '@/types/feed';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     BarChart3,
     BookmarkCheck,
@@ -68,6 +69,8 @@ export default function TimelineEntryCard({
     onPollVote,
     disabled,
 }: TimelineEntryCardProps) {
+    const { features } = usePage<SharedData>().props;
+    const bookmarksEnabled = features?.feature_bookmarks_enabled ?? false;
     const { openLightbox } = useLightbox();
     const post = entry.post;
     const [pendingCounts, setPendingCounts] = useState<Record<number, number>>(
@@ -256,7 +259,7 @@ export default function TimelineEntryCard({
 
     if (!post) {
         return (
-            <Card className="border border-dashed border-white/15 bg-white/5 p-6 text-sm text-white/70">
+            <Card className="border border-dashed border-white/15 bg-white/5 p-3 text-sm text-white/70 sm:p-6">
                 This timeline entry has been removed.
             </Card>
         );
@@ -321,20 +324,20 @@ export default function TimelineEntryCard({
 
     return (
         <div ref={cardWrapperRef}>
-            <Card className="border border-white/10 bg-white/5 p-6 text-sm text-white/75">
-                <header className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                        <Avatar className="size-12 border border-white/10">
+            <Card className="border border-white/10 bg-white/5 p-3 text-sm text-white/75 sm:p-6">
+                <header className="flex flex-wrap items-start justify-between gap-2 sm:gap-3">
+                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+                        <Avatar className="size-9 shrink-0 border border-white/10 sm:size-12">
                             <AvatarImage
                                 src={post.author?.avatar_url ?? undefined}
                                 alt={displayName}
                             />
-                            <AvatarFallback className="bg-gradient-to-br from-amber-400/80 via-rose-500/80 to-violet-600/80 text-sm font-semibold text-white">
+                            <AvatarFallback className="bg-gradient-to-br from-amber-400/80 via-rose-500/80 to-violet-600/80 text-xs font-semibold text-white sm:text-sm">
                                 {initials || '??'}
                             </AvatarFallback>
                         </Avatar>
-                        <div className="space-y-1">
-                            <p className="font-semibold text-white">
+                        <div className="space-y-0.5 min-w-0 flex-1 sm:space-y-1">
+                            <p className="font-semibold text-sm text-white sm:text-base truncate">
                                 {authorProfileHref ? (
                                     <Link
                                         href={authorProfileHref}
@@ -347,39 +350,39 @@ export default function TimelineEntryCard({
                                     displayName
                                 )}
                             </p>
-                            <p className="flex flex-wrap items-center gap-2 text-xs tracking-[0.3em] text-white/50 uppercase">
+                            <p className="flex flex-wrap items-center gap-1.5 text-[0.625rem] tracking-[0.3em] text-white/50 uppercase sm:gap-2 sm:text-xs">
                                 {authorUsername && authorProfileHref && (
                                     <Link
                                         href={authorProfileHref}
                                         prefetch
-                                        className="text-white/60 transition hover:text-white focus:outline-none focus-visible:text-white"
+                                        className="text-white/60 transition hover:text-white focus:outline-none focus-visible:text-white truncate"
                                     >
                                         @{authorUsername}
                                     </Link>
                                 )}
                                 <span className="text-white/30">•</span>
-                                <span>{formatTimestamp(publishedAt)}</span>
+                                <span className="whitespace-nowrap">{formatTimestamp(publishedAt)}</span>
                             </p>
                         </div>
                     </div>
 
-                    <Badge className="rounded-full border-white/20 bg-white/10 text-[0.65rem] tracking-[0.3em] text-white/70 uppercase">
+                    <Badge className="rounded-full border-white/20 bg-white/10 text-[0.6rem] tracking-[0.25em] text-white/70 uppercase shrink-0 sm:text-[0.65rem] sm:tracking-[0.3em]">
                         {audienceLabel(post.audience)}
                     </Badge>
                 </header>
 
                 {post.body && (
-                    <p className="mt-4 text-base whitespace-pre-line text-white/80">
+                    <p className="mt-3 text-sm whitespace-pre-line text-white/80 sm:mt-4 sm:text-base leading-relaxed">
                         {post.body}
                     </p>
                 )}
 
                 {tipGoal && tipGoal.amount && tipGoal.currency && (
-                    <div className="mt-4 rounded-2xl border border-emerald-400/40 bg-emerald-500/10 p-4 text-xs text-emerald-100">
-                        <p className="text-[0.65rem] tracking-[0.35em] text-emerald-200/80 uppercase">
+                    <div className="mt-3 rounded-xl border border-emerald-400/40 bg-emerald-500/10 p-3 text-xs text-emerald-100 sm:mt-4 sm:rounded-2xl sm:p-4">
+                        <p className="text-[0.6rem] tracking-[0.3em] text-emerald-200/80 uppercase sm:text-[0.65rem] sm:tracking-[0.35em]">
                             Tip train goal
                         </p>
-                        <div className="mt-2 flex flex-col gap-1 text-sm text-white">
+                        <div className="mt-2 flex flex-col gap-1 text-xs text-white sm:text-sm">
                             <span className="font-semibold">
                                 {formatCurrency(
                                     tipGoal.amount,
@@ -418,11 +421,11 @@ export default function TimelineEntryCard({
                 )}
 
                 {post.hashtags && post.hashtags.length > 0 && (
-                    <div className="mt-4 flex flex-wrap gap-2">
+                    <div className="mt-3 flex flex-wrap gap-1.5 sm:mt-4 sm:gap-2">
                         {post.hashtags.map((tag) => (
                             <span
                                 key={tag}
-                                className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/60"
+                                className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[0.625rem] text-white/60 sm:px-3 sm:py-1 sm:text-xs"
                             >
                                 #{tag}
                             </span>
@@ -430,39 +433,40 @@ export default function TimelineEntryCard({
                     </div>
                 )}
 
-                <footer className="mt-6 flex flex-wrap gap-2 text-xs text-white/60">
+                <footer className="mt-4 flex flex-wrap gap-1.5 text-xs text-white/60 sm:mt-6 sm:gap-2">
                     <Button
                         type="button"
                         variant="ghost"
                         size="sm"
                         className={cn(
-                            'rounded-full px-4 text-xs text-white/75 hover:bg-white/10 hover:text-white',
+                            'h-9 rounded-full px-3 text-[0.625rem] text-white/75 transition active:scale-95 hover:bg-white/10 hover:text-white sm:h-auto sm:px-4 sm:text-xs',
                             hasLiked &&
                                 'border border-amber-400/40 bg-gradient-to-br from-amber-400/10 via-rose-500/10 to-violet-600/10 text-amber-200',
                         )}
                         onClick={() => onLike?.(post.id)}
                         disabled={disabled}
                     >
-                        <span className="flex items-center gap-2">
+                        <span className="flex items-center gap-1.5 sm:gap-2">
                             <Spark
                                 sparked={hasLiked}
                                 className={cn(
-                                    'size-3.5',
+                                    'size-3 sm:size-3.5',
                                     !hasLiked && 'text-white/60',
                                 )}
                             />
-                            {hasLiked ? 'Sparked' : 'Spark'} ({post.likes_count}
-                            )
+                            <span className="whitespace-nowrap">
+                                {hasLiked ? 'Sparked' : 'Spark'} ({post.likes_count})
+                            </span>
                         </span>
                     </Button>
 
-                    {onBookmark && canBookmark && (
+                    {bookmarksEnabled && onBookmark && canBookmark && (
                         <Button
                             type="button"
                             variant="ghost"
                             size="sm"
                             className={cn(
-                                'rounded-full px-4 text-xs text-white/75 hover:bg-white/10 hover:text-white',
+                                'h-9 rounded-full px-3 text-[0.625rem] text-white/75 transition active:scale-95 hover:bg-white/10 hover:text-white sm:h-auto sm:px-4 sm:text-xs',
                                 isBookmarked &&
                                     'border border-blue-400/40 bg-blue-400/10 text-blue-200',
                             )}
@@ -470,14 +474,15 @@ export default function TimelineEntryCard({
                             disabled={disabled}
                             aria-pressed={isBookmarked}
                         >
-                            <span className="flex items-center gap-2">
+                            <span className="flex items-center gap-1.5 sm:gap-2">
                                 {isBookmarked ? (
-                                    <BookmarkCheck className="size-3.5" />
+                                    <BookmarkCheck className="size-3 sm:size-3.5" />
                                 ) : (
-                                    <BookmarkIcon className="size-3.5 text-white/60" />
+                                    <BookmarkIcon className="size-3 text-white/60 sm:size-3.5" />
                                 )}
-                                {isBookmarked ? 'Saved' : 'Save'} (
-                                {bookmarkCount})
+                                <span className="whitespace-nowrap">
+                                    {isBookmarked ? 'Saved' : 'Save'} ({bookmarkCount})
+                                </span>
                             </span>
                         </Button>
                     )}
@@ -494,7 +499,7 @@ export default function TimelineEntryCard({
                             asChild
                             variant="ghost"
                             size="sm"
-                            className="rounded-full border border-white/10 px-4 text-xs text-white/80 transition hover:border-amber-300/60 hover:bg-white/10 hover:text-white"
+                            className="h-9 rounded-full border border-white/10 px-3 text-[0.625rem] text-white/80 transition active:scale-95 hover:border-amber-300/60 hover:bg-white/10 hover:text-white sm:h-auto sm:px-4 sm:text-xs"
                         >
                             <Link
                                 href={postAnalyticsRoutes.show.url({
@@ -502,10 +507,12 @@ export default function TimelineEntryCard({
                                 })}
                                 prefetch
                                 preserveScroll
-                                className="flex items-center gap-2"
+                                className="flex items-center gap-1.5 sm:gap-2"
                             >
-                                <BarChart3 className="size-3.5" />
-                                Live analytics ({viewsCount})
+                                <BarChart3 className="size-3 sm:size-3.5" />
+                                <span className="whitespace-nowrap">
+                                    Analytics ({viewsCount})
+                                </span>
                             </Link>
                         </Button>
                     ) : (
@@ -514,16 +521,18 @@ export default function TimelineEntryCard({
                             variant="ghost"
                             size="sm"
                             className={cn(
-                                'rounded-full px-4 text-xs text-white/75 hover:bg-white/10 hover:text-white',
+                                'h-9 rounded-full px-3 text-[0.625rem] text-white/75 transition active:scale-95 hover:bg-white/10 hover:text-white sm:h-auto sm:px-4 sm:text-xs',
                                 post.locked &&
                                     'border border-amber-400/30 bg-amber-400/10 text-amber-200',
                             )}
                             onClick={() => onPurchase?.(post.id)}
                             disabled={!post.locked || disabled}
                         >
-                            {post.locked
-                                ? 'Unlock to view'
-                                : `Views (${viewsCount})`}
+                            <span className="whitespace-nowrap">
+                                {post.locked
+                                    ? 'Unlock to view'
+                                    : `Views (${viewsCount})`}
+                            </span>
                         </Button>
                     )}
                 </footer>

@@ -246,6 +246,7 @@ class AdvertiserController extends Controller
             'currency' => ['required', 'string', 'size:3'],
             'gateway' => ['nullable', 'string'],
             'method' => ['nullable', 'string'],
+            'payment_method_id' => ['nullable', 'integer', 'exists:payment_methods,id'],
         ]);
 
         $user = $request->user();
@@ -258,6 +259,16 @@ class AdvertiserController extends Controller
 
         $amount = Money::from($request->integer('amount'), strtoupper($request->string('currency')->toString()));
 
+        $metadata = [
+            'ad_name' => $ad->name,
+            'ad_uuid' => $ad->uuid,
+            'payment_type' => 'one_time',
+        ];
+
+        if ($request->filled('payment_method_id')) {
+            $metadata['payment_method_id'] = $request->input('payment_method_id');
+        }
+
         // Create payment intent
         $intent = $this->paymentService->createIntent(
             new PaymentIntentData(
@@ -268,10 +279,7 @@ class AdvertiserController extends Controller
                 payeeId: null, // Platform receives payment
                 type: PaymentType::OneTime,
                 method: $request->input('method'),
-                metadata: [
-                    'ad_name' => $ad->name,
-                    'ad_uuid' => $ad->uuid,
-                ],
+                metadata: $metadata,
                 description: "Purchase ad: {$ad->name}"
             ),
             $request->input('gateway')
@@ -284,6 +292,8 @@ class AdvertiserController extends Controller
             ], Response::HTTP_CREATED);
         }
 
+        $ccbillOptions = config('payments.gateways.ccbill.options', []);
+
         return Inertia::render('Signals/Ads/Checkout', [
             'ad' => (new AdResource($ad))->toArray($request),
             'intent' => [
@@ -292,6 +302,8 @@ class AdvertiserController extends Controller
                 'amount' => $intent->amount,
                 'currency' => $intent->currency,
             ],
+            'ccbill_client_accnum' => $ccbillOptions['low_risk_non_recurring']['client_accnum'] ?? null,
+            'ccbill_client_subacc' => $ccbillOptions['low_risk_non_recurring']['client_subacc'] ?? null,
         ]);
     }
 }

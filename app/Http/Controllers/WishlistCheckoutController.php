@@ -35,11 +35,14 @@ class WishlistCheckoutController extends Controller
         $feePercent = (float) \App\Models\AdminSetting::get('wishlist_platform_fee_percent', 10.0);
 
         $resource = new WishlistItemResource($wishlistItem);
+        $ccbillOptions = config('payments.gateways.ccbill.options', []);
 
         return Inertia::render('Wishlist/Checkout', [
             'item' => $resource->toArray($request),
             'fee_percent' => $feePercent,
             'minimum_contribution' => 500, // $5.00 in cents
+            'ccbill_client_accnum' => $ccbillOptions['low_risk_non_recurring']['client_accnum'] ?? null,
+            'ccbill_client_subacc' => $ccbillOptions['low_risk_non_recurring']['client_subacc'] ?? null,
         ]);
     }
 
@@ -59,13 +62,18 @@ class WishlistCheckoutController extends Controller
         $validated = $request->validated();
         $amount = Money::from($validated['amount'], $validated['currency']);
 
+        $metadata = [];
+        if (isset($validated['payment_method_id'])) {
+            $metadata['payment_method_id'] = $validated['payment_method_id'];
+        }
+
         $purchaseData = new WishlistPurchaseData(
             wishlistItemId: $wishlistItem->getKey(),
             buyerId: $user->getKey(),
             creatorId: $wishlistItem->creator_id,
             amount: $amount,
             message: $validated['message'] ?? null,
-            metadata: [],
+            metadata: $metadata,
             method: $validated['method'] ?? null,
             coversFee: $validated['covers_fee'] ?? false
         );

@@ -233,17 +233,19 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                     className="size-10 rounded-full p-1"
                                 >
                                     <Avatar className="size-8 overflow-hidden rounded-full">
-                                        <AvatarImage
-                                            src={auth.user.avatar}
-                                            alt={auth.user.name}
-                                        />
+                                        {auth.user.avatar_url ? (
+                                            <AvatarImage
+                                                src={auth.user.avatar_url}
+                                                alt={auth.user.name}
+                                            />
+                                        ) : null}
                                         <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
                                             {getInitials(auth.user.name)}
                                         </AvatarFallback>
                                     </Avatar>
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-56" align="end">
+                            <DropdownMenuContent className="w-64 rounded-xl border border-white/10 bg-black/95 backdrop-blur-xl p-2 shadow-[0_24px_60px_-35px_rgba(249,115,22,0.45)]" align="end">
                                 <UserMenuContent user={auth.user} />
                             </DropdownMenuContent>
                         </DropdownMenu>

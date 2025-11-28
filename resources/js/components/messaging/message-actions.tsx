@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { CornerUpRight, SmilePlus } from 'lucide-react';
 
 type MessageActionsProps = {
@@ -18,8 +19,9 @@ export default function MessageActions({
     onToggleReactions,
     onReply,
 }: MessageActionsProps) {
-    // Show actions on hover or when reactions are expanded
-    const showActions = isHovered || isReactionsExpanded;
+    const isMobile = useIsMobile();
+    // Show actions always on mobile, or on hover/expanded on desktop
+    const showActions = isMobile || isHovered || isReactionsExpanded;
 
     return (
         <div
@@ -39,12 +41,12 @@ export default function MessageActions({
                         onToggleReactions();
                     }}
                     className={cn(
-                        'rounded-full p-1.5 text-white/70 transition-all duration-150 hover:bg-white/20 hover:text-white active:scale-95',
+                        'min-h-[44px] min-w-[44px] rounded-full p-2.5 text-white/70 transition-all duration-150 hover:bg-white/20 hover:text-white active:scale-95 sm:min-h-0 sm:min-w-0 sm:p-1.5',
                         isReactionsExpanded &&
                             'bg-amber-400/20 text-amber-300 shadow-md shadow-amber-400/20',
                     )}
                 >
-                    <SmilePlus className="h-3.5 w-3.5" />
+                    <SmilePlus className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                 </button>
                 <button
                     type="button"
@@ -53,9 +55,9 @@ export default function MessageActions({
                         e.stopPropagation();
                         onReply();
                     }}
-                    className="rounded-full p-1.5 text-white/70 transition-all duration-150 hover:bg-white/20 hover:text-white active:scale-95"
+                    className="min-h-[44px] min-w-[44px] rounded-full p-2.5 text-white/70 transition-all duration-150 hover:bg-white/20 hover:text-white active:scale-95 sm:min-h-0 sm:min-w-0 sm:p-1.5"
                 >
-                    <CornerUpRight className="h-3.5 w-3.5" />
+                    <CornerUpRight className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                 </button>
             </div>
         </div>

@@ -3,8 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\AdminSetting;
-use App\Models\ConversationParticipant;
-use App\Models\Message;
+use App\Services\Messaging\ConversationUnreadService;
 use App\Services\Toasts\ToastBus;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
@@ -12,6 +11,10 @@ use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
 {
+    public function __construct(
+        private ConversationUnreadService $conversationUnread,
+    ) {}
+
     /**
      * The root template that's loaded on the first page visit.
      *
@@ -70,6 +73,10 @@ class HandleInertiaRequests extends Middleware
             'legal' => [
                 'age_of_consent_text' => (string) AdminSetting::get('age_of_consent_text', 'You must be 18 or older to use this site.'),
             ],
+            'support' => [
+                'email' => (string) AdminSetting::get('support_email', ''),
+                'contact_url' => (string) AdminSetting::get('contact_url', ''),
+            ],
             'cookies' => [
                 'banner' => [
                     'enabled' => (bool) AdminSetting::get('cookie_banner_enabled', true),
@@ -122,19 +129,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'messaging' => fn (): array => [
                 'unread_count' => $request->user()
-                    ? ConversationParticipant::query()
-                        ->where('user_id', $request->user()->getKey())
-                        ->whereNull('left_at')
-                        ->get()
-                        ->sum(function (ConversationParticipant $participant): int {
-                            return Message::query()
-                                ->where('conversation_id', $participant->conversation_id)
-                                ->when(
-                                    $participant->last_read_message_id,
-                                    fn ($query) => $query->where('id', '>', $participant->last_read_message_id),
-                                )
-                                ->count();
-                        })
+                    ? $this->conversationUnread->getUnreadCount($request->user())
                     : 0,
             ],
             'features' => [
@@ -147,6 +142,8 @@ class HandleInertiaRequests extends Middleware
                 'feature_messaging_enabled' => (bool) AdminSetting::get('feature_messaging_enabled', true),
                 'feature_events_enabled' => (bool) AdminSetting::get('feature_events_enabled', true),
                 'feature_bookmarks_enabled' => (bool) AdminSetting::get('feature_bookmarks_enabled', true),
+                'feature_circles_enabled' => (bool) AdminSetting::get('feature_circles_enabled', true),
+                'feature_stories_enabled' => (bool) AdminSetting::get('feature_stories_enabled', true),
                 'feature_beta_enabled' => (bool) AdminSetting::get('feature_beta_enabled', false),
             ],
         ];

@@ -156,19 +156,27 @@ export default function EventShow({ event }: EventShowProps) {
                                     Media
                                 </h3>
                                 <div className="grid gap-3 md:grid-cols-2">
-                                    {event.media.map((media) => (
-                                        <div
-                                            key={media.id}
-                                            className="h-44 overflow-hidden rounded-2xl border border-white/10 bg-black/30"
-                                            style={{
-                                                backgroundImage:
-                                                    media.media_type === 'image'
-                                                        ? `url(${media.path})`
+                                    {event.media.map((media) => {
+                                        // Use optimized_url for images when available, fall back to url or path
+                                        const imageUrl =
+                                            media.media_type === 'image'
+                                                ? media.optimized_url ??
+                                                  media.url ??
+                                                  media.path
+                                                : null;
+
+                                        return (
+                                            <div
+                                                key={media.id}
+                                                className="h-44 overflow-hidden rounded-2xl border border-white/10 bg-black/30"
+                                                style={{
+                                                    backgroundImage: imageUrl
+                                                        ? `url(${imageUrl})`
                                                         : undefined,
-                                                backgroundSize: 'cover',
-                                                backgroundPosition: 'center',
-                                            }}
-                                        >
+                                                    backgroundSize: 'cover',
+                                                    backgroundPosition: 'center',
+                                                }}
+                                            >
                                             {media.media_type === 'video' && (
                                                 <div className="flex h-full items-center justify-center text-sm text-white/70">
                                                     Video •{' '}
@@ -178,8 +186,9 @@ export default function EventShow({ event }: EventShowProps) {
                                                     s
                                                 </div>
                                             )}
-                                        </div>
-                                    ))}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}

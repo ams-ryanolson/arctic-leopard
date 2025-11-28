@@ -72,7 +72,7 @@ export default function ConversationHeader({
                                 <div key={member.id} className="relative">
                                     <Avatar className="border-2 border-white/20 ring-2 ring-black/40">
                                         <AvatarImage
-                                            src={member.avatar ?? undefined}
+                                            src={(member.avatar_url || member.avatar) ?? undefined}
                                             alt={
                                                 member.name ??
                                                 'Active participant'

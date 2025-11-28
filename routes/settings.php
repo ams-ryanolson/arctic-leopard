@@ -4,6 +4,7 @@ use App\Http\Controllers\Settings\AccountController;
 use App\Http\Controllers\Settings\DataExportController;
 use App\Http\Controllers\Settings\NotificationsController;
 use App\Http\Controllers\Settings\PasswordController;
+use App\Http\Controllers\Settings\PaymentMethodController;
 use App\Http\Controllers\Settings\PrivacyController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SocialController;
@@ -42,6 +43,9 @@ Route::middleware('auth')->group(function () {
 
     // Social Settings (placeholder for future)
     Route::get('settings/social', [SocialController::class, 'edit'])->name('settings.social.edit');
+
+    // Payment Methods Settings
+    Route::get('settings/payment-methods', [PaymentMethodController::class, 'index'])->name('settings.payment-methods.index');
 
     // Data & Account Settings
     Route::get('settings/account', [AccountController::class, 'edit'])->name('settings.account.edit');

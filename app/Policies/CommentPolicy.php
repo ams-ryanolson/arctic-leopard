@@ -115,4 +115,12 @@ class CommentPolicy
     {
         return $user->id === $comment->post?->user_id || $user->can('lock comments');
     }
+
+    /**
+     * Determine whether the user can moderate the comment.
+     */
+    public function moderate(User $user, Comment $comment): bool
+    {
+        return $user->hasRole(['Admin', 'Super Admin', 'Moderator']);
+    }
 }

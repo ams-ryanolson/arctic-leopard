@@ -28,6 +28,7 @@ class PurchaseWishlistItemRequest extends FormRequest
             'message' => ['nullable', 'string', 'max:1000'],
             'gateway' => ['nullable', 'string'],
             'method' => ['nullable', 'string'],
+            'payment_method_id' => ['nullable', 'integer', 'exists:payment_methods,id'],
         ];
     }
 }

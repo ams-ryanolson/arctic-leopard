@@ -5,6 +5,7 @@ use App\Http\Controllers\Comments\CommentLikeController;
 use App\Http\Controllers\Feed\CircleFeedController;
 use App\Http\Controllers\Feed\FollowingFeedController;
 use App\Http\Controllers\Feed\UserFeedController;
+use App\Http\Controllers\Hashtags\HashtagController;
 use App\Http\Controllers\Messaging\ConversationController;
 use App\Http\Controllers\Messaging\ConversationMessageController;
 use App\Http\Controllers\Messaging\ConversationParticipantController;
@@ -13,12 +14,14 @@ use App\Http\Controllers\Messaging\ConversationReadController;
 use App\Http\Controllers\Messaging\MessageController as MessagingMessageController;
 use App\Http\Controllers\Messaging\MessageReactionController;
 use App\Http\Controllers\Messaging\TipRequestController;
+use App\Http\Controllers\Payments\PaymentMethodController;
 use App\Http\Controllers\Posts\MediaController;
 use App\Http\Controllers\Posts\PollVoteController;
 use App\Http\Controllers\Posts\PostController;
 use App\Http\Controllers\Posts\PostLikeController;
 use App\Http\Controllers\Posts\PostViewController;
 use App\Http\Controllers\Posts\PurchaseController;
+use App\Http\Controllers\Search\SearchController;
 use App\Http\Controllers\Settings\VerificationController;
 use App\Http\Controllers\Signals\PlaybookArticleLikeController;
 use App\Http\Controllers\Subscriptions\SubscriptionController;
@@ -51,7 +54,25 @@ Route::post('posts/{post}/views', [PostViewController::class, 'store'])->name('p
 
 Route::get('feed/users/{user}', [UserFeedController::class, 'index'])->name('feed.user');
 
+// Search endpoints
+Route::get('search/autocomplete', [SearchController::class, 'autocomplete'])->name('search.autocomplete');
+Route::get('search', [SearchController::class, 'index'])->name('search.index');
+
+// Hashtag endpoints
+Route::get('hashtags/{hashtag:slug}/posts', [HashtagController::class, 'posts'])->name('hashtags.posts');
+
+// Public endpoint to get client IP (for fraud detection)
+Route::get('client-ip', function () {
+    return response()->json([
+        'ip' => request()->ip(),
+    ]);
+})->name('api.client-ip');
+
 Route::middleware('auth:sanctum')->group(function (): void {
+    Route::get('payment-methods/frontend-token', [PaymentMethodController::class, 'getFrontendToken'])->name('payment-methods.frontend-token');
+    Route::apiResource('payment-methods', PaymentMethodController::class);
+    Route::post('payment-methods/{paymentMethod}/set-default', [PaymentMethodController::class, 'setDefault'])->name('payment-methods.set-default');
+
     Route::apiResource('posts', PostController::class)->only(['store', 'update', 'destroy']);
 
     Route::get('feed/following', [FollowingFeedController::class, 'index'])->name('feed.following');

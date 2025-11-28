@@ -12,6 +12,8 @@ declare global {
 }
 
 let echoInstance: Echo | null = null;
+let connectionState: 'connected' | 'disconnected' | 'connecting' = 'disconnected';
+let connectionStateListeners: Set<(state: typeof connectionState) => void> = new Set();
 
 type EchoChannel = Channel & {
     notification?(callback: (notification: unknown) => void): EchoChannel;
@@ -122,7 +124,49 @@ export function ensureEcho(): Echo {
         }),
         enableLogging: false,
         disableStats: true,
+        enabledTransports: ['ws', 'wss'],
     });
+
+    const pusher = echoInstance.connector.pusher;
+
+    if (pusher) {
+        pusher.connection.bind('connected', () => {
+            connectionState = 'connected';
+            notifyConnectionStateListeners();
+        });
+
+        pusher.connection.bind('disconnected', () => {
+            connectionState = 'disconnected';
+            notifyConnectionStateListeners();
+        });
+
+        pusher.connection.bind('connecting', () => {
+            connectionState = 'connecting';
+            notifyConnectionStateListeners();
+        });
+
+        pusher.connection.bind('error', (error: unknown) => {
+            console.error('[broadcasting] Connection error', error);
+            connectionState = 'disconnected';
+            notifyConnectionStateListeners();
+
+            setTimeout(() => {
+                if (pusher.connection.state === 'disconnected' || pusher.connection.state === 'failed') {
+                    pusher.connect();
+                }
+            }, 3000);
+        });
+
+        pusher.connection.bind('state_change', (states: { previous: string; current: string }) => {
+            if (states.current === 'disconnected' || states.current === 'failed') {
+                setTimeout(() => {
+                    if (pusher.connection.state === 'disconnected' || pusher.connection.state === 'failed') {
+                        pusher.connect();
+                    }
+                }, 3000);
+            }
+        });
+    }
 
     return echoInstance;
 }
@@ -156,4 +200,29 @@ export function getPresenceChannel(name: string): EchoPresenceChannel | null {
 
         return null;
     }
+}
+
+function notifyConnectionStateListeners(): void {
+    connectionStateListeners.forEach((listener) => {
+        try {
+            listener(connectionState);
+        } catch (error) {
+            console.error('[broadcasting] Error in connection state listener', error);
+        }
+    });
+}
+
+export function getConnectionState(): typeof connectionState {
+    return connectionState;
+}
+
+export function onConnectionStateChange(
+    listener: (state: typeof connectionState) => void,
+): () => void {
+    connectionStateListeners.add(listener);
+    listener(connectionState);
+
+    return () => {
+        connectionStateListeners.delete(listener);
+    };
 }

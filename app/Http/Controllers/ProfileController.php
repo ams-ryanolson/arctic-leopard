@@ -2,8 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\PostResource;
+use App\Models\AdminSetting;
+use App\Models\Bookmark;
+use App\Models\Comment;
 use App\Models\Post;
+use App\Models\PostMedia;
 use App\Models\User;
+use App\Models\Wishlists\WishlistItem;
 use App\Services\Cache\TimelineCacheService;
 use App\Services\Feed\FeedService;
 use App\Services\Payments\EntitlementService;
@@ -32,7 +38,7 @@ class ProfileController extends Controller
         $normalizedUsername = Str::lower($username);
 
         $user = User::query()
-            ->with(['interests', 'hashtags'])
+            ->with(['interests', 'hashtags', 'circles'])
             ->where(function ($query) use ($username, $normalizedUsername): void {
                 $query->where('username_lower', $normalizedUsername)
                     ->orWhere('username', $username)
@@ -47,6 +53,7 @@ class ProfileController extends Controller
 
         $authUser = $request->user();
         $isOwnProfile = $authUser?->id === $user->id;
+        $isCreator = $user->hasRole('Creator');
 
         if ($authUser !== null && $authUser->hasBlockRelationshipWith($user)) {
             return Inertia::render('Profile/Blocked', [
@@ -114,6 +121,53 @@ class ProfileController extends Controller
             },
         );
 
+        // Fetch recent media from user's posts (photos and videos) with post data
+        $recentMedia = PostMedia::query()
+            ->whereHas('post', function ($query) use ($user): void {
+                $query->where('user_id', $user->id)
+                    ->whereNotNull('published_at');
+            })
+            ->with([
+                'post' => function ($query) use ($authUser): void {
+                    $query->with([
+                        'author',
+                        'media',
+                        'poll.options',
+                        'hashtags',
+                    ])
+                        ->withCount(['bookmarks as bookmarks_count'])
+                        ->withBookmarkStateFor($authUser);
+                },
+            ])
+            ->orderBy('created_at', 'desc')
+            ->limit(12)
+            ->get()
+            ->map(function (PostMedia $media) use ($request, $authUser) {
+                $post = $media->post;
+                $postData = null;
+
+                if ($post !== null) {
+                    // Attach viewer state (likes, bookmarks)
+                    if ($authUser !== null) {
+                        $authUser->attachLikeStatus($post);
+                        $authUser->attachBookmarkStatus($post);
+                    }
+
+                    // Use PostResource to format the post data
+                    $postData = (new PostResource($post))->toArray($request);
+                }
+
+                return [
+                    'id' => $media->id,
+                    'url' => $media->url,
+                    'thumbnail_url' => $media->thumbnail_url,
+                    'mime_type' => $media->mime_type,
+                    'is_video' => str_starts_with($media->mime_type ?? '', 'video/'),
+                    'post_id' => $media->post_id,
+                    'post' => $postData,
+                ];
+            });
+
         return Inertia::render('Profile/Show', [
             'user' => [
                 'id' => $user->id,
@@ -130,15 +184,23 @@ class ProfileController extends Controller
                 'location' => $this->formatLocation($user),
                 'interests' => $user->interests->pluck('name')->all(),
                 'hashtags' => $user->hashtags->pluck('name')->all(),
+                'circles' => $user->circles->map(fn ($circle) => [
+                    'id' => $circle->id,
+                    'name' => $circle->name,
+                    'slug' => $circle->slug,
+                ])->all(),
                 'is_following' => $isFollowing,
                 'can_follow' => ! $isOwnProfile,
                 'requires_follow_approval' => (bool) $user->requires_follow_approval,
                 'followers_count' => $followersCount,
                 'is_traveling' => (bool) $user->is_traveling,
+                'is_creator' => $isCreator,
+                'is_verified' => $user->isIdVerified(),
                 // TODO: Add followers_count when Follow model exists
                 // TODO: Add following_count when Follow model exists
                 // TODO: Add is_following when Follow model exists
             ],
+            'recentMedia' => $recentMedia,
             'isOwnProfile' => $isOwnProfile,
             'feed' => $feed,
             'feedPageName' => self::FEED_PAGE_NAME,
@@ -179,12 +241,35 @@ class ProfileController extends Controller
         $followersCount = $followersCount ?? (method_exists($user, 'approvedFollowers')
             ? $user->approvedFollowers()->count()
             : 0);
+        $followingCount = method_exists($user, 'approvedFollowings')
+            ? $user->approvedFollowings()->count()
+            : 0;
         $subscriberCount = $user->subscribers()->count();
 
-        return [
+        $stats = [
             'posts' => $postCount,
             'followers' => $followersCount,
+            'following' => $followingCount,
             'subscribers' => $subscriberCount,
         ];
+
+        // Comments count
+        $stats['comments'] = Comment::query()
+            ->where('user_id', $user->id)
+            ->count();
+
+        // Bookmarks count
+        $stats['bookmarks'] = Bookmark::query()
+            ->where('user_id', $user->id)
+            ->count();
+
+        // Wishlist items count (if feature enabled)
+        if (AdminSetting::get('feature_signals_enabled', true) && AdminSetting::get('feature_wishlist_enabled', true)) {
+            $stats['wishlist_items'] = WishlistItem::query()
+                ->where('creator_id', $user->id)
+                ->count();
+        }
+
+        return $stats;
     }
 }

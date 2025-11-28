@@ -312,4 +312,63 @@ class MembershipService
             $this->cancel($activeMembership, 'replaced_by_new_membership');
         }
     }
+
+    /**
+     * Grant a free membership to a user with an expiry date.
+     */
+    public function grantFreeMembership(
+        User $user,
+        MembershipPlan $plan,
+        \Illuminate\Support\Carbon $expiresAt,
+        ?string $reason = null,
+        ?User $admin = null
+    ): UserMembership {
+        return DB::transaction(function () use ($user, $plan, $expiresAt, $reason, $admin) {
+            // Cancel any existing active membership
+            $this->cancelExistingMembership($user);
+
+            // Create a free payment record
+            $payment = \App\Models\Payments\Payment::create([
+                'payable_type' => MembershipPlan::class,
+                'payable_id' => $plan->id,
+                'payer_id' => $user->id,
+                'payee_id' => null,
+                'type' => \App\Enums\Payments\PaymentType::OneTime,
+                'status' => \App\Enums\Payments\PaymentStatus::Captured,
+                'amount' => 0,
+                'fee_amount' => 0,
+                'net_amount' => 0,
+                'currency' => $plan->currency ?? 'USD',
+                'method' => 'free',
+                'provider' => 'free',
+                'metadata' => [
+                    'reason' => $reason,
+                    'granted_by_admin' => true,
+                    'admin_id' => $admin?->id,
+                ],
+                'authorized_at' => now(),
+                'captured_at' => now(),
+            ]);
+
+            $membership = UserMembership::create([
+                'user_id' => $user->id,
+                'membership_plan_id' => $plan->id,
+                'status' => 'active',
+                'billing_type' => 'one_time',
+                'starts_at' => now(),
+                'ends_at' => $expiresAt,
+                'next_billing_at' => null,
+                'payment_id' => $payment->id,
+                'original_price' => 0,
+                'discount_amount' => 0,
+            ]);
+
+            // Assign role
+            $this->assignRole($membership);
+
+            event(new \App\Events\Users\FreeMembershipGranted($user, $membership, $admin));
+
+            return $membership;
+        });
+    }
 }

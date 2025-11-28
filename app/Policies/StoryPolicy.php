@@ -71,4 +71,12 @@ class StoryPolicy
         // Admins with analytics permissions can view
         return $user->can('view analytics') || $user->can('view creator analytics');
     }
+
+    /**
+     * Determine whether the user can moderate the story.
+     */
+    public function moderate(User $user, Story $story): bool
+    {
+        return $user->hasRole(['Admin', 'Super Admin', 'Moderator']);
+    }
 }

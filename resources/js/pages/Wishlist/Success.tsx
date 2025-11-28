@@ -316,3 +316,5 @@ export default function WishlistSuccess({ purchase }: WishlistSuccessProps) {
         </AppLayout>
     );
 }
+
+

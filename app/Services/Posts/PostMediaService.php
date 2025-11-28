@@ -28,7 +28,8 @@ class PostMediaService
             return [];
         }
 
-        $disk = config('filesystems.default');
+        // Use S3 for media storage, fallback to default if S3 not configured
+        $disk = config('filesystems.disks.s3') !== null ? 's3' : config('filesystems.default');
         $stored = [];
 
         foreach (array_values($mediaAttachments) as $index => $attachment) {

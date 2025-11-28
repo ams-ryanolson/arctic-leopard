@@ -4,12 +4,15 @@ namespace App\Payments\Gateways;
 
 use App\Payments\Contracts\PaymentGatewayContract;
 use App\Payments\Contracts\SubscriptionGatewayContract;
+use App\Payments\Data\CardDetails;
 use App\Payments\Data\PaymentCaptureData;
 use App\Payments\Data\PaymentIntentData;
 use App\Payments\Data\PaymentIntentResponse;
 use App\Payments\Data\PaymentRefundData;
 use App\Payments\Data\PaymentRefundResponse;
 use App\Payments\Data\PaymentResponse;
+use App\Payments\Data\PaymentTokenData;
+use App\Payments\Data\PaymentTokenResponse;
 use App\Payments\Data\SubscriptionCancelData;
 use App\Payments\Data\SubscriptionCreateData;
 use App\Payments\Data\SubscriptionResponse;
@@ -245,6 +248,40 @@ class FakeGateway implements PaymentGatewayContract, SubscriptionGatewayContract
     public static function reset(): void
     {
         FakeGatewayStore::reset();
+    }
+
+    public function createPaymentToken(PaymentTokenData $data): PaymentTokenResponse
+    {
+        $tokenId = $this->generateId('pmt');
+
+        return new PaymentTokenResponse(
+            provider: $this->identifier(),
+            providerTokenId: $tokenId,
+            frontendBearerToken: Str::random(64),
+            clientAccnum: 999999,
+            clientSubacc: 1234,
+            is3DS: false,
+            raw: [
+                'token_id' => $tokenId,
+                'user_id' => $data->userId,
+            ]
+        );
+    }
+
+    public function generateFrontendToken(): string
+    {
+        return Str::random(64);
+    }
+
+    public function getPaymentTokenDetails(string $tokenId): CardDetails
+    {
+        return CardDetails::fromArray([
+            'last_four' => '4242',
+            'brand' => 'visa',
+            'exp_month' => '12',
+            'exp_year' => '2025',
+            'fingerprint' => null,
+        ]);
     }
 
     protected function generateId(string $prefix): string

@@ -24,7 +24,7 @@ export default function LegalLayout({
             {/* Header (compact brand chip) */}
             <header className="px-5 py-6 sm:px-6 md:px-12">
                 <div className="mx-auto flex w-full max-w-6xl items-center justify-between rounded-3xl border border-white/10 bg-white/5 px-5 py-4 backdrop-blur sm:rounded-full sm:px-6 sm:py-3">
-                    <div className="flex items-center gap-3">
+                    <Link href="/legal" className="flex items-center gap-3">
                         <div className="relative flex size-10 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 via-rose-500 to-violet-700 shadow-[0_0_45px_rgba(249,115,22,0.45)]">
                             <Users className="size-5" />
                         </div>
@@ -36,7 +36,7 @@ export default function LegalLayout({
                                 Legal
                             </p>
                         </div>
-                    </div>
+                    </Link>
                     <nav className="hidden items-center gap-6 text-xs md:flex">
                         <Link
                             href="/legal/terms"

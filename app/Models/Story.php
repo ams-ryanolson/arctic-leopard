@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ModerationStatus;
 use App\Enums\StoryAudience;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
@@ -42,6 +44,11 @@ class Story extends Model
         'scheduled_at',
         'published_at',
         'expires_at',
+        'moderation_status',
+        'moderated_at',
+        'moderated_by_id',
+        'moderation_notes',
+        'rejection_reason',
     ];
 
     /**
@@ -58,6 +65,8 @@ class Story extends Model
             'scheduled_at' => 'datetime',
             'published_at' => 'datetime',
             'expires_at' => 'datetime',
+            'moderation_status' => ModerationStatus::class,
+            'moderated_at' => 'datetime',
         ];
     }
 
@@ -316,5 +325,118 @@ class Story extends Model
         return $this->where($field, $value)
             ->whereNull('deleted_at') // Exclude soft-deleted stories
             ->first();
+    }
+
+    /**
+     * Admin who moderated this story.
+     *
+     * @return BelongsTo<User, Story>
+     */
+    public function moderatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'moderated_by_id');
+    }
+
+    /**
+     * Moderation queue entry for this story.
+     *
+     * @return MorphOne<ContentModerationQueue>
+     */
+    public function moderationQueue(): MorphOne
+    {
+        return $this->morphOne(ContentModerationQueue::class, 'moderatable');
+    }
+
+    /**
+     * Check if the story is pending moderation.
+     */
+    public function isPendingModeration(): bool
+    {
+        return $this->moderation_status === ModerationStatus::Pending;
+    }
+
+    /**
+     * Check if the story is approved.
+     */
+    public function isApproved(): bool
+    {
+        return $this->moderation_status === ModerationStatus::Approved;
+    }
+
+    /**
+     * Check if the story is rejected.
+     */
+    public function isRejected(): bool
+    {
+        return $this->moderation_status === ModerationStatus::Rejected;
+    }
+
+    /**
+     * Check if moderation is required (based on feature flag).
+     */
+    public function requiresModeration(): bool
+    {
+        return \App\Models\AdminSetting::get('content_moderation_required', false);
+    }
+
+    /**
+     * Approve the story for moderation.
+     */
+    public function approveModeration(User $moderator, ?string $notes = null): void
+    {
+        $this->update([
+            'moderation_status' => ModerationStatus::Approved,
+            'moderated_at' => now(),
+            'moderated_by_id' => $moderator->getKey(),
+            'moderation_notes' => $notes,
+        ]);
+
+        $this->moderationQueue?->approve($moderator, $notes);
+    }
+
+    /**
+     * Reject the story for moderation.
+     */
+    public function rejectModeration(User $moderator, string $reason, ?string $notes = null): void
+    {
+        $this->update([
+            'moderation_status' => ModerationStatus::Rejected,
+            'moderated_at' => now(),
+            'moderated_by_id' => $moderator->getKey(),
+            'rejection_reason' => $reason,
+            'moderation_notes' => $notes,
+        ]);
+
+        $this->moderationQueue?->reject($moderator, $reason, $notes);
+    }
+
+    /**
+     * Scope to stories pending moderation.
+     *
+     * @param  Builder<Story>  $query
+     */
+    public function scopePendingModeration(Builder $query): void
+    {
+        $query->where('moderation_status', ModerationStatus::Pending);
+    }
+
+    /**
+     * Scope to approved stories.
+     *
+     * @param  Builder<Story>  $query
+     */
+    public function scopeApproved(Builder $query): void
+    {
+        $query->where('moderation_status', ModerationStatus::Approved);
+    }
+
+    /**
+     * Scope to rejected stories.
+     *
+     * @param  Builder<Story>  $query
+     */
+    public function scopeRejected(Builder $query): void
+    {
+        $query->where('moderation_status', ModerationStatus::Rejected);
     }
 }

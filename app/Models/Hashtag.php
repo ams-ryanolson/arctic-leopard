@@ -6,11 +6,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Str;
+use Laravel\Scout\Searchable;
 
 class Hashtag extends Model
 {
     /** @use HasFactory<\Database\Factories\HashtagFactory> */
     use HasFactory;
+
+    use Searchable;
 
     /**
      * The attributes that are mass assignable.
@@ -84,5 +87,26 @@ class Hashtag extends Model
         }
 
         return $slug;
+    }
+
+    /**
+     * Get the indexable data array for the model.
+     *
+     * @return array<string, mixed>
+     */
+    public function toSearchableArray(): array
+    {
+        return [
+            'name' => $this->name,
+            'slug' => $this->slug,
+        ];
+    }
+
+    /**
+     * Get the name of the index associated with the model.
+     */
+    public function searchableAs(): string
+    {
+        return 'hashtags';
     }
 }

@@ -9,6 +9,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
+import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import { cn } from '@/lib/utils';
 import type { SharedData } from '@/types';
 import type { FeedComposerConfig } from '@/types/feed';
@@ -207,21 +213,31 @@ function ComposerIconButton({
     disabled = false,
 }: ComposerIconButtonProps) {
     return (
-        <button
-            type="button"
-            onClick={onClick}
-            disabled={disabled}
-            aria-label={label}
-            aria-pressed={active}
-            className={cn(
-                'flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition active:scale-95 hover:border-white/30 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-60 sm:size-9',
-                active &&
-                    'border-white/40 bg-white/20 text-white shadow-[0_14px_30px_-22px_rgba(249,115,22,0.8)]',
-                FOCUS_RING,
-            )}
-        >
-            <Icon className="size-3.5 sm:size-4" />
-        </button>
+        <TooltipPrimitive.Root>
+            <TooltipTrigger asChild>
+                <button
+                    type="button"
+                    onClick={onClick}
+                    disabled={disabled}
+                    aria-label={label}
+                    aria-pressed={active}
+                    className={cn(
+                        'flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition active:scale-95 hover:border-white/30 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-60 sm:size-9',
+                        active &&
+                            'border-white/40 bg-white/20 text-white shadow-[0_14px_30px_-22px_rgba(249,115,22,0.8)]',
+                        FOCUS_RING,
+                    )}
+                >
+                    <Icon className="size-3.5 sm:size-4" />
+                </button>
+            </TooltipTrigger>
+            <TooltipContent
+                side="top"
+                className="bg-black/90 text-white border-white/20"
+            >
+                {label}
+            </TooltipContent>
+        </TooltipPrimitive.Root>
     );
 }
 
@@ -331,6 +347,7 @@ export default function FeedPostComposer({
 }: FeedPostComposerProps) {
     const { features } = usePage<SharedData>().props;
     const circlesEnabled = features?.feature_circles_enabled ?? false;
+    const signalsEnabled = features?.feature_signals_enabled ?? false;
     
     const defaultTypeValue = useMemo(
         () => config.post_types[0]?.value ?? 'text',
@@ -426,12 +443,20 @@ export default function FeedPostComposer({
 
     const audienceOptions = useMemo<AudienceDefinition[]>(
         () =>
-            config.audiences.map((option) => ({
-                value: option.value,
-                label: option.label,
-                icon: AUDIENCE_ICON_MAP[option.value] ?? Users,
-            })),
-        [config.audiences],
+            config.audiences
+                .filter((option) => {
+                    // Hide subscribers and pay_to_view options when Signals is disabled
+                    if (!signalsEnabled && (option.value === 'subscribers' || option.value === 'pay_to_view')) {
+                        return false;
+                    }
+                    return true;
+                })
+                .map((option) => ({
+                    value: option.value,
+                    label: option.label,
+                    icon: AUDIENCE_ICON_MAP[option.value] ?? Users,
+                })),
+        [config.audiences, signalsEnabled],
     );
 
     const pollActive = pollTrayOpen || pollHasContent;
@@ -677,6 +702,25 @@ export default function FeedPostComposer({
             setFormData('post_to_circles', false);
         }
     }, [circlesEnabled, formData.post_to_circles, setFormData]);
+
+    useEffect(() => {
+        if (
+            !signalsEnabled &&
+            (formData.audience === 'subscribers' ||
+                formData.audience === 'pay_to_view')
+        ) {
+            // Reset to first available audience when Signals is disabled
+            const firstAvailableAudience =
+                audienceOptions[0]?.value ?? defaultAudience;
+            setFormData('audience', firstAvailableAudience);
+        }
+    }, [
+        signalsEnabled,
+        formData.audience,
+        audienceOptions,
+        defaultAudience,
+        setFormData,
+    ]);
 
     useEffect(() => {
         setFormData(
@@ -1174,10 +1218,10 @@ export default function FeedPostComposer({
             >
                 <CardContent
                     className={cn(
-                        'px-3 pt-3 sm:px-6 sm:py-2',
+                        'px-3 pt-3 sm:px-6 sm:pt-2',
                         isExpanded || shouldStayExpanded
-                            ? 'pb-3 space-y-3 sm:space-y-6'
-                            : 'pb-1 space-y-0 sm:space-y-6',
+                            ? 'pb-3 space-y-3 sm:pb-2 sm:space-y-6'
+                            : 'pb-0 space-y-0 sm:pb-0 sm:space-y-6',
                     )}
                 >
                     {!config.can_post && (
@@ -1235,10 +1279,10 @@ export default function FeedPostComposer({
                                         onScroll={syncOverlayScroll}
                                         placeholder=""
                                         className={cn(
-                                            'relative z-10 w-full resize-none rounded-2xl border border-transparent bg-transparent px-3 py-2.5 text-sm text-transparent caret-white transition-all duration-300 focus:ring-2 focus:ring-rose-500/30 focus:outline-none disabled:opacity-60 sm:min-h-[170px] sm:rounded-3xl sm:px-5 sm:py-4 sm:text-base',
+                                            'relative z-10 w-full resize-none rounded-2xl border border-transparent bg-transparent px-3 py-2.5 text-sm text-transparent caret-white transition-all duration-300 focus:ring-2 focus:ring-rose-500/30 focus:outline-none disabled:opacity-60 sm:rounded-3xl sm:px-5 sm:py-4 sm:text-base',
                                             isExpanded
-                                                ? 'min-h-[100px]'
-                                                : 'min-h-[60px]',
+                                                ? 'min-h-[100px] sm:min-h-[170px]'
+                                                : 'min-h-[60px] sm:min-h-[80px]',
                                         )}
                                         maxLength={BODY_CHARACTER_LIMIT}
                                         disabled={
@@ -1269,9 +1313,10 @@ export default function FeedPostComposer({
                                     'mb-2 flex flex-col gap-2.5 overflow-hidden transition-all duration-300 sm:mb-3 sm:gap-3',
                                     isExpanded
                                         ? 'max-h-[500px] opacity-100'
-                                        : 'max-h-0 opacity-0 sm:max-h-[500px] sm:opacity-100',
+                                        : 'max-h-0 opacity-0',
                                 )}
                             >
+                                <TooltipProvider delayDuration={300}>
                                 <div className="flex flex-wrap items-center gap-1.5 sm:justify-between sm:gap-2">
                                     <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                                         <ComposerIconButton
@@ -1295,23 +1340,27 @@ export default function FeedPostComposer({
                                             active={scheduleOpen}
                                             disabled={toolbarDisabled}
                                         />
-                                        <ComposerIconButton
-                                            icon={Lock}
-                                            label="Toggle paywall"
-                                            onClick={handlePaywallToggle}
-                                            active={paywallActive}
-                                            disabled={
-                                                toolbarDisabled ||
-                                                !payToViewAvailable
-                                            }
-                                        />
-                                        <ComposerIconButton
-                                            icon={Target}
-                                            label="Tip goal"
-                                            onClick={handleTipGoalToggle}
-                                            active={tipGoalOpen}
-                                            disabled={toolbarDisabled}
-                                        />
+                                        {signalsEnabled && (
+                                            <ComposerIconButton
+                                                icon={Lock}
+                                                label="Toggle paywall"
+                                                onClick={handlePaywallToggle}
+                                                active={paywallActive}
+                                                disabled={
+                                                    toolbarDisabled ||
+                                                    !payToViewAvailable
+                                                }
+                                            />
+                                        )}
+                                        {signalsEnabled && (
+                                            <ComposerIconButton
+                                                icon={Target}
+                                                label="Tip goal"
+                                                onClick={handleTipGoalToggle}
+                                                active={tipGoalOpen}
+                                                disabled={toolbarDisabled}
+                                            />
+                                        )}
                                         <ComposerIconButton
                                             icon={Thumbtack}
                                             label="Pin post"
@@ -1352,6 +1401,7 @@ export default function FeedPostComposer({
                                         )}
                                     </select>
                                 </div>
+                                </TooltipProvider>
                             </div>
 
                             {scheduleOpen && (
@@ -1382,7 +1432,7 @@ export default function FeedPostComposer({
                                 </div>
                             )}
 
-                            {paywallActive && (
+                            {signalsEnabled && paywallActive && (
                                 <div className="space-y-4 rounded-xl border border-amber-400/40 bg-gradient-to-br from-amber-400/15 via-rose-500/10 to-violet-500/10 p-4 sm:rounded-2xl sm:p-5">
                                     <p className="text-[0.65rem] tracking-[0.3em] text-amber-100/80 uppercase">
                                         Paywall
@@ -1478,7 +1528,7 @@ export default function FeedPostComposer({
                                 </div>
                             )}
 
-                            {tipGoalOpen && (
+                            {signalsEnabled && tipGoalOpen && (
                                 <div className="space-y-4 rounded-xl border border-emerald-400/30 bg-emerald-500/10 p-4 sm:rounded-2xl sm:p-5">
                                     <div className="grid gap-4 sm:grid-cols-2">
                                         <div className="space-y-2">
@@ -1940,12 +1990,8 @@ export default function FeedPostComposer({
                     </div>
                 </CardContent>
 
-                <CardFooter
-                    className={cn(
-                        'flex justify-end border-t border-white/10 p-3 pt-3 sm:p-6',
-                        !isExpanded && !shouldStayExpanded && 'hidden sm:flex',
-                    )}
-                >
+                {(isExpanded || shouldStayExpanded) && (
+                <CardFooter className="flex justify-end border-t border-white/10 p-3 pt-3 transition-all duration-300 sm:p-6">
                     <Button
                         type="submit"
                         disabled={!canSubmit}
@@ -1954,6 +2000,7 @@ export default function FeedPostComposer({
                         {form.processing ? 'Publishing…' : 'Share update'}
                     </Button>
                 </CardFooter>
+                )}
             </form>
         </Card>
     );

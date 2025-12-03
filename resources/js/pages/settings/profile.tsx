@@ -489,88 +489,90 @@ export default function Profile({
                             ) : (
                                 <CoverGradient className="h-full w-full" />
                             )}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-
-                            {/* Cover Upload Button */}
-                            <MediaUploader
-                                accept="image/jpeg,image/png,image/webp"
-                                onUploadComplete={handleCoverUploadComplete}
-                                onError={handleCoverUploadError}
-                                onFileSelect={handleCoverFileSelect}
-                                disabled={coverUploading || mediaProcessing}
-                                className="absolute right-4 bottom-4"
-                            >
-                                <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="secondary"
-                                    className="rounded-full border border-white/20 bg-black/50 px-4 text-white backdrop-blur-sm hover:bg-black/70"
-                                    disabled={coverUploading || mediaProcessing}
-                                >
-                                    <ImageIcon className="mr-2 size-4" />
-                                    {coverUploading
-                                        ? 'Uploading...'
-                                        : 'Change cover'}
-                                </Button>
-                            </MediaUploader>
+                            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                         </div>
 
                         {/* Avatar & Info */}
                         <div className="relative px-6 pb-6">
                             {/* Avatar positioned overlapping the cover */}
-                            <div className="-mt-12 mb-4 flex items-end gap-4 sm:-mt-16">
-                                <div className="relative">
-                                    <Avatar className="size-24 border-4 border-black/80 shadow-xl sm:size-28">
-                                        <AvatarImage
-                                            src={avatarPreview}
-                                            alt={
-                                                profile.display_name ??
-                                                profile.username
-                                            }
-                                        />
-                                        <AvatarFallback className="bg-gradient-to-br from-amber-400/20 to-violet-500/20 text-2xl text-white">
-                                            {getInitials(
-                                                profile.display_name ??
-                                                    profile.username,
-                                            )}
-                                        </AvatarFallback>
-                                    </Avatar>
+                            <div className="-mt-12 mb-4 flex items-end justify-between sm:-mt-16">
+                                <div className="flex items-end gap-4">
+                                    <div className="relative">
+                                        <Avatar className="size-24 border-4 border-black/80 shadow-xl sm:size-28">
+                                            <AvatarImage
+                                                src={avatarPreview}
+                                                alt={
+                                                    profile.display_name ??
+                                                    profile.username
+                                                }
+                                            />
+                                            <AvatarFallback className="bg-gradient-to-br from-amber-400/20 to-violet-500/20 text-2xl text-white">
+                                                {getInitials(
+                                                    profile.display_name ??
+                                                        profile.username,
+                                                )}
+                                            </AvatarFallback>
+                                        </Avatar>
 
-                                    {/* Avatar Upload Button */}
-                                    <MediaUploader
-                                        accept="image/jpeg,image/png,image/webp"
-                                        onUploadComplete={
-                                            handleAvatarUploadComplete
-                                        }
-                                        onError={handleAvatarUploadError}
-                                        onFileSelect={handleAvatarFileSelect}
-                                        disabled={
-                                            avatarUploading || mediaProcessing
-                                        }
-                                        className="absolute -right-1 -bottom-1"
-                                    >
-                                        <button
-                                            type="button"
-                                            className="flex size-8 items-center justify-center rounded-full border border-white/20 bg-black/70 text-white shadow-lg backdrop-blur-sm transition hover:bg-black/90"
+                                        {/* Avatar Upload Button */}
+                                        <MediaUploader
+                                            accept="image/jpeg,image/png,image/webp"
+                                            onUploadComplete={
+                                                handleAvatarUploadComplete
+                                            }
+                                            onError={handleAvatarUploadError}
+                                            onFileSelect={handleAvatarFileSelect}
                                             disabled={
-                                                avatarUploading ||
-                                                mediaProcessing
+                                                avatarUploading || mediaProcessing
                                             }
+                                            className="absolute -right-1 -bottom-1"
                                         >
-                                            <Camera className="size-4" />
-                                        </button>
-                                    </MediaUploader>
+                                            <button
+                                                type="button"
+                                                className="flex size-8 items-center justify-center rounded-full border border-white/20 bg-black/70 text-white shadow-lg backdrop-blur-sm transition hover:bg-black/90"
+                                                disabled={
+                                                    avatarUploading ||
+                                                    mediaProcessing
+                                                }
+                                            >
+                                                <Camera className="size-4" />
+                                            </button>
+                                        </MediaUploader>
+                                    </div>
+
+                                    <div className="mb-2">
+                                        <h3 className="text-lg font-semibold text-white">
+                                            {profile.display_name ??
+                                                profile.username}
+                                        </h3>
+                                        <p className="text-sm text-white/60">
+                                            @{profile.username}
+                                        </p>
+                                    </div>
                                 </div>
 
-                                <div className="mb-2">
-                                    <h3 className="text-lg font-semibold text-white">
-                                        {profile.display_name ??
-                                            profile.username}
-                                    </h3>
-                                    <p className="text-sm text-white/60">
-                                        @{profile.username}
-                                    </p>
-                                </div>
+                                {/* Cover Upload Button - moved here */}
+                                <MediaUploader
+                                    accept="image/jpeg,image/png,image/webp"
+                                    onUploadComplete={handleCoverUploadComplete}
+                                    onError={handleCoverUploadError}
+                                    onFileSelect={handleCoverFileSelect}
+                                    disabled={coverUploading || mediaProcessing}
+                                    className="self-end"
+                                >
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="secondary"
+                                        className="rounded-full border border-white/20 bg-white/10 px-4 text-white hover:bg-white/20"
+                                        disabled={coverUploading || mediaProcessing}
+                                    >
+                                        <ImageIcon className="mr-2 size-4" />
+                                        {coverUploading
+                                            ? 'Uploading...'
+                                            : 'Change cover'}
+                                    </Button>
+                                </MediaUploader>
                             </div>
 
                             {/* Section Header */}

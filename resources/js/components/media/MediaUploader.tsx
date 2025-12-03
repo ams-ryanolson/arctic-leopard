@@ -1,6 +1,6 @@
 import { uploadFile, type UploadError } from '@/lib/media-upload-client';
 import { cn } from '@/lib/utils';
-import { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 
 export type MediaUploaderProps = {
     accept?: string;
@@ -187,6 +187,18 @@ export default function MediaUploader({
         }
     }, [disabled]);
 
+    // Clone children and inject onClick to trigger file input
+    const triggerFileInput = useCallback(
+        (e: React.MouseEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!disabled && inputRef.current) {
+                inputRef.current.click();
+            }
+        },
+        [disabled],
+    );
+
     return (
         <div
             className={cn('relative', className)}
@@ -205,12 +217,23 @@ export default function MediaUploader({
             />
 
             {children ? (
-                <div onClick={handleClick} className="cursor-pointer">
-                    {children}
-                </div>
+                React.isValidElement(children) ? (
+                    React.cloneElement(
+                        children as React.ReactElement<{
+                            onClick?: React.MouseEventHandler;
+                        }>,
+                        {
+                            onClick: triggerFileInput,
+                        },
+                    )
+                ) : (
+                    <div onClick={triggerFileInput} className="cursor-pointer">
+                        {children}
+                    </div>
+                )
             ) : (
                 <div
-                    onClick={handleClick}
+                    onClick={triggerFileInput}
                     className={cn(
                         'flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed p-8 transition-colors',
                         isDragging

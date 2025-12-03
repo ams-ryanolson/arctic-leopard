@@ -7,6 +7,8 @@
         "build:ssr": "vite build && vite build --ssr",
         "dev": "vite",
         "dev:full": "concurrently -k -c \"#93c5fd,#fb7185\" \"php artisan serve\" \"npm run dev\"",
+        "email:dev": "email dev --dir resources/emails --port 3001",
+        "email:build": "npx tsx scripts/build-emails.tsx",
         "format": "prettier --write resources/",
         "format:check": "prettier --check resources/",
         "lint": "eslint . --fix",
@@ -17,6 +19,9 @@
     "devDependencies": {
         "@eslint/js": "^9.19.0",
         "@laravel/vite-plugin-wayfinder": "^0.1.3",
+        "@react-email/components": "^1.0.1",
+        "@react-email/preview-server": "^5.0.5",
+        "@react-email/render": "^2.0.0",
         "@types/node": "^22.13.5",
         "@types/video.js": "^7.3.58",
         "babel-plugin-react-compiler": "^1.0.0",
@@ -27,6 +32,8 @@
         "prettier": "^3.4.2",
         "prettier-plugin-organize-imports": "^4.1.0",
         "prettier-plugin-tailwindcss": "^0.6.11",
+        "react-email": "^5.0.5",
+        "tsx": "^4.21.0",
         "typescript-eslint": "^8.23.0"
     },
     "dependencies": {

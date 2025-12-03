@@ -36,6 +36,18 @@ class CheckUserStatus
             return $next($request);
         }
 
+        // Allow broadcasting auth routes
+        if ($request->is('broadcasting/*')) {
+            if (app()->hasDebugModeEnabled()) {
+                \Log::debug('CheckUserStatus: Allowing broadcasting route', [
+                    'path' => $request->path(),
+                    'user_id' => $user?->getKey(),
+                ]);
+            }
+
+            return $next($request);
+        }
+
         // Check if banned
         if ($user->isBanned()) {
             return redirect()->route('account.banned');

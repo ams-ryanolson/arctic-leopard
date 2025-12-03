@@ -110,10 +110,21 @@ class PostPolicy
             return false;
         }
 
+        // For amplify posts, only the original poster can view analytics
+        // Even admins cannot see analytics for amplify posts unless they're the original poster
+        if ($post->isAmplify() && $post->repostedPost) {
+            $originalPost = $post->repostedPost;
+
+            // Only allow if user is the original poster
+            return $user->getKey() === $originalPost->user_id;
+        }
+
+        // For regular posts, check if user is the author
         if ($user->getKey() === $post->user_id) {
             return true;
         }
 
+        // Admins can view analytics for regular posts (not amplify posts)
         if ($user->can('view analytics') || $user->can('view creator analytics')) {
             return true;
         }

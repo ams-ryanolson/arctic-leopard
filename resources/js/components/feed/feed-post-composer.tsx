@@ -3,6 +3,7 @@ import FeedMediaUploader, {
     type FeedUploadedMedia,
     type FeedUploaderItemSummary,
 } from '@/components/feed/feed-media-uploader';
+import MentionHashtagAutocomplete from '@/components/feed/mention-hashtag-autocomplete';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -173,7 +174,7 @@ function IconToggle({
             className={cn(
                 'group flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-medium tracking-[0.25em] uppercase transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-0 sm:px-3 sm:py-1.5',
                 active
-                    ? 'border-white/40 bg-white/15 text-white shadow-[0_14px_30px_-22px_rgba(249,115,22,0.8)]'
+                    ? 'border-emerald-400/60 bg-emerald-500/20 text-emerald-100 shadow-[0_14px_30px_-22px_rgba(16,185,129,0.5)] hover:border-emerald-400/60 hover:bg-emerald-500/20 hover:text-emerald-100'
                     : 'hover:border-white/25 hover:bg-white/10 hover:text-white',
                 FOCUS_RING,
             )}
@@ -181,8 +182,8 @@ function IconToggle({
             <Icon
                 className={cn(
                     'size-4 transition',
-                    active ? 'text-white' : baseTone,
-                    'group-hover:text-white',
+                    active ? 'text-emerald-100 group-hover:text-emerald-100' : baseTone,
+                    !active && 'group-hover:text-white',
                 )}
             />
             {collapseLabel ? (
@@ -222,9 +223,10 @@ function ComposerIconButton({
                     aria-label={label}
                     aria-pressed={active}
                     className={cn(
-                        'flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition active:scale-95 hover:border-white/30 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-60 sm:size-9',
-                        active &&
-                            'border-white/40 bg-white/20 text-white shadow-[0_14px_30px_-22px_rgba(249,115,22,0.8)]',
+                        'flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 sm:size-9',
+                        active
+                            ? 'border-emerald-400/60 bg-emerald-500/20 text-emerald-100 shadow-[0_14px_30px_-22px_rgba(16,185,129,0.5)] hover:border-emerald-400/60 hover:bg-emerald-500/20 hover:text-emerald-100'
+                            : 'hover:border-white/30 hover:bg-white/10 hover:text-white',
                         FOCUS_RING,
                     )}
                 >
@@ -376,7 +378,7 @@ export default function FeedPostComposer({
         paywall_price: null,
         paywall_currency: 'USD',
         extra_attributes: null,
-        post_to_circles: false,
+        post_to_circles: circlesEnabled,
     });
     const formData = form.data;
     const setFormData = form.setData;
@@ -406,9 +408,12 @@ export default function FeedPostComposer({
     const [pollTrayOpen, setPollTrayOpen] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
     const [hasTyped, setHasTyped] = useState(false);
+    const [selectionStart, setSelectionStart] = useState(0);
+    const [selectionEnd, setSelectionEnd] = useState(0);
 
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
     const overlayRef = useRef<HTMLDivElement | null>(null);
+    const cardRef = useRef<HTMLDivElement | null>(null);
 
     const resetUploader = useCallback(() => {
         const nextKey =
@@ -816,30 +821,52 @@ export default function FeedPostComposer({
         [setFormData],
     );
 
+    const handleCursorPositionChange = useCallback(() => {
+        if (!textareaRef.current) {
+            return;
+        }
+        setSelectionStart(textareaRef.current.selectionStart);
+        setSelectionEnd(textareaRef.current.selectionEnd);
+    }, []);
+
+    const handleAutocompleteInsert = useCallback(
+        (text: string, replaceStart: number, replaceEnd: number) => {
+            if (!textareaRef.current) {
+                return;
+            }
+
+            const currentValue = formData.body;
+            const beforeText = currentValue.substring(0, replaceStart);
+            const afterText = currentValue.substring(replaceEnd);
+            const newValue = beforeText + text + afterText;
+
+            handleBodyChange(newValue);
+
+            // Set cursor position after inserted text
+            setTimeout(() => {
+                if (textareaRef.current) {
+                    const newCursorPos = replaceStart + text.length;
+                    textareaRef.current.setSelectionRange(
+                        newCursorPos,
+                        newCursorPos,
+                    );
+                    setSelectionStart(newCursorPos);
+                    setSelectionEnd(newCursorPos);
+                    textareaRef.current.focus();
+                }
+            }, 0);
+        },
+        [formData.body, handleBodyChange],
+    );
+
     const handleTextareaFocus = useCallback(() => {
         setIsExpanded(true);
     }, []);
 
     const handleTextareaBlur = useCallback(() => {
-        // Only collapse if user hasn't typed anything and no media/poll is active
-        if (
-            !hasTyped &&
-            !mediaActive &&
-            !pollActive &&
-            !scheduleOpen &&
-            !tipGoalOpen &&
-            !paywallActive
-        ) {
-            setIsExpanded(false);
-        }
-    }, [
-        hasTyped,
-        mediaActive,
-        pollActive,
-        scheduleOpen,
-        tipGoalOpen,
-        paywallActive,
-    ]);
+        // Don't auto-collapse on blur - let click outside handler manage it
+        // This prevents collapse when clicking buttons
+    }, []);
 
     const handlePinToggle = useCallback(() => {
         if (!config.can_post || form.processing) {
@@ -1065,6 +1092,7 @@ export default function FeedPostComposer({
             return;
         }
 
+        setIsExpanded(true);
         setFormData('post_to_circles', !formData.post_to_circles);
     }, [
         config.can_post,
@@ -1165,7 +1193,8 @@ export default function FeedPostComposer({
         textarea.style.height = `${textarea.scrollHeight}px`;
 
         syncOverlayScroll();
-    }, [formData.body, syncOverlayScroll]);
+        handleCursorPositionChange();
+    }, [formData.body, syncOverlayScroll, handleCursorPositionChange]);
 
     const bodyCharacterCount = formData.body.length;
     const bodyRemaining = BODY_CHARACTER_LIMIT - bodyCharacterCount;
@@ -1193,7 +1222,8 @@ export default function FeedPostComposer({
         !tipGoalInvalid &&
         (!paywallError || !paywallActive);
 
-    // Keep expanded if there's content or active sections
+    // Keep expanded if there's actual content or active input sections
+    // Don't include post_to_circles or is_pinned as they're just toggle states, not content
     const shouldStayExpanded =
         hasTyped ||
         mediaActive ||
@@ -1208,7 +1238,63 @@ export default function FeedPostComposer({
         }
     }, [shouldStayExpanded, isExpanded]);
 
+    // Handle clicks outside the composer to collapse it (only if no content/active sections)
+    useEffect(() => {
+        if (!isExpanded) {
+            return;
+        }
+
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as Node;
+            
+            // Don't collapse if clicking on a tooltip or other overlay
+            if (
+                target instanceof Element &&
+                (target.closest('[data-radix-popper-content-wrapper]') ||
+                 target.closest('[role="tooltip"]'))
+            ) {
+                return;
+            }
+
+            if (
+                cardRef.current &&
+                !cardRef.current.contains(target)
+            ) {
+                // Only collapse if there's no actual content or active sections
+                if (
+                    !hasTyped &&
+                    !mediaActive &&
+                    !pollActive &&
+                    !scheduleOpen &&
+                    !tipGoalOpen &&
+                    !paywallActive
+                ) {
+                    setIsExpanded(false);
+                }
+            }
+        };
+
+        // Use a slight delay to avoid conflicts with button clicks
+        const timeoutId = setTimeout(() => {
+            document.addEventListener('mousedown', handleClickOutside);
+        }, 100);
+
+        return () => {
+            clearTimeout(timeoutId);
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [
+        isExpanded,
+        hasTyped,
+        mediaActive,
+        pollActive,
+        scheduleOpen,
+        tipGoalOpen,
+        paywallActive,
+    ]);
+
     return (
+        <div ref={cardRef} data-composer>
         <Card className="border border-white/10 bg-white/5 text-sm text-white/80 !py-2">
             <form
                 action={PostComposerController.url()}
@@ -1271,9 +1357,13 @@ export default function FeedPostComposer({
                                     <textarea
                                         ref={textareaRef}
                                         value={formData.body}
-                                        onChange={(event) =>
-                                            handleBodyChange(event.target.value)
-                                        }
+                                        onChange={(event) => {
+                                            handleBodyChange(event.target.value);
+                                            handleCursorPositionChange();
+                                        }}
+                                        onSelect={handleCursorPositionChange}
+                                        onKeyUp={handleCursorPositionChange}
+                                        onClick={handleCursorPositionChange}
                                         onFocus={handleTextareaFocus}
                                         onBlur={handleTextareaBlur}
                                         onScroll={syncOverlayScroll}
@@ -1285,6 +1375,17 @@ export default function FeedPostComposer({
                                                 : 'min-h-[60px] sm:min-h-[80px]',
                                         )}
                                         maxLength={BODY_CHARACTER_LIMIT}
+                                        disabled={
+                                            !config.can_post || form.processing
+                                        }
+                                    />
+                                    <MentionHashtagAutocomplete
+                                        value={formData.body}
+                                        selectionStart={selectionStart}
+                                        selectionEnd={selectionEnd}
+                                        onInsert={handleAutocompleteInsert}
+                                        textareaRef={textareaRef}
+                                        overlayRef={overlayRef}
                                         disabled={
                                             !config.can_post || form.processing
                                         }
@@ -1369,12 +1470,13 @@ export default function FeedPostComposer({
                                             disabled={toolbarDisabled}
                                         />
                                         {circlesEnabled && (
-                                            <ComposerIconButton
+                                            <IconToggle
                                                 icon={Users}
-                                                label="Share to circles"
+                                                label="Post to circles"
                                                 onClick={togglePostToCircles}
                                                 active={formData.post_to_circles}
                                                 disabled={toolbarDisabled}
+                                                collapseLabel={false}
                                             />
                                         )}
                                     </div>
@@ -2003,5 +2105,6 @@ export default function FeedPostComposer({
                 )}
             </form>
         </Card>
+        </div>
     );
 }

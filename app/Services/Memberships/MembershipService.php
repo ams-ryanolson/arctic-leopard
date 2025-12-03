@@ -4,6 +4,7 @@ namespace App\Services\Memberships;
 
 use App\Events\Memberships\MembershipCancelled;
 use App\Events\Memberships\MembershipExpired;
+use App\Events\Memberships\MembershipGifted;
 use App\Events\Memberships\MembershipPurchased;
 use App\Events\Memberships\MembershipRenewed;
 use App\Events\Memberships\MembershipUpgraded;
@@ -33,9 +34,9 @@ class MembershipService
             $startsAt = now();
             $endsAt = null;
             $nextBillingAt = null;
+            $billingInterval = $payment->metadata['billing_interval'] ?? 'monthly';
 
             if ($billingType === 'recurring') {
-                $billingInterval = $payment->metadata['billing_interval'] ?? 'monthly';
                 if ($billingInterval === 'yearly') {
                     $endsAt = $startsAt->copy()->addYear();
                 } else {
@@ -43,9 +44,13 @@ class MembershipService
                 }
                 $nextBillingAt = $endsAt;
             } else {
-                // one_time
-                $durationDays = $plan->one_time_duration_days ?? 30;
-                $endsAt = $startsAt->copy()->addDays($durationDays);
+                // one_time - use billing interval to determine duration
+                if ($billingInterval === 'yearly') {
+                    $endsAt = $startsAt->copy()->addYear();
+                } else {
+                    // Monthly one-time purchase = 30 days
+                    $endsAt = $startsAt->copy()->addMonth();
+                }
             }
 
             $membership = UserMembership::create([
@@ -311,6 +316,63 @@ class MembershipService
         if ($activeMembership) {
             $this->cancel($activeMembership, 'replaced_by_new_membership');
         }
+    }
+
+    /**
+     * Create a gift membership from a successful payment.
+     * Gift memberships are one-time only and cannot be given to users with active memberships.
+     */
+    public function gift(
+        User $recipient,
+        User $gifter,
+        MembershipPlan $plan,
+        Payment $payment,
+        int $discountAmount = 0
+    ): UserMembership {
+        return DB::transaction(function () use ($recipient, $gifter, $plan, $payment, $discountAmount) {
+            // Validate recipient doesn't have active membership
+            $hasActiveMembership = $recipient->memberships()
+                ->where('status', 'active')
+                ->where(function ($query) {
+                    $query->whereNull('ends_at')
+                        ->orWhere('ends_at', '>', now());
+                })
+                ->exists();
+
+            if ($hasActiveMembership) {
+                throw new \Illuminate\Validation\ValidationException(
+                    validator([], []),
+                    ['recipient' => 'The recipient already has an active membership.']
+                );
+            }
+
+            // Gift memberships are always one-time
+            $billingType = 'one_time';
+            $startsAt = now();
+            $durationDays = $plan->one_time_duration_days ?? 30;
+            $endsAt = $startsAt->copy()->addDays($durationDays);
+
+            $membership = UserMembership::create([
+                'user_id' => $recipient->id,
+                'gifted_by_user_id' => $gifter->id,
+                'membership_plan_id' => $plan->id,
+                'status' => 'active',
+                'billing_type' => $billingType,
+                'starts_at' => $startsAt,
+                'ends_at' => $endsAt,
+                'next_billing_at' => null,
+                'payment_id' => $payment->id,
+                'original_price' => $payment->amount,
+                'discount_amount' => $discountAmount,
+            ]);
+
+            // Assign role to recipient
+            $this->assignRole($membership);
+
+            event(new MembershipGifted($membership, $gifter));
+
+            return $membership;
+        });
     }
 
     /**

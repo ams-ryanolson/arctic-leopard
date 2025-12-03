@@ -1,22 +1,24 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { Search, Users } from 'lucide-react';
+import { Settings, MessageCircle, Search, Users } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { router } from '@inertiajs/react';
+import { router, Link } from '@inertiajs/react';
 import { formatRelativeTime } from './message-utils';
 import type { Thread, TipMessageMetadata } from './types';
+import messagesRoutes from '@/routes/messages';
 
 type ConversationListProps = {
     threads: Thread[];
     selectedConversationId: number | null;
-    onSelectConversation: (threadId: number) => void;
+    onSelectConversation: (threadUlid: string) => void;
     onRefresh?: () => void;
     isLoading?: boolean;
 };
 
 export default function ConversationList({
-    threads,
+    threads = [],
     selectedConversationId,
     onSelectConversation,
     onRefresh,
@@ -99,29 +101,39 @@ export default function ConversationList({
     }, [isPulling]);
 
     return (
-        <div className="flex h-full min-h-0 flex-col overflow-hidden border border-white/10 bg-white/5 text-white lg:h-auto lg:w-[320px] lg:flex-none lg:rounded-3xl lg:border lg:bg-white/5">
-            <div className="border-b border-white/10 px-4 py-3 sm:py-4">
-                <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-semibold tracking-wide text-white">
-                        Inbox
-                    </p>
+        <div className="flex h-full min-h-0 flex-col overflow-hidden bg-neutral-950 text-white lg:h-full lg:w-[360px] lg:flex-none lg:border-r lg:border-white/5 lg:bg-neutral-950">
+            {/* Minimal header - just title */}
+            <div className="flex items-center justify-between border-b border-white/5 px-4 py-3 sm:px-6 sm:py-4">
+                <h1 className="text-base font-semibold text-white sm:text-lg">
+                    Messages
+                </h1>
+                <div className="flex items-center gap-3">
+                    <Link
+                        href={messagesRoutes.settings.url()}
+                        className="rounded-full p-1.5 text-white/70 transition hover:bg-white/10 hover:text-white"
+                        aria-label="Settings"
+                    >
+                        <Settings className="h-5 w-5" />
+                    </Link>
+                    <button
+                        type="button"
+                        className="rounded-full p-1.5 text-white/70 transition hover:bg-white/10 hover:text-white"
+                        aria-label="New message"
+                    >
+                        <MessageCircle className="h-5 w-5" />
+                    </button>
                 </div>
-                <button
-                    type="button"
-                    disabled
-                    className="mt-4 flex w-full items-center justify-between rounded-full border border-white/12 bg-black/25 px-4 py-2 text-left text-xs text-white/60 transition hover:border-white/20 hover:bg-black/35 focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-80"
-                    aria-label="Thread search coming soon"
-                >
-                    <span className="flex items-center gap-2">
-                        <Search className="h-4 w-4 text-white/70" />
-                        <span className="text-[0.65rem] tracking-[0.2em] text-white/65 uppercase">
-                            Search threads
-                        </span>
-                    </span>
-                    <span className="text-[0.6rem] tracking-[0.2em] text-white/35 uppercase">
-                        Coming soon
-                    </span>
-                </button>
+            </div>
+            {/* Search input */}
+            <div className="border-b border-white/5 px-3 py-3 sm:px-4">
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
+                    <Input
+                        type="text"
+                        placeholder="Search"
+                        className="w-full bg-white/5 pl-10 pr-3 text-sm text-white placeholder:text-white/50 border-white/10 focus-visible:ring-amber-400/40"
+                    />
+                </div>
             </div>
             <div
                 ref={scrollContainerRef}
@@ -172,7 +184,7 @@ export default function ConversationList({
                             </li>
                         ))}
                     </ul>
-                ) : threads.length === 0 ? (
+                ) : !threads || threads.length === 0 ? (
                     <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center text-white/40">
                         <Users className="h-10 w-10" />
                         <p className="text-sm font-medium">
@@ -183,7 +195,7 @@ export default function ConversationList({
                         </p>
                     </div>
                 ) : (
-                    <ul className="flex flex-col gap-2 px-4 py-3 sm:gap-3 sm:py-4">
+                    <ul className="flex flex-col px-2 py-2 sm:px-3 sm:py-3">
                         {threads.map((thread) => {
                             const isActive =
                                 thread.id === selectedConversationId;
@@ -191,26 +203,29 @@ export default function ConversationList({
                                 ?.metadata ?? {}) as TipMessageMetadata;
                             const lastType =
                                 thread.last_message?.type ?? 'text';
-                            const snippet =
-                                thread.last_message?.deleted_at !== null
-                                    ? 'Message removed'
-                                    : lastType === 'tip'
-                                      ? `Tip · ${new Intl.NumberFormat(
-                                            undefined,
-                                            {
-                                                style: 'currency',
-                                                currency:
-                                                    snippetMetadata.currency ??
-                                                    'USD',
-                                            },
-                                        ).format(snippetMetadata.amount ?? 0)}`
-                                      : lastType === 'tip_request'
-                                        ? 'Tip request'
-                                        : (thread.last_message?.body ??
-                                          (thread.last_message?.attachments
+                            // Determine snippet text based on last message
+                            const snippet = !thread.last_message
+                                ? 'No messages yet'
+                                : thread.last_message.deleted_at
+                                  ? 'Message removed'
+                                  : lastType === 'tip'
+                                    ? `Tip · ${new Intl.NumberFormat(
+                                          undefined,
+                                          {
+                                              style: 'currency',
+                                              currency:
+                                                  snippetMetadata.currency ??
+                                                  'USD',
+                                          },
+                                      ).format(snippetMetadata.amount ?? 0)}`
+                                    : lastType === 'tip_request'
+                                      ? 'Tip request'
+                                      : thread.last_message.body
+                                        ? thread.last_message.body
+                                        : thread.last_message.attachments
                                               ?.length
-                                              ? 'Shared media'
-                                              : 'No messages yet'));
+                                          ? 'Shared media'
+                                          : 'Message';
                             const counterparts = thread.participants.filter(
                                 (participant) => !participant.is_viewer,
                             );
@@ -226,7 +241,7 @@ export default function ConversationList({
                                       .filter(Boolean)
                                       .join(' • ');
                             const threadButtonClasses = cn(
-                                'w-full rounded-xl border border-transparent px-3 py-2.5 text-left transition focus:outline-none sm:rounded-2xl sm:px-4 sm:py-3',
+                                'w-full rounded-lg border border-transparent px-3 py-2 text-left transition focus:outline-none sm:rounded-xl sm:px-4 sm:py-2.5',
                                 isActive
                                     ? 'border-amber-400/40 bg-white/10 shadow-[0_25px_60px_-40px_rgba(250,204,21,0.65)]'
                                     : 'hover:border-white/10 hover:bg-white/5',
@@ -241,11 +256,11 @@ export default function ConversationList({
                                 .toUpperCase();
 
                             return (
-                                <li key={thread.id} className="min-w-0">
+                                <li key={thread.id} className="w-full min-w-0 border-b border-white/5 last:border-b-0">
                                     <button
                                         type="button"
                                         onClick={() =>
-                                            onSelectConversation(thread.id)
+                                            onSelectConversation(thread.ulid)
                                         }
                                         className={threadButtonClasses}
                                     >

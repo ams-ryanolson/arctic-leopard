@@ -77,7 +77,7 @@ async function parseResponse<T>(response: Response): Promise<T> {
 }
 
 export async function fetchComments(
-    postId: number,
+    postId: number | string,
     options: FetchCommentsOptions = {},
 ): Promise<CommentCollectionPayload> {
     const { page = 1, signal } = options;
@@ -97,7 +97,7 @@ export async function fetchComments(
 }
 
 export async function createComment(
-    postId: number,
+    postId: number | string,
     payload: CreateCommentPayload,
     options: RequestOptions = {},
 ): Promise<Comment> {
@@ -120,7 +120,7 @@ export async function createComment(
 }
 
 export async function deleteComment(
-    postId: number,
+    postId: number | string,
     commentId: number,
     options: RequestOptions = {},
 ): Promise<Comment> {
@@ -137,7 +137,7 @@ export async function deleteComment(
 }
 
 export async function likeComment(
-    postId: number,
+    postId: number | string,
     commentId: number,
     options: RequestOptions = {},
 ): Promise<Comment> {
@@ -154,7 +154,7 @@ export async function likeComment(
 }
 
 export async function unlikeComment(
-    postId: number,
+    postId: number | string,
     commentId: number,
     options: RequestOptions = {},
 ): Promise<Comment> {

@@ -1,8 +1,7 @@
+import StoryCreatorModal from '@/components/stories/story-creator-modal';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { create as storiesCreate } from '@/routes/stories';
-import { Link } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
@@ -20,15 +19,18 @@ type StoryItem = {
 type StoriesSectionProps = {
     stories?: StoryItem[];
     onStoryClick?: (storyId: number) => void;
+    audiences?: Array<{ value: string; label: string }>;
 };
 
 export default function StoriesSection({
     stories = [],
     onStoryClick,
+    audiences,
 }: StoriesSectionProps) {
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(false);
+    const [isCreatorOpen, setIsCreatorOpen] = useState(false);
 
     const checkScrollPosition = () => {
         if (!scrollContainerRef.current) {
@@ -150,8 +152,9 @@ export default function StoriesSection({
                         {/* Mobile: Circular avatars */}
                         <div className="flex gap-4 md:hidden">
                             {/* Create your story - Mobile */}
-                            <Link
-                                href={storiesCreate().url}
+                            <button
+                                type="button"
+                                onClick={() => setIsCreatorOpen(true)}
                                 className="flex shrink-0 flex-col items-center gap-2 transition hover:opacity-80"
                             >
                                 <div className="relative">
@@ -162,7 +165,7 @@ export default function StoriesSection({
                                 <span className="max-w-[80px] truncate text-xs text-white/70">
                                     Your story
                                 </span>
-                            </Link>
+                            </button>
 
                             {/* Story items - Mobile */}
                             {stories.map((story) => (
@@ -213,15 +216,16 @@ export default function StoriesSection({
                         {/* Desktop: Vertical cards */}
                         <div className="hidden gap-3 md:flex">
                             {/* Create your story - Desktop */}
-                            <Link
-                                href={storiesCreate().url}
+                            <button
+                                type="button"
+                                onClick={() => setIsCreatorOpen(true)}
                                 className="group relative flex h-[200px] w-[120px] shrink-0 flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-white/30 bg-black/40 transition hover:border-white/50 hover:bg-black/60"
                             >
                                 <Plus className="mb-2 size-8 text-white/60 transition group-hover:text-white/80" />
                                 <span className="text-xs font-medium text-white/70 transition group-hover:text-white/90">
                                     Your story
                                 </span>
-                            </Link>
+                            </button>
 
                             {/* Story items - Desktop */}
                             {stories.map((story) => (
@@ -295,6 +299,13 @@ export default function StoriesSection({
                     </div>
                 </div>
             </CardContent>
+
+            {/* Story Creator Modal */}
+            <StoryCreatorModal
+                open={isCreatorOpen}
+                onClose={() => setIsCreatorOpen(false)}
+                audiences={audiences}
+            />
         </Card>
     );
 }

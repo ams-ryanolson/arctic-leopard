@@ -767,6 +767,31 @@ class User extends Authenticatable
     }
 
     /**
+     * Messaging preferences for the user.
+     *
+     * @return HasOne<UserMessagingPreference>
+     */
+    public function messagingPreferences(): HasOne
+    {
+        return $this->hasOne(UserMessagingPreference::class);
+    }
+
+    /**
+     * Get the user's messaging preferences, creating default if not exists.
+     */
+    public function getMessagingPreferences(): UserMessagingPreference
+    {
+        return $this->messagingPreferences()->firstOrCreate(
+            ['user_id' => $this->getKey()],
+            [
+                'message_request_mode' => 'everyone',
+                'allow_subscriber_messages' => true,
+                'filter_low_quality' => true,
+            ]
+        );
+    }
+
+    /**
      * Data exports for the user.
      *
      * @return HasMany<UserDataExport>

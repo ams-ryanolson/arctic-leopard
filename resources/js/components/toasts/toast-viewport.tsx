@@ -62,6 +62,11 @@ function ToastCard({
     const ThemeIcon = theme.icon;
 
     const isProcessing = toast.status === 'processing';
+    // Get conversation ULID for API calls (preferred)
+    const conversationUlid =
+        toast.meta?.conversation_ulid ??
+        toast.meta?.conversationUlid;
+    // Fallback to numeric ID if ULID not available
     const rawConversationMeta =
         toast.meta?.conversation_id ??
         toast.meta?.conversationId ??
@@ -76,7 +81,9 @@ function ToastCard({
         parsedConversationId !== null && Number.isFinite(parsedConversationId)
             ? parsedConversationId
             : null;
-    const canQuickReply = conversationId !== null;
+    // Use ULID if available, otherwise fall back to numeric ID
+    const conversationIdentifier = conversationUlid ?? conversationId;
+    const canQuickReply = conversationIdentifier !== null;
     const [replyOpen, setReplyOpen] = useState(false);
     const [replyBody, setReplyBody] = useState('');
     const [isReplying, setIsReplying] = useState(false);
@@ -93,7 +100,7 @@ function ToastCard({
     };
 
     const handleQuickReply = async () => {
-        if (!conversationId) {
+        if (!conversationIdentifier) {
             return;
         }
 
@@ -107,7 +114,7 @@ function ToastCard({
             setIsReplying(true);
             setReplyError(null);
 
-            await http.post(`/api/conversations/${conversationId}/messages`, {
+            await http.post(`/api/conversations/${conversationIdentifier}/messages`, {
                 body: replyBody,
             });
 

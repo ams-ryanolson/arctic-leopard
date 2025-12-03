@@ -11,6 +11,7 @@ enum ActivityType: string
     // Authentication
     case UserLogin = 'user.login';
     case UserLogout = 'user.logout';
+    case UserLoginFailed = 'user.login_failed';
 
     // Security
     case PasswordChanged = 'security.password_changed';

@@ -8,6 +8,7 @@ import type { FeedMedia, FeedPost } from '@/types/feed';
 import CommentThreadPanel from './comment-thread-panel';
 import CommentThreadSheet from './comment-thread-sheet';
 import CommentThreadTrigger from './comment-thread-trigger';
+import FlvPlayer from '@/components/flv-player';
 
 type LightboxViewerProps = {
     media: FeedMedia[];
@@ -28,6 +29,9 @@ const dialogContentClasses =
 
 const isVideoMedia = (media: FeedMedia | null | undefined): boolean =>
     !!media?.type && media.type.startsWith('video/');
+
+const isFlvVideo = (media: FeedMedia | null | undefined): boolean =>
+    !!media?.type && (media.type === 'video/x-flv' || media.url?.endsWith('.flv'));
 
 export default function LightboxViewer({
     media,
@@ -171,17 +175,27 @@ export default function LightboxViewer({
                                     {currentMedia ? (
                                         <>
                                             {isVideoMedia(currentMedia) ? (
-                                                <video
-                                                    controls
-                                                    preload="metadata"
-                                                    className="max-h-full max-w-full rounded-3xl border border-white/10 bg-black object-contain shadow-[0_35px_60px_-25px_rgba(0,0,0,0.8)]"
-                                                    src={currentMedia.url}
-                                                >
-                                                    <track
-                                                        kind="captions"
-                                                        label="Captions"
+                                                isFlvVideo(currentMedia) ? (
+                                                    <FlvPlayer
+                                                        src={currentMedia.url}
+                                                        className="max-h-full max-w-full rounded-3xl border border-white/10 bg-black object-contain shadow-[0_35px_60px_-25px_rgba(0,0,0,0.8)]"
+                                                        aspectRatio="16/9"
+                                                        maxHeight="80vh"
+                                                        controls
                                                     />
-                                                </video>
+                                                ) : (
+                                                    <video
+                                                        controls
+                                                        preload="metadata"
+                                                        className="max-h-full max-w-full rounded-3xl border border-white/10 bg-black object-contain shadow-[0_35px_60px_-25px_rgba(0,0,0,0.8)]"
+                                                        src={currentMedia.url}
+                                                    >
+                                                        <track
+                                                            kind="captions"
+                                                            label="Captions"
+                                                        />
+                                                    </video>
+                                                )
                                             ) : (
                                                 <img
                                                     src={

@@ -24,8 +24,10 @@ class MessageDeleted implements ShouldBroadcast
      */
     public function broadcastOn(): array
     {
+        $this->message->loadMissing('conversation');
+
         return [
-            new PresenceChannel(sprintf('conversations.%d', $this->message->conversation_id)),
+            new PresenceChannel(sprintf('conversations.%s', $this->message->conversation->ulid)),
         ];
     }
 

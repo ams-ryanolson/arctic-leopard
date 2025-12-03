@@ -23,9 +23,15 @@ class AdPricingService
 
     /**
      * Check if ad has budget remaining.
+     * Returns true if ad has no budget (admin/promotional ads).
      */
     public function checkBudget(Ad $ad): bool
     {
+        // If no budget is set, ad is unlimited (for admin/promotional purposes)
+        if ($ad->budget_amount === null || $ad->budget_amount === 0) {
+            return true;
+        }
+
         return $ad->spent_amount < $ad->budget_amount;
     }
 

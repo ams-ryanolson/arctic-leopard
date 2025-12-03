@@ -43,6 +43,7 @@ import AppLayout from '@/layouts/app-layout';
 import { getCsrfToken } from '@/lib/csrf';
 import { fetchProfileFeedPage } from '@/lib/feed-client';
 import { SubscribeDialog, TipDialog } from '@/pages/Profile/dialogs';
+import { GiftMembershipDialog } from '@/components/memberships/GiftMembershipDialog';
 import type {
     SubscriptionTier,
     TipOption,
@@ -121,6 +122,7 @@ type ProfileViewer = {
     can_block: boolean;
     has_blocked: boolean;
     is_blocked_by: boolean;
+    can_receive_gift?: boolean;
 };
 
 type FollowActionResponse = {
@@ -130,6 +132,17 @@ type FollowActionResponse = {
     followers_count?: number;
     followings_count?: number;
     message?: string;
+};
+
+type MembershipPlan = {
+    id: number;
+    uuid: string;
+    name: string;
+    slug: string;
+    description: string;
+    monthly_price: number;
+    currency: string;
+    one_time_duration_days: number;
 };
 
 type ProfilePageProps = SharedData & {
@@ -145,6 +158,7 @@ type ProfilePageProps = SharedData & {
     tipOptions?: TipOption[];
     wishlist?: WishlistItem[];
     recentMedia?: MediaItem[];
+    giftMembershipPlans?: MembershipPlan[];
 };
 
 const defaultSubscriptionTiers: SubscriptionTier[] = [
@@ -217,6 +231,7 @@ export default function ProfileShow() {
         tipOptions: providedTipOptions,
         wishlist: providedWishlist,
         recentMedia = [],
+        giftMembershipPlans = [],
         features: sharedFeatures,
     } = usePage<ProfilePageProps>().props;
     const features = (sharedFeatures ?? {}) as Record<string, boolean>;
@@ -244,6 +259,10 @@ export default function ProfileShow() {
     const canSupportCreator = !isOwnProfile;
     const canBlockProfile =
         viewer.can_block && !viewer.has_blocked && !viewer.is_blocked_by;
+    const canGiftMembership =
+        !isOwnProfile &&
+        viewer.can_receive_gift &&
+        giftMembershipPlans.length > 0;
     const blockTargetLabel =
         user.display_name ?? user.username ?? 'this profile';
 
@@ -352,7 +371,7 @@ export default function ProfileShow() {
         () => (user.interests ?? []).slice(0, 4),
         [user.interests],
     );
-    const canMessage = !isOwnProfile && viewer.id !== null;
+    const canMessage = viewer.can_message ?? false;
     const messageHref = useMemo(() => {
         if (!canMessage) {
             return null;
@@ -752,6 +771,25 @@ export default function ProfileShow() {
                                         />
                                     )}
 
+                                {/* Support Actions: Gift Membership */}
+                                {canGiftMembership && (
+                                    <GiftMembershipDialog
+                                        recipientId={user.id}
+                                        recipientName={
+                                            user.display_name ??
+                                            user.username ??
+                                            'this user'
+                                        }
+                                        plans={giftMembershipPlans}
+                                        trigger={
+                                            <Button className="rounded-full border border-amber-400/40 bg-amber-400/10 px-3 text-xs font-semibold text-amber-300 shadow-[0_18px_40px_-12px_rgba(249,115,22,0.25)] hover:border-amber-400/60 hover:bg-amber-400/20 hover:scale-[1.02] sm:px-4 sm:text-sm">
+                                                <Gift className="mr-1.5 size-3 sm:size-3.5" />
+                                                Gift Membership
+                                            </Button>
+                                        }
+                                    />
+                                )}
+
                                 {/* Quick Actions: Icon Buttons */}
                                 <TooltipProvider delayDuration={300}>
                                     <div className="flex items-center gap-1.5 sm:ml-auto sm:gap-2">
@@ -1041,12 +1079,24 @@ export default function ProfileShow() {
                             {/* Media Card - Shows for everyone */}
                             <Card className="border-white/10 bg-white/5 text-white">
                                 <CardHeader>
-                                    <CardTitle className="text-lg font-semibold">
-                                        Media
-                                    </CardTitle>
-                                    <CardDescription className="text-white/60">
-                                        Recent photos and videos.
-                                    </CardDescription>
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <CardTitle className="text-lg font-semibold">
+                                                Media
+                                            </CardTitle>
+                                            <CardDescription className="text-white/60">
+                                                Recent photos and videos.
+                                            </CardDescription>
+                                        </div>
+                                        {recentMedia.length > 0 && (
+                                            <Link
+                                                href={profileRoutes.media.url(user.username ?? '')}
+                                                className="text-sm font-medium text-white/70 transition hover:text-white"
+                                            >
+                                                View All
+                                            </Link>
+                                        )}
+                                    </div>
                                 </CardHeader>
                                 <CardContent>
                                     {recentMedia.length === 0 ? (
@@ -1142,7 +1192,7 @@ export default function ProfileShow() {
                             {/* Creator-specific cards */}
                             {user.is_creator && (
                                 <>
-                                    {features.feature_signals_enabled &&
+                                    {features.signals &&
                                         subscriptionTiers.length > 0 && (
                                             <Card className="border-white/10 bg-white/5 text-white">
                                                 <CardHeader>
@@ -1191,7 +1241,7 @@ export default function ProfileShow() {
                                             </Card>
                                         )}
 
-                                    {features.feature_signals_enabled &&
+                                    {features.signals &&
                                         tipOptions.length > 0 && (
                                             <Card className="border-white/10 bg-white/5 text-white">
                                                 <CardHeader>
@@ -1232,8 +1282,8 @@ export default function ProfileShow() {
                                             </Card>
                                         )}
 
-                                    {features.feature_signals_enabled &&
-                                        features.feature_wishlist_enabled &&
+                                    {features.signals &&
+                                        features.wishlist &&
                                         wishlist.length > 0 && (
                                             <Card className="border-white/10 bg-white/5 text-white">
                                                 <CardHeader>

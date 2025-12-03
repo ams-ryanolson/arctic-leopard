@@ -15,9 +15,9 @@ import { CheckoutSummary } from '@/components/payments/CheckoutSummary';
 import { PaymentMethodSelector } from '@/components/payments/PaymentMethodSelector';
 import AppLayout from '@/layouts/app-layout';
 import membershipsRoutes from '@/routes/memberships';
-import { Head, useForm } from '@inertiajs/react';
-import { ArrowLeft, CheckCircle2, Crown, Loader2, Tag } from 'lucide-react';
-import { FormEvent, useState } from 'react';
+import { Head, router, useForm } from '@inertiajs/react';
+import { ArrowLeft, CheckCircle2, Crown, Gift, Loader2, Tag } from 'lucide-react';
+import { FormEvent, useEffect, useState } from 'react';
 
 type MembershipPlan = {
     id: number;
@@ -32,19 +32,57 @@ type MembershipPlan = {
     allows_one_time: boolean;
 };
 
+type GiftRecipient = {
+    id: number;
+    username: string;
+    display_name: string;
+};
+
+type PaymentIntent = {
+    id: number;
+    uuid: string;
+    amount: number;
+    currency: string;
+    status: string;
+    provider_intent_id: string;
+};
+
+type PaymentIntentError = {
+    message: string;
+    expired?: boolean;
+};
+
 type CheckoutPageProps = {
     plan: MembershipPlan;
+    payment_intent_id?: number;
+    payment_intent?: PaymentIntent;
+    payment_intent_error?: PaymentIntentError;
+    is_gift?: boolean;
+    gift_recipient?: GiftRecipient | null;
     ccbill_client_accnum?: number;
     ccbill_client_subacc?: number;
 };
 
 export default function MembershipCheckout({
     plan,
+    payment_intent_id,
+    payment_intent,
+    payment_intent_error,
+    is_gift = false,
+    gift_recipient,
     ccbill_client_accnum,
     ccbill_client_subacc,
 }: CheckoutPageProps) {
+    // For gifts, lock billing type to one_time
+    // For plans that don't allow recurring, default to one_time
+    const getDefaultBillingType = (): 'recurring' | 'one_time' => {
+        if (is_gift) return 'one_time';
+        if (!plan.allows_recurring && plan.allows_one_time) return 'one_time';
+        if (plan.allows_recurring) return 'recurring';
+        return 'one_time';
+    };
     const [billingType, setBillingType] = useState<'recurring' | 'one_time'>(
-        'recurring',
+        getDefaultBillingType(),
     );
     const [billingInterval, setBillingInterval] = useState<
         'monthly' | 'yearly'
@@ -57,16 +95,27 @@ export default function MembershipCheckout({
     } | null>(null);
     const [applyingDiscount, setApplyingDiscount] = useState(false);
     const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<number | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const { data, setData, post, processing, errors } = useForm({
         plan_id: plan.id,
-        billing_type: 'recurring',
+        billing_type: getDefaultBillingType(),
         billing_interval: 'monthly',
         discount_code: undefined as string | undefined,
         gateway: ccbill_client_accnum && ccbill_client_subacc ? 'ccbill' : 'fake',
         method: 'card',
         payment_method_id: null as number | null,
     });
+
+    // Sync billing type with form data when it changes
+    useEffect(() => {
+        setData('billing_type', billingType);
+    }, [billingType]);
+
+    // Sync billing interval with form data when it changes
+    useEffect(() => {
+        setData('billing_interval', billingInterval);
+    }, [billingInterval]);
 
     const formatPrice = (cents: number, currency: string = 'USD'): string => {
         return new Intl.NumberFormat('en-US', {
@@ -75,12 +124,18 @@ export default function MembershipCheckout({
         }).format(cents / 100);
     };
 
-    const basePrice =
-        billingInterval === 'yearly' ? plan.yearly_price : plan.monthly_price;
-    const finalPrice = discountApplied
-        ? discountApplied.final_price
-        : basePrice;
-    const discountAmount = discountApplied ? discountApplied.amount : 0;
+    // For gifts, use payment intent amount; otherwise calculate from plan
+    const basePrice = is_gift && payment_intent
+        ? payment_intent.amount
+        : billingInterval === 'yearly'
+          ? plan.yearly_price
+          : plan.monthly_price;
+    const finalPrice = is_gift
+        ? basePrice // Gifts don't support discounts
+        : discountApplied
+          ? discountApplied.final_price
+          : basePrice;
+    const discountAmount = is_gift ? 0 : discountApplied ? discountApplied.amount : 0;
 
     const applyDiscount = async () => {
         if (!discountCode.trim()) {
@@ -128,9 +183,52 @@ export default function MembershipCheckout({
         }
     };
 
-    const handleSubmit = (e: FormEvent) => {
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
 
+        // For gifts, submit to gift completion endpoint
+        if (is_gift && payment_intent_id) {
+            setIsSubmitting(true);
+            try {
+                const response = await fetch(membershipsRoutes.gift.complete().url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    },
+                    body: JSON.stringify({
+                        payment_intent_id: payment_intent_id,
+                        payment_method_id: selectedPaymentMethodId,
+                    }),
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    console.error('Error completing gift payment:', result);
+                    alert(result.message || 'Failed to complete gift payment');
+                    return;
+                }
+
+                // Redirect to success page
+                router.visit('/upgrade', {
+                    data: {
+                        gift_success: true,
+                        recipient_name: gift_recipient?.display_name || gift_recipient?.username,
+                        plan_name: plan.name,
+                    },
+                });
+            } catch (error) {
+                console.error('Error completing gift payment:', error);
+                alert('An error occurred while processing the gift payment');
+            } finally {
+                setIsSubmitting(false);
+            }
+            return;
+        }
+
+        // Regular purchase flow
         if (!plan.allows_recurring && billingType === 'recurring') {
             alert('Recurring billing is not available for this plan');
             return;
@@ -141,29 +239,88 @@ export default function MembershipCheckout({
             return;
         }
 
-        // Update form data with current state
-        setData({
-            ...data,
-            billing_type: billingType,
-            billing_interval: billingInterval,
-            discount_code: discountApplied?.code || undefined,
-            payment_method_id: selectedPaymentMethodId,
-        });
+        // Use fetch since the endpoint returns JSON, not an Inertia response
+        setIsSubmitting(true);
+        try {
+            const response = await fetch(membershipsRoutes.purchase().url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                },
+                body: JSON.stringify({
+                    plan_id: plan.id,
+                    billing_type: billingType,
+                    billing_interval: billingInterval,
+                    discount_code: discountApplied?.code || undefined,
+                    gateway: ccbill_client_accnum && ccbill_client_subacc ? 'ccbill' : 'fake',
+                    method: 'card',
+                    payment_method_id: selectedPaymentMethodId,
+                }),
+            });
 
-        post(membershipsRoutes.purchase().url, {
-            preserveScroll: true,
-            onSuccess: (page) => {
-                // Payment intent will be in the response
-                // Redirect to payment gateway or show success
-                if (page.props.payment_intent) {
-                    // Handle payment intent (e.g., redirect to Stripe checkout)
-                    console.log(
-                        'Payment intent created:',
-                        page.props.payment_intent,
-                    );
+            const result = await response.json();
+
+            if (!response.ok) {
+                // Handle validation errors
+                if (result.errors) {
+                    const errorMessages = Object.values(result.errors).flat().join('\n');
+                    alert(errorMessages);
+                } else if (result.message) {
+                    alert(result.message);
+                } else {
+                    alert('An error occurred while processing your purchase.');
                 }
-            },
-        });
+                return;
+            }
+
+            // Check if it was a free membership (100% discount)
+            if (result.free_membership) {
+                // Redirect to success/dashboard
+                router.visit('/dashboard', {
+                    data: { membership_success: true, plan_name: plan.name },
+                });
+                return;
+            }
+
+            // Payment intent created - now we need to capture it with the selected payment method
+            if (result.payment_intent && selectedPaymentMethodId) {
+                // Capture the payment
+                const captureResponse = await fetch('/api/payments/capture', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    },
+                    body: JSON.stringify({
+                        payment_intent_id: result.payment_intent.id,
+                        payment_method_id: selectedPaymentMethodId,
+                    }),
+                });
+
+                const captureResult = await captureResponse.json();
+
+                if (!captureResponse.ok) {
+                    alert(captureResult.message || 'Failed to process payment.');
+                    return;
+                }
+
+                // Success - redirect to dashboard
+                router.visit('/dashboard', {
+                    data: { membership_success: true, plan_name: plan.name },
+                });
+            } else if (result.payment_intent) {
+                // No payment method selected - this shouldn't happen with our UI
+                alert('Please select a payment method to complete your purchase.');
+            }
+        } catch (error) {
+            console.error('Purchase error:', error);
+            alert('An error occurred while processing your purchase.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -186,16 +343,78 @@ export default function MembershipCheckout({
                     </Button>
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight text-white">
-                            Complete Your Purchase
+                            {is_gift ? 'Gift Membership Checkout' : 'Complete Your Purchase'}
                         </h1>
                         <p className="mt-2 text-sm text-white/70">
-                            Review your membership selection and complete
-                            payment
+                            {is_gift && gift_recipient
+                                ? `Gifting ${plan.name} to ${gift_recipient.display_name || gift_recipient.username}`
+                                : 'Review your membership selection and complete payment'}
                         </p>
                     </div>
                 </div>
 
-                <form onSubmit={handleSubmit}>
+                {is_gift && gift_recipient && (
+                    <Card className="border-amber-400/30 bg-amber-400/10">
+                        <CardContent className="flex items-center gap-4 pt-6">
+                            <div className="flex size-12 items-center justify-center rounded-full bg-amber-400/20">
+                                <Gift className="size-6 text-amber-400" />
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-sm font-semibold text-amber-300">
+                                    Gift Membership
+                                </p>
+                                <p className="text-xs text-white/70">
+                                    This membership will be gifted to{' '}
+                                    <span className="font-medium text-white">
+                                        {gift_recipient.display_name || gift_recipient.username}
+                                    </span>
+                                </p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* Show error if payment intent is invalid/expired */}
+                {payment_intent_error && (
+                    <Card className="border-red-400/30 bg-red-400/10">
+                        <CardContent className="pt-6">
+                            <div className="flex items-start gap-4">
+                                <div className="flex size-12 items-center justify-center rounded-full bg-red-400/20">
+                                    <Loader2 className="size-6 text-red-400" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-sm font-semibold text-red-300">
+                                        Payment Session Error
+                                    </p>
+                                    <p className="mt-1 text-xs text-white/70">
+                                        {payment_intent_error.message}
+                                    </p>
+                                    <div className="mt-4 flex gap-2">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => {
+                                                // Go back to profile or create new gift
+                                                if (gift_recipient) {
+                                                    router.visit(`/p/${gift_recipient.username}`);
+                                                } else {
+                                                    router.visit('/upgrade');
+                                                }
+                                            }}
+                                        >
+                                            Go Back
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* Don't show checkout form if payment intent is invalid */}
+                {payment_intent_error ? null : (
+                    <form onSubmit={handleSubmit}>
                     <div className="grid gap-6 lg:grid-cols-3">
                         <div className="space-y-6 lg:col-span-2">
                             <Card className="border-white/10 bg-white/5">
@@ -244,189 +463,203 @@ export default function MembershipCheckout({
                                 </CardContent>
                             </Card>
 
-                            <Card className="border-white/10 bg-white/5">
-                                <CardHeader>
-                                    <CardTitle className="text-white">
-                                        Billing Options
-                                    </CardTitle>
-                                    <CardDescription className="text-white/60">
-                                        Choose how you want to be billed
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <RadioGroup
-                                        value={billingType}
-                                        onValueChange={(value) => {
-                                            setBillingType(
-                                                value as
-                                                    | 'recurring'
-                                                    | 'one_time',
-                                            );
-                                        }}
-                                    >
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem
-                                                value="recurring"
-                                                id="recurring"
-                                            />
-                                            <Label
-                                                htmlFor="recurring"
-                                                className="text-white"
-                                            >
-                                                Recurring Subscription
-                                            </Label>
-                                        </div>
-                                        {billingType === 'recurring' && (
-                                            <div className="ml-6 space-y-2">
-                                                <div className="flex items-center gap-2">
-                                                    <Button
-                                                        type="button"
-                                                        variant={
-                                                            billingInterval ===
-                                                            'monthly'
-                                                                ? 'default'
-                                                                : 'outline'
-                                                        }
-                                                        size="sm"
-                                                        onClick={() => {
-                                                            setBillingInterval(
-                                                                'monthly',
-                                                            );
-                                                        }}
-                                                    >
-                                                        Monthly
-                                                    </Button>
-                                                    <Button
-                                                        type="button"
-                                                        variant={
-                                                            billingInterval ===
-                                                            'yearly'
-                                                                ? 'default'
-                                                                : 'outline'
-                                                        }
-                                                        size="sm"
-                                                        onClick={() => {
-                                                            setBillingInterval(
-                                                                'yearly',
-                                                            );
-                                                        }}
-                                                    >
-                                                        Yearly
-                                                        <Badge
-                                                            variant="secondary"
-                                                            className="ml-2 bg-emerald-500/20 text-emerald-400"
+                            {/* Hide billing options for gifts */}
+                            {!is_gift && (
+                                <Card className="border-white/10 bg-white/5">
+                                    <CardHeader>
+                                        <CardTitle className="text-white">
+                                            Billing Options
+                                        </CardTitle>
+                                        <CardDescription className="text-white/60">
+                                            Choose how you want to be billed
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <RadioGroup
+                                            value={billingType}
+                                            onValueChange={(value) => {
+                                                setBillingType(
+                                                    value as
+                                                        | 'recurring'
+                                                        | 'one_time',
+                                                );
+                                            }}
+                                        >
+                                            <div className="flex items-center space-x-2">
+                                                <RadioGroupItem
+                                                    value="recurring"
+                                                    id="recurring"
+                                                    disabled={!plan.allows_recurring}
+                                                />
+                                                <Label
+                                                    htmlFor="recurring"
+                                                    className={`${!plan.allows_recurring ? 'text-white/40' : 'text-white'}`}
+                                                >
+                                                    Recurring Subscription
+                                                    {!plan.allows_recurring && (
+                                                        <span className="ml-2 text-xs text-white/40">(Not available for this plan)</span>
+                                                    )}
+                                                </Label>
+                                            </div>
+                                            {billingType === 'recurring' && (
+                                                <div className="ml-6 space-y-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <Button
+                                                            type="button"
+                                                            variant={
+                                                                billingInterval ===
+                                                                'monthly'
+                                                                    ? 'default'
+                                                                    : 'outline'
+                                                            }
+                                                            size="sm"
+                                                            onClick={() => {
+                                                                setBillingInterval(
+                                                                    'monthly',
+                                                                );
+                                                            }}
                                                         >
-                                                            Save 2 months
-                                                        </Badge>
+                                                            Monthly
+                                                        </Button>
+                                                        <Button
+                                                            type="button"
+                                                            variant={
+                                                                billingInterval ===
+                                                                'yearly'
+                                                                    ? 'default'
+                                                                    : 'outline'
+                                                            }
+                                                            size="sm"
+                                                            onClick={() => {
+                                                                setBillingInterval(
+                                                                    'yearly',
+                                                                );
+                                                            }}
+                                                        >
+                                                            Yearly
+                                                            <Badge
+                                                                variant="secondary"
+                                                                className="ml-2 bg-emerald-500/20 text-emerald-400"
+                                                            >
+                                                                Save 2 months
+                                                            </Badge>
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div className="flex items-center space-x-2">
+                                                <RadioGroupItem
+                                                    value="one_time"
+                                                    id="one_time"
+                                                    disabled={!plan.allows_one_time}
+                                                />
+                                                <Label
+                                                    htmlFor="one_time"
+                                                    className={`${!plan.allows_one_time ? 'text-white/40' : 'text-white'}`}
+                                                >
+                                                    One-Time Purchase
+                                                    {!plan.allows_one_time && (
+                                                        <span className="ml-2 text-xs text-white/40">(Not available for this plan)</span>
+                                                    )}
+                                                </Label>
+                                            </div>
+                                        </RadioGroup>
+
+                                        {errors.billing_type && (
+                                            <p className="text-sm text-red-400">
+                                                {errors.billing_type}
+                                            </p>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            )}
+
+                            {/* Hide discount code for gifts */}
+                            {!is_gift && (
+                                <Card className="border-white/10 bg-white/5">
+                                    <CardHeader>
+                                        <CardTitle className="text-white">
+                                            Discount Code
+                                        </CardTitle>
+                                        <CardDescription className="text-white/60">
+                                            Have a discount code? Enter it here
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div className="flex gap-2">
+                                            <Input
+                                                value={discountCode}
+                                                onChange={(e) =>
+                                                    setDiscountCode(
+                                                        e.target.value.toUpperCase(),
+                                                    )
+                                                }
+                                                placeholder="Enter code"
+                                                className="border-white/10 bg-white/5 text-white"
+                                                disabled={
+                                                    applyingDiscount ||
+                                                    !!discountApplied
+                                                }
+                                            />
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                onClick={applyDiscount}
+                                                disabled={
+                                                    applyingDiscount ||
+                                                    !discountCode.trim() ||
+                                                    !!discountApplied
+                                                }
+                                            >
+                                                {applyingDiscount ? (
+                                                    <Loader2 className="size-4 animate-spin" />
+                                                ) : (
+                                                    <>
+                                                        <Tag className="mr-2 size-4" />
+                                                        Apply
+                                                    </>
+                                                )}
+                                            </Button>
+                                        </div>
+
+                                        {discountApplied && (
+                                            <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <CheckCircle2 className="size-4 text-emerald-400" />
+                                                        <span className="text-sm font-medium text-emerald-300">
+                                                            Code{' '}
+                                                            {discountApplied.code}{' '}
+                                                            applied
+                                                        </span>
+                                                    </div>
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            setDiscountCode('');
+                                                            setDiscountApplied(
+                                                                null,
+                                                            );
+                                                        }}
+                                                        className="text-white/60 hover:text-white"
+                                                    >
+                                                        Remove
                                                     </Button>
                                                 </div>
                                             </div>
                                         )}
 
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem
-                                                value="one_time"
-                                                id="one_time"
-                                            />
-                                            <Label
-                                                htmlFor="one_time"
-                                                className="text-white"
-                                            >
-                                                One-Time Purchase
-                                            </Label>
-                                        </div>
-                                    </RadioGroup>
-
-                                    {errors.billing_type && (
-                                        <p className="text-sm text-red-400">
-                                            {errors.billing_type}
-                                        </p>
-                                    )}
-                                </CardContent>
-                            </Card>
-
-                            <Card className="border-white/10 bg-white/5">
-                                <CardHeader>
-                                    <CardTitle className="text-white">
-                                        Discount Code
-                                    </CardTitle>
-                                    <CardDescription className="text-white/60">
-                                        Have a discount code? Enter it here
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="flex gap-2">
-                                        <Input
-                                            value={discountCode}
-                                            onChange={(e) =>
-                                                setDiscountCode(
-                                                    e.target.value.toUpperCase(),
-                                                )
-                                            }
-                                            placeholder="Enter code"
-                                            className="border-white/10 bg-white/5 text-white"
-                                            disabled={
-                                                applyingDiscount ||
-                                                !!discountApplied
-                                            }
-                                        />
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            onClick={applyDiscount}
-                                            disabled={
-                                                applyingDiscount ||
-                                                !discountCode.trim() ||
-                                                !!discountApplied
-                                            }
-                                        >
-                                            {applyingDiscount ? (
-                                                <Loader2 className="size-4 animate-spin" />
-                                            ) : (
-                                                <>
-                                                    <Tag className="mr-2 size-4" />
-                                                    Apply
-                                                </>
-                                            )}
-                                        </Button>
-                                    </div>
-
-                                    {discountApplied && (
-                                        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-2">
-                                                    <CheckCircle2 className="size-4 text-emerald-400" />
-                                                    <span className="text-sm font-medium text-emerald-300">
-                                                        Code{' '}
-                                                        {discountApplied.code}{' '}
-                                                        applied
-                                                    </span>
-                                                </div>
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => {
-                                                        setDiscountCode('');
-                                                        setDiscountApplied(
-                                                            null,
-                                                        );
-                                                    }}
-                                                    className="text-white/60 hover:text-white"
-                                                >
-                                                    Remove
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {errors.discount_code && (
-                                        <p className="text-sm text-red-400">
-                                            {errors.discount_code}
-                                        </p>
-                                    )}
-                                </CardContent>
-                            </Card>
+                                        {errors.discount_code && (
+                                            <p className="text-sm text-red-400">
+                                                {errors.discount_code}
+                                            </p>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            )}
 
                             <Card className="border-white/10 bg-white/5">
                                 <CardHeader>
@@ -484,39 +717,52 @@ export default function MembershipCheckout({
                                         total={finalPrice}
                                         currency={plan.currency}
                                     />
-                                    <div className="mt-4 space-y-2 text-xs text-white/60">
-                                        <div className="flex items-center justify-between">
-                                            <span>Billing</span>
-                                            <span>
-                                                {billingType === 'recurring'
-                                                    ? `${billingInterval === 'yearly' ? 'Yearly' : 'Monthly'} (Recurring)`
-                                                    : 'One-Time'}
-                                            </span>
+                                    {!is_gift && (
+                                        <div className="mt-4 space-y-2 text-xs text-white/60">
+                                            <div className="flex items-center justify-between">
+                                                <span>Billing</span>
+                                                <span>
+                                                    {billingType === 'recurring'
+                                                        ? `${billingInterval === 'yearly' ? 'Yearly' : 'Monthly'} (Recurring)`
+                                                        : 'One-Time'}
+                                                </span>
+                                            </div>
+                                            {billingType === 'recurring' && (
+                                                <p className="text-xs text-white/50">
+                                                    {billingInterval === 'yearly'
+                                                        ? 'Billed annually. Cancel anytime.'
+                                                        : 'Billed monthly. Cancel anytime.'}
+                                                </p>
+                                            )}
                                         </div>
-                                        {billingType === 'recurring' && (
+                                    )}
+                                    {is_gift && (
+                                        <div className="mt-4 space-y-2 text-xs text-white/60">
+                                            <div className="flex items-center justify-between">
+                                                <span>Billing</span>
+                                                <span>One-Time Gift</span>
+                                            </div>
                                             <p className="text-xs text-white/50">
-                                                {billingInterval === 'yearly'
-                                                    ? 'Billed annually. Cancel anytime.'
-                                                    : 'Billed monthly. Cancel anytime.'}
+                                                This is a one-time gift membership purchase.
                                             </p>
-                                        )}
-                                    </div>
+                                        </div>
+                                    )}
                                     <Button
                                         type="submit"
                                         className="mt-6 w-full"
                                         disabled={
-                                            processing ||
+                                            isSubmitting ||
                                             (!selectedPaymentMethodId && ccbill_client_accnum && ccbill_client_subacc)
                                         }
                                         size="lg"
                                     >
-                                        {processing ? (
+                                        {isSubmitting ? (
                                             <>
                                                 <Loader2 className="mr-2 size-4 animate-spin" />
                                                 Processing...
                                             </>
                                         ) : (
-                                            <>Complete Purchase</>
+                                            <>{is_gift ? 'Complete Gift Purchase' : 'Complete Purchase'}</>
                                         )}
                                     </Button>
 
@@ -529,7 +775,8 @@ export default function MembershipCheckout({
                             </Card>
                         </div>
                     </div>
-                </form>
+                    </form>
+                )}
             </div>
         </AppLayout>
     );

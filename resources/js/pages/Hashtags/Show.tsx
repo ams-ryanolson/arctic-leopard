@@ -2,10 +2,18 @@ import CommentThreadSheet from '@/components/feed/comment-thread-sheet';
 import FeedLoadingPlaceholder from '@/components/feed/feed-loading-placeholder';
 import TimelineEntryCard from '@/components/feed/timeline-entry-card';
 import { Badge } from '@/components/ui/badge';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { useFeed } from '@/hooks/use-feed';
 import AppLayout from '@/layouts/app-layout';
 import { fetchHashtagPostsPage } from '@/lib/feed-client';
-import { Head } from '@inertiajs/react';
+import { show as hashtagShow } from '@/routes/hashtags';
+import { Head, Link } from '@inertiajs/react';
 import { Hash, TrendingUp } from 'lucide-react';
 import { useCallback } from 'react';
 import type {
@@ -22,9 +30,17 @@ type Hashtag = {
     recent_usage_count: number;
 };
 
+type TrendingHashtag = {
+    id: number;
+    name: string;
+    slug: string;
+    usage_count: number;
+};
+
 interface HashtagsShowProps {
     hashtag: Hashtag;
     posts: PostCollectionPayload;
+    trendingHashtags?: TrendingHashtag[];
 }
 
 const numberFormatter = new Intl.NumberFormat();
@@ -32,10 +48,14 @@ const numberFormatter = new Intl.NumberFormat();
 export default function HashtagsShow({
     hashtag,
     posts: initialPosts,
+    trendingHashtags = [],
 }: HashtagsShowProps) {
     const transformHashtagPayload = useCallback(
         (payload: TimelinePayload | PostCollectionPayload): TimelinePayload => {
+            // Add safety check for payload.data
             if (
+                payload.data &&
+                Array.isArray(payload.data) &&
                 payload.data.length > 0 &&
                 typeof payload.data[0] === 'object' &&
                 payload.data[0] !== null &&
@@ -45,6 +65,15 @@ export default function HashtagsShow({
             }
 
             const collection = payload as PostCollectionPayload;
+
+            // Add safety check for collection.data
+            if (!collection.data || !Array.isArray(collection.data)) {
+                return {
+                    data: [],
+                    links: collection.links || {},
+                    meta: collection.meta || {},
+                };
+            }
 
             return {
                 data: collection.data.map((post) => ({
@@ -58,7 +87,7 @@ export default function HashtagsShow({
                     post,
                 })),
                 links: collection.links ?? {},
-                meta: collection.meta,
+                meta: collection.meta || {},
             };
         },
         [hashtag.slug],
@@ -174,64 +203,123 @@ export default function HashtagsShow({
                     </div>
                 </section>
 
-                {/* Posts Feed */}
-                <section className="space-y-6">
-                    {error && (
-                        <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-red-300">
-                            {error}
-                        </div>
-                    )}
+                {/* Main Content with Sidebar */}
+                <div className="flex flex-col gap-6 xl:flex-row">
+                    {/* Posts Feed */}
+                    <section className="min-w-0 flex-1 space-y-6">
+                        {error && (
+                            <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-red-300">
+                                {error}
+                            </div>
+                        )}
 
-                    {isRefreshing && <FeedLoadingPlaceholder count={3} />}
+                        {isRefreshing && <FeedLoadingPlaceholder count={3} />}
 
-                    {!isRefreshing && entries.length === 0 && (
-                        <div className="flex flex-col items-center justify-center py-16 text-center">
-                            <Hash className="mb-4 size-12 text-white/40" />
-                            <p className="text-lg font-semibold text-white">
-                                No posts found
-                            </p>
-                            <p className="mt-2 text-white/60">
-                                Be the first to use #{hashtag.name}
-                            </p>
-                        </div>
-                    )}
+                        {!isRefreshing && entries.length === 0 && (
+                            <div className="flex flex-col items-center justify-center py-16 text-center">
+                                <Hash className="mb-4 size-12 text-white/40" />
+                                <p className="text-lg font-semibold text-white">
+                                    No posts found
+                                </p>
+                                <p className="mt-2 text-white/60">
+                                    Be the first to use #{hashtag.name}
+                                </p>
+                                <p className="mt-4 text-sm text-white/50">
+                                    Note: Only posts visible to you are shown. The
+                                    total count includes all posts with this hashtag,
+                                    including private posts from users you don't
+                                    follow.
+                                </p>
+                            </div>
+                        )}
 
-                    {!isRefreshing &&
-                        entries.map((entry: TimelineEntry) => {
-                            if (entry.type === 'ad') {
-                                return null; // Handle ads if needed
-                            }
+                        {!isRefreshing &&
+                            entries.map((entry: TimelineEntry) => {
+                                if (entry.type === 'ad') {
+                                    return null; // Handle ads if needed
+                                }
 
-                            if (!entry.post) {
-                                return null;
-                            }
+                                if (!entry.post) {
+                                    return null;
+                                }
 
-                            return (
-                                <TimelineEntryCard
-                                    key={entry.id}
-                                    entry={entry}
-                                    onLike={() => toggleLike(entry.post!)}
-                                    onBookmark={() => toggleBookmark(entry.post!)}
-                                    onComment={() => openComments(entry.post!)}
-                                    onPurchase={() => togglePurchase(entry.post!)}
-                                    onPollVote={async () => {
-                                        await refresh();
-                                    }}
-                                    disabled={
-                                        pendingLikes.includes(entry.post.id) ||
-                                        pendingBookmarks.includes(entry.post.id) ||
-                                        pendingPurchases.includes(entry.post.id)
-                                    }
-                                />
-                            );
-                        })}
+                                return (
+                                    <TimelineEntryCard
+                                        key={entry.id}
+                                        entry={entry}
+                                        onLike={() => toggleLike(entry.post!)}
+                                        onBookmark={() =>
+                                            toggleBookmark(entry.post!)
+                                        }
+                                        onComment={() =>
+                                            openComments(entry.post!)
+                                        }
+                                        onPurchase={() =>
+                                            togglePurchase(entry.post!)
+                                        }
+                                        onPollVote={async () => {
+                                            await refresh();
+                                        }}
+                                        disabled={
+                                            pendingLikes.includes(
+                                                entry.post.id,
+                                            ) ||
+                                            pendingBookmarks.includes(
+                                                entry.post.id,
+                                            ) ||
+                                            pendingPurchases.includes(
+                                                entry.post.id,
+                                            )
+                                        }
+                                    />
+                                );
+                            })}
 
-                    {isLoadingMore && <FeedLoadingPlaceholder count={2} />}
+                        {isLoadingMore && <FeedLoadingPlaceholder count={2} />}
 
-                    {hasMore && !isLoadingMore && (
-                        <div ref={sentinelRef} className="h-4" />
-                    )}
-                </section>
+                        {hasMore && !isLoadingMore && (
+                            <div ref={sentinelRef} className="h-4" />
+                        )}
+                    </section>
+
+                    {/* Right Sidebar - Desktop Only */}
+                    <aside className="hidden w-full max-w-[320px] flex-col gap-4 lg:flex">
+                        {trendingHashtags.length > 0 && (
+                            <Card className="border-white/10 bg-white/5 text-white shadow-[0_24px_65px_-35px_rgba(139,92,246,0.45)]">
+                                <CardHeader>
+                                    <CardTitle className="text-base font-semibold">
+                                        Trending hashtags
+                                    </CardTitle>
+                                    <CardDescription className="text-white/60">
+                                        Other popular tags on the scene.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-3">
+                                    {trendingHashtags.map((tag) => (
+                                        <Link
+                                            key={tag.id}
+                                            href={hashtagShow.url(
+                                                { hashtag: tag.slug },
+                                            )}
+                                            className="block rounded-2xl border border-white/10 bg-black/40 px-4 py-3 transition-all hover:border-white/20 hover:bg-black/50"
+                                        >
+                                            <div className="flex items-center justify-between gap-2">
+                                                <p className="font-semibold text-white">
+                                                    #{tag.name}
+                                                </p>
+                                                <Badge className="rounded-full border-white/15 bg-white/10 px-2 py-0.5 text-[0.65rem] tracking-[0.3em] text-white/70 uppercase">
+                                                    {numberFormatter.format(
+                                                        tag.usage_count,
+                                                    )}
+                                                </Badge>
+                                            </div>
+                                        </Link>
+                                    ))}
+                                </CardContent>
+                            </Card>
+                        )}
+                    </aside>
+                </div>
 
                 <CommentThreadSheet
                     post={activeCommentPost}

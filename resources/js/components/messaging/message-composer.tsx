@@ -1,6 +1,7 @@
 import http from '@/lib/http';
-import { Coins, Film, Image, Loader2, Mic, Video, X } from 'lucide-react';
-import { useCallback, useRef, useState } from 'react';
+import { Coins, Film, Image, Loader2, Mic, Plus, Video, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { usePage } from '@inertiajs/react';
 
 import MediaUploader from '@/components/media/MediaUploader';
 import AudioRecorder from '@/components/media/audio-recorder';
@@ -8,8 +9,11 @@ import VideoRecorder from '@/components/media/video-recorder';
 import AttachmentPreview from '@/components/messaging/attachment-preview';
 import TipDialog from '@/components/messaging/tip-dialog';
 import { Button } from '@/components/ui/button';
-import EmojiPickerInput from '@/components/ui/emoji-picker-input';
+import CompactTextarea from '@/components/ui/compact-textarea';
+import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
+import { Smile } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import type { SharedData } from '@/types';
 
 type UploadPayload = {
     id: string;
@@ -61,6 +65,10 @@ export default function MessageComposer({
     keyboardHeight = 0,
     viewer,
 }: MessageComposerProps) {
+    const { features: sharedFeatures } = usePage<SharedData>().props;
+    const features = (sharedFeatures ?? {}) as Record<string, boolean>;
+    const signalsEnabled = features.feature_signals_enabled ?? false;
+
     const [uploads, setUploads] = useState<UploadPayload[]>([]);
     const [body, setBody] = useState('');
     const [isSending, setIsSending] = useState(false);
@@ -78,6 +86,10 @@ export default function MessageComposer({
         attachments: UploadPayload[];
         replyTo: MessagePreview | null;
     } | null>(null);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const emojiPickerRef = useRef<HTMLDivElement>(null);
+    const [showMediaMenu, setShowMediaMenu] = useState(false);
+    const mediaMenuRef = useRef<HTMLDivElement>(null);
 
     const photoUploaderRef = useRef<{ click: () => void } | null>(null);
     const videoUploaderRef = useRef<{ click: () => void } | null>(null);
@@ -465,6 +477,50 @@ export default function MessageComposer({
         [viewer, conversationId, onMessageSent],
     );
 
+    const handleEmojiClick = useCallback((emojiData: EmojiClickData) => {
+        const textarea = document.querySelector<HTMLTextAreaElement>('[data-message-textarea]');
+        const emoji = emojiData.emoji;
+
+        if (textarea) {
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const textBefore = body.substring(0, start);
+            const textAfter = body.substring(end);
+            const newBody = textBefore + emoji + textAfter;
+            
+            setBody(newBody);
+            triggerTyping();
+            
+            setTimeout(() => {
+                textarea.focus();
+                const newPosition = start + emoji.length;
+                textarea.setSelectionRange(newPosition, newPosition);
+            }, 0);
+        } else {
+            setBody((prev) => prev + emoji);
+            triggerTyping();
+        }
+
+        setShowEmojiPicker(false);
+    }, [body, triggerTyping]);
+
+    // Close emoji picker when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+                setShowEmojiPicker(false);
+            }
+            if (mediaMenuRef.current && !mediaMenuRef.current.contains(event.target as Node)) {
+                setShowMediaMenu(false);
+            }
+        };
+
+        if (showEmojiPicker || showMediaMenu) {
+            document.addEventListener('mousedown', handleClickOutside);
+            return () => document.removeEventListener('mousedown', handleClickOutside);
+        }
+    }, [showEmojiPicker, showMediaMenu]);
+
     function handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
@@ -608,202 +664,259 @@ export default function MessageComposer({
         );
     }
 
-    const composerStyle = keyboardHeight > 0
-        ? { paddingBottom: `${keyboardHeight}px` }
-        : {};
-
     return (
         <>
             <form
                 onSubmit={handleSubmit}
-                className={cn('space-y-4 pb-safe', className)}
-                style={composerStyle}
+                className={cn('border-t border-white/5 bg-neutral-950', className)}
             >
-                <div className="rounded-3xl border border-white/15 bg-black/40 shadow-[0_20px_45px_-30px_rgba(255,255,255,0.45)]">
-                    <div className="space-y-3 px-4 py-4 sm:px-5 sm:py-5">
-                        {replyTo ? (
-                            <div className="flex items-start justify-between gap-3 rounded-2xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-xs text-white/80 sm:text-sm">
-                                <div>
-                                    <p className="mb-1 text-[0.65rem] font-semibold tracking-[0.3em] text-amber-200/80 uppercase sm:text-xs">
-                                        Replying to{' '}
-                                        {replyTo.author?.display_name ??
-                                            replyTo.author?.username ??
-                                            'a message'}
-                                    </p>
-                                    <p className="text-sm whitespace-pre-wrap text-white/80">
-                                        {(replyTo.body ?? '').slice(0, 140)}
-                                        {(replyTo.body ?? '').length > 140
-                                            ? '…'
-                                            : ''}
-                                    </p>
-                                </div>
+                {/* Reply preview - outside main input */}
+                {replyTo && (
+                    <div className="border-b border-white/5 px-3 py-1.5 sm:px-4 sm:py-2">
+                        <div className="flex items-start justify-between gap-2 rounded-lg border border-amber-400/20 bg-amber-500/5 px-2 py-1 text-xs sm:py-1.5">
+                            <div className="min-w-0 flex-1">
+                                <p className="text-[0.6rem] font-medium text-amber-300/80 uppercase tracking-wide">
+                                    Replying to {replyTo.author?.display_name ?? replyTo.author?.username ?? 'a message'}
+                                </p>
+                                <p className="mt-0.5 truncate text-xs text-white/70">
+                                    {(replyTo.body ?? '').slice(0, 80)}{(replyTo.body ?? '').length > 80 ? '…' : ''}
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={onCancelReply}
+                                className="shrink-0 rounded p-1 text-amber-300/60 transition hover:bg-amber-500/10 hover:text-amber-300"
+                                aria-label="Cancel reply"
+                            >
+                                <X className="h-3 w-3" />
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Attachment preview - outside main input */}
+                {hasAttachments && !replyTo && (
+                    <div className="border-b border-white/5 px-3 py-1.5 sm:px-4 sm:py-2">
+                        <AttachmentPreview
+                            attachments={uploads}
+                            onRemove={(id) =>
+                                setUploads((prev) =>
+                                    prev.filter((item) => item.id !== id),
+                                )
+                            }
+                        />
+                    </div>
+                )}
+
+                {/* Error message - compact */}
+                {error && (
+                    <div className="border-b border-rose-500/20 bg-rose-500/5 px-3 py-1 text-xs text-rose-300 sm:px-4 sm:py-1.5">
+                        <div className="flex items-center justify-between gap-2">
+                            <span>{error}</span>
+                            {failedMessage && (
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        onCancelReply?.();
+                                        setBody(failedMessage.body);
+                                        setUploads(failedMessage.attachments);
+                                        setFailedMessage(null);
+                                        setError(null);
+                                        void submitMessage();
                                     }}
-                                    className="rounded-full border border-amber-400/40 bg-black/60 p-1.5 text-amber-200 transition hover:bg-black/80"
-                                    aria-label="Cancel reply"
+                                    className="text-xs font-medium text-rose-300 underline hover:text-rose-200"
                                 >
-                                    <X className="h-3.5 w-3.5" />
+                                    Retry
                                 </button>
-                            </div>
-                        ) : null}
+                            )}
+                        </div>
+                    </div>
+                )}
 
-                        {showVideoRecorder ? (
-                            <VideoRecorder
-                                onRecorded={handleVideoRecorded}
-                                onCancel={handleVideoCancel}
-                                onError={setError}
-                                maxDuration={60}
-                                autoStart
-                            />
-                        ) : showAudioRecorder ? (
-                            <AudioRecorder
-                                onRecorded={handleAudioRecorded}
-                                onCancel={handleAudioCancel}
-                                onError={setError}
-                                maxDuration={240}
-                                autoStart
-                            />
-                        ) : (
-                            <EmojiPickerInput
+                {/* Recorders - full width when active */}
+                {showVideoRecorder ? (
+                    <div className="px-3 py-1.5 sm:px-4 sm:py-2">
+                        <VideoRecorder
+                            onRecorded={handleVideoRecorded}
+                            onCancel={handleVideoCancel}
+                            onError={setError}
+                            maxDuration={60}
+                            autoStart
+                        />
+                    </div>
+                ) : showAudioRecorder ? (
+                    <div className="px-3 py-1.5 sm:px-4 sm:py-2">
+                        <AudioRecorder
+                            onRecorded={handleAudioRecorded}
+                            onCancel={handleAudioCancel}
+                            onError={setError}
+                            maxDuration={240}
+                            autoStart
+                        />
+                    </div>
+                ) : (
+                    /* Main compact input area */
+                    <div className="flex items-end gap-2 px-2 py-1 sm:px-3 sm:py-1.5">
+                        {/* Plus button with animated menu - LEFT SIDE */}
+                        <div className="relative shrink-0" ref={mediaMenuRef}>
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowMediaMenu(!showMediaMenu);
+                                }}
+                                className={cn(
+                                    "rounded-full p-2 transition",
+                                    showMediaMenu
+                                        ? "bg-white/20 text-white"
+                                        : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
+                                )}
+                                aria-label="Add media"
+                                aria-expanded={showMediaMenu}
+                            >
+                                <Plus className={cn(
+                                    "h-5 w-5 transition-transform",
+                                    showMediaMenu && "rotate-45"
+                                )} />
+                            </button>
+                            
+                            {/* Animated media menu - circles above */}
+                            {showMediaMenu && (
+                                <div
+                                    className="absolute bottom-full left-0 mb-2 flex flex-col gap-2"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    {/* Upload Photo */}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            triggerPhotoUpload();
+                                            setShowMediaMenu(false);
+                                        }}
+                                        className="flex size-10 items-center justify-center rounded-full bg-white/10 text-white/80 shadow-lg transition-all hover:bg-white/20 hover:text-white hover:scale-110"
+                                        aria-label="Upload photo"
+                                    >
+                                        <Image className="h-5 w-5" />
+                                    </button>
+                                    {/* Upload Video */}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            triggerVideoUpload();
+                                            setShowMediaMenu(false);
+                                        }}
+                                        className="flex size-10 items-center justify-center rounded-full bg-white/10 text-white/80 shadow-lg transition-all hover:bg-white/20 hover:text-white hover:scale-110"
+                                        aria-label="Upload video file"
+                                    >
+                                        <Film className="h-5 w-5" />
+                                    </button>
+                                    {/* Create Audio Clip */}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            handleAudioButtonClick();
+                                            setShowMediaMenu(false);
+                                        }}
+                                        className="flex size-10 items-center justify-center rounded-full bg-white/10 text-white/80 shadow-lg transition-all hover:bg-white/20 hover:text-white hover:scale-110"
+                                        aria-label="Create audio clip"
+                                    >
+                                        <Mic className="h-5 w-5" />
+                                    </button>
+                                    {/* Create Video Clip */}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            handleVideoButtonClick();
+                                            setShowMediaMenu(false);
+                                        }}
+                                        className="flex size-10 items-center justify-center rounded-full bg-white/10 text-white/80 shadow-lg transition-all hover:bg-white/20 hover:text-white hover:scale-110"
+                                        aria-label="Create video clip"
+                                    >
+                                        <Video className="h-5 w-5" />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Compact input with auto-expand */}
+                        <div className="relative flex min-h-0 flex-1 items-center rounded-lg border border-white/10 bg-white/5 px-2 py-1 focus-within:border-white/20">
+                            <CompactTextarea
                                 value={body}
                                 onChange={setBody}
                                 onKeyDown={handleKeyDown}
-                                placeholder="Write a message your scene partner will remember…"
+                                placeholder="Message"
                                 onTyping={triggerTyping}
+                                maxRows={6}
                             />
-                        )}
-
-                        {hasAttachments && (
-                            <AttachmentPreview
-                                attachments={uploads}
-                                onRemove={(id) =>
-                                    setUploads((prev) =>
-                                        prev.filter((item) => item.id !== id),
-                                    )
-                                }
-                            />
-                        )}
-
-                        {error && (
-                            <div className="flex items-center justify-between gap-3 rounded-2xl border border-rose-500/40 bg-rose-500/10 px-4 py-2">
-                                <p className="flex-1 text-xs text-rose-200 sm:text-sm">
-                                    {error}
-                                </p>
-                                {failedMessage && (
-                                    <Button
-                                        type="button"
-                                        size="sm"
-                                        variant="ghost"
-                                        className="h-7 shrink-0 text-xs text-rose-200 hover:bg-rose-500/20 hover:text-rose-100"
-                                        onClick={() => {
-                                            setBody(failedMessage.body);
-                                            setUploads(failedMessage.attachments);
-                                            if (failedMessage.replyTo) {
-                                                // Note: We can't set replyTo directly, but the user can re-reply
-                                            }
-                                            setFailedMessage(null);
-                                            setError(null);
-                                            void submitMessage();
-                                        }}
-                                    >
-                                        Retry
-                                    </Button>
+                            {/* Emoji button - inline */}
+                            <div className="relative shrink-0">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                    className="rounded p-1 text-white/50 transition hover:bg-white/10 hover:text-white/80"
+                                    aria-label="Add emoji"
+                                >
+                                    <Smile className="h-4 w-4" />
+                                </button>
+                                {showEmojiPicker && (
+                                    <div ref={emojiPickerRef} className="absolute bottom-full right-0 z-50 mb-2">
+                                        <EmojiPicker
+                                            onEmojiClick={handleEmojiClick}
+                                            theme={Theme.DARK}
+                                            width={300}
+                                            height={350}
+                                            previewConfig={{ showPreview: false }}
+                                            skinTonesDisabled
+                                        />
+                                    </div>
                                 )}
                             </div>
-                        )}
-                    </div>
+                        </div>
 
-                    <div className="flex flex-col gap-3 border-t border-white/10 bg-black/55 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-4">
-                        <div className="flex items-center gap-2 sm:gap-3">
+                        {/* Tip button - RIGHT SIDE (between input and send, only if Signals enabled) */}
+                        {signalsEnabled && (
                             <button
                                 type="button"
-                                className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:outline-none sm:size-10"
-                                aria-label="Attach photo"
-                                onClick={triggerPhotoUpload}
-                            >
-                                <Image className="h-4 w-4" />
-                            </button>
-                            <button
-                                type="button"
-                                className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:outline-none sm:size-10"
-                                aria-label="Attach video file"
-                                onClick={triggerVideoUpload}
-                            >
-                                <Film className="h-4 w-4" />
-                            </button>
-                            <button
-                                type="button"
-                                className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:outline-none sm:size-10"
-                                aria-label="Record video clip"
-                                onClick={handleVideoButtonClick}
-                            >
-                                <Video className="h-4 w-4" />
-                            </button>
-                            <button
-                                type="button"
-                                className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:outline-none sm:size-10"
-                                aria-label="Send tip"
                                 onClick={() => setIsTipDialogOpen(true)}
+                                className="shrink-0 rounded-full bg-white/10 p-2 text-white/70 transition hover:bg-white/20 hover:text-white"
+                                aria-label="Send tip"
                             >
-                                <Coins className="h-4 w-4" />
+                                <Coins className="h-5 w-5" />
                             </button>
-                            <button
-                                type="button"
-                                className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:outline-none sm:size-10"
-                                aria-label="Record audio clip"
-                                onClick={handleAudioButtonClick}
-                            >
-                                <Mic className="h-4 w-4" />
-                            </button>
-                            <div className="hidden" data-uploader="photos">
-                                <MediaUploader
-                                    accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
-                                    maxFiles={6}
-                                    multiple
-                                    onUploadComplete={handlePhotoUploadComplete}
-                                    onError={(error) => setError(error)}
-                                />
-                            </div>
-                            <div className="hidden" data-uploader="videos">
-                                <MediaUploader
-                                    accept="video/mp4,video/webm,video/quicktime,video/x-msvideo"
-                                    maxFiles={6}
-                                    multiple
-                                    onUploadComplete={handleVideoUploadComplete}
-                                    onError={(error) => setError(error)}
-                                />
-                            </div>
-                        </div>
+                        )}
 
-                        <div className="flex items-center justify-between gap-3 sm:justify-end">
-                            <span className="text-[0.65rem] tracking-[0.25em] text-white/40 uppercase sm:text-xs">
-                                {bodyCharacterCount} chars
-                            </span>
-                            <Button
-                                type="submit"
-                                disabled={
-                                    isSending ||
-                                    isUploadingAudio ||
-                                    isUploadingVideo
-                                }
-                                className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-5 text-sm font-semibold text-white shadow-[0_20px_45px_-20px_rgba(249,115,22,0.65)] hover:from-amber-400/90 hover:via-rose-500/90 hover:to-violet-600/90 disabled:cursor-not-allowed disabled:opacity-60 sm:px-6"
-                            >
-                                {isSending ||
-                                isUploadingAudio ||
-                                isUploadingVideo ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Sending
-                                    </>
-                                ) : (
-                                    'Send'
-                                )}
-                            </Button>
-                        </div>
+                        {/* Send button - FAR RIGHT */}
+                        <button
+                            type="submit"
+                            disabled={isSending || isUploadingAudio || isUploadingVideo || (body.trim() === '' && uploads.length === 0)}
+                            className="shrink-0 rounded-full bg-amber-400 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-400/90 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            {isSending || isUploadingAudio || isUploadingVideo ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                'Send'
+                            )}
+                        </button>
                     </div>
+                )}
+
+                {/* Hidden uploaders */}
+                <div className="hidden" data-uploader="photos">
+                    <MediaUploader
+                        accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+                        maxFiles={6}
+                        multiple
+                        onUploadComplete={handlePhotoUploadComplete}
+                        onError={(error) => setError(error)}
+                    />
+                </div>
+                <div className="hidden" data-uploader="videos">
+                    <MediaUploader
+                        accept="video/mp4,video/webm,video/quicktime,video/x-msvideo"
+                        maxFiles={6}
+                        multiple
+                        onUploadComplete={handleVideoUploadComplete}
+                        onError={(error) => setError(error)}
+                    />
                 </div>
             </form>
             <TipDialog

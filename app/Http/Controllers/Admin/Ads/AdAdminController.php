@@ -15,6 +15,7 @@ use App\Models\Ads\AdCreative;
 use App\Models\Ads\AdImpression;
 use App\Services\Ads\AdReportingService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Arr;
@@ -184,16 +185,40 @@ class AdAdminController extends Controller
         return Inertia::render('Admin/Ads/Create');
     }
 
-    public function store(StoreAdRequest $request): JsonResponse|Response
+    public function store(StoreAdRequest $request): JsonResponse|Response|RedirectResponse
     {
+        \Log::info('Ad creation request received', [
+            'user_id' => $request->user()?->id,
+            'has_data' => $request->has('name'),
+            'all_data' => $request->all(),
+        ]);
+
         Gate::authorize('create', Ad::class);
 
         $user = $request->user();
         $validated = $request->validated();
 
+        \Log::info('Ad creation validated', [
+            'validated' => $validated,
+        ]);
+
         /** @var Ad $ad */
         $ad = DB::transaction(function () use ($validated, $user) {
-            $ad = new Ad(Arr::except($validated, ['creatives']));
+            $adData = Arr::except($validated, ['creatives']);
+
+            // Set null values for budget fields if not provided (admin/promotional ads)
+            if (! isset($adData['budget_amount']) || $adData['budget_amount'] === null || $adData['budget_amount'] === '') {
+                $adData['budget_amount'] = null;
+                $adData['budget_currency'] = null;
+            }
+            if (! isset($adData['pricing_model']) || $adData['pricing_model'] === null || $adData['pricing_model'] === '') {
+                $adData['pricing_model'] = null;
+            }
+            if (! isset($adData['pricing_rate']) || $adData['pricing_rate'] === null || $adData['pricing_rate'] === '') {
+                $adData['pricing_rate'] = null;
+            }
+
+            $ad = new Ad($adData);
             $ad->advertiser_id = $validated['advertiser_id'] ?? $user->getKey();
             $ad->status = $validated['status'] ?? AdStatus::Draft;
 
@@ -210,6 +235,10 @@ class AdAdminController extends Controller
                     AdCreative::create([
                         'ad_id' => $ad->getKey(),
                         ...$creativeData,
+                        // Auto-approve creatives for admin-created ads
+                        'review_status' => 'approved',
+                        'reviewed_at' => Carbon::now(),
+                        'reviewed_by' => $user->getKey(),
                     ]);
                 }
             }
@@ -264,19 +293,62 @@ class AdAdminController extends Controller
     {
         Gate::authorize('update', $ad);
 
-        $ad->load(['advertiser', 'campaign', 'creatives']);
+        $ad->load([
+            'advertiser',
+            'campaign',
+            'creatives' => function ($query): void {
+                $query->orderBy('display_order')->orderBy('id');
+            },
+        ]);
+
+        // Debug: Log creatives count
+        \Log::info('Ad edit - Creatives loaded', [
+            'ad_id' => $ad->id,
+            'creatives_count' => $ad->creatives->count(),
+            'creatives' => $ad->creatives->map(fn ($c) => [
+                'id' => $c->id,
+                'placement' => $c->placement->value,
+                'headline' => $c->headline,
+            ])->toArray(),
+        ]);
+
+        $adData = (new AdResource($ad))->toArray($request);
+
+        // Ensure creatives is an array, not a ResourceCollection
+        if (isset($adData['creatives']) && ! is_array($adData['creatives'])) {
+            $adData['creatives'] = $adData['creatives']->resolve($request);
+        }
+
+        // Debug: Log what's being sent to frontend
+        \Log::info('Ad edit - Data sent to frontend', [
+            'ad_id' => $adData['id'],
+            'creatives_count' => isset($adData['creatives']) ? count($adData['creatives']) : 0,
+            'creatives' => $adData['creatives'] ?? [],
+        ]);
 
         return Inertia::render('Admin/Ads/Edit', [
-            'ad' => (new AdResource($ad))->toArray($request),
+            'ad' => $adData,
         ]);
     }
 
-    public function update(UpdateAdRequest $request, Ad $ad): JsonResponse|Response
+    public function update(UpdateAdRequest $request, Ad $ad): JsonResponse|Response|RedirectResponse
     {
         Gate::authorize('update', $ad);
 
         $validated = $request->validated();
         $attributes = Arr::except($validated, ['creatives']);
+
+        // Set null values for budget fields if not provided (admin/promotional ads)
+        if (array_key_exists('budget_amount', $attributes) && ($attributes['budget_amount'] === null || $attributes['budget_amount'] === '')) {
+            $attributes['budget_amount'] = null;
+            $attributes['budget_currency'] = null;
+        }
+        if (array_key_exists('pricing_model', $attributes) && ($attributes['pricing_model'] === null || $attributes['pricing_model'] === '')) {
+            $attributes['pricing_model'] = null;
+        }
+        if (array_key_exists('pricing_rate', $attributes) && ($attributes['pricing_rate'] === null || $attributes['pricing_rate'] === '')) {
+            $attributes['pricing_rate'] = null;
+        }
 
         DB::transaction(function () use ($ad, $attributes, $validated): void {
             if ($attributes !== []) {
@@ -299,10 +371,15 @@ class AdAdminController extends Controller
             if (array_key_exists('creatives', $validated)) {
                 $ad->creatives()->delete();
 
+                $user = request()->user();
                 foreach ($validated['creatives'] as $creativeData) {
                     AdCreative::create([
                         'ad_id' => $ad->getKey(),
                         ...$creativeData,
+                        // Auto-approve creatives for admin-updated ads
+                        'review_status' => 'approved',
+                        'reviewed_at' => Carbon::now(),
+                        'reviewed_by' => $user?->getKey(),
                     ]);
                 }
             }
@@ -319,7 +396,7 @@ class AdAdminController extends Controller
             ->with('flash.banner', 'Ad updated.');
     }
 
-    public function destroy(Request $request, Ad $ad): Response
+    public function destroy(Request $request, Ad $ad): Response|RedirectResponse
     {
         Gate::authorize('delete', $ad);
 

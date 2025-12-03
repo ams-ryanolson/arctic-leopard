@@ -54,13 +54,14 @@ export default function Upgrade({
     const [billingInterval, setBillingInterval] = useState<
         'monthly' | 'yearly'
     >('monthly');
-    const { auth } = usePage<SharedData>().props;
+    const { auth, features } = usePage<SharedData>().props;
     const user = auth?.user;
     const userRoles = user?.roles?.map((role) => role.name) ?? [];
     const isAdmin =
         userRoles.includes('Admin') ||
         userRoles.includes('Super Admin') ||
         userRoles.includes('Moderator');
+    const signalsEnabled = features?.signals ?? false;
 
     const formatPrice = (cents: number, currency: string = 'USD'): string => {
         return new Intl.NumberFormat('en-US', {
@@ -70,7 +71,7 @@ export default function Upgrade({
     };
 
     const handlePurchase = (plan: MembershipPlan) => {
-        router.visit(membershipsRoutes.checkout(plan.id).url);
+        router.visit(membershipsRoutes.checkout(plan.slug).url);
     };
 
     const isCurrentPlan = (plan: MembershipPlan): boolean => {
@@ -120,24 +121,24 @@ export default function Upgrade({
         >
             <Head title="Upgrade Membership" />
 
-            <div className="space-y-12 text-white">
+            <div className="space-y-16 text-white">
                 <section className="grid gap-8 md:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
                     <div className="space-y-6">
-                        <div className="inline-flex items-center gap-3 rounded-full border border-amber-400/40 bg-white/10 px-4 py-2 text-sm font-semibold text-amber-100">
-                            <Flame className="size-4 text-amber-300" />
+                        <div className="inline-flex items-center gap-3 rounded-full border border-amber-400/40 bg-gradient-to-r from-amber-500/20 to-rose-500/20 px-4 py-2 text-sm font-semibold text-amber-100 backdrop-blur-sm">
+                            <Flame className="size-4 text-amber-300 animate-pulse" />
                             Unlock deeper access to the scene
                         </div>
 
-                        <h1 className="text-4xl leading-tight font-semibold md:text-5xl">
-                            Connect deeper with exclusive content, community
-                            access, and real-world events.
+                        <h1 className="text-4xl leading-tight font-semibold bg-gradient-to-r from-white via-amber-100 to-white bg-clip-text text-transparent md:text-5xl">
+                            Unlock exclusive content and community access.
                         </h1>
 
-                        <p className="text-lg text-white/70 md:text-xl">
-                            Upgrade your membership to unlock premium features,
-                            support creators in the community, and get priority
-                            access to exclusive content, circles, and IRL
-                            gatherings. Switch or cancel anytime.
+                        <p className="text-lg text-white/70 md:text-xl leading-relaxed">
+                            Upgrade your membership to unlock premium features
+                            {signalsEnabled && ', support creators in the community'}
+                            , and get priority access to exclusive content,
+                            circles, and IRL gatherings. Switch or cancel
+                            anytime.
                         </p>
 
                         <div className="flex flex-wrap items-center gap-4">
@@ -145,10 +146,12 @@ export default function Upgrade({
                                 <CheckCircle2 className="size-4 text-emerald-300" />
                                 Cancel or change plans anytime
                             </div>
-                            <div className="flex items-center gap-2 rounded-full bg-sky-500/15 px-4 py-2 text-sm text-sky-200">
-                                <CheckCircle2 className="size-4 text-sky-300" />
-                                Support creators & unlock exclusive content
-                            </div>
+                            {signalsEnabled && (
+                                <div className="flex items-center gap-2 rounded-full bg-sky-500/15 px-4 py-2 text-sm text-sky-200">
+                                    <CheckCircle2 className="size-4 text-sky-300" />
+                                    Support creators & unlock exclusive content
+                                </div>
+                            )}
                             <div className="flex items-center gap-2 rounded-full bg-rose-500/15 px-4 py-2 text-sm text-rose-200">
                                 <CheckCircle2 className="size-4 text-rose-300" />
                                 Priority access to events & circles
@@ -156,36 +159,57 @@ export default function Upgrade({
                         </div>
                     </div>
 
-                    <div className="relative overflow-hidden rounded-3xl border border-white/15 bg-gradient-to-br from-amber-500/25 via-rose-500/20 to-indigo-500/25 p-1">
-                        <div className="rounded-[1.65rem] bg-neutral-950/95 p-6">
-                            <span className="text-sm font-semibold tracking-[0.3em] text-white/60 uppercase">
-                                What you get
-                            </span>
-                            <ul className="mt-6 space-y-4 text-sm text-white/80">
-                                <li className="flex items-start gap-3">
-                                    <Sparkles className="mt-0.5 size-4 text-amber-300" />
-                                    Exclusive paywalled content from creators
-                                    you follow, plus access to premium archives
-                                    and behind-the-scenes content.
+                    <div className="relative overflow-hidden rounded-3xl border border-white/15 bg-gradient-to-br from-amber-500/25 via-rose-500/20 to-indigo-500/25 p-1 shadow-2xl">
+                        <div className="rounded-[1.65rem] bg-gradient-to-br from-neutral-950/98 via-neutral-950/95 to-neutral-900/95 p-8 backdrop-blur-sm">
+                            <div className="mb-6">
+                                <span className="text-sm font-semibold tracking-[0.3em] text-amber-300/80 uppercase">
+                                    What you get
+                                </span>
+                                <div className="mt-2 h-1 w-12 rounded-full bg-gradient-to-r from-amber-400 to-rose-400" />
+                            </div>
+                            <ul className="space-y-5 text-sm text-white/85">
+                                <li className="flex items-start gap-4 transition-transform hover:translate-x-1">
+                                    <div className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-amber-500/20">
+                                        <Sparkles className="size-4 text-amber-300" />
+                                    </div>
+                                    <span className="leading-relaxed">
+                                        Exclusive paywalled content from creators
+                                        you follow, plus access to premium archives
+                                        and behind-the-scenes content.
+                                    </span>
                                 </li>
-                                <li className="flex items-start gap-3">
-                                    <Sparkles className="mt-0.5 size-4 text-amber-300" />
-                                    Priority access to events, circles, and
-                                    real-world meetups. Get first dibs on
-                                    tickets and exclusive circle memberships.
+                                <li className="flex items-start gap-4 transition-transform hover:translate-x-1">
+                                    <div className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-rose-500/20">
+                                        <Sparkles className="size-4 text-rose-300" />
+                                    </div>
+                                    <span className="leading-relaxed">
+                                        Priority access to events, circles, and
+                                        real-world meetups. Get first dibs on
+                                        tickets and exclusive circle memberships.
+                                    </span>
                                 </li>
-                                <li className="flex items-start gap-3">
-                                    <Sparkles className="mt-0.5 size-4 text-amber-300" />
-                                    Enhanced discovery features, advanced Radar
-                                    filters, and the ability to hide ads for a
-                                    cleaner experience.
+                                <li className="flex items-start gap-4 transition-transform hover:translate-x-1">
+                                    <div className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-indigo-500/20">
+                                        <Sparkles className="size-4 text-indigo-300" />
+                                    </div>
+                                    <span className="leading-relaxed">
+                                        Enhanced discovery features, advanced Radar
+                                        filters, and the ability to hide ads for a
+                                        cleaner experience.
+                                    </span>
                                 </li>
-                                <li className="flex items-start gap-3">
-                                    <Sparkles className="mt-0.5 size-4 text-amber-300" />
-                                    Directly support the creators building this
-                                    community—your membership helps fund new
-                                    content and features.
-                                </li>
+                                {signalsEnabled && (
+                                    <li className="flex items-start gap-4 transition-transform hover:translate-x-1">
+                                        <div className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-sky-500/20">
+                                            <Sparkles className="size-4 text-sky-300" />
+                                        </div>
+                                        <span className="leading-relaxed">
+                                            Directly support the creators building this
+                                            community—your membership helps fund new
+                                            content and features.
+                                        </span>
+                                    </li>
+                                )}
                             </ul>
                         </div>
                     </div>
@@ -218,25 +242,31 @@ export default function Upgrade({
                 )}
 
                 <section>
-                    <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                        <div>
-                            <h2 className="text-2xl font-semibold md:text-3xl">
+                    <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+                        <div className="space-y-2">
+                            <h2 className="text-3xl font-semibold md:text-4xl">
                                 Choose your membership
                             </h2>
-                            <p className="text-white/65">
-                                All plans include creator tipping, event RSVPs,
-                                and traveller mode access.
+                            <p className="text-white/70 text-lg">
+                                All plans include{' '}
+                                {signalsEnabled && 'creator tipping, '}
+                                event RSVPs, and traveller mode access.
                             </p>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 p-1">
                             <Button
                                 variant={
                                     billingInterval === 'monthly'
                                         ? 'default'
-                                        : 'outline'
+                                        : 'ghost'
                                 }
                                 size="sm"
                                 onClick={() => setBillingInterval('monthly')}
+                                className={
+                                    billingInterval === 'monthly'
+                                        ? 'bg-white/10 text-white shadow-sm'
+                                        : 'text-white/70 hover:text-white'
+                                }
                             >
                                 Monthly
                             </Button>
@@ -244,15 +274,20 @@ export default function Upgrade({
                                 variant={
                                     billingInterval === 'yearly'
                                         ? 'default'
-                                        : 'outline'
+                                        : 'ghost'
                                 }
                                 size="sm"
                                 onClick={() => setBillingInterval('yearly')}
+                                className={
+                                    billingInterval === 'yearly'
+                                        ? 'bg-white/10 text-white shadow-sm'
+                                        : 'text-white/70 hover:text-white'
+                                }
                             >
                                 Yearly
                                 <Badge
                                     variant="secondary"
-                                    className="ml-2 bg-emerald-500/20 text-emerald-400"
+                                    className="ml-2 bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
                                 >
                                     Save 2 months
                                 </Badge>
@@ -261,49 +296,62 @@ export default function Upgrade({
                     </div>
 
                     <div className="mt-8 grid gap-6 lg:grid-cols-3">
-                        {plans.map((plan) => {
+                        {plans.map((plan, index) => {
                             const price =
                                 billingInterval === 'yearly'
                                     ? plan.yearly_price
                                     : plan.monthly_price;
                             const isCurrent = isCurrentPlan(plan);
+                            const isMostPopular = plans.length >= 3 && index === Math.floor(plans.length / 2);
 
                             return (
                                 <Card
                                     key={plan.id}
-                                    className={`border-white/12 bg-white/5 backdrop-blur transition hover:-translate-y-1 ${
+                                    className={`group relative border-white/12 bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl ${
                                         isCurrent
-                                            ? 'border-amber-400/50 bg-amber-500/10'
-                                            : 'hover:border-amber-400/30 hover:bg-white/10'
+                                            ? 'border-amber-400/50 bg-gradient-to-br from-amber-500/15 to-amber-500/5 shadow-amber-500/20'
+                                            : isMostPopular
+                                              ? 'border-rose-400/50 bg-gradient-to-br from-rose-500/15 to-rose-500/5 scale-105 shadow-rose-500/20 shadow-xl'
+                                              : 'hover:border-amber-400/40 hover:bg-gradient-to-br hover:from-white/10 hover:to-white/5'
                                     }`}
                                 >
-                                    <CardHeader className="space-y-3">
+                                    {isMostPopular && (
+                                        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                                            <Badge className="border-rose-400/50 bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg">
+                                                <Flame className="mr-1 size-3" />
+                                                Most Popular
+                                            </Badge>
+                                        </div>
+                                    )}
+                                    <CardHeader className="space-y-4 pb-4">
                                         <div className="flex items-center justify-between gap-3">
-                                            <CardTitle className="text-xl font-semibold">
+                                            <CardTitle className="text-2xl font-bold">
                                                 {plan.name}
                                             </CardTitle>
                                             {isCurrent && (
-                                                <Badge className="border-white/20 bg-amber-500/80 text-neutral-950">
+                                                <Badge className="border-amber-400/30 bg-amber-500/90 text-neutral-950 shadow-md">
+                                                    <Crown className="mr-1 size-3" />
                                                     Current
                                                 </Badge>
                                             )}
                                         </div>
-                                        <CardDescription className="text-white/65">
-                                            {plan.description ||
-                                                'Premium membership tier'}
-                                        </CardDescription>
+                                        {plan.description && (
+                                            <CardDescription className="text-white/70 text-base leading-relaxed">
+                                                {plan.description}
+                                            </CardDescription>
+                                        )}
                                     </CardHeader>
 
                                     <CardContent className="space-y-6">
-                                        <div>
+                                        <div className="rounded-lg border border-white/10 bg-white/5 p-4">
                                             <div className="flex items-baseline gap-2">
-                                                <span className="text-4xl font-semibold text-white">
+                                                <span className="text-5xl font-bold text-white">
                                                     {formatPrice(
                                                         price,
                                                         plan.currency,
                                                     )}
                                                 </span>
-                                                <span className="text-sm text-white/60">
+                                                <span className="text-base text-white/60">
                                                     /{' '}
                                                     {billingInterval ===
                                                     'yearly'
@@ -312,35 +360,42 @@ export default function Upgrade({
                                                 </span>
                                             </div>
                                             {billingInterval === 'yearly' && (
-                                                <p className="mt-2 text-sm text-white/55">
-                                                    Save{' '}
-                                                    {formatPrice(
-                                                        plan.monthly_price *
-                                                            12 -
-                                                            plan.yearly_price,
-                                                        plan.currency,
-                                                    )}{' '}
-                                                    vs monthly
-                                                </p>
+                                                <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-emerald-500/15 px-3 py-1">
+                                                    <span className="text-xs font-semibold text-emerald-300">
+                                                        Save{' '}
+                                                        {formatPrice(
+                                                            plan.monthly_price *
+                                                                12 -
+                                                                plan.yearly_price,
+                                                            plan.currency,
+                                                        )}{' '}
+                                                        vs monthly
+                                                    </span>
+                                                </div>
                                             )}
                                         </div>
 
                                         {plan.features &&
                                             Object.keys(plan.features).length >
                                                 0 && (
-                                                <ul className="space-y-3 text-sm text-white/80">
-                                                    {Object.entries(
-                                                        plan.features,
-                                                    ).map(([key, value]) => (
-                                                        <li
-                                                            key={key}
-                                                            className="flex items-start gap-2"
-                                                        >
-                                                            <CheckCircle2 className="mt-0.5 size-4 text-emerald-300" />
-                                                            <span>{value}</span>
-                                                        </li>
-                                                    ))}
-                                                </ul>
+                                                <div className="space-y-1">
+                                                    <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-white/50">
+                                                        Features
+                                                    </h3>
+                                                    <ul className="space-y-2.5 text-sm text-white/85">
+                                                        {Object.entries(
+                                                            plan.features,
+                                                        ).map(([key, value]) => (
+                                                            <li
+                                                                key={key}
+                                                                className="flex items-start gap-3 transition-colors hover:text-white"
+                                                            >
+                                                                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-400" />
+                                                                <span className="leading-relaxed">{value}</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
                                             )}
                                     </CardContent>
 
@@ -362,7 +417,11 @@ export default function Upgrade({
                                                 onClick={() =>
                                                     handlePurchase(plan)
                                                 }
-                                                className="w-full rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-indigo-500 text-white hover:from-amber-300 hover:via-rose-400 hover:to-indigo-400"
+                                                className={`w-full rounded-full font-semibold transition-all duration-300 ${
+                                                    isMostPopular
+                                                        ? 'bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 text-white shadow-lg shadow-rose-500/30 hover:from-rose-400 hover:via-pink-400 hover:to-rose-500 hover:shadow-xl hover:shadow-rose-500/40 hover:scale-105'
+                                                        : 'bg-gradient-to-r from-amber-400 via-rose-500 to-indigo-500 text-white hover:from-amber-300 hover:via-rose-400 hover:to-indigo-400 hover:shadow-lg hover:scale-105'
+                                                }`}
                                             >
                                                 {currentMembership
                                                     ? 'Upgrade to'

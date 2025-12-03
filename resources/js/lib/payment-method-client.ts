@@ -17,6 +17,7 @@ export type PaymentMethod = {
 export type FrontendTokenResponse = {
     token: string;
     gateway: string;
+    application_id?: string;
 };
 
 export type VaultPaymentMethodPayload = {
@@ -24,6 +25,11 @@ export type VaultPaymentMethodPayload = {
     gateway?: string;
     is_default?: boolean;
     billing_address?: Record<string, unknown>;
+    // Card details - required for CCBill since their API doesn't return card info
+    card_last_four?: string;
+    card_brand?: string;
+    card_exp_month?: string;
+    card_exp_year?: string;
 };
 
 export class PaymentMethodClientError extends Error {
@@ -130,15 +136,30 @@ export async function vaultPaymentMethod(
     payload: VaultPaymentMethodPayload,
     options: { signal?: AbortSignal } = {},
 ): Promise<PaymentMethod> {
-    const response = await fetch('/api/payment-methods', {
-        method: 'POST',
-        headers: buildHeaders(),
-        credentials: 'include',
-        body: JSON.stringify(payload),
-        signal: options.signal,
-    });
+    console.log('📤 vaultPaymentMethod: Sending POST to /api/payment-methods', payload);
+    
+    const headers = buildHeaders();
+    console.log('📤 vaultPaymentMethod: Headers:', headers);
+    console.log('📤 vaultPaymentMethod: Body:', JSON.stringify(payload));
+    
+    try {
+        const response = await fetch('/api/payment-methods', {
+            method: 'POST',
+            headers: headers,
+            credentials: 'include',
+            body: JSON.stringify(payload),
+            signal: options.signal,
+        });
 
-    return parseResponse<PaymentMethod>(response);
+        console.log('📥 vaultPaymentMethod: Response received, status:', response.status);
+        
+        const result = await parseResponse<PaymentMethod>(response);
+        console.log('✅ vaultPaymentMethod: Parsed result:', result);
+        return result;
+    } catch (err) {
+        console.error('❌ vaultPaymentMethod: fetch() threw an error:', err);
+        throw err;
+    }
 }
 
 /**

@@ -11,27 +11,23 @@ class BoostService
     private const BOOST_DURATION_HOURS = 1;
 
     /**
-     * Get the daily boost limit based on user roles.
-     * - Free users (User role only): 1 per day
-     * - Paid members (Premium role): 2 per day
-     * - Anyone else (Creator, Moderator, Admin, Super Admin, or multiple roles): 3 per day
+     * Get the daily boost limit based on user permissions and role configuration.
+     * - Free users (no "boost radar" permission): 1 per day (default)
+     * - Users with "boost radar" permission: Get the highest boost limit from their roles
      */
     public function getDailyBoostLimit(User $user): int
     {
-        $roles = $user->getRoleNames()->toArray();
-
-        // Check if user has only the 'User' role (free user)
-        if (count($roles) === 1 && in_array('User', $roles, true)) {
+        // Free users (no permission) get 1 boost per day
+        if (! $user->hasPermissionTo('boost radar')) {
             return 1;
         }
 
-        // Check if user has 'Premium' role (paid member)
-        if (in_array('Premium', $roles, true)) {
-            return 2;
-        }
+        // Get the highest boost limit from user's roles
+        $maxLimit = $user->roles()
+            ->whereNotNull('boost_radar_daily_limit')
+            ->max('boost_radar_daily_limit') ?? 1;
 
-        // Anyone else (Creator, Moderator, Admin, Super Admin, or multiple roles) gets 3
-        return 3;
+        return (int) $maxLimit;
     }
 
     /**

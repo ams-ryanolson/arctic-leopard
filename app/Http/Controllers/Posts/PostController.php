@@ -28,10 +28,11 @@ class PostController extends Controller
     {
         $viewer = $request->user();
         $query = Post::query()
-            ->with(['author', 'media', 'poll.options', 'hashtags'])
+            ->with(['author', 'media', 'poll.options', 'hashtags', 'repostedPost.author', 'repostedPost.media', 'repostedPost.poll.options', 'repostedPost.hashtags'])
             ->visibleTo($viewer)
             ->withCount(['bookmarks as bookmarks_count'])
             ->withBookmarkStateFor($viewer)
+            ->withAmplifyStateFor($viewer)
             ->latest('published_at');
 
         if ($request->filled('author_id')) {
@@ -43,6 +44,7 @@ class PostController extends Controller
         if ($viewer !== null) {
             $viewer->attachLikeStatus($posts);
             $viewer->attachBookmarkStatus($posts);
+            $posts->each(fn ($post) => $post->attachAmplifyStatusFor($viewer));
         }
 
         return PostResource::collection($posts)->toResponse($request);
@@ -78,11 +80,12 @@ class PostController extends Controller
         $this->authorize('view', $post);
 
         $payload = $this->postCache->remember($post, function () use ($post, $request) {
-            $post->loadMissing(['author', 'media', 'poll.options', 'hashtags']);
+            $post->loadMissing(['author', 'media', 'poll.options', 'hashtags', 'repostedPost.author', 'repostedPost.media', 'repostedPost.poll.options', 'repostedPost.hashtags']);
 
             if ($request->user()) {
                 $request->user()->attachLikeStatus($post);
                 $request->user()->attachBookmarkStatus($post);
+                $post->attachAmplifyStatusFor($request->user());
             }
 
             return (new PostResource($post))->toResponse($request)->getData(true);

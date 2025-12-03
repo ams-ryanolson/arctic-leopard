@@ -26,7 +26,7 @@ export function MobileBottomNav() {
     const page = usePage<SharedData>();
     const { notifications, messaging, features } = page.props;
     const { setOpenMobile } = useSidebar();
-    const circlesEnabled = features?.feature_circles_enabled ?? false;
+    const circlesEnabled = features?.circles ?? false;
 
     const unreadNotifications =
         (typeof notifications === 'object' &&

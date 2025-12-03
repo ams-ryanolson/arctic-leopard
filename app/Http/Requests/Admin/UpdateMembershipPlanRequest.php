@@ -26,7 +26,7 @@ class UpdateMembershipPlanRequest extends FormRequest
             'role_to_assign' => ['required', 'string', Rule::exists('roles', 'name')],
             'permissions_to_grant' => ['nullable', 'array'],
             'permissions_to_grant.*' => ['string', Rule::exists('permissions', 'name')],
-            'features' => ['nullable', 'array'],
+            'features' => ['nullable', 'array', 'sometimes'],
             'is_active' => ['boolean'],
             'is_public' => ['boolean'],
             'display_order' => ['integer', 'min:0'],

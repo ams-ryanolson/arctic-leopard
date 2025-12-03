@@ -25,6 +25,7 @@ class UpdateRolePermissionsRequest extends FormRequest
         return [
             'permissions' => ['required', 'array'],
             'permissions.*' => ['integer', 'exists:permissions,id'],
+            'boost_radar_daily_limit' => ['nullable', 'integer', 'min:0', 'max:100'],
         ];
     }
 }

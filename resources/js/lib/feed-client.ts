@@ -7,6 +7,10 @@ import {
     destroy as bookmarkDestroyRoute,
     store as bookmarkStore,
 } from '@/actions/App/Http/Controllers/Posts/PostBookmarkController';
+import {
+    destroy as amplifyDestroyRoute,
+    store as amplifyStore,
+} from '@/actions/App/Http/Controllers/Posts/PostRepostController';
 import { store as viewStore } from '@/actions/App/Http/Controllers/Posts/PostViewController';
 import { store as purchaseStore } from '@/actions/App/Http/Controllers/Posts/PurchaseController';
 import { getCsrfToken } from '@/lib/csrf';
@@ -345,6 +349,48 @@ export async function unbookmarkPost(
     options: { signal?: AbortSignal } = {},
 ): Promise<FeedPost> {
     const response = await fetch(bookmarkDestroyRoute.url(postId), {
+        method: 'delete',
+        headers: buildHeaders(),
+        credentials: 'include',
+        signal: options.signal,
+    });
+
+    const payload = await parseResponse<{ data: FeedPost }>(response);
+
+    return payload.data;
+}
+
+export async function amplifyPost(
+    postId: number,
+    comment?: string,
+    options: { signal?: AbortSignal } = {},
+): Promise<FeedPost> {
+    const body: Record<string, unknown> = {};
+
+    if (comment !== undefined && comment.trim() !== '') {
+        body.body = comment.trim();
+    }
+
+    const response = await fetch(amplifyStore.url(postId), {
+        method: 'post',
+        headers: buildHeaders({
+            'Content-Type': 'application/json',
+        }),
+        credentials: 'include',
+        body: Object.keys(body).length > 0 ? JSON.stringify(body) : undefined,
+        signal: options.signal,
+    });
+
+    const payload = await parseResponse<{ data: FeedPost }>(response);
+
+    return payload.data;
+}
+
+export async function unamplifyPost(
+    postId: number,
+    options: { signal?: AbortSignal } = {},
+): Promise<FeedPost> {
+    const response = await fetch(amplifyDestroyRoute.url(postId), {
         method: 'delete',
         headers: buildHeaders(),
         credentials: 'include',

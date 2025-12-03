@@ -2,12 +2,14 @@
 
 namespace App\Services\Messaging;
 
+use App\Events\Messaging\MessageReactionUpdated;
 use App\Models\Message;
 use App\Models\MessageReaction;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Facades\Event;
 
 class MessageReactionService
 {
@@ -48,7 +50,11 @@ class MessageReactionService
                 $this->analytics->recordReaction($message, $actor);
             }
 
-            return $this->summary($message->fresh(['reactions']), $actor);
+            $summary = $this->summary($message->fresh(['reactions']), $actor);
+
+            Event::dispatch(new MessageReactionUpdated($message, $summary));
+
+            return $summary;
         });
     }
 

@@ -2,9 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
     FeedRequestError,
+    amplifyPost,
     bookmarkPost,
     likePost,
     purchasePost,
+    unamplifyPost,
     unbookmarkPost,
     unlikePost,
 } from '@/lib/feed-client';
@@ -41,6 +43,7 @@ type UseFeedResult = {
     pendingLikes: number[];
     pendingBookmarks: number[];
     pendingPurchases: number[];
+    pendingAmplifies: number[];
     activeCommentPost: FeedPost | null;
     isCommentSheetOpen: boolean;
     sentinelRef: React.MutableRefObject<HTMLDivElement | null>;
@@ -49,6 +52,7 @@ type UseFeedResult = {
     toggleLike: (postId: number) => Promise<void>;
     toggleBookmark: (postId: number) => Promise<void>;
     togglePurchase: (postId: number) => Promise<void>;
+    toggleAmplify: (postId: number, comment?: string) => Promise<void>;
     openComments: (postId: number) => void;
     closeComments: () => void;
     handleCommentAdded: (postId: number, total: number) => void;
@@ -177,6 +181,7 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
     const [pendingLikes, setPendingLikes] = useState<number[]>([]);
     const [pendingBookmarks, setPendingBookmarks] = useState<number[]>([]);
     const [pendingPurchases, setPendingPurchases] = useState<number[]>([]);
+    const [pendingAmplifies, setPendingAmplifies] = useState<number[]>([]);
     const [activeCommentPost, setActiveCommentPost] = useState<FeedPost | null>(
         null,
     );
@@ -191,6 +196,7 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
         setPendingLikes([]);
         setPendingBookmarks([]);
         setPendingPurchases([]);
+        setPendingAmplifies([]);
     }, [initialPayload, normalize]);
 
     const entries = useMemo(
@@ -285,6 +291,10 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
     );
     const markPurchasePending = useMemo(
         () => markPending(setPendingPurchases),
+        [markPending],
+    );
+    const markAmplifyPending = useMemo(
+        () => markPending(setPendingAmplifies),
         [markPending],
     );
 
@@ -429,6 +439,57 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
         [findPostById, handleFeedError, markPurchasePending, updatePostInPages],
     );
 
+    const toggleAmplify = useCallback(
+        async (postId: number, comment?: string) => {
+            const targetPost = findPostById(postId);
+
+            if (!targetPost) {
+                return;
+            }
+
+            // Don't allow amplifying amplify posts
+            if (targetPost.type === 'amplify') {
+                return;
+            }
+
+            markAmplifyPending(postId, true);
+
+            const currentlyAmplified = Boolean(targetPost.has_amplified);
+            const optimisticPost: FeedPost = {
+                ...targetPost,
+                has_amplified: !currentlyAmplified,
+                reposts_count: Math.max(
+                    0,
+                    targetPost.reposts_count + (currentlyAmplified ? -1 : 1),
+                ),
+            };
+
+            updatePostInPages(optimisticPost);
+
+            try {
+                const updatedPost = currentlyAmplified
+                    ? await unamplifyPost(postId)
+                    : await amplifyPost(postId, comment);
+
+                // Update the post in the feed
+                updatePostInPages({ ...targetPost, ...updatedPost });
+                
+                // Refresh feed to show the amplify post (like when creating a new post)
+                if (!currentlyAmplified) {
+                    await refresh();
+                }
+                
+                setError(null);
+            } catch (problem) {
+                handleFeedError(problem);
+                updatePostInPages(targetPost);
+            } finally {
+                markAmplifyPending(postId, false);
+            }
+        },
+        [findPostById, handleFeedError, markAmplifyPending, updatePostInPages],
+    );
+
     const loadMore = useCallback(async () => {
         if (isLoadingMore || !hasMore) {
             return;
@@ -563,6 +624,7 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
         pendingLikes,
         pendingBookmarks,
         pendingPurchases,
+        pendingAmplifies,
         activeCommentPost,
         isCommentSheetOpen,
         sentinelRef,
@@ -571,6 +633,7 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
         toggleLike,
         toggleBookmark,
         togglePurchase,
+        toggleAmplify,
         openComments,
         closeComments,
         handleCommentAdded,

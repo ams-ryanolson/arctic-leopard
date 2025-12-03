@@ -60,6 +60,14 @@ return [
             'report' => false,
         ],
 
+        'cdn' => [
+            'driver' => 'local',
+            'root' => '/',
+            'url' => 'https://cdn.fetishmen.net',
+            'throw' => false,
+            'report' => false,
+        ],
+
     ],
 
     /*

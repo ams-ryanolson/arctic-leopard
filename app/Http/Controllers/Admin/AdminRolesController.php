@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\ActivityType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreRoleRequest;
 use App\Http\Requests\Admin\UpdateRolePermissionsRequest;
 use App\Models\Permission;
 use App\Services\ActivityLogService;
@@ -39,6 +40,7 @@ class AdminRolesController extends Controller
                 return [
                     'id' => $role->getKey(),
                     'name' => $role->name,
+                    'boost_radar_daily_limit' => $role->boost_radar_daily_limit ?? 1,
                     'permission_ids' => $role->permissions->pluck('id')->toArray(),
                     'permissions' => $role->permissions->map(static fn ($permission) => [
                         'id' => $permission->getKey(),
@@ -73,7 +75,8 @@ class AdminRolesController extends Controller
             return redirect()->back()->withErrors(['role' => 'Cannot modify Super Admin role permissions']);
         }
 
-        $permissionIds = $request->validated()['permissions'];
+        $validated = $request->validated();
+        $permissionIds = $validated['permissions'];
         $permissions = Permission::query()->whereIn('id', $permissionIds)->get();
 
         // Capture old permissions before sync
@@ -82,6 +85,13 @@ class AdminRolesController extends Controller
         $removed = array_diff($oldPermissionIds, $permissionIds);
 
         $role->syncPermissions($permissions);
+
+        // Update boost limit if provided
+        if (isset($validated['boost_radar_daily_limit'])) {
+            $role->update([
+                'boost_radar_daily_limit' => $validated['boost_radar_daily_limit'],
+            ]);
+        }
 
         // Clear permission cache
         app(PermissionRegistrar::class)->forgetCachedPermissions();
@@ -102,5 +112,34 @@ class AdminRolesController extends Controller
         );
 
         return redirect()->back()->with('success', 'Role permissions updated successfully');
+    }
+
+    public function store(StoreRoleRequest $request): RedirectResponse
+    {
+        Gate::authorize('manage roles');
+
+        $role = Role::create([
+            'name' => $request->validated()['name'],
+            'guard_name' => 'web',
+            'boost_radar_daily_limit' => 1, // Default to 1 for new roles
+        ]);
+
+        // Clear permission cache
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        // Log the activity
+        app(ActivityLogService::class)->log(
+            ActivityType::RolePermissionsChanged,
+            "Created new role: {$role->name}",
+            $role,
+            $request->user(),
+            [
+                'role_id' => $role->id,
+                'role_name' => $role->name,
+            ],
+            $request
+        );
+
+        return redirect()->back()->with('success', "Role '{$role->name}' created successfully. You can now configure its permissions.");
     }
 }

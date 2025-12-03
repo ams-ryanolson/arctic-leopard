@@ -2,6 +2,7 @@
 
 namespace App\Services\Messaging;
 
+use App\Events\Messaging\MessageRead;
 use App\Models\Conversation;
 use App\Models\ConversationParticipant;
 use App\Models\Message;
@@ -11,12 +12,14 @@ use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Event;
 
 class ConversationService
 {
     public function __construct(
         private ConnectionInterface $connection,
         private MessageAnalyticsService $analytics,
+        private MessagingAuthorizationService $messagingAuthorization,
     ) {}
 
     /**
@@ -24,6 +27,11 @@ class ConversationService
      */
     public function startDirectConversation(User $initiator, User $recipient, array $attributes = []): Conversation
     {
+        // Check if initiator can message recipient based on recipient's messaging preferences
+        if (! $this->messagingAuthorization->canMessage($initiator, $recipient)) {
+            throw new AuthorizationException('You cannot send a message to this user based on their messaging preferences.');
+        }
+
         $this->assertUsersCanInteract($initiator, $recipient);
 
         $existing = Conversation::query()
@@ -214,6 +222,8 @@ class ConversationService
                     'last_read_at' => $timestamp,
                 ]);
         });
+
+        Event::dispatch(new MessageRead($conversation, $user, $message));
     }
 
     public function sendSystemMessage(Conversation $conversation, string $body, array $metadata = []): Message

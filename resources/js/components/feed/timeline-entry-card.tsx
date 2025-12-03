@@ -5,10 +5,11 @@ import CommentThreadTrigger from '@/components/feed/comment-thread-trigger';
 import { useLightbox } from '@/components/feed/lightbox-context';
 import FeedMediaGallery from '@/components/feed/media-gallery';
 import PollVotePanel from '@/components/feed/poll-vote-panel';
+import PostBody from '@/components/feed/post-body';
+import { UserHoverCard } from '@/components/feed/user-hover-card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Spark } from '@/components/ui/spark';
 import { recordPostView } from '@/lib/feed-client';
 import { cn } from '@/lib/utils';
@@ -20,6 +21,7 @@ import {
     BarChart3,
     BookmarkCheck,
     Bookmark as BookmarkIcon,
+    Repeat,
 } from 'lucide-react';
 
 type TimelineEntryCardProps = {
@@ -29,6 +31,7 @@ type TimelineEntryCardProps = {
     onComment?: (postId: number) => void;
     onPurchase?: (postId: number) => void;
     onPollVote?: (optionId: number) => void;
+    onAmplify?: (postId: number) => void;
     disabled?: boolean;
 };
 
@@ -67,10 +70,11 @@ export default function TimelineEntryCard({
     onComment,
     onPurchase,
     onPollVote,
+    onAmplify,
     disabled,
 }: TimelineEntryCardProps) {
     const { features } = usePage<SharedData>().props;
-    const bookmarksEnabled = features?.feature_bookmarks_enabled ?? false;
+    const bookmarksEnabled = features?.bookmarks ?? false;
     const { openLightbox } = useLightbox();
     const post = entry.post;
     const [pendingCounts, setPendingCounts] = useState<Record<number, number>>(
@@ -259,9 +263,9 @@ export default function TimelineEntryCard({
 
     if (!post) {
         return (
-            <Card className="border border-dashed border-white/15 bg-white/5 p-3 text-sm text-white/70 sm:p-6">
+            <div className="border-b border-dashed border-white/15 pb-5 pt-4 text-sm text-white/70 sm:pb-6 sm:pt-6">
                 This timeline entry has been removed.
-            </Card>
+            </div>
         );
     }
 
@@ -299,9 +303,12 @@ export default function TimelineEntryCard({
 
     const hasLiked = Boolean(post.has_liked);
     const isBookmarked = Boolean(post.is_bookmarked);
+    const hasAmplified = Boolean(post.has_amplified);
     const bookmarkCount = post.bookmark_count ?? 0;
     const canBookmark = post.can?.bookmark ?? false;
     const viewsCount = post.views_count + (optimisticView ? 1 : 0);
+    const isAmplifyPost = post.type === 'amplify';
+    const originalPost = post.original_post ?? null;
     const initials = displayName
         .split(' ')
         .map((segment) => segment.charAt(0))
@@ -310,119 +317,232 @@ export default function TimelineEntryCard({
         .toUpperCase();
 
     const handleMediaClick = (index: number) => {
-        openLightbox(post.media, {
+        const targetPost = isAmplifyPost && originalPost ? originalPost : post;
+        openLightbox(targetPost.media ?? [], {
             startIndex: index,
-            post,
+            post: targetPost,
             onCommentCountChange: (total) => {
                 setPendingCounts((previous) => ({
                     ...previous,
-                    [post.id]: total,
+                    [targetPost.id]: total,
                 }));
             },
         });
     };
 
+    // Determine which post to display (original if this is an amplify)
+    const displayPost = isAmplifyPost && originalPost ? originalPost : post;
+    const amplifier = isAmplifyPost ? post.author : null;
+    const amplifierName = amplifier
+        ? amplifier.display_name ?? amplifier.username ?? 'Someone'
+        : null;
+    const amplifierUsername = amplifier?.username ?? null;
+    const amplifierProfileHref = amplifierUsername
+        ? profileRoutes.show.url(amplifierUsername)
+        : null;
+
     return (
-        <div ref={cardWrapperRef}>
-            <Card className="border border-white/10 bg-white/5 p-3 text-sm text-white/75 sm:p-6">
+        <div ref={cardWrapperRef} className="border-b border-white/10 pb-5 pt-4 text-sm text-white/75 sm:pb-6 sm:pt-6">
+            {isAmplifyPost && amplifier && amplifierName && amplifier.id && amplifierUsername && (
+                <div className="mb-3 flex items-center gap-2 text-xs text-white/60 sm:mb-4 sm:text-sm">
+                    <Repeat className="size-4 text-white/50" />
+                    {amplifierProfileHref ? (
+                        <UserHoverCard
+                            userId={amplifier.id}
+                            username={amplifierUsername}
+                            displayName={amplifier.display_name}
+                            avatarUrl={amplifier.avatar_url}
+                        >
+                            <Link
+                                href={amplifierProfileHref}
+                                prefetch
+                                className="font-semibold text-white/80 transition hover:text-amber-200 focus:outline-none focus-visible:text-amber-200"
+                            >
+                                {amplifierName}
+                            </Link>
+                        </UserHoverCard>
+                    ) : (
+                        <span className="font-semibold text-white/80">{amplifierName}</span>
+                    )}
+                    <span>amplified this</span>
+                </div>
+            )}
+
+                {isAmplifyPost && post.body && (
+                    <div className="mb-3 rounded-lg border border-white/10 bg-white/5 p-3 text-sm text-white/80 sm:mb-4 sm:p-4">
+                        <PostBody body={post.body} />
+                    </div>
+                )}
+
                 <header className="flex flex-wrap items-start justify-between gap-2 sm:gap-3">
                     <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
-                        <Avatar className="size-9 shrink-0 border border-white/10 sm:size-12">
-                            <AvatarImage
-                                src={post.author?.avatar_url ?? undefined}
-                                alt={displayName}
-                            />
-                            <AvatarFallback className="bg-gradient-to-br from-amber-400/80 via-rose-500/80 to-violet-600/80 text-xs font-semibold text-white sm:text-sm">
-                                {initials || '??'}
-                            </AvatarFallback>
-                        </Avatar>
+                        {displayPost.author?.id && displayPost.author?.username ? (
+                            <UserHoverCard
+                                userId={displayPost.author.id}
+                                username={displayPost.author.username}
+                                displayName={displayPost.author.display_name}
+                                avatarUrl={displayPost.author.avatar_url}
+                            >
+                                <Avatar className="size-9 shrink-0 border border-white/10 sm:size-12 cursor-pointer transition hover:border-white/20">
+                                    <AvatarImage
+                                        src={displayPost.author.avatar_url ?? undefined}
+                                        alt={displayPost.author.display_name ?? displayPost.author.username ?? 'Unknown'}
+                                    />
+                                    <AvatarFallback className="bg-gradient-to-br from-amber-400/80 via-rose-500/80 to-violet-600/80 text-xs font-semibold text-white sm:text-sm">
+                                        {(displayPost.author.display_name ?? displayPost.author.username ?? '')
+                                            .split(' ')
+                                            .map((segment) => segment.charAt(0))
+                                            .join('')
+                                            .slice(0, 2)
+                                            .toUpperCase() || '??'}
+                                    </AvatarFallback>
+                                </Avatar>
+                            </UserHoverCard>
+                        ) : (
+                            <Avatar className="size-9 shrink-0 border border-white/10 sm:size-12">
+                                <AvatarImage
+                                    src={displayPost.author?.avatar_url ?? undefined}
+                                    alt={displayPost.author?.display_name ?? displayPost.author?.username ?? 'Unknown'}
+                                />
+                                <AvatarFallback className="bg-gradient-to-br from-amber-400/80 via-rose-500/80 to-violet-600/80 text-xs font-semibold text-white sm:text-sm">
+                                    {(displayPost.author?.display_name ?? displayPost.author?.username ?? '')
+                                        .split(' ')
+                                        .map((segment) => segment.charAt(0))
+                                        .join('')
+                                        .slice(0, 2)
+                                        .toUpperCase() || '??'}
+                                </AvatarFallback>
+                            </Avatar>
+                        )}
                         <div className="space-y-0.5 min-w-0 flex-1 sm:space-y-1">
-                            <p className="font-semibold text-sm text-white sm:text-base truncate">
-                                {authorProfileHref ? (
-                                    <Link
-                                        href={authorProfileHref}
-                                        prefetch
-                                        className="transition hover:text-amber-200 focus:outline-none focus-visible:text-amber-200"
+                            <div className="font-semibold text-sm text-white sm:text-base truncate">
+                                {displayPost.author?.username ? (
+                                    <UserHoverCard
+                                        userId={displayPost.author.id}
+                                        username={displayPost.author.username}
+                                        displayName={displayPost.author.display_name}
+                                        avatarUrl={displayPost.author.avatar_url}
                                     >
-                                        {displayName}
-                                    </Link>
+                                        <Link
+                                            href={profileRoutes.show.url(displayPost.author.username)}
+                                            prefetch
+                                            className="transition hover:text-amber-200 focus:outline-none focus-visible:text-amber-200"
+                                        >
+                                            {displayPost.author.display_name ?? displayPost.author.username ?? 'Unknown'}
+                                        </Link>
+                                    </UserHoverCard>
                                 ) : (
-                                    displayName
+                                    displayPost.author?.display_name ?? displayPost.author?.username ?? 'Unknown'
                                 )}
-                            </p>
+                            </div>
                             <p className="flex flex-wrap items-center gap-1.5 text-[0.625rem] tracking-[0.3em] text-white/50 uppercase sm:gap-2 sm:text-xs">
-                                {authorUsername && authorProfileHref && (
+                                {displayPost.author?.username && displayPost.author?.id ? (
+                                    <UserHoverCard
+                                        userId={displayPost.author.id}
+                                        username={displayPost.author.username}
+                                        displayName={displayPost.author.display_name}
+                                        avatarUrl={displayPost.author.avatar_url}
+                                    >
+                                        <Link
+                                            href={profileRoutes.show.url(displayPost.author.username)}
+                                            prefetch
+                                            className="text-white/60 transition hover:text-white focus:outline-none focus-visible:text-white truncate"
+                                        >
+                                            @{displayPost.author.username}
+                                        </Link>
+                                    </UserHoverCard>
+                                ) : displayPost.author?.username ? (
                                     <Link
-                                        href={authorProfileHref}
+                                        href={profileRoutes.show.url(displayPost.author.username)}
                                         prefetch
                                         className="text-white/60 transition hover:text-white focus:outline-none focus-visible:text-white truncate"
                                     >
-                                        @{authorUsername}
+                                        @{displayPost.author.username}
                                     </Link>
-                                )}
-                                <span className="text-white/30">•</span>
-                                <span className="whitespace-nowrap">{formatTimestamp(publishedAt)}</span>
+                                ) : null}
+                                {displayPost.author?.username && <span className="text-white/30">•</span>}
+                                <span className="whitespace-nowrap">{formatTimestamp(displayPost.published_at ?? displayPost.created_at ?? entry.visible_at)}</span>
                             </p>
                         </div>
                     </div>
 
                     <Badge className="rounded-full border-white/20 bg-white/10 text-[0.6rem] tracking-[0.25em] text-white/70 uppercase shrink-0 sm:text-[0.65rem] sm:tracking-[0.3em]">
-                        {audienceLabel(post.audience)}
+                        {audienceLabel(displayPost.audience)}
                     </Badge>
                 </header>
 
-                {post.body && (
-                    <p className="mt-3 text-sm whitespace-pre-line text-white/80 sm:mt-4 sm:text-base leading-relaxed">
-                        {post.body}
-                    </p>
+                {displayPost.body && !isAmplifyPost && (
+                    <PostBody
+                        body={displayPost.body}
+                        className="mt-3 text-white/80 sm:mt-4"
+                    />
                 )}
 
-                {tipGoal && tipGoal.amount && tipGoal.currency && (
-                    <div className="mt-3 rounded-xl border border-emerald-400/40 bg-emerald-500/10 p-3 text-xs text-emerald-100 sm:mt-4 sm:rounded-2xl sm:p-4">
-                        <p className="text-[0.6rem] tracking-[0.3em] text-emerald-200/80 uppercase sm:text-[0.65rem] sm:tracking-[0.35em]">
-                            Tip train goal
-                        </p>
-                        <div className="mt-2 flex flex-col gap-1 text-xs text-white sm:text-sm">
-                            <span className="font-semibold">
-                                {formatCurrency(
-                                    tipGoal.amount,
-                                    tipGoal.currency,
+                {(() => {
+                    const displayTipGoal =
+                        displayPost.extra_attributes &&
+                        !Array.isArray(displayPost.extra_attributes) &&
+                        typeof displayPost.extra_attributes === 'object' &&
+                        'tip_goal' in displayPost.extra_attributes
+                            ? ((
+                                  displayPost.extra_attributes as {
+                                      tip_goal?: {
+                                          amount?: number;
+                                          currency?: string;
+                                          label?: string | null;
+                                          deadline?: string | null;
+                                      };
+                                  }
+                              ).tip_goal ?? null)
+                            : null;
+
+                    return displayTipGoal && displayTipGoal.amount && displayTipGoal.currency ? (
+                        <div className="mt-3 rounded-xl border border-emerald-400/40 bg-emerald-500/10 p-3 text-xs text-emerald-100 sm:mt-4 sm:rounded-2xl sm:p-4">
+                            <p className="text-[0.6rem] tracking-[0.3em] text-emerald-200/80 uppercase sm:text-[0.65rem] sm:tracking-[0.35em]">
+                                Tip train goal
+                            </p>
+                            <div className="mt-2 flex flex-col gap-1 text-xs text-white sm:text-sm">
+                                <span className="font-semibold">
+                                    {formatCurrency(
+                                        displayTipGoal.amount,
+                                        displayTipGoal.currency,
+                                    )}
+                                </span>
+                                {displayTipGoal.label && (
+                                    <span className="text-white/80">
+                                        {displayTipGoal.label}
+                                    </span>
                                 )}
-                            </span>
-                            {tipGoal.label && (
-                                <span className="text-white/80">
-                                    {tipGoal.label}
-                                </span>
-                            )}
-                            {tipGoal.deadline && (
-                                <span className="text-emerald-100/70">
-                                    Ends{' '}
-                                    {new Date(
-                                        tipGoal.deadline,
-                                    ).toLocaleString()}
-                                </span>
-                            )}
+                                {displayTipGoal.deadline && (
+                                    <span className="text-emerald-100/70">
+                                        Ends{' '}
+                                        {new Date(
+                                            displayTipGoal.deadline,
+                                        ).toLocaleString()}
+                                    </span>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                )}
+                    ) : null;
+                })()}
 
                 <FeedMediaGallery
-                    media={Array.isArray(post.media) ? post.media : []}
-                    post={post}
+                    media={Array.isArray(displayPost.media) ? displayPost.media : []}
+                    post={displayPost}
                     onMediaClick={handleMediaClick}
                 />
 
-                {post.poll && (
+                {displayPost.poll && (
                     <PollVotePanel
-                        poll={post.poll}
+                        poll={displayPost.poll}
                         onVote={onPollVote}
                         disabled={disabled}
                     />
                 )}
 
-                {post.hashtags && post.hashtags.length > 0 && (
+                {displayPost.hashtags && displayPost.hashtags.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-1.5 sm:mt-4 sm:gap-2">
-                        {post.hashtags.map((tag) => (
+                        {displayPost.hashtags.map((tag) => (
                             <span
                                 key={tag}
                                 className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[0.625rem] text-white/60 sm:px-3 sm:py-1 sm:text-xs"
@@ -460,6 +580,34 @@ export default function TimelineEntryCard({
                         </span>
                     </Button>
 
+                    {onAmplify && !isAmplifyPost && (
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className={cn(
+                                'h-9 rounded-full px-3 text-[0.625rem] text-white/75 transition active:scale-95 hover:bg-white/10 hover:text-white sm:h-auto sm:px-4 sm:text-xs',
+                                hasAmplified &&
+                                    'border border-emerald-400/40 bg-emerald-400/10 text-emerald-200',
+                            )}
+                            onClick={() => onAmplify?.(displayPost.id)}
+                            disabled={disabled}
+                            aria-pressed={hasAmplified}
+                        >
+                            <span className="flex items-center gap-1.5 sm:gap-2">
+                                <Repeat
+                                    className={cn(
+                                        'size-3 sm:size-3.5',
+                                        !hasAmplified && 'text-white/60',
+                                    )}
+                                />
+                                <span className="whitespace-nowrap">
+                                    {hasAmplified ? 'Amplified' : 'Amplify'} ({displayPost.reposts_count ?? 0})
+                                </span>
+                            </span>
+                        </Button>
+                    )}
+
                     {bookmarksEnabled && onBookmark && canBookmark && (
                         <Button
                             type="button"
@@ -470,7 +618,7 @@ export default function TimelineEntryCard({
                                 isBookmarked &&
                                     'border border-blue-400/40 bg-blue-400/10 text-blue-200',
                             )}
-                            onClick={() => onBookmark?.(post.id)}
+                            onClick={() => onBookmark?.(displayPost.id)}
                             disabled={disabled}
                             aria-pressed={isBookmarked}
                         >
@@ -488,55 +636,61 @@ export default function TimelineEntryCard({
                     )}
 
                     <CommentThreadTrigger
-                        postId={post.id}
+                        postId={displayPost.id}
                         count={commentsCount}
                         onOpen={onComment}
                         disabled={disabled || !onComment}
                     />
 
-                    {post.can?.viewAnalytics ? (
-                        <Button
-                            asChild
-                            variant="ghost"
-                            size="sm"
-                            className="h-9 rounded-full border border-white/10 px-3 text-[0.625rem] text-white/80 transition active:scale-95 hover:border-amber-300/60 hover:bg-white/10 hover:text-white sm:h-auto sm:px-4 sm:text-xs"
-                        >
-                            <Link
-                                href={postAnalyticsRoutes.show.url({
-                                    post: post.id,
-                                })}
-                                prefetch
-                                preserveScroll
-                                className="flex items-center gap-1.5 sm:gap-2"
+                    {(() => {
+                        // For amplify posts, check the amplify post's permissions (not the original)
+                        // The policy will ensure only the original poster can see analytics
+                        const postToCheck = isAmplifyPost ? post : displayPost;
+                        const canViewAnalytics = postToCheck.can?.viewAnalytics ?? false;
+                        
+                        return canViewAnalytics ? (
+                            <Button
+                                asChild
+                                variant="ghost"
+                                size="sm"
+                                className="h-9 rounded-full border border-white/10 px-3 text-[0.625rem] text-white/80 transition active:scale-95 hover:border-amber-300/60 hover:bg-white/10 hover:text-white sm:h-auto sm:px-4 sm:text-xs"
                             >
-                                <BarChart3 className="size-3 sm:size-3.5" />
+                                <Link
+                                    href={postAnalyticsRoutes.show.url({
+                                        post: isAmplifyPost && originalPost ? (originalPost.ulid ?? originalPost.id) : (displayPost.ulid ?? displayPost.id),
+                                    })}
+                                    prefetch
+                                    preserveScroll
+                                    className="flex items-center gap-1.5 sm:gap-2"
+                                >
+                                    <BarChart3 className="size-3 sm:size-3.5" />
+                                    <span className="whitespace-nowrap">
+                                        Analytics ({viewsCount})
+                                    </span>
+                                </Link>
+                            </Button>
+                        ) : (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className={cn(
+                                    'h-9 rounded-full px-3 text-[0.625rem] text-white/75 transition active:scale-95 hover:bg-white/10 hover:text-white sm:h-auto sm:px-4 sm:text-xs',
+                                    displayPost.locked &&
+                                        'border border-amber-400/30 bg-amber-400/10 text-amber-200',
+                                )}
+                                onClick={() => onPurchase?.(displayPost.id)}
+                                disabled={!displayPost.locked || disabled}
+                            >
                                 <span className="whitespace-nowrap">
-                                    Analytics ({viewsCount})
+                                    {displayPost.locked
+                                        ? 'Unlock to view'
+                                        : `Views (${viewsCount})`}
                                 </span>
-                            </Link>
-                        </Button>
-                    ) : (
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className={cn(
-                                'h-9 rounded-full px-3 text-[0.625rem] text-white/75 transition active:scale-95 hover:bg-white/10 hover:text-white sm:h-auto sm:px-4 sm:text-xs',
-                                post.locked &&
-                                    'border border-amber-400/30 bg-amber-400/10 text-amber-200',
-                            )}
-                            onClick={() => onPurchase?.(post.id)}
-                            disabled={!post.locked || disabled}
-                        >
-                            <span className="whitespace-nowrap">
-                                {post.locked
-                                    ? 'Unlock to view'
-                                    : `Views (${viewsCount})`}
-                            </span>
-                        </Button>
-                    )}
+                            </Button>
+                        );
+                    })()}
                 </footer>
-            </Card>
         </div>
     );
 }

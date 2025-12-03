@@ -88,44 +88,42 @@ export default function MessageReactions({
     );
 
     return (
-        <div className="flex flex-col gap-2 rounded-xl border border-white/10 bg-white/5 p-3 backdrop-blur-sm">
-            <div className="flex flex-wrap items-center gap-2">
-                {current.map((reaction) => (
+        <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 p-1.5">
+            {current.map((reaction) => (
+                <button
+                    key={reaction.key}
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={() =>
+                        toggleReaction(reaction.emoji, reaction.variant)
+                    }
+                    className={cn(
+                        'flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs transition-all duration-150',
+                        reaction.reacted
+                            ? 'bg-amber-400/20 text-amber-100'
+                            : 'hover:bg-white/10 text-white/70',
+                    )}
+                    aria-pressed={reaction.reacted}
+                >
+                    <span className="text-sm">{reaction.emoji}</span>
+                    <span className="font-medium">
+                        {reaction.count}
+                    </span>
+                </button>
+            ))}
+            <div className="flex items-center gap-0.5 rounded-full border-l border-white/20 pl-1.5">
+                {REACTION_PICKER.map((emoji) => (
                     <button
-                        key={reaction.key}
+                        key={emoji}
                         type="button"
+                        className="rounded-full p-1 text-sm text-white/60 transition-all duration-150 hover:scale-110 hover:bg-white/10 hover:text-white/80"
+                        onClick={() => toggleReaction(emoji)}
                         disabled={isSubmitting}
-                        onClick={() =>
-                            toggleReaction(reaction.emoji, reaction.variant)
-                        }
-                        className={cn(
-                            'flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-sm transition-all duration-150',
-                            reaction.reacted
-                                ? 'border-amber-400/50 bg-amber-400/20 text-amber-100 shadow-lg shadow-amber-400/20'
-                                : 'border-white/20 bg-white/10 text-white/80 hover:border-white/30 hover:bg-white/15 hover:shadow-md',
-                        )}
-                        aria-pressed={reaction.reacted}
+                        aria-label={`React with ${emoji}`}
                     >
-                        <span className="text-base">{reaction.emoji}</span>
-                        <span className="text-xs font-semibold">
-                            {reaction.count}
-                        </span>
+                        {emoji}
                     </button>
                 ))}
-                <div className="flex items-center gap-1 rounded-full border border-dashed border-white/20 bg-white/5 px-2 py-1">
-                    {REACTION_PICKER.map((emoji) => (
-                        <button
-                            key={emoji}
-                            type="button"
-                            className="rounded-full p-1.5 text-base text-white/70 transition-all duration-150 hover:scale-110 hover:bg-white/10 hover:text-white"
-                            onClick={() => toggleReaction(emoji)}
-                            disabled={isSubmitting}
-                            aria-label={`React with ${emoji}`}
-                        >
-                            {emoji}
-                        </button>
-                    ))}
-                </div>
             </div>
         </div>
     );

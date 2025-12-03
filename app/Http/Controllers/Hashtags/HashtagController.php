@@ -80,7 +80,6 @@ class HashtagController extends Controller
                 $query->where('hashtags.id', $hashtag->id);
             })
             ->visibleTo($viewer)
-            ->published()
             ->latest('published_at')
             ->paginate($perPage);
 
@@ -96,9 +95,24 @@ class HashtagController extends Controller
             ]);
         }
 
+        // Get trending hashtags (excluding current one)
+        $trendingHashtags = Hashtag::query()
+            ->where('id', '!=', $hashtag->id)
+            ->orderByDesc('usage_count')
+            ->limit(5)
+            ->get(['id', 'name', 'usage_count', 'slug'])
+            ->map(static fn (Hashtag $tag) => [
+                'id' => $tag->getKey(),
+                'name' => $tag->name,
+                'slug' => $tag->slug,
+                'usage_count' => $tag->usage_count,
+            ])
+            ->all();
+
         return Inertia::render('Hashtags/Show', [
             'hashtag' => (new HashtagResource($hashtag))->toArray($request),
-            'posts' => PostResource::collection($posts)->resolve($request),
+            'posts' => PostResource::collection($posts)->toResponse($request)->getData(true),
+            'trendingHashtags' => $trendingHashtags,
         ]);
     }
 
@@ -116,7 +130,6 @@ class HashtagController extends Controller
                 $query->where('hashtags.id', $hashtag->id);
             })
             ->visibleTo($viewer)
-            ->published()
             ->latest('published_at')
             ->paginate($perPage);
 

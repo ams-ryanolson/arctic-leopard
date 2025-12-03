@@ -50,7 +50,7 @@ export default function MessageList({
 }: MessageListProps) {
     return (
         <div
-            className="min-h-0 flex-1 overflow-y-auto px-6 py-5"
+            className="h-full overflow-y-auto px-3 py-4 sm:px-4 sm:py-5"
             style={{ willChange: 'transform' }}
             ref={scrollContainerRef}
             onScroll={onScroll}
@@ -105,7 +105,7 @@ export default function MessageList({
                     </div>
                 </div>
             ) : (
-                <div className="flex min-h-0 flex-col gap-0.5">
+                <>
                     {messages.map((message, index) => {
                         const isOwnMessage =
                             message.author?.id === viewerId ||
@@ -174,7 +174,7 @@ export default function MessageList({
                             </div>
                         );
                     })}
-                </div>
+                </>
             )}
         </div>
     );

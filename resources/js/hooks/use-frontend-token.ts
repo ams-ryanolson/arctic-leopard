@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react';
 
 type UseFrontendTokenResult = {
     token: string | null;
+    applicationId: string | null;
     loading: boolean;
     error: string | null;
     fetchToken: (gateway?: string) => Promise<string>;
@@ -10,6 +11,7 @@ type UseFrontendTokenResult = {
 
 export function useFrontendToken(): UseFrontendTokenResult {
     const [token, setToken] = useState<string | null>(null);
+    const [applicationId, setApplicationId] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -20,6 +22,7 @@ export function useFrontendToken(): UseFrontendTokenResult {
         try {
             const response: FrontendTokenResponse = await getFrontendToken(gateway);
             setToken(response.token);
+            setApplicationId(response.application_id || null);
             return response.token;
         } catch (err) {
             const errorMessage =
@@ -33,6 +36,7 @@ export function useFrontendToken(): UseFrontendTokenResult {
 
     return {
         token,
+        applicationId,
         loading,
         error,
         fetchToken,

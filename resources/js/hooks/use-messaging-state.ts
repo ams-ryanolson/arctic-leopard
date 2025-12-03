@@ -121,6 +121,7 @@ export function useMessagingState(
             if (thread) {
                 return {
                     id: thread.id,
+                    ulid: thread.ulid,
                     title: thread.title,
                     subject: thread.subject,
                     is_group: thread.is_group,

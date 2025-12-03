@@ -223,4 +223,37 @@ class PostAnalyticsService
             })
             ->all();
     }
+
+    /**
+     * Get list of users who amplified this post.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function amplifiedBy(Post $post, int $limit = 20): array
+    {
+        return $post->amplifiedBy()
+            ->with('user')
+            ->latest()
+            ->limit($limit)
+            ->get()
+            ->map(static function ($repost) {
+                $user = $repost->user;
+                if (! $user) {
+                    return null;
+                }
+
+                return [
+                    'id' => $user->id,
+                    'username' => $user->username,
+                    'display_name' => $user->display_name ?? $user->name,
+                    'name' => $user->name,
+                    'avatar_url' => $user->avatar_url,
+                    'is_verified' => (bool) $user->email_verified_at,
+                    'amplified_at' => optional($repost->created_at)->toIso8601String(),
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
+    }
 }

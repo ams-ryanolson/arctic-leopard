@@ -19,7 +19,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import adminRoutes from '@/routes/admin';
-import { Form, Head, router, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import { ArrowLeft, Loader2, Plus, Save, X } from 'lucide-react';
 import { useState } from 'react';
 
@@ -57,16 +57,18 @@ export default function AdminMembershipsPlansEdit({
     plan,
     roles,
 }: AdminMembershipsEditProps) {
-    const { data, setData, patch, processing, errors } = useForm({
+    const { data, setData, patch, processing, errors, transform } = useForm({
         name: plan.name,
         slug: plan.slug,
         description: plan.description || '',
-        monthly_price: String(plan.monthly_price),
-        yearly_price: String(plan.yearly_price),
+        monthly_price: ((plan.monthly_price || 0) / 100).toFixed(2),
+        yearly_price: ((plan.yearly_price || 0) / 100).toFixed(2),
         currency: plan.currency,
         role_to_assign: plan.role_to_assign,
         permissions_to_grant: plan.permissions_to_grant || [],
-        features: plan.features || {},
+        features: plan.features && typeof plan.features === 'object' && !Array.isArray(plan.features)
+            ? plan.features
+            : {},
         is_active: plan.is_active,
         is_public: plan.is_public,
         display_order: plan.display_order,
@@ -78,14 +80,76 @@ export default function AdminMembershipsPlansEdit({
     const [featureKey, setFeatureKey] = useState('');
     const [featureValue, setFeatureValue] = useState('');
 
+    // Helper to convert dollars to cents
+    const dollarsToCents = (dollars: string): number => {
+        const num = parseFloat(dollars) || 0;
+        return Math.round(num * 100);
+    };
+
+    // Helper to format dollar input (remove $, allow decimals)
+    const formatDollarInput = (value: string): string => {
+        // Remove any $ signs and non-numeric characters except decimal point
+        const cleaned = value.replace(/[^0-9.]/g, '');
+        // Ensure only one decimal point
+        const parts = cleaned.split('.');
+        if (parts.length > 2) {
+            return parts[0] + '.' + parts.slice(1).join('');
+        }
+        // Limit to 2 decimal places
+        if (parts[1] && parts[1].length > 2) {
+            return parts[0] + '.' + parts[1].slice(0, 2);
+        }
+        return cleaned;
+    };
+
+    // Helper to generate feature key from description
+    const generateFeatureKey = (description: string, maxLength = 50): string => {
+        if (!description.trim()) {
+            return '';
+        }
+
+        // Convert to lowercase, replace spaces and special chars with underscores
+        let key = description
+            .toLowerCase()
+            .trim()
+            .replace(/[^a-z0-9\s-]/g, '') // Remove special characters except spaces and hyphens
+            .replace(/\s+/g, '_') // Replace spaces with underscores
+            .replace(/-+/g, '_') // Replace hyphens with underscores
+            .replace(/_+/g, '_') // Replace multiple underscores with single
+            .replace(/^_+|_+$/g, ''); // Remove leading/trailing underscores
+
+        // Limit to maxLength
+        if (key.length > maxLength) {
+            key = key.substring(0, maxLength);
+            // Remove trailing underscore if we cut off mid-word
+            key = key.replace(/_+$/, '');
+        }
+
+        return key;
+    };
+
+    // Auto-generate key when description changes
+    const handleFeatureValueChange = (value: string) => {
+        setFeatureValue(value);
+        // Only auto-generate if key is empty or matches a previously generated key
+        if (!featureKey.trim() || featureKey === generateFeatureKey(featureValue, 50)) {
+            setFeatureKey(generateFeatureKey(value, 50));
+        }
+    };
+
     const addFeature = () => {
-        if (featureKey.trim() && featureValue.trim()) {
-            setData('features', {
-                ...data.features,
-                [featureKey.trim()]: featureValue.trim(),
-            });
-            setFeatureKey('');
-            setFeatureValue('');
+        if (featureValue.trim()) {
+            // Use generated key if key is empty, otherwise use provided key
+            const key = featureKey.trim() || generateFeatureKey(featureValue, 50);
+            
+            if (key) {
+                setData('features', {
+                    ...data.features,
+                    [key]: featureValue.trim(),
+                });
+                setFeatureKey('');
+                setFeatureValue('');
+            }
         }
     };
 
@@ -97,10 +161,53 @@ export default function AdminMembershipsPlansEdit({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Ensure features is properly formatted as an object
+        const featuresToSend = data.features && typeof data.features === 'object' && !Array.isArray(data.features)
+            ? data.features
+            : {};
+
+        console.log('Submitting edit form - BEFORE transform:', {
+            'data.features': data.features,
+            'featuresToSend': featuresToSend,
+            'featuresType': typeof featuresToSend,
+            'featuresKeys': Object.keys(featuresToSend),
+        });
+
+        // Transform data before submission - convert dollars to cents
+        // IMPORTANT: Send features explicitly to ensure they're included
+        transform((current) => {
+            const transformed = {
+                ...current,
+                monthly_price: dollarsToCents(String(current.monthly_price)),
+                yearly_price: dollarsToCents(String(current.yearly_price)),
+                features: featuresToSend, // Explicitly include features
+            };
+            console.log('Transformed data for submission:', {
+                ...transformed,
+                'featuresKeys': Object.keys(transformed.features),
+                'featuresCount': Object.keys(transformed.features).length,
+            });
+            return transformed;
+        });
+
+        // Log the actual data that will be sent
+        console.log('About to send PATCH request with features:', {
+            url: adminRoutes.memberships.update(plan.id).url,
+            features: featuresToSend,
+            featuresKeys: Object.keys(featuresToSend),
+        });
+
         patch(adminRoutes.memberships.update(plan.id).url, {
             preserveScroll: true,
             onSuccess: () => {
                 router.visit(adminRoutes.memberships.index().url);
+            },
+            onError: (errors) => {
+                console.error('Form validation errors:', errors);
+            },
+            onFinish: () => {
+                transform((current) => current); // Reset transform
             },
         });
     };
@@ -139,7 +246,7 @@ export default function AdminMembershipsPlansEdit({
                     </div>
                 </div>
 
-                <Form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit}>
                     <div className="grid gap-6 lg:grid-cols-2">
                         <Card className="border-white/10 bg-white/5">
                             <CardHeader>
@@ -278,27 +385,30 @@ export default function AdminMembershipsPlansEdit({
                                         htmlFor="monthly_price"
                                         className="text-white"
                                     >
-                                        Monthly Price (cents) *
+                                        Monthly Price *
                                     </Label>
-                                    <Input
-                                        id="monthly_price"
-                                        type="number"
-                                        min="0"
-                                        value={data.monthly_price}
-                                        onChange={(e) =>
-                                            setData(
-                                                'monthly_price',
-                                                e.target.value,
-                                            )
-                                        }
-                                        className="border-white/10 bg-white/5 text-white"
-                                    />
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/60">
+                                            $
+                                        </span>
+                                        <Input
+                                            id="monthly_price"
+                                            type="text"
+                                            value={data.monthly_price}
+                                            onChange={(e) => {
+                                                const formatted = formatDollarInput(
+                                                    e.target.value,
+                                                );
+                                                setData('monthly_price', formatted);
+                                            }}
+                                            className="border-white/10 bg-white/5 pl-8 text-white"
+                                            placeholder="10.00"
+                                        />
+                                    </div>
                                     <p className="text-xs text-white/50">
-                                        $
-                                        {(
-                                            Number(data.monthly_price) / 100
-                                        ).toFixed(2)}{' '}
-                                        per month
+                                        {data.monthly_price
+                                            ? `$${parseFloat(data.monthly_price || '0').toFixed(2)} per month`
+                                            : 'Enter the monthly subscription price'}
                                     </p>
                                     {errors.monthly_price && (
                                         <p className="text-sm text-red-400">
@@ -312,27 +422,56 @@ export default function AdminMembershipsPlansEdit({
                                         htmlFor="yearly_price"
                                         className="text-white"
                                     >
-                                        Yearly Price (cents) *
+                                        Yearly Price *
                                     </Label>
-                                    <Input
-                                        id="yearly_price"
-                                        type="number"
-                                        min="0"
-                                        value={data.yearly_price}
-                                        onChange={(e) =>
-                                            setData(
-                                                'yearly_price',
-                                                e.target.value,
-                                            )
-                                        }
-                                        className="border-white/10 bg-white/5 text-white"
-                                    />
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/60">
+                                            $
+                                        </span>
+                                        <Input
+                                            id="yearly_price"
+                                            type="text"
+                                            value={data.yearly_price}
+                                            onChange={(e) => {
+                                                const formatted = formatDollarInput(
+                                                    e.target.value,
+                                                );
+                                                setData('yearly_price', formatted);
+                                            }}
+                                            className="border-white/10 bg-white/5 pl-8 text-white"
+                                            placeholder="100.00"
+                                        />
+                                    </div>
                                     <p className="text-xs text-white/50">
-                                        $
-                                        {(
-                                            Number(data.yearly_price) / 100
-                                        ).toFixed(2)}{' '}
-                                        per year (10x monthly = 2 months free)
+                                        {data.yearly_price
+                                            ? `$${parseFloat(data.yearly_price || '0').toFixed(2)} per year`
+                                            : 'Enter the yearly subscription price'}
+                                        {data.monthly_price &&
+                                            data.yearly_price && (
+                                                <span className="ml-2 text-white/40">
+                                                    (
+                                                    {(
+                                                        (parseFloat(
+                                                            data.yearly_price,
+                                                        ) /
+                                                            parseFloat(
+                                                                data.monthly_price,
+                                                            )) *
+                                                        100
+                                                    ).toFixed(0)}
+                                                    x monthly ={' '}
+                                                    {(
+                                                        12 -
+                                                        parseFloat(
+                                                            data.yearly_price,
+                                                        ) /
+                                                            parseFloat(
+                                                                data.monthly_price,
+                                                            )
+                                                    ).toFixed(1)}{' '}
+                                                    months free)
+                                                </span>
+                                            )}
                                     </p>
                                     {errors.yearly_price && (
                                         <p className="text-sm text-red-400">
@@ -385,39 +524,16 @@ export default function AdminMembershipsPlansEdit({
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
                                     <Label
-                                        htmlFor="feature_key"
-                                        className="text-white"
-                                    >
-                                        Feature Key
-                                    </Label>
-                                    <Input
-                                        id="feature_key"
-                                        value={featureKey}
-                                        onChange={(e) =>
-                                            setFeatureKey(e.target.value)
-                                        }
-                                        className="border-white/10 bg-white/5 text-white"
-                                        placeholder="premium_content_drops"
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter') {
-                                                e.preventDefault();
-                                                addFeature();
-                                            }
-                                        }}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label
                                         htmlFor="feature_value"
                                         className="text-white"
                                     >
-                                        Feature Description
+                                        Feature Description *
                                     </Label>
                                     <Input
                                         id="feature_value"
                                         value={featureValue}
                                         onChange={(e) =>
-                                            setFeatureValue(e.target.value)
+                                            handleFeatureValueChange(e.target.value)
                                         }
                                         className="border-white/10 bg-white/5 text-white"
                                         placeholder="3 premium content drops every week"
@@ -429,15 +545,35 @@ export default function AdminMembershipsPlansEdit({
                                         }}
                                     />
                                 </div>
+                                <div className="space-y-2">
+                                    <Label
+                                        htmlFor="feature_key"
+                                        className="text-white"
+                                    >
+                                        Feature Key (auto-generated, max 50 chars)
+                                    </Label>
+                                    <Input
+                                        id="feature_key"
+                                        value={featureKey}
+                                        onChange={(e) => {
+                                            // Limit to 50 characters
+                                            const value = e.target.value.slice(0, 50);
+                                            setFeatureKey(value);
+                                        }}
+                                        className="border-white/10 bg-white/5 text-white"
+                                        placeholder="Auto-generated from description"
+                                        maxLength={50}
+                                    />
+                                    <p className="text-xs text-white/50">
+                                        {featureKey.length}/50 characters
+                                    </p>
+                                </div>
                                 <Button
                                     type="button"
                                     variant="outline"
                                     size="sm"
                                     onClick={addFeature}
-                                    disabled={
-                                        !featureKey.trim() ||
-                                        !featureValue.trim()
-                                    }
+                                    disabled={!featureValue.trim()}
                                 >
                                     <Plus className="mr-2 size-4" />
                                     Add Feature
@@ -653,7 +789,7 @@ export default function AdminMembershipsPlansEdit({
                             )}
                         </Button>
                     </div>
-                </Form>
+                </form>
             </div>
         </AppLayout>
     );

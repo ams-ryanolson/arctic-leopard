@@ -1,5 +1,10 @@
+type TypingUser = {
+    id: number;
+    name: string;
+};
+
 type TypingIndicatorProps = {
-    users: string[];
+    users: TypingUser[];
 };
 
 export default function TypingIndicator({ users }: TypingIndicatorProps) {
@@ -7,9 +12,11 @@ export default function TypingIndicator({ users }: TypingIndicatorProps) {
         return null;
     }
 
+    const names = users.map((u) => u.name).join(', ');
+
     return (
         <div className="px-6 pb-2 text-[0.65rem] tracking-[0.3em] text-amber-200 uppercase">
-            {users.join(', ')} {users.length > 1 ? 'are' : 'is'} typing…
+            {names} {users.length > 1 ? 'are' : 'is'} typing…
         </div>
     );
 }

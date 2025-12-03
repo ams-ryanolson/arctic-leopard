@@ -19,6 +19,7 @@ use App\Http\Controllers\Posts\MediaController;
 use App\Http\Controllers\Posts\PollVoteController;
 use App\Http\Controllers\Posts\PostController;
 use App\Http\Controllers\Posts\PostLikeController;
+use App\Http\Controllers\Posts\PostRepostController;
 use App\Http\Controllers\Posts\PostViewController;
 use App\Http\Controllers\Posts\PurchaseController;
 use App\Http\Controllers\Search\SearchController;
@@ -68,10 +69,16 @@ Route::get('client-ip', function () {
     ]);
 })->name('api.client-ip');
 
+Route::get('users/{user}/profile', [\App\Http\Controllers\UserProfileController::class, 'show'])->name('users.profile.show');
+
 Route::middleware('auth:sanctum')->group(function (): void {
+    Route::get('search/mentions', [SearchController::class, 'mentions'])->name('search.mentions');
+    Route::get('search/hashtags', [SearchController::class, 'hashtags'])->name('search.hashtags');
     Route::get('payment-methods/frontend-token', [PaymentMethodController::class, 'getFrontendToken'])->name('payment-methods.frontend-token');
     Route::apiResource('payment-methods', PaymentMethodController::class);
     Route::post('payment-methods/{paymentMethod}/set-default', [PaymentMethodController::class, 'setDefault'])->name('payment-methods.set-default');
+
+    Route::post('payments/capture', [\App\Http\Controllers\Payments\PaymentController::class, 'capture'])->name('payments.capture');
 
     Route::apiResource('posts', PostController::class)->only(['store', 'update', 'destroy']);
 
@@ -85,6 +92,8 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::post('posts/{post}/purchase', [PurchaseController::class, 'store'])->name('posts.purchase.store');
     Route::post('posts/{post}/like', [PostLikeController::class, 'store'])->name('posts.like.store');
     Route::delete('posts/{post}/like', [PostLikeController::class, 'destroy'])->name('posts.like.destroy');
+    Route::post('posts/{post}/amplify', [PostRepostController::class, 'store'])->name('posts.amplify.store');
+    Route::delete('posts/{post}/amplify', [PostRepostController::class, 'destroy'])->name('posts.amplify.destroy');
 
     Route::post('playbook-articles/{article}/like', [PlaybookArticleLikeController::class, 'store'])->name('playbook-articles.like.store');
     Route::delete('playbook-articles/{article}/like', [PlaybookArticleLikeController::class, 'destroy'])->name('playbook-articles.like.destroy');

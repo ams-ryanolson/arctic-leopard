@@ -38,9 +38,14 @@ class FeedService
                         'media',
                         'poll.options',
                         'hashtags',
+                        'repostedPost.author',
+                        'repostedPost.media',
+                        'repostedPost.poll.options',
+                        'repostedPost.hashtags',
                     ])
                         ->withCount(['bookmarks as bookmarks_count'])
-                        ->withBookmarkStateFor($viewer);
+                        ->withBookmarkStateFor($viewer)
+                        ->withAmplifyStateFor($viewer);
                 },
             ])
             ->orderByDesc('visible_at')
@@ -59,22 +64,16 @@ class FeedService
             $injectedData[] = $entry;
             $postCount++;
 
-            // Inject ad every N posts
+            // Inject ad every N posts (only if user doesn't have "hide ads" permission)
             if ($postCount % $injectionInterval === 0) {
-                $adCreative = $this->adServingService->serve(
-                    AdPlacement::TimelineInline,
-                    $viewer,
-                    [
-                        'session_id' => $request->hasSession() ? $request->session()->getId() : null,
-                        'ip_address' => $request->ip(),
-                        'user_agent' => $request->userAgent(),
-                    ]
-                );
+                // Check if user has permission to hide ads - if so, skip feed ads
+                // Exception: Admins with "manage ad inventory" can always see ads for testing
+                $hasHideAdsPermission = $viewer !== null && $viewer->hasPermissionTo('hide ads');
+                $canManageAds = $viewer !== null && $viewer->hasPermissionTo('manage ad inventory');
+                $shouldShowFeedAds = $viewer === null || ! $hasHideAdsPermission || $canManageAds;
 
-                if ($adCreative !== null) {
-                    // Record impression
-                    $this->adServingService->recordImpression(
-                        $adCreative,
+                if ($shouldShowFeedAds) {
+                    $adCreative = $this->adServingService->serve(
                         AdPlacement::TimelineInline,
                         $viewer,
                         [
@@ -84,11 +83,25 @@ class FeedService
                         ]
                     );
 
-                    // Add ad as a special entry
-                    $injectedData[] = [
-                        'type' => 'ad',
-                        'ad' => (new AdCreativeResource($adCreative))->toArray($request),
-                    ];
+                    if ($adCreative !== null) {
+                        // Record impression
+                        $this->adServingService->recordImpression(
+                            $adCreative,
+                            AdPlacement::TimelineInline,
+                            $viewer,
+                            [
+                                'session_id' => $request->hasSession() ? $request->session()->getId() : null,
+                                'ip_address' => $request->ip(),
+                                'user_agent' => $request->userAgent(),
+                            ]
+                        );
+
+                        // Add ad as a special entry
+                        $injectedData[] = [
+                            'type' => 'ad',
+                            'ad' => (new AdCreativeResource($adCreative))->toArray($request),
+                        ];
+                    }
                 }
             }
         }
@@ -144,9 +157,14 @@ class FeedService
                 'media',
                 'poll.options',
                 'hashtags',
+                'repostedPost.author',
+                'repostedPost.media',
+                'repostedPost.poll.options',
+                'repostedPost.hashtags',
             ])
             ->withCount(['bookmarks as bookmarks_count'])
             ->withBookmarkStateFor($viewer)
+            ->withAmplifyStateFor($viewer)
             ->latest('published_at')
             ->paginate(perPage: $perPage, page: $page, pageName: $pageName);
 
@@ -264,5 +282,11 @@ class FeedService
 
         $viewer->attachLikeStatus($posts);
         $viewer->attachBookmarkStatus($posts);
+
+        foreach ($posts as $post) {
+            if ($post instanceof Post) {
+                $post->attachAmplifyStatusFor($viewer);
+            }
+        }
     }
 }

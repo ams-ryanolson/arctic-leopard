@@ -1,0 +1,486 @@
+# DigitalOcean App Platform Spec for Real Kink Men
+# Documentation: https://docs.digitalocean.com/products/app-platform/reference/app-spec/
+
+name: realkinkmen
+region: tor
+
+# =============================================================================
+# Alerts
+# =============================================================================
+alerts:
+  - rule: DEPLOYMENT_FAILED
+  - rule: DOMAIN_FAILED
+  - rule: DEPLOYMENT_LIVE
+
+# =============================================================================
+# Features
+# =============================================================================
+features:
+  - buildpack-stack=ubuntu-22
+
+# =============================================================================
+# Databases (External Managed Databases)
+# =============================================================================
+databases:
+  - cluster_name: rkm-mysql-tor1-01
+    db_name: realkinkmen
+    db_user: doadmin
+    engine: MYSQL
+    name: rkm-mysql-tor1-01
+    production: true
+    version: "8"
+
+  - cluster_name: rkm-redis-tor1-01
+    engine: REDIS
+    name: rkm-redis-tor1-01
+    production: true
+    version: "7"
+
+# =============================================================================
+# Domains
+# =============================================================================
+domains:
+  - domain: www.realkink.men
+    type: PRIMARY
+    zone: realkink.men
+
+# =============================================================================
+# Ingress Rules
+# =============================================================================
+ingress:
+  rules:
+    - component:
+        name: web
+      match:
+        path:
+          prefix: /
+
+# =============================================================================
+# Global Environment Variables
+# =============================================================================
+envs:
+  # --- App Core ---
+  - key: APP_NAME
+    scope: RUN_AND_BUILD_TIME
+    value: "Real Kink Men"
+
+  - key: APP_ENV
+    scope: RUN_AND_BUILD_TIME
+    value: production
+
+  - key: APP_DEBUG
+    scope: RUN_AND_BUILD_TIME
+    value: "false"
+
+  - key: APP_URL
+    scope: RUN_AND_BUILD_TIME
+    value: https://www.realkink.men
+
+  - key: APP_KEY
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: base64:HxHsrKPzNjM9Q2FbeCOsjZk/uyZMbN9jK1sKpRs1oM8=
+
+  # --- Logging ---
+  - key: LOG_CHANNEL
+    scope: RUN_AND_BUILD_TIME
+    value: stderr
+
+  - key: LOG_LEVEL
+    scope: RUN_AND_BUILD_TIME
+    value: warning
+
+  # --- Database ---
+  - key: DB_CONNECTION
+    scope: RUN_AND_BUILD_TIME
+    value: mysql
+
+  - key: DATABASE_URL
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: "${rkm-mysql-tor1-01.DATABASE_URL}"
+
+  # --- Redis ---
+  - key: REDIS_URL
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: "${rkm-redis-tor1-01.DATABASE_URL}"
+
+  - key: REDIS_CLIENT
+    scope: RUN_AND_BUILD_TIME
+    value: phpredis
+
+  # --- Cache ---
+  - key: CACHE_STORE
+    scope: RUN_AND_BUILD_TIME
+    value: redis
+
+  # --- Queue ---
+  - key: QUEUE_CONNECTION
+    scope: RUN_AND_BUILD_TIME
+    value: redis
+
+  # --- Session ---
+  - key: SESSION_DRIVER
+    scope: RUN_AND_BUILD_TIME
+    value: redis
+
+  - key: SESSION_SECURE_COOKIE
+    scope: RUN_AND_BUILD_TIME
+    value: "true"
+
+  # --- Broadcasting (Ably) ---
+  - key: BROADCAST_CONNECTION
+    scope: RUN_AND_BUILD_TIME
+    value: ably
+
+  - key: ABLY_KEY
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: 7RElWQ.KcPjAw:Wu_WxTga4dz94Z7MCRNXSZVgAEXz9d-ltx2lreUiBbU
+
+  - key: VITE_ABLY_KEY
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: 7RElWQ.KcPjAw:Wu_WxTga4dz94Z7MCRNXSZVgAEXz9d-ltx2lreUiBbU
+
+  # --- Filesystem (DigitalOcean Spaces) ---
+  - key: FILESYSTEM_DISK
+    scope: RUN_AND_BUILD_TIME
+    value: s3
+
+  - key: AWS_ACCESS_KEY_ID
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: FLNSCDHZIQEAYG7NVDDA
+
+  - key: AWS_SECRET_ACCESS_KEY
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: rvTDNDvEM/jFpiVvZ6kiS2fBG+IFfxMRNb6Ga/Janqw
+
+  - key: AWS_DEFAULT_REGION
+    scope: RUN_AND_BUILD_TIME
+    value: nyc3
+
+  - key: AWS_BUCKET
+    scope: RUN_AND_BUILD_TIME
+    value: cdn-rkm
+
+  - key: AWS_ENDPOINT
+    scope: RUN_AND_BUILD_TIME
+    value: https://nyc3.digitaloceanspaces.com
+
+  - key: AWS_URL
+    scope: RUN_AND_BUILD_TIME
+    value: https://cdn.realkink.men/
+
+  - key: AWS_USE_PATH_STYLE_ENDPOINT
+    scope: RUN_AND_BUILD_TIME
+    value: "false"
+
+  # --- Search (Algolia) ---
+  - key: SCOUT_DRIVER
+    scope: RUN_AND_BUILD_TIME
+    value: algolia
+
+  - key: ALGOLIA_APP_ID
+    scope: RUN_AND_BUILD_TIME
+    value: 1XAIEGGHJ5
+
+  - key: ALGOLIA_SECRET
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: a478afc711604ee9224286171f06f299
+
+  # --- Mail (Brevo/Sendinblue) ---
+  - key: MAIL_MAILER
+    scope: RUN_AND_BUILD_TIME
+    value: smtp
+
+  - key: MAIL_HOST
+    scope: RUN_AND_BUILD_TIME
+    value: smtp-relay.sendinblue.com
+
+  - key: MAIL_PORT
+    scope: RUN_AND_BUILD_TIME
+    value: "587"
+
+  - key: MAIL_USERNAME
+    scope: RUN_AND_BUILD_TIME
+    value: ryan@arcticmedia.io
+
+  - key: MAIL_PASSWORD
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: FqG5IU7wf2AnE03Q
+
+  - key: MAIL_FROM_ADDRESS
+    scope: RUN_AND_BUILD_TIME
+    value: noreply@realkink.men
+
+  - key: MAIL_FROM_NAME
+    scope: RUN_AND_BUILD_TIME
+    value: "Real Kink Men"
+
+  - key: MAIL_ENCRYPTION
+    scope: RUN_AND_BUILD_TIME
+    value: tls
+
+  # --- Nightwatch (Monitoring) ---
+  - key: NIGHTWATCH_TOKEN
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: "" # Add your production Nightwatch token
+
+  # --- Agora (Live Streaming) ---
+  - key: AGORA_APP_ID
+    scope: RUN_AND_BUILD_TIME
+    value: 4fb2753a5318441f864b4ddc6118ab06
+
+  - key: AGORA_APP_CERTIFICATE
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: 216daa72666146b4b0833a0c95ee21e8
+
+  - key: VITE_AGORA_APP_ID
+    scope: RUN_AND_BUILD_TIME
+    value: 4fb2753a5318441f864b4ddc6118ab06
+
+  # --- Google API ---
+  - key: GOOGLE_API_KEY
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: AIzaSyARubBIFBtSn9bURwmvC7oJFKnDIzsB4kw
+
+  # --- Video Chat Integration ---
+  - key: VIDEOCHAT_ID
+    scope: RUN_AND_BUILD_TIME
+    value: "1"
+
+  - key: VIDEOCHAT_PASSWORD
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: ied0Aew2
+
+  # --- OneClick API ---
+  - key: ONECLICK_API_KEY
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: t5nJnuCVwp7Qp7CZzZfQkteh2Lmzm9i53rC338mo4NzC0NDcsNnNyNDN18jYtrPO2Lfes7faydPgxsLU0N6wzs3R0MzXldjAs9LYwd7e
+
+  - key: ONECLICK_API_URL
+    scope: RUN_AND_BUILD_TIME
+    value: https://1click.flirt4free.com
+
+  - key: ONECLICK_API_VERSION
+    scope: RUN_AND_BUILD_TIME
+    value: "2.0.0"
+
+  - key: ONECLICK_API_DEBUG_MODE
+    scope: RUN_AND_BUILD_TIME
+    value: "false"
+
+  # --- QEncode (Video Transcoding) ---
+  - key: QENCODE_API_KEY
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: 63751d532afa9
+
+  # --- MassPay (Payouts) ---
+  - key: MASSPAY_API_KEY
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: "" # Add your production MassPay key
+
+  - key: MASSPAY_ENVIRONMENT
+    scope: RUN_AND_BUILD_TIME
+    value: production-api
+
+  - key: MASSPAY_VERSION
+    scope: RUN_AND_BUILD_TIME
+    value: v0.1.4
+
+  # --- Verification (SumSub) ---
+  - key: VERIFICATION_PROVIDER
+    scope: RUN_AND_BUILD_TIME
+    value: sumsub
+
+  - key: SUMSUB_APP_TOKEN
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: "" # Add your production SumSub token
+
+  - key: SUMSUB_SECRET_KEY
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: "" # Add your production SumSub secret
+
+  - key: SUMSUB_WEBHOOK_SECRET
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: "" # Add your production SumSub webhook secret
+
+  - key: SUMSUB_BASE_URL
+    scope: RUN_AND_BUILD_TIME
+    value: https://api.sumsub.com
+
+  - key: SUMSUB_ENVIRONMENT
+    scope: RUN_AND_BUILD_TIME
+    value: production
+
+  # --- CCBill Payment Gateway ---
+  - key: PAYMENTS_DEFAULT_GATEWAY
+    scope: RUN_AND_BUILD_TIME
+    value: ccbill
+
+  - key: CCBILL_API_BASE_URL
+    scope: RUN_AND_BUILD_TIME
+    value: https://api.ccbill.com
+
+  - key: CCBILL_FRONTEND_APP_ID
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: "" # Add your CCBill frontend app ID
+
+  - key: CCBILL_FRONTEND_SECRET
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: "" # Add your CCBill frontend secret
+
+  - key: CCBILL_BACKEND_APP_ID
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: "" # Add your CCBill backend app ID
+
+  - key: CCBILL_BACKEND_SECRET
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: "" # Add your CCBill backend secret
+
+  - key: CCBILL_LOW_RISK_NON_RECURRING_ACCNUM
+    scope: RUN_AND_BUILD_TIME
+    value: "951908"
+
+  - key: CCBILL_LOW_RISK_NON_RECURRING_SUBACC
+    scope: RUN_AND_BUILD_TIME
+    value: "0205"
+
+  - key: CCBILL_HIGH_RISK_NON_RECURRING_ACCNUM
+    scope: RUN_AND_BUILD_TIME
+    value: "951908"
+
+  - key: CCBILL_HIGH_RISK_NON_RECURRING_SUBACC
+    scope: RUN_AND_BUILD_TIME
+    value: "0205"
+
+  - key: CCBILL_WEBHOOK_SECRET
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: "" # Add your CCBill webhook secret
+
+  - key: CCBILL_VERIFY_WEBHOOK_SIGNATURE
+    scope: RUN_AND_BUILD_TIME
+    value: "true"
+
+  - key: CCBILL_OAUTH_CACHE_TTL
+    scope: RUN_AND_BUILD_TIME
+    value: "3600"
+
+  - key: CCBILL_HTTP_TIMEOUT
+    scope: RUN_AND_BUILD_TIME
+    value: "10"
+
+  - key: CCBILL_RETRY_ATTEMPTS
+    scope: RUN_AND_BUILD_TIME
+    value: "3"
+
+# =============================================================================
+# Services
+# =============================================================================
+services:
+  - name: web
+    github:
+      repo: arctic-media-solutions/realkinkmen-v3
+      branch: main
+      deploy_on_push: true
+    source_dir: /
+    environment_slug: php
+    instance_size_slug: professional-xs
+    instance_count: 1
+    http_port: 8080
+
+    # Build: Install PHP deps, then Node deps, then build assets
+    build_command: |
+      composer install --no-dev --optimize-autoloader --no-interaction &&
+      npm ci &&
+      npm run build
+
+    # Run: Apache with PHP
+    run_command: heroku-php-apache2 public/
+
+    # Health check endpoint
+    health_check:
+      http_path: /
+      initial_delay_seconds: 30
+      period_seconds: 10
+      timeout_seconds: 5
+      success_threshold: 1
+      failure_threshold: 3
+
+    # Logging
+    log_destinations:
+      - name: Logtail-Web
+        logtail:
+          token: UG8hQ2P7tegaXQVtsC9JTYU9
+
+# =============================================================================
+# Workers
+# =============================================================================
+workers:
+  # Queue Worker
+  - name: queue-worker
+    github:
+      repo: arctic-media-solutions/realkinkmen-v3
+      branch: main
+      deploy_on_push: true
+    source_dir: /
+    environment_slug: php
+    instance_size_slug: professional-xs
+    instance_count: 1
+    run_command: php artisan queue:work --queue=notifications,default,timelines,events --tries=3 --timeout=90 --sleep=3 --max-jobs=1000 --max-time=3600
+    log_destinations:
+      - name: Logtail-Queue
+        logtail:
+          token: ey9n1Rpo7PuDAebzETQspSjh
+
+# =============================================================================
+# Jobs (Scheduled Tasks)
+# =============================================================================
+jobs:
+  # Database Migrations (runs on deploy)
+  - name: migrate
+    github:
+      repo: arctic-media-solutions/realkinkmen-v3
+      branch: main
+    source_dir: /
+    environment_slug: php
+    instance_size_slug: basic-xxs
+    instance_count: 1
+    kind: PRE_DEPLOY
+    run_command: php artisan migrate --force
+
+  # Scheduler (runs every minute)
+  - name: scheduler
+    github:
+      repo: arctic-media-solutions/realkinkmen-v3
+      branch: main
+    source_dir: /
+    environment_slug: php
+    instance_size_slug: basic-xxs
+    instance_count: 1
+    kind: CRON
+    schedule:
+      cron: "* * * * *"
+    run_command: php artisan schedule:run
+

@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\AdminSetting;
+use App\Services\FeatureFlagService;
 use App\Services\Messaging\ConversationUnreadService;
 use App\Services\Toasts\ToastBus;
 use Illuminate\Foundation\Inspiring;
@@ -13,6 +14,7 @@ class HandleInertiaRequests extends Middleware
 {
     public function __construct(
         private ConversationUnreadService $conversationUnread,
+        private FeatureFlagService $featureFlags,
     ) {}
 
     /**
@@ -117,6 +119,7 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user()
                     ? $request->user()->loadMissing('roles')
                     : null,
+                'membership' => fn () => $this->getMembershipData($request),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'toasts' => $request->user()
@@ -134,18 +137,52 @@ class HandleInertiaRequests extends Middleware
             ],
             'features' => [
                 'blocking' => config('block.enabled'),
-                'feature_ads_enabled' => (bool) AdminSetting::get('feature_ads_enabled', true),
-                'feature_radar_enabled' => (bool) AdminSetting::get('feature_radar_enabled', true),
-                'feature_signals_enabled' => (bool) AdminSetting::get('feature_signals_enabled', true),
-                'feature_wishlist_enabled' => (bool) AdminSetting::get('feature_wishlist_enabled', true),
-                'feature_video_chat_enabled' => (bool) AdminSetting::get('feature_video_chat_enabled', true),
-                'feature_messaging_enabled' => (bool) AdminSetting::get('feature_messaging_enabled', true),
-                'feature_events_enabled' => (bool) AdminSetting::get('feature_events_enabled', true),
-                'feature_bookmarks_enabled' => (bool) AdminSetting::get('feature_bookmarks_enabled', true),
-                'feature_circles_enabled' => (bool) AdminSetting::get('feature_circles_enabled', true),
-                'feature_stories_enabled' => (bool) AdminSetting::get('feature_stories_enabled', true),
-                'feature_beta_enabled' => (bool) AdminSetting::get('feature_beta_enabled', false),
+                'feature_ads_enabled' => $this->featureFlags->isEnabled($request->user(), 'feature_ads_enabled', true),
+                'feature_radar_enabled' => $this->featureFlags->isEnabled($request->user(), 'feature_radar_enabled', true),
+                'feature_signals_enabled' => $this->featureFlags->isEnabled($request->user(), 'feature_signals_enabled', true),
+                'feature_wishlist_enabled' => $this->featureFlags->isEnabled($request->user(), 'feature_wishlist_enabled', true),
+                'feature_video_chat_enabled' => $this->featureFlags->isEnabled($request->user(), 'feature_video_chat_enabled', true),
+                'feature_messaging_enabled' => $this->featureFlags->isEnabled($request->user(), 'feature_messaging_enabled', true),
+                'feature_events_enabled' => $this->featureFlags->isEnabled($request->user(), 'feature_events_enabled', true),
+                'feature_bookmarks_enabled' => $this->featureFlags->isEnabled($request->user(), 'feature_bookmarks_enabled', true),
+                'feature_circles_enabled' => $this->featureFlags->isEnabled($request->user(), 'feature_circles_enabled', true),
+                'feature_stories_enabled' => $this->featureFlags->isEnabled($request->user(), 'feature_stories_enabled', true),
+                'feature_beta_enabled' => $this->featureFlags->isEnabled($request->user(), 'feature_beta_enabled', false),
+                'feature_live_streaming_enabled' => $this->featureFlags->isEnabled($request->user(), 'feature_live_streaming_enabled', true),
             ],
+        ];
+    }
+
+    /**
+     * Get the current user's membership data for the sidebar.
+     *
+     * @return array<string, mixed>|null
+     */
+    protected function getMembershipData(Request $request): ?array
+    {
+        $user = $request->user();
+
+        if (! $user) {
+            return null;
+        }
+
+        $membership = $user->activeMembership();
+
+        if (! $membership) {
+            return null;
+        }
+
+        $membership->load('plan');
+
+        return [
+            'id' => $membership->id,
+            'plan_name' => $membership->plan->name,
+            'plan_slug' => $membership->plan->slug,
+            'status' => $membership->status,
+            'billing_type' => $membership->billing_type,
+            'ends_at' => $membership->ends_at?->toIso8601String(),
+            'days_remaining' => $membership->daysRemaining(),
+            'is_expiring_soon' => $membership->ends_at && $membership->daysRemaining() <= 7,
         ];
     }
 }

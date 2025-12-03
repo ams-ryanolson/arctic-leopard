@@ -36,13 +36,18 @@ class AdminSettingsController extends Controller
             $query->where('category', $category);
         }
 
-        $settings = $query->get()->map(fn (AdminSetting $setting): array => [
-            'key' => $setting->key,
-            'value' => $setting->getValue(),
-            'description' => $setting->description,
-            'type' => $setting->type,
-            'category' => $setting->category,
-        ]);
+        $settings = $query->get()
+            // Filter out feature flags - they're now managed separately
+            ->reject(fn (AdminSetting $setting) => str_starts_with($setting->key, 'feature_') && str_ends_with($setting->key, '_enabled'))
+            ->map(fn (AdminSetting $setting): array => [
+                'key' => $setting->key,
+                'value' => $setting->getValue(),
+                'description' => $setting->description,
+                'type' => $setting->type,
+                'category' => $setting->category,
+            ])
+            ->values()
+            ->all();
 
         $categories = AdminSetting::query()
             ->distinct()
@@ -64,22 +69,38 @@ class AdminSettingsController extends Controller
     {
         $validated = $request->validated();
 
-        $setting = AdminSetting::query()->where('key', $key)->first();
+        // Handle feature flags - save to AdminSetting
+        if (str_starts_with($key, 'feature_') && str_ends_with($key, '_enabled')) {
+            $setting = AdminSetting::query()->where('key', $key)->first();
+            if ($setting === null) {
+                $setting = new AdminSetting([
+                    'key' => $key,
+                    'type' => 'boolean',
+                    'category' => 'features',
+                    'description' => null,
+                ]);
+            }
+            $setting->setValue($validated['value']);
+            $setting->save();
+        } else {
+            // Non-feature settings: save to AdminSetting as usual
+            $setting = AdminSetting::query()->where('key', $key)->first();
 
-        if ($setting === null) {
-            $setting = new AdminSetting([
-                'key' => $key,
-                // infer sensible defaults when creating on the fly
-                'type' => is_bool($validated['value']) ? 'boolean'
-                    : (is_int($validated['value']) ? 'integer'
-                        : (is_array($validated['value']) ? 'json' : 'string')),
-                'category' => str_starts_with($key, 'feature_') ? 'features' : 'general',
-                'description' => null,
-            ]);
+            if ($setting === null) {
+                $setting = new AdminSetting([
+                    'key' => $key,
+                    // infer sensible defaults when creating on the fly
+                    'type' => is_bool($validated['value']) ? 'boolean'
+                        : (is_int($validated['value']) ? 'integer'
+                            : (is_array($validated['value']) ? 'json' : 'string')),
+                    'category' => 'general',
+                    'description' => null,
+                ]);
+            }
+
+            $setting->setValue($validated['value']);
+            $setting->save();
         }
-
-        $setting->setValue($validated['value']);
-        $setting->save();
 
         return redirect()
             ->back()
@@ -97,18 +118,31 @@ class AdminSettingsController extends Controller
         $validated = $request->validated();
 
         foreach ($validated['settings'] as $key => $value) {
-            $setting = AdminSetting::query()->firstOrNew(['key' => $key]);
+            // Handle feature flags - save to AdminSetting
+            if (str_starts_with($key, 'feature_') && str_ends_with($key, '_enabled')) {
+                $setting = AdminSetting::query()->firstOrNew(['key' => $key]);
+                if (! $setting->exists) {
+                    $setting->type = 'boolean';
+                    $setting->category = 'features';
+                    $setting->description = null;
+                }
+                $setting->setValue($value);
+                $setting->save();
+            } else {
+                // Non-feature settings: save to AdminSetting as usual
+                $setting = AdminSetting::query()->firstOrNew(['key' => $key]);
 
-            if (! $setting->exists) {
-                $setting->type = is_bool($value) ? 'boolean'
-                    : (is_int($value) ? 'integer'
-                        : (is_array($value) ? 'json' : 'string'));
-                $setting->category = str_starts_with($key, 'feature_') ? 'features' : 'general';
-                $setting->description = null;
+                if (! $setting->exists) {
+                    $setting->type = is_bool($value) ? 'boolean'
+                        : (is_int($value) ? 'integer'
+                            : (is_array($value) ? 'json' : 'string'));
+                    $setting->category = 'general';
+                    $setting->description = null;
+                }
+
+                $setting->setValue($value);
+                $setting->save();
             }
-
-            $setting->setValue($value);
-            $setting->save();
         }
 
         return redirect()

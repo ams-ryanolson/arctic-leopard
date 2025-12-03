@@ -1,9 +1,8 @@
-import { cn } from '@/lib/utils';
-
 import ConversationHeader from '@/components/messaging/conversation-header';
 import ConversationList from '@/components/messaging/conversation-list';
 import MessageComposer from '@/components/messaging/message-composer';
 import MessageList from '@/components/messaging/message-list';
+import MessagesSettings from '@/components/messaging/messages-settings';
 import type {
     ActiveConversation,
     Message,
@@ -17,11 +16,10 @@ import type { RefObject } from 'react';
 type MobileMessagingViewProps = {
     threads: Thread[];
     selectedConversationId: number | null;
-    showConversationView: boolean;
     currentConversation: ActiveConversation | null;
     messages: Message[];
     presenceMembers: PresenceMember[];
-    typingUsers: string[];
+    typingUsers: Array<{ id: number; name: string }>;
     replyTo: Message | null;
     expandedReactionsMessageId: number | null;
     tipRequestActionMessageId: number | null;
@@ -29,13 +27,14 @@ type MobileMessagingViewProps = {
     isLoadingOlder: boolean;
     keyboardHeight: number;
     scrollContainerRef: RefObject<HTMLDivElement | null>;
+    showSettings?: boolean;
     viewer: {
         id: number;
         display_name?: string | null;
         avatar_url?: string | null;
         username?: string | null;
     };
-    onSelectConversation: (threadId: number) => void;
+    onSelectConversation: (threadUlid: string) => void;
     onRefresh: () => void;
     onBack: () => void;
     onLoadOlder: () => void;
@@ -53,7 +52,6 @@ type MobileMessagingViewProps = {
 export default function MobileMessagingView({
     threads,
     selectedConversationId,
-    showConversationView,
     currentConversation,
     messages,
     presenceMembers,
@@ -65,6 +63,7 @@ export default function MobileMessagingView({
     isLoadingOlder,
     keyboardHeight,
     scrollContainerRef,
+    showSettings = false,
     viewer,
     onSelectConversation,
     onRefresh,
@@ -80,91 +79,83 @@ export default function MobileMessagingView({
     onTyping,
     onScroll,
 }: MobileMessagingViewProps) {
-    return (
-        <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-            <>
-                <div
-                    className={cn(
-                        'absolute inset-0 flex min-h-0 flex-1 flex-col overflow-hidden transition-transform duration-300 ease-in-out',
-                        showConversationView
-                            ? 'translate-x-0'
-                            : '-translate-x-full',
-                    )}
-                >
-                    {selectedConversationId && currentConversation ? (
-                        <div className="flex min-h-0 flex-1 flex-col overflow-hidden border border-white/10 bg-white/5 text-white lg:rounded-3xl">
-                            <ConversationHeader
-                                conversation={currentConversation}
-                                presenceMembers={presenceMembers}
-                                onBack={onBack}
-                                showBackButton={true}
-                            />
+    // Show settings view if enabled
+    if (showSettings) {
+        return <MessagesSettings onBack={onBack} showBackButton={true} />;
+    }
 
-                            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-                                <MessageList
-                                    messages={messages}
-                                    viewerId={viewer.id}
-                                    conversation={currentConversation}
-                                    hasMoreMessages={hasMoreMessages}
-                                    isLoadingOlder={isLoadingOlder}
-                                    expandedReactionsMessageId={
-                                        expandedReactionsMessageId
-                                    }
-                                    tipRequestActionMessageId={
-                                        tipRequestActionMessageId
-                                    }
-                                    onLoadOlder={onLoadOlder}
-                                    onToggleReactions={onToggleReactions}
-                                    onReply={onReply}
-                                    onReactionChange={onReactionChange}
-                                    onTipRequestAccept={onTipRequestAccept}
-                                    onTipRequestDecline={onTipRequestDecline}
-                                    scrollContainerRef={scrollContainerRef}
-                                    onScroll={onScroll}
-                                />
-
-                                <TypingIndicator users={typingUsers} />
-
-                                <div className="border-t border-white/10 px-4 py-3">
-                                    <MessageComposer
-                                        conversationId={currentConversation.id}
-                                        onMessageSent={onMessageSent}
-                                        replyTo={
-                                            replyTo
-                                                ? {
-                                                      id: replyTo.id,
-                                                      body: replyTo.body,
-                                                      author: replyTo.author,
-                                                  }
-                                                : null
-                                        }
-                                        onCancelReply={onCancelReply}
-                                        onTyping={onTyping}
-                                        keyboardHeight={keyboardHeight}
-                                        viewer={viewer}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    ) : null}
-                </div>
-                <div
-                    className={cn(
-                        'absolute inset-0 flex min-h-0 flex-1 flex-col overflow-hidden transition-transform duration-300 ease-in-out',
-                        showConversationView
-                            ? 'translate-x-full'
-                            : 'translate-x-0',
-                    )}
-                >
-                    <ConversationList
-                        threads={threads}
-                        selectedConversationId={selectedConversationId}
-                        onSelectConversation={onSelectConversation}
-                        onRefresh={onRefresh}
+    // Route-based rendering: show conversation view if we have an active conversation
+    // Otherwise show list view
+    if (currentConversation && selectedConversationId) {
+        return (
+            <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-neutral-950 text-white">
+                {/* Fixed header */}
+                <div className="shrink-0 border-b border-white/5 bg-neutral-950/80 backdrop-blur-xl">
+                    <ConversationHeader
+                        conversation={currentConversation}
+                        presenceMembers={presenceMembers}
+                        onBack={onBack}
+                        showBackButton={true}
                     />
                 </div>
-            </>
-        </div>
+
+                {/* Scrollable message area - this is the ONLY thing that scrolls */}
+                <div className="min-h-0 flex-1 overflow-hidden">
+                    <MessageList
+                        messages={messages}
+                        viewerId={viewer.id}
+                        conversation={currentConversation}
+                        hasMoreMessages={hasMoreMessages}
+                        isLoadingOlder={isLoadingOlder}
+                        expandedReactionsMessageId={expandedReactionsMessageId}
+                        tipRequestActionMessageId={tipRequestActionMessageId}
+                        onLoadOlder={onLoadOlder}
+                        onToggleReactions={onToggleReactions}
+                        onReply={onReply}
+                        onReactionChange={onReactionChange}
+                        onTipRequestAccept={onTipRequestAccept}
+                        onTipRequestDecline={onTipRequestDecline}
+                        scrollContainerRef={scrollContainerRef}
+                        onScroll={onScroll}
+                    />
+                </div>
+
+                {/* Fixed typing indicator */}
+                <div className="shrink-0">
+                    <TypingIndicator users={typingUsers} />
+                </div>
+
+                {/* Fixed composer at bottom */}
+                <div className="shrink-0 border-t border-white/5 bg-neutral-950/80 backdrop-blur-xl">
+                    <MessageComposer
+                        conversationId={currentConversation.ulid}
+                        onMessageSent={onMessageSent}
+                        replyTo={
+                            replyTo
+                                ? {
+                                      id: replyTo.id,
+                                      body: replyTo.body,
+                                      author: replyTo.author,
+                                  }
+                                : null
+                        }
+                        onCancelReply={onCancelReply}
+                        onTyping={onTyping}
+                        keyboardHeight={keyboardHeight}
+                        viewer={viewer}
+                    />
+                </div>
+            </div>
+        );
+    }
+
+    // Show list view when no conversation is active
+    return (
+        <ConversationList
+            threads={threads}
+            selectedConversationId={selectedConversationId}
+            onSelectConversation={onSelectConversation}
+            onRefresh={onRefresh}
+        />
     );
 }
-

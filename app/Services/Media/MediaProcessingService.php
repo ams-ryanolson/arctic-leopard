@@ -218,6 +218,133 @@ class MediaProcessingService
     }
 
     /**
+     * Process an image from a local file path (for migrations)
+     *
+     * @param  string  $localFilePath  Local file path to the image
+     * @param  string  $targetDisk  Target storage disk name (e.g., 's3')
+     * @param  ImageProcessorInterface  $processor  Processor instance with configuration
+     * @return array{original_path: string, optimized_path: string|null, thumbnail_path: string|null, blur_path: string|null, width: int|null, height: int|null, size: int, mime_type: string}
+     */
+    public function processImageFromFile(
+        string $localFilePath,
+        string $targetDisk,
+        ImageProcessorInterface $processor
+    ): array {
+        if (! file_exists($localFilePath)) {
+            throw new \RuntimeException("Local image file not found: {$localFilePath}");
+        }
+
+        $imageManager = $this->imageManager();
+        $imageContents = file_get_contents($localFilePath);
+
+        if ($imageContents === false) {
+            throw new \RuntimeException("Failed to read local image file: {$localFilePath}");
+        }
+
+        $contentSize = strlen($imageContents);
+
+        try {
+            // Set a higher memory limit temporarily for large image processing
+            if ($contentSize > 5 * 1024 * 1024) { // If image is > 5MB
+                ini_set('memory_limit', '512M');
+            }
+
+            $image = $imageManager->read($imageContents);
+            unset($imageContents);
+        } catch (\Throwable $e) {
+            unset($imageContents);
+            throw new \RuntimeException('Failed to read image: '.$e->getMessage(), 0, $e);
+        }
+
+        $originalWidth = $image->width();
+        $originalHeight = $image->height();
+        $originalSize = filesize($localFilePath);
+        $mimeType = mime_content_type($localFilePath) ?: 'image/jpeg';
+
+        $config = $processor->getConfig();
+        $baseDir = $config['base_directory'];
+        $baseFilename = $config['base_filename'] ?? pathinfo($localFilePath, PATHINFO_FILENAME);
+
+        // Process the image according to processor configuration
+        $processedImage = $processor->process($image);
+
+        $targetStorage = Storage::disk($targetDisk);
+        $optimizedPath = null;
+        $thumbnailPath = null;
+        $blurPath = null;
+
+        // Helper to get storage options with proper ACL for S3/MinIO
+        $getStorageOptions = function (string $visibility = 'public') use ($targetStorage): array {
+            $options = ['visibility' => $visibility];
+            $adapter = $targetStorage->getAdapter();
+            if ($adapter instanceof \League\Flysystem\AwsS3V3\AwsS3V3Adapter) {
+                $options['ACL'] = $visibility === 'public' ? 'public-read' : 'private';
+            }
+
+            return $options;
+        };
+
+        // Generate optimized version
+        if ($config['generate_optimized'] ?? true) {
+            try {
+                $optimized = $processedImage->toWebp($config['quality'] ?? 85);
+                $optimizedPath = sprintf('%s/%s-optimized.webp', $baseDir, $baseFilename);
+                $targetStorage->put($optimizedPath, $optimized->toString(), $getStorageOptions('public'));
+                $targetStorage->setVisibility($optimizedPath, 'public');
+            } catch (Throwable $e) {
+                \Log::warning('MediaProcessingService: Failed to generate optimized image', [
+                    'file' => $localFilePath,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        // Generate thumbnail if configured
+        if (($config['generate_thumbnail'] ?? false) && isset($config['thumbnail_size'])) {
+            try {
+                $thumbnail = $image->scaleDown($config['thumbnail_size']);
+                $thumbnailPath = sprintf('%s/%s-thumb-%d.webp', $baseDir, $baseFilename, $config['thumbnail_size']);
+                $targetStorage->put($thumbnailPath, $thumbnail->toWebp($config['thumbnail_quality'] ?? 80)->toString(), $getStorageOptions('public'));
+                $targetStorage->setVisibility($thumbnailPath, 'public');
+            } catch (Throwable $e) {
+                \Log::warning('MediaProcessingService: Failed to generate thumbnail', [
+                    'file' => $localFilePath,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        // Generate blur placeholder if configured
+        if ($config['generate_blur'] ?? false) {
+            try {
+                $blurSize = $config['blur_size'] ?? 20;
+                $blurred = $image
+                    ->scaleDown($blurSize)
+                    ->blur($blurSize);
+                $blurPath = sprintf('%s/%s-blur.webp', $baseDir, $baseFilename);
+                $targetStorage->put($blurPath, $blurred->toWebp($config['blur_quality'] ?? 60)->toString(), $getStorageOptions('public'));
+                $targetStorage->setVisibility($blurPath, 'public');
+            } catch (Throwable $e) {
+                \Log::warning('MediaProcessingService: Failed to generate blur placeholder', [
+                    'file' => $localFilePath,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        return [
+            'original_path' => $localFilePath,
+            'optimized_path' => $optimizedPath,
+            'thumbnail_path' => $thumbnailPath,
+            'blur_path' => $blurPath,
+            'width' => $originalWidth,
+            'height' => $originalHeight,
+            'size' => $originalSize,
+            'mime_type' => $mimeType,
+        ];
+    }
+
+    /**
      * Process a video (placeholder for future implementation)
      *
      * @param  string  $disk  Storage disk name

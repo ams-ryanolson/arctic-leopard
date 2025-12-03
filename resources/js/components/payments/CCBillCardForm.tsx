@@ -1,4 +1,3 @@
-import InputError from '@/components/input-error';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -27,10 +26,56 @@ import { CreditCard, Loader2, Shield, HelpCircle, CheckCircle2, Lock, X } from '
 import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 
+export type CardDetails = {
+    lastFour: string;
+    brand: string;
+    expMonth: string;
+    expYear: string;
+};
+
+/**
+ * Detect card brand from card number prefix.
+ */
+function detectCardBrand(cardNumber: string): string {
+    const cleanNumber = cardNumber.replace(/\s/g, '');
+    
+    // Visa: starts with 4
+    if (/^4/.test(cleanNumber)) {
+        return 'visa';
+    }
+    
+    // Mastercard: starts with 51-55 or 2221-2720
+    if (/^5[1-5]/.test(cleanNumber) || /^2(22[1-9]|2[3-9]\d|[3-6]\d{2}|7[01]\d|720)/.test(cleanNumber)) {
+        return 'mastercard';
+    }
+    
+    // American Express: starts with 34 or 37
+    if (/^3[47]/.test(cleanNumber)) {
+        return 'amex';
+    }
+    
+    // Discover: starts with 6011, 622126-622925, 644-649, 65
+    if (/^6011|^65|^64[4-9]|^622(12[6-9]|1[3-9]\d|[2-8]\d{2}|9[01]\d|92[0-5])/.test(cleanNumber)) {
+        return 'discover';
+    }
+    
+    // JCB: starts with 3528-3589
+    if (/^35(2[89]|[3-8]\d)/.test(cleanNumber)) {
+        return 'jcb';
+    }
+    
+    // Diners Club: starts with 300-305, 36, 38-39
+    if (/^3(0[0-5]|[68]\d|9\d)/.test(cleanNumber)) {
+        return 'diners';
+    }
+    
+    return 'unknown';
+}
+
 type CCBillCardFormProps = {
     clientAccnum: number;
     clientSubacc: number;
-    onTokenCreated: (tokenId: string, is3DS: boolean) => void;
+    onTokenCreated: (tokenId: string, is3DS: boolean, cardDetails: CardDetails) => void;
     onError?: (error: string) => void;
     onCancel?: () => void;
     gateway?: string;
@@ -61,7 +106,7 @@ export function CCBillCardForm({
     const [error, setError] = useState<string | null>(null);
     const [is3DSChallenge, setIs3DSChallenge] = useState(false);
     const [widgetInitialized, setWidgetInitialized] = useState(false);
-    const { token: bearerToken, loading: tokenLoading, fetchToken } = useFrontendToken();
+    const { token: bearerToken, applicationId, loading: tokenLoading, fetchToken } = useFrontendToken();
 
     // Address autocomplete state
     const [addressQuery, setAddressQuery] = useState('');
@@ -238,7 +283,11 @@ export function CCBillCardForm({
                     fields.setFieldValue('city', city);
                 }
                 if (state) {
-                    fields.setFieldValue('state', state);
+                    // CCBill requires state to be 1-3 characters, so truncate if longer
+                    const stateValue = state.trim().substring(0, 3).toUpperCase();
+                    if (stateValue.length >= 1) {
+                        fields.setFieldValue('state', stateValue);
+                    }
                 }
                 if (postalCode) {
                     fields.setFieldValue('postalCode', postalCode);
@@ -260,7 +309,17 @@ export function CCBillCardForm({
             
             if (streetAddress) setFieldValue('ccbill-address1', streetAddress);
             if (city) setFieldValue('ccbill-city', city);
-            if (state) setFieldValue('ccbill-state', state);
+            if (state) {
+                // CCBill requires state to be 1-3 characters, so truncate if longer
+                const stateValue = state.trim().substring(0, 3).toUpperCase();
+                if (stateValue.length >= 1) {
+                    setFieldValue('ccbill-state', stateValue);
+                    // Also update widget
+                    if (widgetRef.current?.fields && typeof widgetRef.current.fields.setFieldValue === 'function') {
+                        widgetRef.current.fields.setFieldValue('state', stateValue);
+                    }
+                }
+            }
             if (postalCode) setFieldValue('ccbill-postal-code', postalCode);
             if (validCountry) {
                 setFieldValue('ccbill-country', validCountry);
@@ -285,7 +344,7 @@ export function CCBillCardForm({
 
     // Initialize widget when bearer token is available
     useEffect(() => {
-        if (!bearerToken || !containerRef.current || !clientAccnum || !clientSubacc) {
+        if (!bearerToken || !applicationId || !containerRef.current || !clientAccnum || !clientSubacc) {
             return;
         }
 
@@ -294,7 +353,7 @@ export function CCBillCardForm({
         const initWidget = async () => {
             try {
                 const widget = await initializeCCBillWidget({
-                    bearerToken,
+                    applicationId, // Frontend application ID for widget constructor
                     clientAccnum,
                     clientSubacc,
                     onSuccess: (tokenId: string) => {
@@ -303,7 +362,21 @@ export function CCBillCardForm({
                         }
                         setIsCreatingToken(false);
                         setIs3DSChallenge(false);
-                        onTokenCreated(tokenId, is3DSChallenge);
+                        
+                        // Extract card details from form for vaulting
+                        const cardNumberInput = document.getElementById('ccbill-card-number') as HTMLInputElement;
+                        const expMonthSelect = document.getElementById('ccbill-exp-month') as HTMLSelectElement;
+                        const expYearSelect = document.getElementById('ccbill-exp-year') as HTMLSelectElement;
+                        
+                        const rawCardNumber = cardNumberInput?.value?.replace(/\s/g, '') || '';
+                        const cardDetails: CardDetails = {
+                            lastFour: rawCardNumber.slice(-4),
+                            brand: detectCardBrand(rawCardNumber),
+                            expMonth: expMonthSelect?.value || '',
+                            expYear: expYearSelect?.value || '',
+                        };
+                        
+                        onTokenCreated(tokenId, is3DSChallenge, cardDetails);
                     },
                     onError: (widgetError) => {
                         if (!mounted) {
@@ -402,11 +475,29 @@ export function CCBillCardForm({
                     }
                     
                     // Log widget structure for debugging
-                    console.log('CCBill widget methods:', Object.keys(widget).filter(k => typeof (widget as any)[k] === 'function'));
-                    console.log('CCBill widget.fields methods:', widget.fields ? Object.keys(widget.fields).filter(k => typeof (widget.fields as any)[k] === 'function') : 'no fields object');
+                    const widgetMethods = Object.keys(widget).filter(k => typeof (widget as any)[k] === 'function');
+                    const fieldsMethods = widget.fields ? Object.keys(widget.fields).filter(k => typeof (widget.fields as any)[k] === 'function') : [];
+                    console.log('CCBill widget methods:', widgetMethods);
+                    console.log('CCBill widget.fields methods:', fieldsMethods);
                     console.log('CCBill widget.fields object:', widget.fields);
                     console.log('CCBill widget.fields.fieldIds:', (widget.fields as any)?.fieldIds);
                     console.log('CCBill widget.fields.fieldPrefix:', (widget.fields as any)?.fieldPrefix);
+                    
+                    // Try calling fields.render() if it exists
+                    if (widget.fields && typeof (widget.fields as any).render === 'function') {
+                        try {
+                            (widget.fields as any).render();
+                            console.log('Widget fields.render() called successfully');
+                        } catch (renderError) {
+                            console.warn('Widget fields.render() warning:', renderError);
+                        }
+                    }
+                    
+                    // Log all available methods on widget and fields for debugging
+                    console.log('Full widget object keys:', Object.keys(widget));
+                    if (widget.fields) {
+                        console.log('Full widget.fields object keys:', Object.keys(widget.fields));
+                    }
                     
                     // Check what fields are available
                     const ccbillFieldIds = (widget.fields as any)?.fieldIds;
@@ -415,30 +506,47 @@ export function CCBillCardForm({
                         console.log('CCBill field IDs mapping:', ccbillFieldIds);
                     }
                     
-                    // Check if fields are rendered after a delay
+                    // Verify all required fields exist in DOM with data-ccbill attributes
                     setTimeout(() => {
-                        const emailContainer = document.getElementById('ccbill-email');
-                        console.log('Email container after init:', emailContainer);
-                        console.log('Email container children:', emailContainer?.children);
-                        console.log('Email container innerHTML:', emailContainer?.innerHTML);
-                        
-                        // Check for inputs in containers
-                        const allContainers = [
-                            'ccbill-email',
-                            'ccbill-first-name',
-                            'ccbill-card-number',
+                        const requiredFields = [
+                            'firstName', 'lastName', 'email', 'cardNumber', 
+                            'expMonth', 'expYear', 'cvv2', 'nameOnCard', 
+                            'postalCode', 'country', 'address1', 'city'
                         ];
-                        allContainers.forEach(id => {
-                            const container = document.getElementById(id);
-                            if (container) {
-                                const inputs = container.querySelectorAll('input, select, textarea');
-                                console.log(`${id} has ${inputs.length} input elements:`, inputs);
+                        
+                        const foundFields: string[] = [];
+                        const missingFields: string[] = [];
+                        
+                        requiredFields.forEach(fieldName => {
+                            const element = document.querySelector(`[data-ccbill="${fieldName}"]`);
+                            if (element) {
+                                foundFields.push(fieldName);
+                                console.log(`✓ Found field: ${fieldName}`, element);
+                            } else {
+                                missingFields.push(fieldName);
+                                console.warn(`✗ Missing field: ${fieldName}`);
                             }
                         });
                         
-                        // Check for inputs with CCBill field prefix
-                        const ccbillInputs = document.querySelectorAll(`[id^="${(widget.fields as any)?.fieldPrefix || '_ccbillId_'}"]`);
-                        console.log(`Found ${ccbillInputs.length} inputs with CCBill prefix:`, ccbillInputs);
+                        console.log(`Field verification: ${foundFields.length}/${requiredFields.length} fields found`);
+                        if (missingFields.length > 0) {
+                            console.warn('Missing required fields:', missingFields);
+                        } else {
+                            console.log('✅ All required fields are present in DOM');
+                        }
+                        
+                        // Verify widget can read field values
+                        if (widget.fields && typeof (widget.fields as any).getFieldValue === 'function') {
+                            const testField = document.querySelector('[data-ccbill="email"]') as HTMLInputElement;
+                            if (testField && testField.value) {
+                                const widgetValue = (widget.fields as any).getFieldValue('email');
+                                console.log('Widget can read field values:', {
+                                    domValue: testField.value,
+                                    widgetValue: widgetValue,
+                                    match: testField.value === widgetValue
+                                });
+                            }
+                        }
                     }, 1000);
 
                     // Pre-fill user data if available
@@ -536,7 +644,7 @@ export function CCBillCardForm({
                 setWidgetInitialized(false);
             }
         };
-    }, [bearerToken, clientAccnum, clientSubacc, onTokenCreated, onError, user]);
+    }, [bearerToken, applicationId, clientAccnum, clientSubacc, onTokenCreated, onError, user]);
 
     // Fetch bearer token on mount
     useEffect(() => {
@@ -591,13 +699,181 @@ export function CCBillCardForm({
             return;
         }
 
+        // Validate all required fields before submission
+        const requiredFields = {
+            firstName: document.getElementById('ccbill-first-name') as HTMLInputElement,
+            lastName: document.getElementById('ccbill-last-name') as HTMLInputElement,
+            email: document.getElementById('ccbill-email') as HTMLInputElement,
+            cardNumber: document.getElementById('ccbill-card-number') as HTMLInputElement,
+            expMonth: document.getElementById('ccbill-exp-month') as HTMLSelectElement,
+            expYear: document.getElementById('ccbill-exp-year') as HTMLSelectElement,
+            cvv2: document.getElementById('ccbill-cvv') as HTMLInputElement,
+            nameOnCard: document.getElementById('ccbill-name-on-card') as HTMLInputElement,
+            postalCode: document.getElementById('ccbill-postal-code') as HTMLInputElement,
+            country: document.getElementById('ccbill-country') as HTMLSelectElement,
+            address1: document.getElementById('ccbill-address1') as HTMLInputElement,
+            city: document.getElementById('ccbill-city') as HTMLInputElement,
+        };
+
+        const missingFields: string[] = [];
+        Object.entries(requiredFields).forEach(([fieldName, element]) => {
+            if (!element || !element.value?.trim()) {
+                missingFields.push(fieldName);
+                setTouchedFields(prev => new Set(prev).add(fieldName));
+                setFieldErrors(prev => ({ ...prev, [fieldName]: 'This field is required' }));
+            }
+        });
+
+        // Validate state field if provided (must be 1-3 characters)
+        const stateField = document.getElementById('ccbill-state') as HTMLInputElement;
+        if (stateField && stateField.value.trim()) {
+            const stateValue = stateField.value.trim();
+            if (stateValue.length < 1 || stateValue.length > 3) {
+                missingFields.push('state');
+                setTouchedFields(prev => new Set(prev).add('state'));
+                setFieldErrors(prev => ({ ...prev, state: 'State must be 1-3 characters if provided' }));
+            }
+        }
+
+        if (missingFields.length > 0) {
+            setError(`Please fill in all required fields: ${missingFields.join(', ')}`);
+            return;
+        }
+
+        // Ensure expMonth and expYear are set on hidden selects
+        const expMonthSelect = document.getElementById('ccbill-exp-month') as HTMLSelectElement;
+        const expYearSelect = document.getElementById('ccbill-exp-year') as HTMLSelectElement;
+        
+        if (!expMonthSelect?.value || !expYearSelect?.value) {
+            setError('Please select expiration month and year');
+            return;
+        }
+        
+        // Ensure expYear is 4 digits (yyyy format) as required by CCBill
+        let expYearValue = expYearSelect.value.trim();
+        const yearNum = parseInt(expYearValue, 10);
+        if (!isNaN(yearNum)) {
+            // If it's a 2-digit year, convert to 4 digits
+            if (yearNum < 100) {
+                // Assume years 0-50 are 2000-2050, years 51-99 are 1951-1999
+                expYearValue = yearNum <= 50 ? String(2000 + yearNum) : String(1900 + yearNum);
+                expYearSelect.value = expYearValue;
+                // Also update widget field value
+                if (widgetRef.current?.fields && typeof widgetRef.current.fields.setFieldValue === 'function') {
+                    widgetRef.current.fields.setFieldValue('expYear', expYearValue);
+                }
+            } else {
+                // Ensure it's a string with 4 digits
+                expYearValue = String(yearNum);
+                if (expYearValue.length !== 4) {
+                    setError('Expiration year must be 4 digits (yyyy format)');
+                    return;
+                }
+            }
+        }
+        
+        // Ensure expMonth is 2 digits (mm format) as required by CCBill
+        let expMonthValue = expMonthSelect.value.trim();
+        const monthNum = parseInt(expMonthValue, 10);
+        if (!isNaN(monthNum)) {
+            expMonthValue = String(monthNum).padStart(2, '0');
+            if (expMonthSelect.value !== expMonthValue) {
+                expMonthSelect.value = expMonthValue;
+                // Also update widget field value
+                if (widgetRef.current?.fields && typeof widgetRef.current.fields.setFieldValue === 'function') {
+                    widgetRef.current.fields.setFieldValue('expMonth', expMonthValue);
+                }
+            }
+        }
+
         setIsCreatingToken(true);
         setError(null);
 
         try {
+            // Strip spaces from card number in DOM before submission
+            // CCBill requires card number without spaces
+            const cardNumberInput = document.getElementById('ccbill-card-number') as HTMLInputElement;
+            if (cardNumberInput) {
+                const cleanedCardNumber = cardNumberInput.value.replace(/\s/g, '');
+                cardNumberInput.value = cleanedCardNumber;
+                
+                // Also update widget field value to ensure consistency
+                if (widgetRef.current?.fields && typeof widgetRef.current.fields.setFieldValue === 'function') {
+                    widgetRef.current.fields.setFieldValue('cardNumber', cleanedCardNumber);
+                }
+            }
+            
+            // Clean postal code: remove spaces (CCBill requires no spaces)
+            const postalCodeInput = document.getElementById('ccbill-postal-code') as HTMLInputElement;
+            if (postalCodeInput) {
+                const cleanedPostalCode = postalCodeInput.value.replace(/\s/g, '').toUpperCase();
+                if (postalCodeInput.value !== cleanedPostalCode) {
+                    postalCodeInput.value = cleanedPostalCode;
+                    if (widgetRef.current?.fields && typeof widgetRef.current.fields.setFieldValue === 'function') {
+                        widgetRef.current.fields.setFieldValue('postalCode', cleanedPostalCode);
+                    }
+                }
+            }
+            
+            // Clean state: ensure it's 1-3 characters (prefer 2-letter code)
+            const stateInput = document.getElementById('ccbill-state') as HTMLInputElement;
+            if (stateInput && stateInput.value.trim()) {
+                let stateValue = stateInput.value.trim().toUpperCase();
+                // If state is longer than 3 chars, try to extract 2-letter code or truncate
+                if (stateValue.length > 3) {
+                    // Try to extract first 2 letters if it looks like a code
+                    const twoLetterMatch = stateValue.match(/^[A-Z]{2}/);
+                    stateValue = twoLetterMatch ? twoLetterMatch[0] : stateValue.substring(0, 3);
+                }
+                if (stateInput.value !== stateValue) {
+                    stateInput.value = stateValue;
+                    if (widgetRef.current?.fields && typeof widgetRef.current.fields.setFieldValue === 'function') {
+                        widgetRef.current.fields.setFieldValue('state', stateValue);
+                    }
+                }
+            }
+            
+            // Clean city: ensure it's just the city name (max 50 chars, no commas)
+            const cityInput = document.getElementById('ccbill-city') as HTMLInputElement;
+            if (cityInput && cityInput.value.trim()) {
+                let cityValue = cityInput.value.trim();
+                // Remove everything after first comma (city, state, country format)
+                const commaIndex = cityValue.indexOf(',');
+                if (commaIndex > 0) {
+                    cityValue = cityValue.substring(0, commaIndex).trim();
+                }
+                // Truncate to 50 characters (CCBill max)
+                if (cityValue.length > 50) {
+                    cityValue = cityValue.substring(0, 50);
+                }
+                if (cityInput.value !== cityValue) {
+                    cityInput.value = cityValue;
+                    if (widgetRef.current?.fields && typeof widgetRef.current.fields.setFieldValue === 'function') {
+                        widgetRef.current.fields.setFieldValue('city', cityValue);
+                    }
+                }
+            }
+            
+            // Extract card details from form before submitting
+            // We need these for vaulting since CCBill doesn't return card info
+            // Note: cardNumberInput already declared above for cleaning
+            const expMonthSelect = document.getElementById('ccbill-exp-month') as HTMLSelectElement;
+            const expYearSelect = document.getElementById('ccbill-exp-year') as HTMLSelectElement;
+            
+            const rawCardNumber = cardNumberInput?.value?.replace(/\s/g, '') || '';
+            const lastFour = rawCardNumber.slice(-4);
+            const expMonth = expMonthSelect?.value || '';
+            const expYear = expYearSelect?.value || '';
+            
+            // Detect card brand from card number
+            const cardBrand = detectCardBrand(rawCardNumber);
+            
+            console.log('Card details extracted:', { lastFour, cardBrand, expMonth, expYear });
+            
             // Widget reads form data from DOM (elements with data-ccbill attributes)
             // Pass required parameters: authToken, clientAccnum, clientSubacc
             // Optionally pass form reference
+            console.log('Calling createPaymentToken3DS...');
             const { tokenId, is3DS } = await createPaymentToken3DS(
                 widgetRef.current,
                 bearerToken,
@@ -608,9 +884,20 @@ export function CCBillCardForm({
                     ipAddress: clientIp, // Pass IP address for fraud detection
                 }
             );
+            console.log('✅ createPaymentToken3DS returned:', { tokenId, is3DS });
             setIsCreatingToken(false);
             setIs3DSChallenge(false);
-            onTokenCreated(tokenId, is3DS);
+            
+            const cardDetails: CardDetails = {
+                lastFour,
+                brand: cardBrand,
+                expMonth,
+                expYear,
+            };
+            
+            console.log('Calling onTokenCreated callback with tokenId:', tokenId, 'cardDetails:', cardDetails);
+            onTokenCreated(tokenId, is3DS, cardDetails);
+            console.log('✅ onTokenCreated callback completed');
         } catch (err) {
             const errorMessage =
                 err instanceof Error ? err.message : 'Failed to process card';
@@ -622,7 +909,7 @@ export function CCBillCardForm({
     };
 
 
-    if (tokenLoading || !bearerToken) {
+    if (tokenLoading || !bearerToken || !applicationId) {
         return (
             <div className={className}>
                 <div className="flex items-center justify-center py-8">
@@ -688,9 +975,36 @@ export function CCBillCardForm({
                 )}
 
                 {error && (
-                    <div className="animate-in fade-in-0 slide-in-from-top-2">
-                        <InputError message={error} />
-                    </div>
+                    <Alert className={cn(
+                        "animate-in fade-in-0 slide-in-from-top-2",
+                        (error as any)?.isCorsError && "border-amber-500/50 bg-amber-500/10"
+                    )}>
+                        <AlertTitle className="flex items-center gap-2">
+                            {(error as any)?.isCorsError && (
+                                <Shield className="size-4 text-amber-400" />
+                            )}
+                            {(error as any)?.isCorsError ? 'CORS Configuration Required' : 'Payment Error'}
+                        </AlertTitle>
+                        <AlertDescription className="whitespace-pre-line text-sm">
+                            {error}
+                            {(error as any)?.isLocalhost && (
+                                <div className="mt-3 space-y-2 rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 text-xs">
+                                    <p className="font-semibold text-amber-300">Quick Development Solutions:</p>
+                                    <ul className="ml-4 list-disc space-y-1 text-amber-200/80">
+                                        <li>
+                                            <strong>Use Herd/Laravel Valet:</strong> Access your site via <code className="bg-black/20 px-1 rounded">realkinkmen.test</code> instead of <code className="bg-black/20 px-1 rounded">localhost:8000</code>
+                                        </li>
+                                        <li>
+                                            <strong>Contact CCBill:</strong> Ask them to whitelist <code className="bg-black/20 px-1 rounded">localhost:8000</code> for development
+                                        </li>
+                                        <li>
+                                            <strong>Production Testing:</strong> Deploy to a staging environment with a real domain
+                                        </li>
+                                    </ul>
+                                </div>
+                            )}
+                        </AlertDescription>
+                    </Alert>
                 )}
 
                 <div
@@ -899,7 +1213,7 @@ export function CCBillCardForm({
                                         </div>
                                         <div className="space-y-1.5">
                                             <Label htmlFor="ccbill-state" className="text-sm font-medium text-white/90">
-                                                State/Province <span className="text-xs text-white/50 font-normal">(Optional)</span>
+                                                State/Province <span className="text-xs text-white/50 font-normal">(Optional, 1-3 chars)</span>
                                             </Label>
                                             <Input
                                                 type="text"
@@ -907,7 +1221,51 @@ export function CCBillCardForm({
                                                 data-ccbill="state"
                                                 defaultValue={user?.location_region || ''}
                                                 placeholder="NY"
+                                                maxLength={3}
+                                                onChange={(e) => {
+                                                    // Ensure state is 1-3 characters if provided, uppercase and truncate
+                                                    let value = e.target.value.trim().toUpperCase();
+                                                    if (value.length > 3) {
+                                                        value = value.substring(0, 3);
+                                                        e.target.value = value;
+                                                    }
+                                                    if (value && (value.length < 1 || value.length > 3)) {
+                                                        setFieldErrors(prev => ({ ...prev, state: 'State must be 1-3 characters' }));
+                                                    } else {
+                                                        setFieldErrors(prev => {
+                                                            const newErrors = { ...prev };
+                                                            delete newErrors.state;
+                                                            return newErrors;
+                                                        });
+                                                    }
+                                                    // Update widget field
+                                                    if (widgetRef.current?.fields && typeof widgetRef.current.fields.setFieldValue === 'function') {
+                                                        widgetRef.current.fields.setFieldValue('state', value);
+                                                    }
+                                                }}
+                                                onBlur={(e) => {
+                                                    const value = e.target.value.trim();
+                                                    // If state is provided, it must be 1-3 characters
+                                                    if (value && (value.length < 1 || value.length > 3)) {
+                                                        setFieldErrors(prev => ({ ...prev, state: 'State must be 1-3 characters if provided' }));
+                                                    } else if (value) {
+                                                        // If provided and valid, clear errors
+                                                        setFieldErrors(prev => {
+                                                            const newErrors = { ...prev };
+                                                            delete newErrors.state;
+                                                            return newErrors;
+                                                        });
+                                                    }
+                                                    handleFieldBlur('state', value);
+                                                }}
+                                                className={cn(
+                                                    touchedFields.has('state') && fieldErrors.state && 'border-rose-400',
+                                                    touchedFields.has('state') && !fieldErrors.state && 'border-green-400/50'
+                                                )}
                                             />
+                                            {touchedFields.has('state') && fieldErrors.state && (
+                                                <p className="text-xs text-rose-400 animate-in fade-in-0">{fieldErrors.state}</p>
+                                            )}
                                         </div>
                                     </div>
 
@@ -1081,12 +1439,27 @@ export function CCBillCardForm({
                                         <Label htmlFor="ccbill-exp-month" className="text-sm font-medium text-white/90">
                                             Expiration Month <span className="text-red-400">*</span>
                                         </Label>
+                                        {/* Hidden select for CCBill widget */}
+                                        <select
+                                            id="ccbill-exp-month"
+                                            data-ccbill="expMonth"
+                                            className="sr-only"
+                                            required
+                                        >
+                                            <option value="">Month</option>
+                                            {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                                                <option key={month} value={String(month).padStart(2, '0')}>
+                                                    {String(month).padStart(2, '0')}
+                                                </option>
+                                            ))}
+                                        </select>
                                         <Select
                                             onValueChange={(value) => {
                                                 const monthField = document.getElementById('ccbill-exp-month') as HTMLSelectElement;
                                                 if (monthField) {
                                                     monthField.value = value;
                                                     monthField.dispatchEvent(new Event('change', { bubbles: true }));
+                                                    monthField.dispatchEvent(new Event('input', { bubbles: true }));
                                                 }
                                                 if (widgetRef.current?.fields && typeof widgetRef.current.fields.setFieldValue === 'function') {
                                                     widgetRef.current.fields.setFieldValue('expMonth', value);
@@ -1094,8 +1467,6 @@ export function CCBillCardForm({
                                             }}
                                         >
                                             <SelectTrigger
-                                                id="ccbill-exp-month"
-                                                data-ccbill="expMonth"
                                                 className="h-12 rounded-xl border border-white/10 bg-white/5 px-4 text-base text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition focus-visible:border-white/40 focus-visible:ring-4 focus-visible:ring-amber-500/20 placeholder:text-white/40 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                                             >
                                                 <SelectValue placeholder="Month" />
@@ -1113,21 +1484,43 @@ export function CCBillCardForm({
                                         <Label htmlFor="ccbill-exp-year" className="text-sm font-medium text-white/90">
                                             Expiration Year <span className="text-red-400">*</span>
                                         </Label>
+                                        {/* Hidden select for CCBill widget */}
+                                        <select
+                                            id="ccbill-exp-year"
+                                            data-ccbill="expYear"
+                                            className="sr-only"
+                                            required
+                                        >
+                                            <option value="">Year</option>
+                                            {Array.from({ length: 20 }, (_, i) => new Date().getFullYear() + i).map((year) => (
+                                                <option key={year} value={String(year)}>
+                                                    {year}
+                                                </option>
+                                            ))}
+                                        </select>
                                         <Select
                                             onValueChange={(value) => {
                                                 const yearField = document.getElementById('ccbill-exp-year') as HTMLSelectElement;
                                                 if (yearField) {
-                                                    yearField.value = value;
+                                                    // Ensure value is 4 digits (yyyy format) for CCBill
+                                                    let yearValue = value.trim();
+                                                    const yearNum = parseInt(yearValue, 10);
+                                                    if (!isNaN(yearNum) && yearNum < 100) {
+                                                        // Convert 2-digit to 4-digit year
+                                                        yearValue = yearNum <= 50 ? String(2000 + yearNum) : String(1900 + yearNum);
+                                                    }
+                                                    yearField.value = yearValue;
                                                     yearField.dispatchEvent(new Event('change', { bubbles: true }));
+                                                    yearField.dispatchEvent(new Event('input', { bubbles: true }));
                                                 }
+                                                // Also update widget with 4-digit year
+                                                const finalYearValue = yearField?.value || value;
                                                 if (widgetRef.current?.fields && typeof widgetRef.current.fields.setFieldValue === 'function') {
-                                                    widgetRef.current.fields.setFieldValue('expYear', value);
+                                                    widgetRef.current.fields.setFieldValue('expYear', finalYearValue);
                                                 }
                                             }}
                                         >
                                             <SelectTrigger
-                                                id="ccbill-exp-year"
-                                                data-ccbill="expYear"
                                                 className="h-12 rounded-xl border border-white/10 bg-white/5 px-4 text-base text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition focus-visible:border-white/40 focus-visible:ring-4 focus-visible:ring-amber-500/20 placeholder:text-white/40 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                                             >
                                                 <SelectValue placeholder="Year" />

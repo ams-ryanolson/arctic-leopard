@@ -1,8 +1,20 @@
 import { InertiaLinkProps } from '@inertiajs/react';
 import { LucideIcon } from 'lucide-react';
 
+export interface UserMembership {
+    id: number;
+    plan_name: string;
+    plan_slug: string;
+    status: string;
+    billing_type: 'recurring' | 'one_time';
+    ends_at: string | null;
+    days_remaining: number;
+    is_expiring_soon: boolean;
+}
+
 export interface Auth {
     user: User;
+    membership?: UserMembership | null;
 }
 
 export interface BreadcrumbItem {

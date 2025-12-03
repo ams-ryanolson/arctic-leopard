@@ -55,6 +55,7 @@ class PostAnalyticsController extends Controller
             'timeline' => $summary['timeline'],
             'countries' => Inertia::defer(fn () => $analytics->countryBreakdown($post, $start, $end)),
             'recentViews' => Inertia::defer(fn () => $analytics->recentViews($post)),
+            'amplifiedBy' => Inertia::defer(fn () => $analytics->amplifiedBy($post)),
             'can' => [
                 'viewAnalytics' => true,
             ],

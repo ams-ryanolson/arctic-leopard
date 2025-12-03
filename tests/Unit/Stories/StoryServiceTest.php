@@ -1,20 +1,20 @@
 <?php
 
 use App\Enums\StoryAudience;
-use App\Models\AdminSetting;
 use App\Models\Story;
 use App\Models\User;
 use App\Services\Stories\StoryService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Laravel\Pennant\Feature;
 
 beforeEach(function (): void {
-    AdminSetting::set('feature_stories_enabled', true);
+    Feature::for(null)->activate('stories');
     Storage::fake('public');
 });
 
 test('story service returns empty array when feature is disabled', function (): void {
-    AdminSetting::set('feature_stories_enabled', false);
+    Feature::for(null)->deactivate('stories');
 
     $service = app(StoryService::class);
     $stories = $service->getStoriesForDashboard(null);

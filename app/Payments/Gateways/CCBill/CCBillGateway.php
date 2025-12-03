@@ -281,6 +281,14 @@ class CCBillGateway implements PaymentGatewayContract, SubscriptionGatewayContra
     }
 
     /**
+     * Get frontend application ID for widget initialization.
+     */
+    public function getFrontendApplicationId(): string
+    {
+        return $this->config['frontend_app_id'] ?? '';
+    }
+
+    /**
      * Get payment token details including card information.
      */
     public function getPaymentTokenDetails(string $tokenId): CardDetails

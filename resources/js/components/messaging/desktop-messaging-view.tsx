@@ -2,6 +2,7 @@ import ConversationHeader from '@/components/messaging/conversation-header';
 import ConversationList from '@/components/messaging/conversation-list';
 import MessageComposer from '@/components/messaging/message-composer';
 import MessageList from '@/components/messaging/message-list';
+import MessagesSettings from '@/components/messaging/messages-settings';
 import type {
     ActiveConversation,
     Message,
@@ -10,6 +11,7 @@ import type {
     Thread,
 } from '@/components/messaging/types';
 import TypingIndicator from '@/components/messaging/typing-indicator';
+import { MessageSquare } from 'lucide-react';
 import type { RefObject } from 'react';
 
 type DesktopMessagingViewProps = {
@@ -18,7 +20,7 @@ type DesktopMessagingViewProps = {
     currentConversation: ActiveConversation | null;
     messages: Message[];
     presenceMembers: PresenceMember[];
-    typingUsers: string[];
+    typingUsers: Array<{ id: number; name: string }>;
     replyTo: Message | null;
     expandedReactionsMessageId: number | null;
     tipRequestActionMessageId: number | null;
@@ -26,13 +28,14 @@ type DesktopMessagingViewProps = {
     isLoadingOlder: boolean;
     keyboardHeight: number;
     scrollContainerRef: RefObject<HTMLDivElement | null>;
+    showSettings?: boolean;
     viewer: {
         id: number;
         display_name?: string | null;
         avatar_url?: string | null;
         username?: string | null;
     };
-    onSelectConversation: (threadId: number) => void;
+    onSelectConversation: (threadUlid: string) => void;
     onRefresh: () => void;
     onLoadOlder: () => void;
     onToggleReactions: (messageId: number) => void;
@@ -44,6 +47,7 @@ type DesktopMessagingViewProps = {
     onMessageSent: (message: Record<string, unknown>) => void;
     onTyping: () => void;
     onScroll: () => void;
+    onBackFromSettings?: () => void;
     setReplyTo: (message: Message | null) => void;
     setExpandedReactionsMessageId: (id: number | null) => void;
 };
@@ -62,6 +66,7 @@ export default function DesktopMessagingView({
     isLoadingOlder,
     keyboardHeight,
     scrollContainerRef,
+    showSettings = false,
     viewer,
     onSelectConversation,
     onRefresh,
@@ -75,6 +80,7 @@ export default function DesktopMessagingView({
     onMessageSent,
     onTyping,
     onScroll,
+    onBackFromSettings,
     setReplyTo,
     setExpandedReactionsMessageId,
 }: DesktopMessagingViewProps) {
@@ -87,16 +93,22 @@ export default function DesktopMessagingView({
                 onRefresh={onRefresh}
             />
 
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border border-white/10 bg-white/5 text-white">
-                {currentConversation ? (
-                    <>
-                        <ConversationHeader
-                            conversation={currentConversation}
-                            presenceMembers={presenceMembers}
-                            showBackButton={false}
-                        />
+            <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-neutral-950 text-white">
+                {showSettings ? (
+                    <MessagesSettings showBackButton={false} />
+                ) : currentConversation ? (
+                    <div className="flex h-full min-h-0 flex-col">
+                        {/* Fixed header */}
+                        <div className="shrink-0 border-b border-white/5">
+                            <ConversationHeader
+                                conversation={currentConversation}
+                                presenceMembers={presenceMembers}
+                                showBackButton={false}
+                            />
+                        </div>
 
-                        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                        {/* Scrollable message area - this is the ONLY thing that scrolls */}
+                        <div className="min-h-0 flex-1 overflow-hidden">
                             <MessageList
                                 messages={messages}
                                 viewerId={viewer.id}
@@ -118,39 +130,47 @@ export default function DesktopMessagingView({
                                 scrollContainerRef={scrollContainerRef}
                                 onScroll={onScroll}
                             />
-
-                            <TypingIndicator users={typingUsers} />
-
-                            <div className="border-t border-white/10 px-4 py-3 sm:px-6 sm:py-4">
-                                <MessageComposer
-                                    conversationId={currentConversation.id}
-                                    onMessageSent={onMessageSent}
-                                    replyTo={
-                                        replyTo
-                                            ? {
-                                                  id: replyTo.id,
-                                                  body: replyTo.body,
-                                                  author: replyTo.author,
-                                              }
-                                            : null
-                                    }
-                                    onCancelReply={onCancelReply}
-                                    onTyping={onTyping}
-                                    keyboardHeight={keyboardHeight}
-                                    viewer={viewer}
-                                />
-                            </div>
                         </div>
-                    </>
+
+                        {/* Fixed typing indicator */}
+                        <div className="shrink-0">
+                            <TypingIndicator users={typingUsers} />
+                        </div>
+
+                        {/* Fixed composer at bottom */}
+                        <div className="shrink-0 border-t border-white/5">
+                            <MessageComposer
+                                conversationId={currentConversation.ulid}
+                                onMessageSent={onMessageSent}
+                                replyTo={
+                                    replyTo
+                                        ? {
+                                              id: replyTo.id,
+                                              body: replyTo.body,
+                                              author: replyTo.author,
+                                          }
+                                        : null
+                                }
+                                onCancelReply={onCancelReply}
+                                onTyping={onTyping}
+                                keyboardHeight={keyboardHeight}
+                                viewer={viewer}
+                            />
+                        </div>
+                    </div>
                 ) : (
-                    <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center text-white/40">
-                        <p className="text-sm font-medium">
-                            Select a thread to begin messaging.
-                        </p>
-                        <p className="text-xs text-white/50">
-                            Your conversations will appear on the left once you
-                            start chatting.
-                        </p>
+                    <div className="flex flex-1 flex-col items-center justify-center gap-5 px-6 text-center">
+                        <div className="rounded-full bg-white/5 p-8">
+                            <MessageSquare className="h-16 w-16 text-white/30" strokeWidth={1.5} />
+                        </div>
+                        <div className="space-y-2 max-w-sm">
+                            <h3 className="text-lg font-semibold text-white/80">
+                                Select a conversation
+                            </h3>
+                            <p className="text-sm leading-relaxed text-white/50">
+                                Choose a thread from the left to start messaging, or create a new conversation to connect with someone.
+                            </p>
+                        </div>
                     </div>
                 )}
             </div>

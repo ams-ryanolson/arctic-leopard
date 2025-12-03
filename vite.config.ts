@@ -4,45 +4,30 @@ import react from '@vitejs/plugin-react';
 import laravel from 'laravel-vite-plugin';
 import { defineConfig } from 'vite';
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig({
     plugins: [
         laravel({
             input: ['resources/css/app.css', 'resources/js/app.tsx'],
             ssr: 'resources/js/ssr.tsx',
             refresh: true,
         }),
-        react({
-            babel: {
-                plugins: mode === 'production' 
-                    ? ['babel-plugin-react-compiler'] 
-                    : [],
-            },
-        }),
+        react(),
+        tailwindcss(),
         wayfinder({
             formVariants: true,
         }),
-        tailwindcss(),
     ],
-    optimizeDeps: {
-        exclude: ['@tailwindcss/vite'],
-    },
     server: {
-        watch: {
-            ignored: [
-                '**/node_modules/**',
-                '**/.git/**',
-                '**/storage/**',
-                '**/vendor/**',
-                '**/public/build/**',
-            ],
-        },
-        hmr: {
-            overlay: true,
+        host: '127.0.0.1',
+        port: 5173,
+        strictPort: true,
+    },
+    resolve: {
+        alias: {
+            '@': '/resources/js',
         },
     },
-    build: {
-        minify: mode === 'production',
-        sourcemap: mode !== 'production',
-        chunkSizeWarningLimit: 1000,
+    esbuild: {
+        jsx: 'automatic',
     },
-}));
+});

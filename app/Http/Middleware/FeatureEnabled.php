@@ -2,21 +2,26 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\AdminSetting;
+use App\Services\FeatureFlagService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class FeatureEnabled
 {
+    public function __construct(
+        private FeatureFlagService $featureFlags,
+    ) {}
+
     /**
      * Handle an incoming request.
      *
-     * Usage: ->middleware('feature:feature_key_name')
+     * Usage: ->middleware('feature:feature_ads_enabled')
      */
-    public function handle(Request $request, Closure $next, string $featureKey): Response
+    public function handle(Request $request, Closure $next, string $feature): Response
     {
-        $enabled = (bool) AdminSetting::get($featureKey, true);
+        $user = $request->user();
+        $enabled = $this->featureFlags->isEnabled($user, $feature, true);
 
         if (! $enabled) {
             return redirect()->route('dashboard');

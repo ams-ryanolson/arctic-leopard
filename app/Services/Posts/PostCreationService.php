@@ -67,7 +67,11 @@ class PostCreationService
 
             $post->save();
 
-            $this->createAuthorTimelineEntry($post);
+            // Skip timeline entry for amplify posts (handled by RepostService)
+            if ($post->type !== PostType::Amplify) {
+                $this->createAuthorTimelineEntry($post);
+            }
+
             $this->syncHashtags($post, $hashtags);
             $this->postMediaService->attachFromTemporary($post, $media);
 

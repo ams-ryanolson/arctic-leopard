@@ -19,6 +19,11 @@ class SearchResultResource extends JsonResource
     public function toArray(Request $request): array
     {
         if ($this->resource instanceof User) {
+            $verificationStatus = null;
+            if ($this->isIdVerified() && $this->idVerificationNotExpired()) {
+                $verificationStatus = 'approved';
+            }
+
             return [
                 'type' => 'user',
                 'id' => $this->id,
@@ -28,6 +33,7 @@ class SearchResultResource extends JsonResource
                 'cover_url' => $this->cover_url,
                 'pronouns' => $this->pronouns,
                 'bio' => $this->bio,
+                'verification_status' => $verificationStatus,
             ];
         }
 

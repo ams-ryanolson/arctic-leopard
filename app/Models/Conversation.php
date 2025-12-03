@@ -142,4 +142,12 @@ class Conversation extends Model
     {
         return $query->where('updated_at', '>=', $since);
     }
+
+    /**
+     * Get the route key for the model.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'ulid';
+    }
 }

@@ -5,6 +5,9 @@ namespace App\Listeners\Payments;
 use App\Events\Payments\PaymentCaptured;
 use App\Models\Memberships\MembershipPlan;
 use App\Models\Memberships\UserMembership;
+use App\Notifications\MembershipPurchased;
+use App\Notifications\Memberships\MembershipGiftedNotification;
+use App\Notifications\Memberships\MembershipGiftSentNotification;
 use App\Services\Memberships\MembershipDiscountService;
 use App\Services\Memberships\MembershipService;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -31,6 +34,7 @@ class CreateMembershipOnPaymentCaptured implements ShouldQueue
         $metadata = $payment->metadata ?? [];
         $billingType = $metadata['billing_type'] ?? 'one_time';
         $isUpgrade = $metadata['is_upgrade'] ?? false;
+        $isGift = $metadata['is_gift'] ?? false;
         $discountCode = $metadata['discount_code'] ?? null;
         $discountAmount = $metadata['discount_amount'] ?? 0;
 
@@ -42,11 +46,39 @@ class CreateMembershipOnPaymentCaptured implements ShouldQueue
             }
         }
 
+        $membership = null;
+
+        // Handle gift memberships
+        if ($isGift && $payment->payee_id !== null) {
+            $recipient = $payment->payee;
+            $gifter = $payment->payer;
+
+            if ($recipient && $gifter) {
+                $membership = $this->membershipService->gift(
+                    $recipient,
+                    $gifter,
+                    $payable,
+                    $payment,
+                    $discountAmount
+                );
+
+                if ($membership) {
+                    // Notify the recipient about their gift (using proper gift notification)
+                    $recipient->notify(new MembershipGiftedNotification($gifter, $membership));
+
+                    // Notify the gifter that their gift was sent successfully
+                    $gifter->notify(new MembershipGiftSentNotification($recipient, $membership));
+                }
+
+                return;
+            }
+        }
+
         if ($isUpgrade && isset($metadata['current_membership_id'])) {
             $currentMembership = UserMembership::find($metadata['current_membership_id']);
 
             if ($currentMembership !== null) {
-                $this->membershipService->upgrade(
+                $membership = $this->membershipService->upgrade(
                     $payment->payer,
                     $currentMembership,
                     $payable,
@@ -55,17 +87,27 @@ class CreateMembershipOnPaymentCaptured implements ShouldQueue
                     $discountAmount
                 );
 
+                // Notify user about their upgrade
+                if ($membership) {
+                    $payment->payer->notify(new MembershipPurchased($membership));
+                }
+
                 return;
             }
         }
 
         // Regular purchase
-        $this->membershipService->purchase(
+        $membership = $this->membershipService->purchase(
             $payment->payer,
             $payable,
             $payment,
             $billingType,
             $discountAmount
         );
+
+        // Notify user about their new membership
+        if ($membership) {
+            $payment->payer->notify(new MembershipPurchased($membership));
+        }
     }
 }

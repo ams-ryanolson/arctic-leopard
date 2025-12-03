@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useInitials } from '@/hooks/use-initials';
 import { cn } from '@/lib/utils';
+import { index as notificationsIndex } from '@/routes/notifications';
+import messagesRoutes from '@/routes/messages';
 import {
     type BreadcrumbItem as BreadcrumbItemType,
     type HeaderAction,
@@ -18,34 +20,20 @@ import {
 import { Link, router, usePage } from '@inertiajs/react';
 import {
     ArrowUpRight,
+    Bell,
     ChevronDown,
-    Clapperboard,
+    MessageCircle,
+    Plus,
     Radio,
     Search,
     Sparkles,
 } from 'lucide-react';
 import { type ReactNode, useState, useCallback } from 'react';
 
-const defaultActions: HeaderAction[] = [
-    {
-        id: 'new-scene',
-        label: 'New Scene',
-        icon: Sparkles,
-        variant: 'primary',
-    },
-    {
-        id: 'go-live',
-        label: 'Go Live',
-        icon: Radio,
-        variant: 'secondary',
-    },
-    {
-        id: 'drop-media',
-        label: 'Drop Media',
-        icon: Clapperboard,
-        variant: 'ghost',
-    },
-];
+const getDefaultActions = (liveStreamingEnabled: boolean): HeaderAction[] => {
+    // Return empty array - we'll use notifications, messages, and create post instead
+    return [];
+};
 
 interface AppSidebarHeaderProps {
     breadcrumbs?: BreadcrumbItemType[];
@@ -118,14 +106,62 @@ export function AppSidebarHeader({
     supportLinks,
     toolbar,
 }: AppSidebarHeaderProps) {
-    const { auth } = usePage<SharedData>().props;
+    const { auth, features: sharedFeatures, notifications, messaging } = usePage<SharedData>().props;
+    const features = (sharedFeatures ?? {}) as Record<string, boolean>;
     const user = auth?.user;
+    const liveStreamingEnabled = features?.live_streaming ?? false;
     const getInitials = useInitials();
     const displayName = user?.display_name ?? user?.name ?? 'Scene Member';
     const initials = getInitials(displayName);
 
     const [searchQuery, setSearchQuery] = useState('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+    const unreadNotifications =
+        (typeof notifications === 'object' &&
+        notifications !== null &&
+        'unread_count' in notifications
+            ? (notifications as { unread_count?: number }).unread_count ?? 0
+            : 0) ?? 0;
+
+    const unreadMessages =
+        (typeof messaging === 'object' &&
+        messaging !== null &&
+        'unread_count' in messaging
+            ? (messaging as { unread_count?: number }).unread_count ?? 0
+            : 0) ?? 0;
+
+    const handleCreatePost = useCallback(() => {
+        const currentPath = window.location.pathname;
+        if (currentPath === '/dashboard' || currentPath === '/') {
+            // Scroll to composer on dashboard
+            const composer = document.querySelector('[data-composer]');
+            if (composer) {
+                composer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Focus the textarea if it exists
+                setTimeout(() => {
+                    const textarea = composer.querySelector('textarea');
+                    textarea?.focus();
+                }, 300);
+            }
+        } else {
+            // Navigate to dashboard and scroll to composer
+            router.visit('/dashboard', {
+                onSuccess: () => {
+                    setTimeout(() => {
+                        const composer = document.querySelector('[data-composer]');
+                        if (composer) {
+                            composer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            setTimeout(() => {
+                                const textarea = composer.querySelector('textarea');
+                                textarea?.focus();
+                            }, 300);
+                        }
+                    }, 100);
+                },
+            });
+        }
+    }, []);
 
     const joinedDisplay = user?.created_at
         ? new Date(user.created_at).toLocaleDateString(undefined, {
@@ -184,40 +220,46 @@ export function AppSidebarHeader({
                             </h1>
                         </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                        {(actions?.length ? actions : defaultActions)
-                            .slice(0, 1)
-                            .map((action) => {
-                                const Icon = action.icon;
-                                return (
-                                    <Button
-                                        key={action.id}
-                                        size="sm"
-                                        variant={
-                                            action.variant === 'ghost'
-                                                ? 'ghost'
-                                                : action.variant === 'outline'
-                                                  ? 'outline'
-                                                  : 'default'
-                                        }
-                                        className={cn(
-                                            'h-9 rounded-full text-xs font-semibold transition',
-                                            action.variant === 'primary'
-                                                ? 'bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-4 text-white shadow-[0_18px_40px_-12px_rgba(249,115,22,0.45)] hover:scale-[1.02]'
-                                                : action.variant === 'secondary'
-                                                  ? 'border-white/25 bg-white/10 px-3 text-white hover:border-white/40 hover:bg-white/20'
-                                                  : 'text-white/80 hover:bg-white/10 hover:text-white',
-                                        )}
-                                    >
-                                        {Icon && (
-                                            <Icon className="mr-1.5 size-3.5" />
-                                        )}
-                                        <span className="hidden min-[375px]:inline">
-                                            {action.label}
-                                        </span>
-                                    </Button>
-                                );
-                            })}
+                    <div className="flex items-center gap-1.5">
+                        {/* Notifications */}
+                        <Link
+                            href={notificationsIndex()}
+                            prefetch
+                            className="relative flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white/80 transition hover:bg-white/20 hover:text-white"
+                        >
+                            <Bell className="size-4" />
+                            {unreadNotifications > 0 && (
+                                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-400 px-1 text-[0.625rem] font-semibold text-black">
+                                    {unreadNotifications > 99 ? '99+' : unreadNotifications}
+                                </span>
+                            )}
+                        </Link>
+
+                        {/* Messages */}
+                        {features?.feature_messaging_enabled && (
+                            <Link
+                                href={messagesRoutes.index.url()}
+                                prefetch
+                                className="relative flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white/80 transition hover:bg-white/20 hover:text-white"
+                            >
+                                <MessageCircle className="size-4" />
+                                {unreadMessages > 0 && (
+                                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-400 px-1 text-[0.625rem] font-semibold text-black">
+                                        {unreadMessages > 99 ? '99+' : unreadMessages}
+                                    </span>
+                                )}
+                            </Link>
+                        )}
+
+                        {/* Create Post */}
+                        <Button
+                            size="sm"
+                            onClick={handleCreatePost}
+                            className="h-9 rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-3 text-xs font-semibold text-white shadow-[0_18px_40px_-12px_rgba(249,115,22,0.45)] transition hover:scale-[1.02]"
+                        >
+                            <Plus className="mr-1 size-3.5" />
+                            <span className="hidden min-[375px]:inline">Create</span>
+                        </Button>
                     </div>
                 </div>
 
@@ -251,9 +293,48 @@ export function AppSidebarHeader({
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-                        {(actions?.length ? actions : defaultActions).map(
-                            (action) => renderActionButton(action),
+                        {/* Notifications */}
+                        <Link
+                            href={notificationsIndex()}
+                            prefetch
+                            className="relative flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white/80 transition hover:bg-white/20 hover:text-white"
+                        >
+                            <Bell className="size-5" />
+                            {unreadNotifications > 0 && (
+                                <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-400 px-1.5 text-xs font-semibold text-black">
+                                    {unreadNotifications > 99 ? '99+' : unreadNotifications}
+                                </span>
+                            )}
+                        </Link>
+
+                        {/* Messages */}
+                        {features?.feature_messaging_enabled && (
+                            <Link
+                                href={messagesRoutes.index.url()}
+                                prefetch
+                                className="relative flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white/80 transition hover:bg-white/20 hover:text-white"
+                            >
+                                <MessageCircle className="size-5" />
+                                {unreadMessages > 0 && (
+                                    <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-400 px-1.5 text-xs font-semibold text-black">
+                                        {unreadMessages > 99 ? '99+' : unreadMessages}
+                                    </span>
+                                )}
+                            </Link>
                         )}
+
+                        {/* Create Post */}
+                        <Button
+                            size="lg"
+                            onClick={handleCreatePost}
+                            className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-6 text-sm font-semibold text-white shadow-[0_18px_40px_-12px_rgba(249,115,22,0.45)] transition hover:scale-[1.02]"
+                        >
+                            <Plus className="mr-2 size-4" />
+                            Create Post
+                        </Button>
+
+                        {/* Custom actions if provided */}
+                        {actions?.map((action) => renderActionButton(action))}
                     </div>
                 </div>
 

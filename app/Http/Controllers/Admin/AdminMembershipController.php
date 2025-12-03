@@ -42,7 +42,9 @@ class AdminMembershipController extends Controller
                 'currency' => $plan->currency,
                 'role_to_assign' => $plan->role_to_assign,
                 'permissions_to_grant' => $plan->permissions_to_grant,
-                'features' => $plan->features,
+                'features' => is_array($plan->features) && empty($plan->features)
+                    ? (object) []
+                    : ($plan->features ?? (object) []),
                 'is_active' => $plan->is_active,
                 'is_public' => $plan->is_public,
                 'display_order' => $plan->display_order,
@@ -106,7 +108,9 @@ class AdminMembershipController extends Controller
                 'currency' => $plan->currency,
                 'role_to_assign' => $plan->role_to_assign,
                 'permissions_to_grant' => $plan->permissions_to_grant ?? [],
-                'features' => $plan->features ?? [],
+                'features' => is_array($plan->features) && empty($plan->features)
+                    ? (object) []
+                    : ($plan->features ?? (object) []),
                 'is_active' => $plan->is_active,
                 'is_public' => $plan->is_public,
                 'display_order' => $plan->display_order,
@@ -120,7 +124,56 @@ class AdminMembershipController extends Controller
 
     public function update(UpdateMembershipPlanRequest $request, MembershipPlan $plan): RedirectResponse
     {
-        $plan->update($request->validated());
+        $validated = $request->validated();
+
+        // Get features from request - check both validated and raw input
+        $features = $request->input('features');
+
+        // Log what we received
+        \Log::info('Update request received:', [
+            'has_features_in_validated' => isset($validated['features']),
+            'has_features_in_request' => $request->has('features'),
+            'features_from_request' => $features,
+            'features_type' => $features ? gettype($features) : 'not set',
+            'features_is_array' => is_array($features),
+            'features_is_object' => is_object($features),
+            'all_validated_keys' => array_keys($validated),
+            'all_request_keys' => $request->keys(),
+        ]);
+
+        // Ensure features is always included and properly formatted
+        // Laravel casts features as 'array', so we need to ensure it's an array
+        if ($features !== null) {
+            // Convert object/associative array to array if needed
+            if (is_object($features)) {
+                $validated['features'] = (array) $features;
+            } elseif (is_array($features)) {
+                // If it's an associative array (object-like), keep it as is
+                // Laravel will handle it correctly with the 'array' cast
+                $validated['features'] = $features;
+            } else {
+                $validated['features'] = [];
+            }
+        } elseif (isset($validated['features'])) {
+            // If features is in validated, ensure it's an array
+            if (! is_array($validated['features'])) {
+                $validated['features'] = [];
+            }
+        } else {
+            // If features wasn't provided at all, keep existing features
+            $validated['features'] = $plan->features ?? [];
+        }
+
+        \Log::info('Updating membership plan with features:', [
+            'features' => $validated['features'],
+            'features_count' => is_array($validated['features']) ? count($validated['features']) : 0,
+            'features_keys' => is_array($validated['features']) ? array_keys($validated['features']) : [],
+        ]);
+
+        // Force update features explicitly to ensure it's saved
+        $plan->fill($validated);
+        $plan->features = $validated['features'];
+        $plan->save();
 
         return redirect()
             ->route('admin.memberships.index')

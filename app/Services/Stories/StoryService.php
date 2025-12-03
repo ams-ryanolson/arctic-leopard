@@ -23,7 +23,7 @@ class StoryService
      */
     public function isEnabled(): bool
     {
-        return (bool) AdminSetting::get('feature_stories_enabled', false);
+        return (bool) AdminSetting::get('feature_stories_enabled', true);
     }
 
     /**

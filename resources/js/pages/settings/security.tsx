@@ -10,7 +10,7 @@ import { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Lock, Shield } from 'lucide-react';
+import { Lock, Monitor, Shield } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -175,6 +175,44 @@ export default function Security() {
                                     </>
                                 )}
                             </Form>
+                        </div>
+                    </div>
+
+                    {/* Active Sessions Section */}
+                    <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 via-white/5 to-black/20 shadow-[0_32px_85px_-40px_rgba(59,130,246,0.45)]">
+                        <div className="pointer-events-none absolute inset-0">
+                            <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-blue-500/15 via-blue-400/5 to-transparent blur-2xl" />
+                        </div>
+                        <div className="relative space-y-6 p-6 sm:p-8">
+                            <div className="flex items-center gap-3">
+                                <div className="flex items-center justify-center rounded-xl border border-blue-400/40 bg-gradient-to-br from-blue-400/30 to-blue-500/20 p-3 shadow-[0_12px_30px_-18px_rgba(59,130,246,0.65)]">
+                                    <Monitor className="h-5 w-5 text-blue-300" />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-semibold text-white">
+                                        Active Sessions
+                                    </h2>
+                                    <p className="text-sm text-white/65">
+                                        View and manage your active sessions
+                                        across devices
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="rounded-2xl border border-white/10 bg-black/40 p-5">
+                                <p className="mb-4 text-sm leading-relaxed text-white/70">
+                                    Monitor all devices where you're currently
+                                    logged in. You can end sessions on devices
+                                    you no longer use or don't recognize.
+                                </p>
+                                <Button
+                                    asChild
+                                    className="rounded-full bg-gradient-to-r from-blue-500 to-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_12px_-4px_rgba(59,130,246,0.4)] transition-all hover:scale-[1.02] hover:shadow-[0_6px_16px_-4px_rgba(59,130,246,0.5)]"
+                                >
+                                    <Link href="/settings/security/sessions">
+                                        Manage active sessions
+                                    </Link>
+                                </Button>
+                            </div>
                         </div>
                     </div>
 

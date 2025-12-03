@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use Overtrue\LaravelLike\Traits\Likeable;
 
 class Post extends Model
@@ -31,6 +32,10 @@ class Post extends Model
 
     protected static function booted(): void
     {
+        static::creating(function (Post $post): void {
+            $post->ulid ??= (string) Str::ulid();
+        });
+
         static::deleted(function (Post $post): void {
             event(new PostDeletedEvent($post));
         });
@@ -55,6 +60,7 @@ class Post extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'ulid',
         'user_id',
         'type',
         'audience',
@@ -72,7 +78,16 @@ class Post extends Model
         'moderated_by_id',
         'moderation_notes',
         'rejection_reason',
+        'reposted_post_id',
     ];
+
+    /**
+     * Get the route key for the model.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'ulid';
+    }
 
     /**
      * @return array<string, string>
@@ -199,6 +214,36 @@ class Post extends Model
     }
 
     /**
+     * Original post if this is an amplify post.
+     *
+     * @return BelongsTo<Post, Post>
+     */
+    public function repostedPost(): BelongsTo
+    {
+        return $this->belongsTo(Post::class, 'reposted_post_id');
+    }
+
+    /**
+     * Reposts (amplifies) of this post.
+     *
+     * @return HasMany<Repost>
+     */
+    public function reposts(): HasMany
+    {
+        return $this->hasMany(Repost::class, 'post_id');
+    }
+
+    /**
+     * Users who amplified this post.
+     *
+     * @return HasMany<Repost>
+     */
+    public function amplifiedBy(): HasMany
+    {
+        return $this->hasMany(Repost::class, 'post_id')->with('user');
+    }
+
+    /**
      * Admin who moderated this post.
      *
      * @return BelongsTo<User, Post>
@@ -248,6 +293,26 @@ class Post extends Model
     public function requiresModeration(): bool
     {
         return \App\Models\AdminSetting::get('content_moderation_required', false);
+    }
+
+    /**
+     * Check if this post is an amplify post.
+     */
+    public function isAmplify(): bool
+    {
+        return $this->type === PostType::Amplify;
+    }
+
+    /**
+     * Get the original post if this is an amplify post.
+     */
+    public function originalPost(): ?Post
+    {
+        if (! $this->isAmplify()) {
+            return null;
+        }
+
+        return $this->repostedPost;
     }
 
     /**
@@ -386,6 +451,47 @@ class Post extends Model
                 $builder->where('user_id', $viewer->getKey());
             },
         ]);
+    }
+
+    /**
+     * Scope posts including viewer amplify state.
+     *
+     * @param  Builder<Post>  $query
+     * @return Builder<Post>
+     */
+    public function scopeWithAmplifyStateFor(Builder $query, ?User $viewer): Builder
+    {
+        if ($viewer === null) {
+            return $query->withExists([
+                'reposts as viewer_has_amplified' => static function (Builder $builder): void {
+                    $builder->whereRaw('1 = 0');
+                },
+            ]);
+        }
+
+        return $query->withExists([
+            'reposts as viewer_has_amplified' => static function (Builder $builder) use ($viewer): void {
+                $builder->where('user_id', $viewer->getKey());
+            },
+        ]);
+    }
+
+    /**
+     * Attach amplify status for the given viewer.
+     */
+    public function attachAmplifyStatusFor(?User $viewer): void
+    {
+        if ($viewer === null) {
+            $this->setAttribute('has_amplified', false);
+
+            return;
+        }
+
+        $hasAmplified = $this->reposts()
+            ->where('user_id', $viewer->getKey())
+            ->exists();
+
+        $this->setAttribute('has_amplified', $hasAmplified);
     }
 
     /**

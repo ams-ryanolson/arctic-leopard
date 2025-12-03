@@ -61,6 +61,11 @@ class TimelineFanOutJob implements ShouldQueue
             return;
         }
 
+        // Skip fan-out for amplify posts (they don't go to circles/followers)
+        if ($post->type === \App\Enums\PostType::Amplify) {
+            return;
+        }
+
         $shouldDeliverToFollowers = in_array($audience, [PostAudience::Public, PostAudience::Followers], true);
 
         if ($shouldDeliverToFollowers) {

@@ -1,13 +1,30 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import OnboardingLayout from '@/layouts/onboarding-layout';
 import onboardingRoutes from '@/routes/onboarding';
 import { ArrowRight, ShieldCheck, Sparkles, Users } from 'lucide-react';
+import { LocationModal } from '@/components/onboarding/location-modal';
+import type { SharedData } from '@/types';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Real Kink Men';
 
 export default function OnboardingStart() {
+    const { auth } = usePage<SharedData>().props;
+    const user = auth.user;
+    const [showLocationModal, setShowLocationModal] = useState(false);
+
+    // Check if user is missing location coordinates on mount
+    useEffect(() => {
+        if (
+            user &&
+            (!user.location_latitude || !user.location_longitude)
+        ) {
+            setShowLocationModal(true);
+        }
+    }, [user]);
+
     return (
         <OnboardingLayout
             currentStep="welcome"
@@ -123,6 +140,20 @@ export default function OnboardingStart() {
                     </div>
                 </div>
             </div>
+
+            {user && (
+                <LocationModal
+                    open={showLocationModal}
+                    onOpenChange={setShowLocationModal}
+                    user={{
+                        location_latitude: (user as any).location_latitude,
+                        location_longitude: (user as any).location_longitude,
+                        location_city: user.location_city,
+                        location_region: user.location_region,
+                        location_country: user.location_country,
+                    }}
+                />
+            )}
         </OnboardingLayout>
     );
 }

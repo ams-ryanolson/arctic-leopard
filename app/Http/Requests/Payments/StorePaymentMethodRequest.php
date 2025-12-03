@@ -18,6 +18,11 @@ class StorePaymentMethodRequest extends FormRequest
             'gateway' => ['nullable', 'string', 'in:ccbill'],
             'is_default' => ['boolean'],
             'billing_address' => ['nullable', 'array'],
+            // Card details - required for CCBill since their API doesn't return card info
+            'card_last_four' => ['nullable', 'string', 'size:4', 'regex:/^\d{4}$/'],
+            'card_brand' => ['nullable', 'string', 'max:50'],
+            'card_exp_month' => ['nullable', 'string', 'size:2', 'regex:/^(0[1-9]|1[0-2])$/'],
+            'card_exp_year' => ['nullable', 'string', 'size:4', 'regex:/^\d{4}$/'],
         ];
     }
 

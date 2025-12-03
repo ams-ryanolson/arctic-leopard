@@ -106,4 +106,34 @@ class SearchController extends Controller
             'hashtags' => SearchResultResource::collection($results['hashtags'])->resolve($request),
         ]);
     }
+
+    /**
+     * Search mentions for composer autocomplete.
+     */
+    public function mentions(Request $request): JsonResponse
+    {
+        $query = $request->string('q')->toString();
+        $user = $request->user();
+
+        $results = $this->searchService->searchMentions($query, $user, 8);
+
+        return response()->json([
+            'data' => SearchResultResource::collection($results)->resolve($request),
+        ]);
+    }
+
+    /**
+     * Search hashtags for composer autocomplete.
+     */
+    public function hashtags(Request $request): JsonResponse
+    {
+        $query = $request->string('q')->toString();
+        $user = $request->user();
+
+        $results = $this->searchService->searchHashtagsForComposer($query, $user, 8);
+
+        return response()->json([
+            'data' => SearchResultResource::collection($results)->resolve($request),
+        ]);
+    }
 }

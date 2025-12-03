@@ -24,7 +24,10 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withBroadcasting(__DIR__.'/../routes/channels.php')
+    ->withBroadcasting(
+        __DIR__.'/../routes/channels.php',
+        ['prefix' => '', 'middleware' => ['web']],
+    )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
         $middleware->alias([
@@ -68,6 +71,11 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         $exceptions->respond(function (Response $response, \Throwable $_exception, Request $request) use ($renderNotFound) {
+            // Allow broadcasting routes to handle their own errors
+            if ($request->is('broadcasting/*')) {
+                return $response;
+            }
+
             if ($request->expectsJson()) {
                 return $response;
             }

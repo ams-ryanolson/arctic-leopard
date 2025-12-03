@@ -19,6 +19,9 @@ class UpdateCoordinatesRequest extends FormRequest
         return [
             'location_latitude' => ['required', 'numeric', 'between:-90,90'],
             'location_longitude' => ['required', 'numeric', 'between:-180,180'],
+            'location_city' => ['nullable', 'string', 'max:255'],
+            'location_region' => ['nullable', 'string', 'max:255'],
+            'location_country' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

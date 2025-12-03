@@ -15,7 +15,7 @@ class AdPolicy
 
     public function view(User $user, Ad $ad): bool
     {
-        if ($user->can('manage ads')) {
+        if ($user->can('manage ad inventory')) {
             return true;
         }
 
@@ -26,12 +26,12 @@ class AdPolicy
     public function create(User $user): bool
     {
         // Authenticated users can create ads (for self-serve) or admins
-        return $user->can('manage ads') || $user !== null;
+        return $user->can('manage ad inventory') || $user !== null;
     }
 
     public function update(User $user, Ad $ad): bool
     {
-        if ($user->can('manage ads')) {
+        if ($user->can('manage ad inventory')) {
             return true;
         }
 
@@ -45,7 +45,7 @@ class AdPolicy
 
     public function delete(User $user, Ad $ad): bool
     {
-        if ($user->can('manage ads')) {
+        if ($user->can('manage ad inventory')) {
             return true;
         }
 

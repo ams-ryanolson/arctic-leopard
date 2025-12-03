@@ -26,11 +26,6 @@ class ToastPushed implements ShouldBroadcast
         return new PrivateChannel(sprintf('users.%d.toasts', $this->user->getKey()));
     }
 
-    public function broadcastQueue(): string
-    {
-        return 'notifications';
-    }
-
     public function broadcastWith(): array
     {
         return $this->payload->toArray();

@@ -30,6 +30,7 @@ type PageProps = {
         has_more: boolean;
         oldest_id?: number | null;
     };
+    showSettings?: boolean;
     viewer: {
         id: number;
         display_name?: string | null;
@@ -44,6 +45,7 @@ export default function MessagesIndex() {
         activeConversation: activeProp,
         messages: messagesProp,
         messagesMeta,
+        showSettings = false,
         viewer,
     } = usePage<PageProps>().props;
 
@@ -64,7 +66,6 @@ export default function MessagesIndex() {
     const {
         threads,
         selectedConversationId,
-        showConversationView,
         messages,
         replyTo,
         expandedReactionsMessageId,
@@ -76,7 +77,6 @@ export default function MessagesIndex() {
         keyboardHeight,
         currentConversation,
         setSelectedConversationId,
-        setShowConversationView,
         setMessages,
         setReplyTo,
         setExpandedReactionsMessageId,
@@ -115,13 +115,13 @@ export default function MessagesIndex() {
 
     const markConversationRead = useCallback(
         async (messageId?: number) => {
-            if (!selectedConversationId) {
+            if (!currentConversation?.ulid) {
                 return;
             }
 
             try {
                 await http.post(
-                    `/api/conversations/${selectedConversationId}/read`,
+                    `/api/conversations/${currentConversation.ulid}/read`,
                     {
                         message_id: messageId ?? null,
                     },
@@ -141,7 +141,7 @@ export default function MessagesIndex() {
                 console.error('Unable to mark conversation read', error);
             }
         },
-        [selectedConversationId, updateThreads],
+        [currentConversation?.ulid, selectedConversationId, updateThreads],
     );
 
     // Mark conversation as read when messages change
@@ -157,103 +157,48 @@ export default function MessagesIndex() {
         );
     }, [markConversationRead, messages, selectedConversationId]);
 
-    // Use conversation channel hook
-    const { presenceMembers, sendTypingSignal } = useConversationChannel({
-        selectedConversationId,
-        viewerId: viewer.id,
-        viewerName: viewer.display_name ?? viewer.username ?? 'You',
-        onMessageReceived: useCallback(
-            (normalisedMessage: Message) => {
-                setMessages((previous) => {
-                    const exists = previous.some(
-                        (item) => Number(item.id) === Number(normalisedMessage.id),
-                    );
-
-                    if (exists) {
-                        return previous;
-                    }
-
-                    return [...previous, normalisedMessage].sort(
-                        (a, b) => Number(a.sequence) - Number(b.sequence),
-                    );
-                });
-            },
-            [setMessages],
-        ),
-        onMessageDeleted: useCallback(
-            (messageId: number, deletedAt: string | null) => {
-                setMessages((previous) =>
-                    previous.map((message) =>
-                        Number(message.id) === messageId
-                            ? {
-                                  ...message,
-                                  deleted_at: deletedAt,
-                              }
-                            : message,
-                    ),
-                );
-            },
-            [setMessages],
-        ),
-        onThreadUpdate: updateThreads,
-        onMarkRead: markConversationRead,
-        setTypingUsers,
-        typingTimeoutsRef,
-        typingUsersRef,
-    });
-
     // Use history navigation hook
-    const { openConversation, backToList } = useHistoryNavigation({
-        selectedConversationId,
-        onConversationChange: useCallback(
-            (id: number | null) => {
-                setSelectedConversationId(id);
-                setReplyTo(null);
-                setExpandedReactionsMessageId(null);
-            },
-            [setSelectedConversationId, setReplyTo, setExpandedReactionsMessageId],
-        ),
-        onViewChange: setShowConversationView,
-        onMessagesLoaded: useCallback(
-            (messages: Message[], meta: { has_more: boolean; oldest_id?: number | null }) => {
-                setMessages(messages);
-                setHasMoreMessages(meta.has_more);
-                setOldestMessageId(
-                    meta.oldest_id !== undefined && meta.oldest_id !== null
-                        ? normalizeNumeric(meta.oldest_id)
-                        : null,
-                );
-            },
-            [setMessages, setHasMoreMessages, setOldestMessageId],
-        ),
-    });
+    const { openConversation, backToList } = useHistoryNavigation();
 
     const handleOpenConversation = useCallback(
-        (threadId: number) => {
-            if (threadId === selectedConversationId) {
+        (threadUlid: string) => {
+            // Find thread by ULID to get numeric ID for internal operations
+            const thread = threads.find((t) => t.ulid === threadUlid);
+            if (!thread) {
+                return;
+            }
+
+            const threadId = thread.id;
+            // Allow navigation even if same conversation when settings is open (to close settings)
+            if (threadId === selectedConversationId && !showSettings) {
                 return;
             }
 
             setReplyTo(null);
             setExpandedReactionsMessageId(null);
 
-            // Set selected conversation ID immediately for mobile view switching
+            // Set selected conversation ID immediately
             setSelectedConversationId(threadId);
 
-            // On mobile, switch to conversation view IMMEDIATELY when user clicks
-            if (isMobile) {
-                // Set view state FIRST, before any async operations
-                setShowConversationView(true);
+            // Navigate using ULID in URL (route change will handle view switching)
+            // If coming from settings, don't preserve state to ensure showSettings is cleared
+            if (showSettings) {
+                router.visit(
+                    messagesRoutes.show({ conversation: threadUlid }),
+                    {
+                        preserveScroll: true,
+                        preserveState: false, // Force full reload to clear showSettings
+                    },
+                );
+            } else {
+                openConversation(threadUlid);
             }
-
-            // Then trigger the navigation/reload
-            openConversation(threadId);
         },
         [
+            threads,
             selectedConversationId,
-            isMobile,
+            showSettings,
             setSelectedConversationId,
-            setShowConversationView,
             setReplyTo,
             setExpandedReactionsMessageId,
             openConversation,
@@ -264,10 +209,10 @@ export default function MessagesIndex() {
         if (!isMobile) {
             return;
         }
-        setSelectedConversationId(null);
-        setShowConversationView(false);
+        // Just navigate back - no need to clear state manually
+        // The route change will handle the view switch
         backToList();
-    }, [isMobile, setSelectedConversationId, setShowConversationView, backToList]);
+    }, [isMobile, backToList]);
 
     const handleRefreshConversations = useCallback(() => {
         router.reload({
@@ -361,9 +306,78 @@ export default function MessagesIndex() {
         [setMessages],
     );
 
+    // Handle message deletion
+    const handleMessageDeleted = useCallback(
+        (messageId: number) => {
+            setMessages((previous) =>
+                previous.filter((message) => Number(message.id) !== messageId),
+            );
+        },
+        [setMessages],
+    );
+
+    // Handle read receipts
+    const handleMarkRead = useCallback(
+        (userId: number, messageId?: number) => {
+            // Update UI to show read status if needed
+            // For now, we'll just log it - you can add read receipt UI later
+            if (import.meta.env.DEV) {
+                console.debug('[messaging] Message read', { userId, messageId });
+            }
+        },
+        [],
+    );
+
+    // Debug: Log the conversation ULID being passed
+    useEffect(() => {
+        console.debug('[messaging] Current conversation for channel:', {
+            currentConversation,
+            ulid: currentConversation?.ulid,
+            ulidType: typeof currentConversation?.ulid,
+        });
+    }, [currentConversation]);
+
+    // Use conversation channel hook (must be after all handlers are defined)
+    const { presenceMembers, sendTypingSignal } = useConversationChannel({
+        selectedConversationUlid: currentConversation?.ulid ?? null,
+        viewerId: viewer.id,
+        viewerName: viewer.display_name ?? viewer.username ?? 'User',
+        onMessageReceived: handleMessageSent,
+        onMessageDeleted: handleMessageDeleted,
+        onReactionUpdated: handleReactionChange,
+        onMarkRead: handleMarkRead,
+        onThreadUpdate: (conversationId, lastMessage) => {
+            const normalisedMessage = normalizeMessage(lastMessage as Message);
+            updateThreads((previous) => {
+                const filtered = previous.filter(
+                    (thread) => Number(thread.id) !== conversationId,
+                );
+                const currentThread = previous.find(
+                    (thread) => Number(thread.id) === conversationId,
+                );
+
+                if (!currentThread) {
+                    return previous;
+                }
+
+                const updatedThread: Thread = {
+                    ...currentThread,
+                    last_message: normalisedMessage,
+                    last_message_at:
+                        normalisedMessage.created_at ??
+                        normalisedMessage.updated_at ??
+                        new Date().toISOString(),
+                };
+
+                return [updatedThread, ...filtered];
+            });
+        },
+        setTypingUsers,
+    });
+
     const handleLoadOlder = useCallback(async () => {
         if (
-            !selectedConversationId ||
+            !currentConversation?.ulid ||
             !hasMoreMessages ||
             isLoadingOlder ||
             !oldestMessageId
@@ -376,7 +390,7 @@ export default function MessagesIndex() {
 
         try {
             const response = await http.get(
-                `/api/conversations/${selectedConversationId}/messages`,
+                `/api/conversations/${currentConversation.ulid}/messages`,
                 {
                     params: {
                         before: oldestMessageId,
@@ -416,7 +430,7 @@ export default function MessagesIndex() {
             setIsLoadingOlder(false);
         }
     }, [
-        selectedConversationId,
+        currentConversation?.ulid,
         hasMoreMessages,
         isLoadingOlder,
         oldestMessageId,
@@ -512,7 +526,7 @@ export default function MessagesIndex() {
     return (
         <AppLayout
             hideHeader
-            contentClassName="flex h-full min-h-0 overflow-hidden !max-w-none !mx-0 !px-0 !pb-24 !pt-0 md:!px-0 sm:!pb-16"
+            contentClassName="flex h-full min-h-0 overflow-hidden !max-w-none !mx-0 !px-0 !pb-0 !pt-0"
             breadcrumbs={[
                 { title: 'Home', href: '/dashboard' },
                 { title: 'Messages', href: messagesRoutes.index.url() },
@@ -521,12 +535,11 @@ export default function MessagesIndex() {
             <Head title="Messages · Real Kink Men" />
 
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-                <div className="flex min-h-0 flex-1 flex-col gap-0 overflow-hidden p-4 lg:flex-row lg:gap-6">
+                <div className="flex min-h-0 flex-1 flex-col gap-0 overflow-hidden lg:flex-row lg:gap-0">
                     {isMobile ? (
                         <MobileMessagingView
                             threads={filteredThreads}
                             selectedConversationId={selectedConversationId}
-                            showConversationView={showConversationView}
                             currentConversation={currentConversation}
                             messages={messages}
                             presenceMembers={presenceMembers}
@@ -538,6 +551,7 @@ export default function MessagesIndex() {
                             isLoadingOlder={isLoadingOlder}
                             keyboardHeight={keyboardHeight}
                             scrollContainerRef={scrollContainerRef as React.RefObject<HTMLDivElement | null>}
+                            showSettings={showSettings}
                             viewer={viewer}
                             onSelectConversation={handleOpenConversation}
                             onRefresh={handleRefreshConversations}
@@ -573,6 +587,7 @@ export default function MessagesIndex() {
                             isLoadingOlder={isLoadingOlder}
                             keyboardHeight={keyboardHeight}
                             scrollContainerRef={scrollContainerRef as React.RefObject<HTMLDivElement | null>}
+                            showSettings={showSettings}
                             viewer={viewer}
                             onSelectConversation={handleOpenConversation}
                             onRefresh={handleRefreshConversations}

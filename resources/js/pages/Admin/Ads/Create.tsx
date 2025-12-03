@@ -6,6 +6,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -16,8 +17,9 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
-import { Form, Head, router, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import { Plus, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 
 type CreativeFormData = {
     placement: string;
@@ -84,6 +86,8 @@ const STATUSES = [
 ];
 
 export default function AdminAdsCreate() {
+    const [isAdminAd, setIsAdminAd] = useState(false);
+
     const { data, setData, post, processing, errors } = useForm<AdFormData>({
         name: '',
         campaign_id: '',
@@ -151,23 +155,35 @@ export default function AdminAdsCreate() {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
+        console.log('Submitting ad creation form', { data, isAdminAd });
+
         const payload = {
             ...data,
             campaign_id: data.campaign_id
                 ? Number.parseInt(data.campaign_id, 10)
                 : null,
-            budget_amount: Number.parseInt(data.budget_amount, 10),
-            pricing_rate: Number.parseInt(data.pricing_rate, 10),
-            max_impressions: data.max_impressions
+            budget_amount: data.budget_amount && data.budget_amount.trim() !== ''
+                ? Number.parseInt(data.budget_amount, 10)
+                : null,
+            budget_currency: data.budget_amount && data.budget_amount.trim() !== ''
+                ? data.budget_currency
+                : null,
+            pricing_model: data.pricing_model && data.pricing_model.trim() !== ''
+                ? data.pricing_model
+                : null,
+            pricing_rate: data.pricing_rate && data.pricing_rate.trim() !== ''
+                ? Number.parseInt(data.pricing_rate, 10)
+                : null,
+            max_impressions: data.max_impressions && data.max_impressions.trim() !== ''
                 ? Number.parseInt(data.max_impressions, 10)
                 : null,
-            max_clicks: data.max_clicks
+            max_clicks: data.max_clicks && data.max_clicks.trim() !== ''
                 ? Number.parseInt(data.max_clicks, 10)
                 : null,
-            daily_impression_cap: data.daily_impression_cap
+            daily_impression_cap: data.daily_impression_cap && data.daily_impression_cap.trim() !== ''
                 ? Number.parseInt(data.daily_impression_cap, 10)
                 : null,
-            daily_click_cap: data.daily_click_cap
+            daily_click_cap: data.daily_click_cap && data.daily_click_cap.trim() !== ''
                 ? Number.parseInt(data.daily_click_cap, 10)
                 : null,
             creatives: data.creatives.map((creative) => ({
@@ -176,10 +192,19 @@ export default function AdminAdsCreate() {
             })),
         };
 
+        console.log('Payload to send:', payload);
+
         post('/admin/ads', payload, {
             preserveScroll: true,
             onSuccess: () => {
+                console.log('Ad created successfully');
                 router.visit('/admin/ads');
+            },
+            onError: (errors) => {
+                console.error('Ad creation errors:', errors);
+            },
+            onFinish: () => {
+                console.log('Ad creation request finished');
             },
         });
     };
@@ -205,7 +230,7 @@ export default function AdminAdsCreate() {
                     </p>
                 </header>
 
-                <Form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
                     <Card className="border-white/10 bg-white/5">
                         <CardHeader>
                             <CardTitle>Basic Information</CardTitle>
@@ -259,15 +284,17 @@ export default function AdminAdsCreate() {
 
                                 <div className="space-y-2">
                                     <Label htmlFor="budget_currency">
-                                        Currency *
+                                        Currency
+                                        {!isAdminAd && ' *'}
                                     </Label>
                                     <Select
                                         value={data.budget_currency}
                                         onValueChange={(value) =>
                                             setData('budget_currency', value)
                                         }
+                                        disabled={isAdminAd}
                                     >
-                                        <SelectTrigger className="border-white/10 bg-black/30 text-white">
+                                        <SelectTrigger className="border-white/10 bg-black/30 text-white disabled:opacity-50">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -327,19 +354,41 @@ export default function AdminAdsCreate() {
                         <CardHeader>
                             <CardTitle>Budget & Pricing</CardTitle>
                             <CardDescription className="text-white/60">
-                                Set your budget and pricing model.
+                                Set your budget and pricing model. Leave empty for admin/promotional ads with unlimited impressions.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
+                            <div className="flex items-center space-x-2 rounded-lg border border-white/10 bg-white/5 p-4">
+                                <Checkbox
+                                    id="is_admin_ad"
+                                    checked={isAdminAd}
+                                    onCheckedChange={(checked) => {
+                                        setIsAdminAd(checked === true);
+                                        if (checked) {
+                                            setData('budget_amount', '');
+                                            setData('pricing_model', '');
+                                            setData('pricing_rate', '');
+                                        }
+                                    }}
+                                />
+                                <Label
+                                    htmlFor="is_admin_ad"
+                                    className="text-sm font-normal cursor-pointer"
+                                >
+                                    Admin/Promotional Ad (no budget, unlimited impressions)
+                                </Label>
+                            </div>
+
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div className="space-y-2">
                                     <Label htmlFor="budget_amount">
-                                        Budget Amount (cents) *
+                                        Budget Amount (cents)
+                                        {!isAdminAd && ' *'}
                                     </Label>
                                     <Input
                                         id="budget_amount"
                                         type="number"
-                                        min="1"
+                                        min="0"
                                         value={data.budget_amount}
                                         onChange={(e) =>
                                             setData(
@@ -348,7 +397,8 @@ export default function AdminAdsCreate() {
                                             )
                                         }
                                         placeholder="10000"
-                                        className="border-white/10 bg-black/30 text-white"
+                                        disabled={isAdminAd}
+                                        className="border-white/10 bg-black/30 text-white disabled:opacity-50"
                                     />
                                     {errors.budget_amount && (
                                         <p className="text-sm text-rose-400">
@@ -356,22 +406,25 @@ export default function AdminAdsCreate() {
                                         </p>
                                     )}
                                     <p className="text-xs text-white/50">
-                                        Enter amount in cents (e.g., 10000 =
-                                        $100.00)
+                                        {isAdminAd
+                                            ? 'Leave empty for unlimited budget'
+                                            : 'Enter amount in cents (e.g., 10000 = $100.00)'}
                                     </p>
                                 </div>
 
                                 <div className="space-y-2">
                                     <Label htmlFor="pricing_model">
-                                        Pricing Model *
+                                        Pricing Model
+                                        {!isAdminAd && ' *'}
                                     </Label>
                                     <Select
                                         value={data.pricing_model}
                                         onValueChange={(value) =>
                                             setData('pricing_model', value)
                                         }
+                                        disabled={isAdminAd}
                                     >
-                                        <SelectTrigger className="border-white/10 bg-black/30 text-white">
+                                        <SelectTrigger className="border-white/10 bg-black/30 text-white disabled:opacity-50">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -390,18 +443,20 @@ export default function AdminAdsCreate() {
 
                             <div className="space-y-2">
                                 <Label htmlFor="pricing_rate">
-                                    Pricing Rate (cents) *
+                                    Pricing Rate (cents)
+                                    {!isAdminAd && ' *'}
                                 </Label>
                                 <Input
                                     id="pricing_rate"
                                     type="number"
-                                    min="1"
+                                    min="0"
                                     value={data.pricing_rate}
+                                    disabled={isAdminAd}
                                     onChange={(e) =>
                                         setData('pricing_rate', e.target.value)
                                     }
                                     placeholder="500"
-                                    className="border-white/10 bg-black/30 text-white"
+                                    className="border-white/10 bg-black/30 text-white disabled:opacity-50"
                                 />
                                 {errors.pricing_rate && (
                                     <p className="text-sm text-rose-400">
@@ -781,7 +836,7 @@ export default function AdminAdsCreate() {
                             {processing ? 'Creating...' : 'Create Ad'}
                         </Button>
                     </div>
-                </Form>
+                </form>
             </div>
         </AppLayout>
     );

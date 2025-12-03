@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Settings\AccountController;
 use App\Http\Controllers\Settings\DataExportController;
+use App\Http\Controllers\Settings\MembershipController;
 use App\Http\Controllers\Settings\NotificationsController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\PaymentMethodController;
@@ -36,6 +37,9 @@ Route::middleware('auth')->group(function () {
         ->name('settings.security.password.update');
     Route::get('settings/security/two-factor', [TwoFactorAuthenticationController::class, 'show'])
         ->name('settings.security.two-factor.show');
+    Route::get('settings/security/sessions', [\App\Http\Controllers\Settings\SessionsController::class, 'index'])->name('settings.security.sessions');
+    Route::delete('settings/security/sessions/{session}', [\App\Http\Controllers\Settings\SessionsController::class, 'destroy'])->name('settings.security.sessions.destroy');
+    Route::delete('settings/security/sessions', [\App\Http\Controllers\Settings\SessionsController::class, 'destroyAll'])->name('settings.security.sessions.destroy-all');
 
     // Notifications Settings
     Route::get('settings/notifications', [NotificationsController::class, 'edit'])->name('settings.notifications.edit');
@@ -46,6 +50,9 @@ Route::middleware('auth')->group(function () {
 
     // Payment Methods Settings
     Route::get('settings/payment-methods', [PaymentMethodController::class, 'index'])->name('settings.payment-methods.index');
+
+    // Membership Settings
+    Route::get('settings/membership', [MembershipController::class, 'index'])->name('settings.membership.index');
 
     // Data & Account Settings
     Route::get('settings/account', [AccountController::class, 'edit'])->name('settings.account.edit');

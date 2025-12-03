@@ -182,7 +182,12 @@ class Ad extends Model
                 $q->whereNull('end_date')
                     ->orWhere('end_date', '>=', $now);
             })
-            ->whereColumn('spent_amount', '<', 'budget_amount')
+            ->where(function (Builder $q): void {
+                // For ads with budget, check that spent < budget
+                // For ads without budget (admin/promotional), allow unlimited
+                $q->whereNull('budget_amount')
+                    ->orWhereColumn('spent_amount', '<', 'budget_amount');
+            })
             ->where(function (Builder $q): void {
                 $q->whereNull('max_impressions')
                     ->orWhereRaw('(SELECT COUNT(*) FROM ad_impressions WHERE ad_impressions.ad_id = ads.id) < ads.max_impressions');

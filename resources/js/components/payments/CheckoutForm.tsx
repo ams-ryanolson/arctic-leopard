@@ -5,7 +5,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { CCBillCardForm } from '@/components/payments/CCBillCardForm';
+import { CCBillCardForm, type CardDetails } from '@/components/payments/CCBillCardForm';
 import { CheckoutSummary } from '@/components/payments/CheckoutSummary';
 import { PaymentMethodSelector } from '@/components/payments/PaymentMethodSelector';
 import { usePaymentMethods } from '@/hooks/use-payment-methods';
@@ -69,12 +69,16 @@ export function CheckoutForm({
         onPaymentMethodSelected(null);
     };
 
-    const handleTokenCreated = async (tokenId: string, is3DS: boolean) => {
+    const handleTokenCreated = async (tokenId: string, is3DS: boolean, cardDetails: CardDetails) => {
         try {
             const paymentMethod = await vault({
                 provider_token_id: tokenId,
                 gateway,
                 is_default: paymentMethods.length === 0,
+                card_last_four: cardDetails.lastFour,
+                card_brand: cardDetails.brand,
+                card_exp_month: cardDetails.expMonth,
+                card_exp_year: cardDetails.expYear,
             });
 
             setShowNewCardForm(false);

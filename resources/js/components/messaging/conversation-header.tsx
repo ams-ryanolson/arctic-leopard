@@ -23,46 +23,58 @@ export default function ConversationHeader({
         .map((participant) => participant.display_name ?? participant.username)
         .join(' • ');
 
+    // Get first participant for avatar (on mobile we show simpler header)
+    const firstParticipant = participants[0];
+
     return (
-        <div className="border-b border-white/10 bg-white/2.5 px-4 py-3 backdrop-blur-sm sm:px-6 sm:py-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex min-w-0 flex-1 items-center gap-3">
-                    {showBackButton && onBack && (
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={onBack}
-                            className="flex-shrink-0 rounded-full border border-white/10 bg-white/5 p-2 text-white/70 hover:border-white/30 hover:bg-white/10 hover:text-white lg:hidden"
-                            aria-label="Back to conversations"
-                        >
-                            <ArrowLeft className="size-4" />
-                        </Button>
+        <div className="px-3 py-2.5 sm:px-4 sm:py-3">
+            <div className="flex items-center gap-3">
+                {showBackButton && onBack && (
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onBack}
+                        className="flex-shrink-0 rounded-full p-2 text-white/70 hover:bg-white/10 hover:text-white lg:hidden"
+                        aria-label="Back to conversations"
+                    >
+                        <ArrowLeft className="size-5" />
+                    </Button>
+                )}
+                {/* Avatar - show first participant's avatar */}
+                {firstParticipant && (
+                    <Avatar className="size-9 border border-white/10">
+                        <AvatarImage
+                            src={firstParticipant.avatar_url ?? undefined}
+                            alt={firstParticipant.display_name ?? firstParticipant.username ?? 'User'}
+                        />
+                        <AvatarFallback className="bg-gradient-to-br from-amber-500/20 to-amber-600/30 text-xs font-semibold text-amber-200">
+                            {(firstParticipant.display_name ?? firstParticipant.username ?? '??')
+                                .slice(0, 2)
+                                .toUpperCase()}
+                        </AvatarFallback>
+                    </Avatar>
+                )}
+                <div className="flex min-w-0 flex-1 flex-col">
+                    <h2 className="truncate text-base font-semibold text-white">
+                        {conversation.title}
+                    </h2>
+                    {presenceMembers.length > 0 ? (
+                        <span className="flex items-center gap-1.5 text-xs text-emerald-400">
+                            <span className="relative flex h-1.5 w-1.5">
+                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex h-full w-full rounded-full bg-emerald-400"></span>
+                            </span>
+                            Active now
+                        </span>
+                    ) : (
+                        <p className="truncate text-xs text-white/60">
+                            {participantNames}
+                        </p>
                     )}
-                    <div className="flex min-w-0 flex-1 flex-col">
-                        <h2 className="truncate text-base font-semibold text-white sm:text-lg">
-                            {conversation.title}
-                        </h2>
-                        <div className="flex items-center gap-2">
-                            <p className="truncate text-xs text-white/60">
-                                {participantNames}
-                            </p>
-                            {presenceMembers.length > 0 && (
-                                <>
-                                    <span className="text-white/30">•</span>
-                                    <span className="flex items-center gap-1 text-xs text-emerald-400">
-                                        <span className="relative flex h-2 w-2">
-                                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                                            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400"></span>
-                                        </span>
-                                        {presenceMembers.length} online
-                                    </span>
-                                </>
-                            )}
-                        </div>
-                    </div>
                 </div>
-                {presenceMembers.length > 0 && (
-                    <div className="flex shrink-0 items-center gap-2">
+                {/* Desktop: Show presence avatars */}
+                {!showBackButton && presenceMembers.length > 0 && (
+                    <div className="hidden shrink-0 items-center gap-2 sm:flex">
                         {presenceMembers.slice(0, 5).map((member) => {
                             const initials = (member.name ?? '??')
                                 .slice(0, 2)
@@ -73,10 +85,7 @@ export default function ConversationHeader({
                                     <Avatar className="border-2 border-white/20 ring-2 ring-black/40">
                                         <AvatarImage
                                             src={(member.avatar_url || member.avatar) ?? undefined}
-                                            alt={
-                                                member.name ??
-                                                'Active participant'
-                                            }
+                                            alt={member.name ?? 'Active participant'}
                                         />
                                         <AvatarFallback className="bg-gradient-to-br from-amber-500/20 to-amber-600/30 text-xs font-semibold text-amber-200">
                                             {initials}

@@ -21,6 +21,7 @@ type EchoChannel = Channel & {
         event: string,
         callback: (data: unknown) => void,
     ): EchoChannel;
+    stopListeningForWhisper?(event: string): EchoChannel;
     whisper?(event: string, data: unknown): EchoChannel;
     stopListening?(event: string): EchoChannel;
 };
@@ -109,10 +110,24 @@ export function ensureEcho(): Echo {
                 )
                     .then((response) => callback(false, response.data))
                     .catch((error: unknown) => {
-                        console.error(
-                            '[broadcasting] Authorization failed',
-                            error,
-                        );
+                        if (import.meta.env.DEV && typeof document !== 'undefined') {
+                            console.error(
+                                '[broadcasting] Authorization failed',
+                                error,
+                            );
+                            if (error && typeof error === 'object' && 'response' in error) {
+                                const axiosError = error as {
+                                    response?: {
+                                        status?: number;
+                                        data?: unknown;
+                                    };
+                                };
+                                console.error('[broadcasting] Error details', {
+                                    status: axiosError.response?.status,
+                                    data: axiosError.response?.data,
+                                });
+                            }
+                        }
                         callback(
                             true,
                             error instanceof Error

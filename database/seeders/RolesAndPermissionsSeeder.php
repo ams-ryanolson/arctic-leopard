@@ -67,6 +67,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'send tips' => 'Send tips to creators and other users',
             'access paywalled content' => 'Access paywalled content that the user has purchased or subscribed to',
             'hide ads' => 'Hide advertisements from the user interface',
+            'boost radar' => 'Boost profile visibility in Radar for increased exposure',
             'promote to admin' => 'Assign or unassign admin roles to users (Super Admin only)',
         ]);
 
@@ -160,7 +161,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 'send tips',
                 'access paywalled content',
             ],
-            'Premium' => [
+            'Bronze' => [
                 'create posts',
                 'pin posts',
                 'upload media',
@@ -169,6 +170,29 @@ class RolesAndPermissionsSeeder extends Seeder
                 'send tips',
                 'access paywalled content',
                 'hide ads',
+                'boost radar',
+            ],
+            'Silver' => [
+                'create posts',
+                'pin posts',
+                'upload media',
+                'manage polls',
+                'view analytics',
+                'send tips',
+                'access paywalled content',
+                'hide ads',
+                'boost radar',
+            ],
+            'Gold' => [
+                'create posts',
+                'pin posts',
+                'upload media',
+                'manage polls',
+                'view analytics',
+                'send tips',
+                'access paywalled content',
+                'hide ads',
+                'boost radar',
             ],
             'User' => [
                 'create posts',
@@ -179,12 +203,33 @@ class RolesAndPermissionsSeeder extends Seeder
             ],
         ]);
 
-        $roles->each(function (array $rolePermissions, string $roleName) use ($permissionModels): void {
+        // Define boost limits for each role
+        $boostLimits = [
+            'Super Admin' => 3,
+            'Admin' => 3,
+            'Moderator' => 3,
+            'Creator' => 3,
+            'Bronze' => 2,
+            'Silver' => 2,
+            'Gold' => 2,
+            'User' => 1,
+        ];
+
+        $roles->each(function (array $rolePermissions, string $roleName) use ($permissionModels, $boostLimits): void {
             /** @var \Spatie\Permission\Models\Role $role */
             $role = Role::query()->firstOrCreate([
                 'name' => $roleName,
                 'guard_name' => 'web',
+            ], [
+                'boost_radar_daily_limit' => $boostLimits[$roleName] ?? 1,
             ]);
+
+            // Update boost limit if role already exists
+            if ($role->wasRecentlyCreated === false) {
+                $role->update([
+                    'boost_radar_daily_limit' => $boostLimits[$roleName] ?? 1,
+                ]);
+            }
 
             if ($roleName === 'Super Admin') {
                 $role->syncPermissions($permissionModels->values());

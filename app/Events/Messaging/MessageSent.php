@@ -6,11 +6,11 @@ use App\Http\Resources\MessageResource;
 use App\Models\Message;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class MessageSent implements ShouldBroadcast
+class MessageSent implements ShouldBroadcastNow
 {
     use Dispatchable;
     use InteractsWithSockets;
@@ -25,8 +25,10 @@ class MessageSent implements ShouldBroadcast
      */
     public function broadcastOn(): array
     {
+        $this->message->loadMissing('conversation');
+
         return [
-            new PresenceChannel(sprintf('conversations.%d', $this->message->conversation_id)),
+            new PresenceChannel(sprintf('conversations.%s', $this->message->conversation->ulid)),
         ];
     }
 

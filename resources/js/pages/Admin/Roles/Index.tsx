@@ -13,12 +13,21 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import adminRoutes from '@/routes/admin';
 import { Head, router } from '@inertiajs/react';
-import { ChevronDown, Loader2, Save, Shield, ShieldCheck } from 'lucide-react';
+import { ChevronDown, Loader2, Plus, Save, Shield, ShieldCheck } from 'lucide-react';
 import { FormEvent, useMemo, useState } from 'react';
 
 type Permission = {
@@ -30,6 +39,7 @@ type Permission = {
 type Role = {
     id: number;
     name: string;
+    boost_radar_daily_limit: number;
     permission_ids: number[];
     permissions: Permission[];
     permission_count: number;
@@ -119,6 +129,16 @@ export default function AdminRolesIndex({
     });
     const [processing, setProcessing] = useState<Record<number, boolean>>({});
     const [hasChanges, setHasChanges] = useState<Record<number, boolean>>({});
+    const [boostLimits, setBoostLimits] = useState<Record<number, number>>(() => {
+        const initial: Record<number, number> = {};
+        roles.forEach((role) => {
+            initial[role.id] = role.boost_radar_daily_limit ?? 1;
+        });
+        return initial;
+    });
+    const [createRoleOpen, setCreateRoleOpen] = useState(false);
+    const [newRoleName, setNewRoleName] = useState('');
+    const [creatingRole, setCreatingRole] = useState(false);
 
     // Group permissions by category
     const groupedPermissions = useMemo(() => {
@@ -201,6 +221,7 @@ export default function AdminRolesIndex({
             adminRoutes.roles.update({ role: roleId }).url,
             {
                 permissions: selectedPermissions[roleId] || [],
+                boost_radar_daily_limit: boostLimits[roleId] ?? 1,
             },
             {
                 preserveScroll: true,
@@ -212,19 +233,54 @@ export default function AdminRolesIndex({
         );
     };
 
+    const handleCreateRole = (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        if (creatingRole || !newRoleName.trim()) {
+            return;
+        }
+
+        setCreatingRole(true);
+
+        router.post(
+            adminRoutes.roles.store().url,
+            {
+                name: newRoleName.trim(),
+            },
+            {
+                preserveScroll: true,
+                onFinish: () => {
+                    setCreatingRole(false);
+                    setCreateRoleOpen(false);
+                    setNewRoleName('');
+                },
+            },
+        );
+    };
+
     return (
         <AppLayout>
             <Head title="Admin · Roles" />
 
             <div className="space-y-8">
-                <div className="space-y-2">
-                    <h1 className="text-3xl font-bold tracking-tight text-white">
-                        Roles & Permissions
-                    </h1>
-                    <p className="text-sm text-white/60">
-                        Manage roles and their associated permissions. Click on
-                        a role to view and edit its permissions.
-                    </p>
+                <div className="flex items-center justify-between">
+                    <div className="space-y-2">
+                        <h1 className="text-3xl font-bold tracking-tight text-white">
+                            Roles & Permissions
+                        </h1>
+                        <p className="text-sm text-white/60">
+                            Manage roles and their associated permissions. Click on
+                            a role to view and edit its permissions.
+                        </p>
+                    </div>
+                    <Button
+                        onClick={() => setCreateRoleOpen(true)}
+                        variant="default"
+                        size="default"
+                    >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Role
+                    </Button>
                 </div>
 
                 <div className="space-y-3">
@@ -489,6 +545,83 @@ export default function AdminRolesIndex({
                                                             </div>
                                                         </div>
 
+                                                        <div className="rounded-xl border border-white/10 bg-white/5 p-6">
+                                                            <div className="mb-4 space-y-1">
+                                                                <Label
+                                                                    htmlFor={`boost-limit-${role.id}`}
+                                                                    className="text-sm font-medium text-white"
+                                                                >
+                                                                    Radar Boost Daily Limit
+                                                                </Label>
+                                                                <p className="text-xs text-white/60">
+                                                                    Maximum number of Radar boosts
+                                                                    users with this role can use per
+                                                                    day. Users need the "boost radar"
+                                                                    permission to boost.
+                                                                </p>
+                                                            </div>
+                                                            <Input
+                                                                id={`boost-limit-${role.id}`}
+                                                                type="number"
+                                                                min="0"
+                                                                max="100"
+                                                                value={boostLimits[role.id] ?? 1}
+                                                                onChange={(e) => {
+                                                                    const newLimit = parseInt(
+                                                                        e.target.value,
+                                                                        10,
+                                                                    ) || 0;
+                                                                    setBoostLimits((prev) => ({
+                                                                        ...prev,
+                                                                        [role.id]: newLimit,
+                                                                    }));
+                                                                    const originalLimit =
+                                                                        roles.find(
+                                                                            (r) =>
+                                                                                r.id ===
+                                                                                role.id,
+                                                                        )
+                                                                            ?.boost_radar_daily_limit ??
+                                                                        1;
+                                                                    const originalPermissions =
+                                                                        roles.find(
+                                                                            (r) =>
+                                                                                r.id ===
+                                                                                role.id,
+                                                                        )
+                                                                            ?.permission_ids ||
+                                                                        [];
+                                                                    const currentPermissions =
+                                                                        selectedPermissions[
+                                                                            role.id
+                                                                        ] || [];
+                                                                    const permissionsChanged =
+                                                                        currentPermissions.length !==
+                                                                            originalPermissions.length ||
+                                                                        !currentPermissions.every(
+                                                                            (id) =>
+                                                                                originalPermissions.includes(
+                                                                                    id,
+                                                                                ),
+                                                                        ) ||
+                                                                        !originalPermissions.every(
+                                                                            (id) =>
+                                                                                currentPermissions.includes(
+                                                                                    id,
+                                                                                ),
+                                                                        );
+                                                                    setHasChanges((prev) => ({
+                                                                        ...prev,
+                                                                        [role.id]:
+                                                                            newLimit !==
+                                                                                originalLimit ||
+                                                                            permissionsChanged,
+                                                                    }));
+                                                                }}
+                                                                className="max-w-[200px] bg-black/25"
+                                                            />
+                                                        </div>
+
                                                         <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-4 py-3">
                                                             <div className="text-sm text-white/60">
                                                                 <span className="font-medium text-white/80">
@@ -537,6 +670,77 @@ export default function AdminRolesIndex({
                         );
                     })}
                 </div>
+
+                <Dialog open={createRoleOpen} onOpenChange={setCreateRoleOpen}>
+                    <DialogContent className="bg-gradient-to-br from-black/40 via-black/30 to-black/40 border-white/10">
+                        <DialogHeader>
+                            <DialogTitle className="text-white">
+                                Create New Role
+                            </DialogTitle>
+                            <DialogDescription className="text-white/60">
+                                Create a new role to organize permissions. Once
+                                created, you can assign permissions and configure
+                                settings for this role.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <form onSubmit={handleCreateRole}>
+                            <div className="space-y-4 py-4">
+                                <div className="space-y-2">
+                                    <Label
+                                        htmlFor="role-name"
+                                        className="text-white"
+                                    >
+                                        Role Name
+                                    </Label>
+                                    <Input
+                                        id="role-name"
+                                        value={newRoleName}
+                                        onChange={(e) =>
+                                            setNewRoleName(e.target.value)
+                                        }
+                                        placeholder="e.g., Gold, Silver, Bronze"
+                                        className="bg-black/25 border-white/10 text-white placeholder:text-white/40"
+                                        required
+                                        autoFocus
+                                    />
+                                    <p className="text-xs text-white/60">
+                                        Choose a descriptive name for this role.
+                                        This cannot be changed after creation.
+                                    </p>
+                                </div>
+                            </div>
+                            <DialogFooter>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => {
+                                        setCreateRoleOpen(false);
+                                        setNewRoleName('');
+                                    }}
+                                    disabled={creatingRole}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    disabled={creatingRole || !newRoleName.trim()}
+                                >
+                                    {creatingRole ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Creating...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Plus className="mr-2 h-4 w-4" />
+                                            Create Role
+                                        </>
+                                    )}
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
             </div>
         </AppLayout>
     );

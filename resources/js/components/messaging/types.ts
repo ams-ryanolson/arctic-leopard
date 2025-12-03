@@ -72,6 +72,7 @@ export type TipMessageMetadata = {
 
 export type Thread = {
     id: number;
+    ulid: string;
     title: string;
     subject?: string | null;
     is_group: boolean;
@@ -83,6 +84,7 @@ export type Thread = {
 
 export type ActiveConversation = {
     id: number;
+    ulid: string;
     title: string;
     subject?: string | null;
     is_group: boolean;
@@ -94,4 +96,10 @@ export type PresenceMember = {
     name: string;
     avatar?: string | null;
     role?: string | null;
+};
+
+export type MessagingPreferences = {
+    message_request_mode: 'no-one' | 'verified' | 'following' | 'verified-and-following' | 'everyone';
+    allow_subscriber_messages: boolean;
+    filter_low_quality: boolean;
 };

@@ -35,7 +35,7 @@ export function useToastSubscription(
             return undefined;
         }
 
-        const eventName = 'ToastPushed';
+        const eventName = '.ToastPushed';
 
         const listener = (payload: ToastPayload) => {
             handlerRef.current(payload);

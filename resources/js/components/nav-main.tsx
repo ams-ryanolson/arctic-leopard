@@ -148,7 +148,7 @@ export function NavMain({
     };
 
     return (
-        <SidebarGroup className="px-2 py-0">
+        <SidebarGroup className="px-2 py-0 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0">
             <SidebarGroupLabel>{label}</SidebarGroupLabel>
             <SidebarMenu>
                 {items.map((item) => {

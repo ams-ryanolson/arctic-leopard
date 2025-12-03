@@ -1,5 +1,4 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { router } from '@inertiajs/react';
 import { ExternalLink } from 'lucide-react';
 import { useCallback } from 'react';
 
@@ -26,25 +25,33 @@ type SidebarAdProps = {
 
 export default function SidebarAd({ ad, size = 'large' }: SidebarAdProps) {
     const handleClick = useCallback(
-        (e: React.MouseEvent) => {
+        async (e: React.MouseEvent) => {
             if (!ad) {
                 return;
             }
 
             e.preventDefault();
 
-            // Record click
-            router.post(
-                `/api/ads/${ad.ad_id}/clicks`,
-                {
-                    creative_id: ad.id,
-                    placement: ad.placement,
-                },
-                {
-                    preserveState: true,
-                    preserveScroll: true,
-                },
-            );
+            // Record click using fetch (API route, not Inertia)
+            try {
+                await fetch(`/api/ads/${ad.ad_id}/clicks`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document
+                            .querySelector('meta[name="csrf-token"]')
+                            ?.getAttribute('content') || '',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        creative_id: ad.id,
+                        placement: ad.placement,
+                    }),
+                });
+            } catch (error) {
+                // Silently fail - don't block the user from clicking
+                console.error('Failed to record ad click:', error);
+            }
 
             // Track and redirect
             window.open(

@@ -8,8 +8,10 @@ import {
     SidebarHeader,
     SidebarMenu,
     SidebarMenuButton,
+    useSidebar,
 } from '@/components/ui/sidebar';
 import { fetchUnreadNotificationCount } from '@/lib/notifications-client';
+import { cn } from '@/lib/utils';
 import { dashboard, radar } from '@/routes';
 import admin from '@/routes/admin';
 import { index as bookmarksIndex } from '@/routes/bookmarks';
@@ -40,6 +42,7 @@ import {
     ShieldAlert,
     ShieldCheck,
     Sparkles,
+    ToggleLeft,
     Users,
     Video,
 } from 'lucide-react';
@@ -49,12 +52,17 @@ export function AppSidebar() {
     const {
         props: { notifications, messaging, auth, features: sharedFeatures },
     } = usePage<SharedData>();
+    const { state } = useSidebar();
+    const isCollapsed = state === 'collapsed';
     const features = (sharedFeatures ?? {}) as Record<string, boolean>;
-
+    
     const user = auth?.user;
+    const membership = auth?.membership;
     const userRoles = user?.roles?.map((role) => role.name) ?? [];
     const isAdmin =
         userRoles.includes('Admin') || userRoles.includes('Super Admin');
+    const isModerator = userRoles.includes('Moderator');
+    const isStaff = isAdmin || isModerator;
 
     const unreadNotifications =
         (typeof notifications === 'object' &&
@@ -354,6 +362,11 @@ export function AppSidebar() {
                               icon: Crown,
                           },
                           {
+                              title: 'Feature Flags',
+                              href: '/admin/features',
+                              icon: ToggleLeft,
+                          },
+                          {
                               title: 'Settings',
                               href: admin.settings.index().url,
                               icon: Cog,
@@ -371,64 +384,126 @@ export function AppSidebar() {
 
     return (
         <Sidebar collapsible="icon" variant="inset">
-            <SidebarHeader className="px-3 pt-4">
+            <SidebarHeader className={cn("px-2 pt-3", isCollapsed && "px-0 pt-2")}>
                 <SidebarMenu>
                     <SidebarMenuButton
                         size="lg"
                         asChild
-                        className="group flex h-auto flex-row items-center gap-3 overflow-hidden rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-white shadow-[0_26px_70px_-45px_rgba(249,115,22,0.55)] transition hover:border-amber-400/35 hover:bg-white/10"
+                        className={cn(
+                            "group flex h-auto flex-row items-center gap-3 overflow-hidden rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-white shadow-[0_26px_70px_-45px_rgba(249,115,22,0.55)] transition hover:border-amber-400/35 hover:bg-white/10",
+                            isCollapsed && "px-0 py-2 justify-center"
+                        )}
                     >
                         <Link
                             href={dashboard()}
                             prefetch
-                            className="flex w-full items-center gap-3"
+                            className={cn("flex w-full items-center", isCollapsed ? "justify-center" : "gap-3")}
                         >
                             <AppLogo />
-                            <div className="space-y-0.5">
-                                <p className="text-[0.6rem] tracking-[0.35em] text-white/55 uppercase">
-                                    Real Kink Men
-                                </p>
-                                <p className="text-sm font-semibold text-white">
-                                    Live Your Fetish Out Loud
-                                </p>
-                            </div>
+                            {!isCollapsed && (
+                                <div className="space-y-0.5">
+                                    <p className="text-[0.6rem] tracking-[0.35em] text-white/55 uppercase">
+                                        Real Kink Men
+                                    </p>
+                                    <p className="text-sm font-semibold text-white">
+                                        Live Your Fetish Out Loud
+                                    </p>
+                                </div>
+                            )}
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenu>
             </SidebarHeader>
 
-            <SidebarContent className="px-3 pb-4">
-                <div className="space-y-3">
-                    <Link
-                        href="/upgrade"
-                        className="group relative block overflow-hidden rounded-2xl border border-amber-400/35 bg-gradient-to-br from-amber-500/25 via-rose-500/30 to-indigo-500/20 p-[1px] shadow-[0_32px_76px_-52px_rgba(249,115,22,0.65)] transition"
-                    >
-                        <div className="relative h-full rounded-[1.05rem] bg-neutral-950/90 p-4">
-                            <div className="pointer-events-none absolute inset-0 -z-10 opacity-0 blur-xl transition-opacity duration-300 group-hover:opacity-100">
-                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(249,115,22,0.45),_transparent_70%)]" />
-                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(96,165,250,0.35),_transparent_65%)]" />
-                            </div>
-                            <p className="text-[0.55rem] font-semibold tracking-[0.35em] text-amber-200/80 uppercase">
-                                Upgrade now
-                            </p>
-                            <p className="mt-3 text-base font-semibold text-white">
-                                Unlock Premium, Elite, or Unlimited access and
-                                level up your feed.
-                            </p>
-                            <div className="mt-4 flex items-center text-sm font-medium text-amber-100">
-                                Explore plans
-                                <ArrowRight className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
-                            </div>
-                        </div>
-                    </Link>
+            <SidebarContent className={cn("px-2 pb-3", isCollapsed && "px-1 pb-2")}>
+                <div className={cn("space-y-2", isCollapsed && "space-y-1")}>
+                    {!isCollapsed && (
+                        membership ? (
+                            <Link
+                                href="/settings/membership"
+                                className="group relative block overflow-hidden rounded-2xl border border-emerald-400/35 bg-gradient-to-br from-emerald-500/20 via-teal-500/25 to-cyan-500/15 p-[1px] shadow-[0_32px_76px_-52px_rgba(16,185,129,0.55)] transition"
+                            >
+                                <div className="relative h-full rounded-[1.05rem] bg-neutral-950/90 p-4">
+                                    <div className="pointer-events-none absolute inset-0 -z-10 opacity-0 blur-xl transition-opacity duration-300 group-hover:opacity-100">
+                                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.45),_transparent_70%)]" />
+                                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(6,182,212,0.35),_transparent_65%)]" />
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Crown className="size-4 text-emerald-400" />
+                                        <p className="text-[0.55rem] font-semibold tracking-[0.35em] text-emerald-200/80 uppercase">
+                                            {membership.plan_name} Member
+                                        </p>
+                                    </div>
+                                    {membership.ends_at && (
+                                        <p className={cn(
+                                            "mt-2 text-sm",
+                                            membership.is_expiring_soon 
+                                                ? "text-amber-300" 
+                                                : "text-white/70"
+                                        )}>
+                                            {membership.is_expiring_soon ? (
+                                                <>
+                                                    <span className="font-medium text-amber-300">
+                                                        {membership.days_remaining} days left
+                                                    </span>
+                                                    <span className="block text-xs text-amber-300/70 mt-0.5">
+                                                        Expires {new Date(membership.ends_at).toLocaleDateString()}
+                                                    </span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    Valid until {new Date(membership.ends_at).toLocaleDateString()}
+                                                </>
+                                            )}
+                                        </p>
+                                    )}
+                                    {membership.billing_type === 'recurring' && !membership.ends_at && (
+                                        <p className="mt-2 text-sm text-white/70">
+                                            Auto-renewing subscription
+                                        </p>
+                                    )}
+                                    <div className="mt-3 flex items-center text-sm font-medium text-emerald-100">
+                                        Manage membership
+                                        <ArrowRight className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
+                                    </div>
+                                </div>
+                            </Link>
+                        ) : (
+                            <Link
+                                href="/upgrade"
+                                className="group relative block overflow-hidden rounded-2xl border border-amber-400/35 bg-gradient-to-br from-amber-500/25 via-rose-500/30 to-indigo-500/20 p-[1px] shadow-[0_32px_76px_-52px_rgba(249,115,22,0.65)] transition"
+                            >
+                                <div className="relative h-full rounded-[1.05rem] bg-neutral-950/90 p-4">
+                                    <div className="pointer-events-none absolute inset-0 -z-10 opacity-0 blur-xl transition-opacity duration-300 group-hover:opacity-100">
+                                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(249,115,22,0.45),_transparent_70%)]" />
+                                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(96,165,250,0.35),_transparent_65%)]" />
+                                    </div>
+                                    <p className="text-[0.55rem] font-semibold tracking-[0.35em] text-amber-200/80 uppercase">
+                                        Upgrade now
+                                    </p>
+                                    <p className="mt-3 text-base font-semibold text-white">
+                                        Unlock Premium, Elite, or Unlimited access and
+                                        level up your feed.
+                                    </p>
+                                    <div className="mt-4 flex items-center text-sm font-medium text-amber-100">
+                                        Explore plans
+                                        <ArrowRight className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
+                                    </div>
+                                </div>
+                            </Link>
+                        )
+                    )}
 
-                    <div className="rounded-2xl border border-white/10 bg-black/25 p-2 shadow-[0_28px_72px_-55px_rgba(249,115,22,0.45)]">
+                    <div className={cn(
+                        "rounded-2xl border border-white/10 bg-black/25 p-2 shadow-[0_28px_72px_-55px_rgba(249,115,22,0.45)]",
+                        isCollapsed && "p-1 rounded-lg"
+                    )}>
                         <NavMain items={mainNavItems} label="Navigation" />
                     </div>
                 </div>
             </SidebarContent>
 
-            <SidebarFooter className="px-3 pb-4">
+            <SidebarFooter className={cn("px-2 pb-3", isCollapsed && "px-1 pb-2")}>
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

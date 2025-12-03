@@ -11,20 +11,15 @@ class MembershipPlansSeeder extends Seeder
     {
         $plans = [
             [
-                'name' => 'Premium',
-                'slug' => 'premium',
-                'description' => 'Boost your feed with exclusive drops and scene recaps. Perfect for members who want full-resolution galleries, story unlocks, and weekly studio updates.',
+                'name' => 'Bronze',
+                'slug' => 'bronze',
+                'description' => 'Bronze membership tier with access to premium features.',
                 'monthly_price' => 1000, // $10.00 in cents
-                'yearly_price' => 10000, // $100.00 in cents (10x monthly, 2 months free)
+                'yearly_price' => 10000, // $100.00 in cents
                 'currency' => 'USD',
-                'role_to_assign' => 'Premium',
+                'role_to_assign' => 'Bronze',
                 'permissions_to_grant' => null,
-                'features' => [
-                    'premium_content_drops' => '3 premium content drops every week',
-                    'event_replays' => 'Priority access to live event replays',
-                    'backstage_polls' => 'Unlocks backstage polls & feedback loops',
-                    'invite_only_chat' => 'Invite-only chat threads with creators',
-                ],
+                'features' => [],
                 'is_active' => true,
                 'is_public' => true,
                 'display_order' => 1,
@@ -33,20 +28,15 @@ class MembershipPlansSeeder extends Seeder
                 'one_time_duration_days' => 30,
             ],
             [
-                'name' => 'Elite',
-                'slug' => 'elite',
-                'description' => 'Edge deeper with live intensives, vault archives, and crew access. Go beyond standard drops with advanced workshops, circle rooms, and hands-on mentorship touchpoints.',
-                'monthly_price' => 2000, // $20.00 in cents
-                'yearly_price' => 20000, // $200.00 in cents (10x monthly, 2 months free)
+                'name' => 'Silver',
+                'slug' => 'silver',
+                'description' => 'Silver membership tier with enhanced features.',
+                'monthly_price' => 1500, // $15.00 in cents
+                'yearly_price' => 15000, // $150.00 in cents
                 'currency' => 'USD',
-                'role_to_assign' => 'Elite',
+                'role_to_assign' => 'Silver',
                 'permissions_to_grant' => null,
-                'features' => [
-                    'unlimited_archive' => 'Unlimited archive + premium vault unlocks',
-                    'live_intensives' => 'Monthly live intensives with Q&A',
-                    'circle_rooms' => 'Circle-only rooms & ritual planning boards',
-                    'merch_drops' => 'Quarterly merch & kink kit drops',
-                ],
+                'features' => [],
                 'is_active' => true,
                 'is_public' => true,
                 'display_order' => 2,
@@ -55,26 +45,21 @@ class MembershipPlansSeeder extends Seeder
                 'one_time_duration_days' => 30,
             ],
             [
-                'name' => 'Unlimited',
-                'slug' => 'unlimited',
-                'description' => 'Total access, concierge scheduling, and IRL priority lanes. Designed for producers, collectors, and power supporters who want concierge access, travel support, and direct collaboration.',
-                'monthly_price' => 3000, // $30.00 in cents
-                'yearly_price' => 30000, // $300.00 in cents (10x monthly, 2 months free)
+                'name' => 'Gold',
+                'slug' => 'gold',
+                'description' => 'Gold membership tier with lifetime access and premium features.',
+                'monthly_price' => 2500, // $25.00 in cents
+                'yearly_price' => 25000, // $250.00 in cents
                 'currency' => 'USD',
-                'role_to_assign' => 'Unlimited',
+                'role_to_assign' => 'Gold',
                 'permissions_to_grant' => null,
-                'features' => [
-                    'concierge' => 'Dedicated concierge with 24-hour response window',
-                    'priority_booking' => 'Priority booking for private and travel sessions',
-                    'custom_content' => 'Custom content briefs & quarterly collaborations',
-                    'mastermind' => 'Annual invite to in-person mastermind',
-                ],
+                'features' => [],
                 'is_active' => true,
                 'is_public' => true,
                 'display_order' => 3,
-                'allows_recurring' => true,
+                'allows_recurring' => false,
                 'allows_one_time' => true,
-                'one_time_duration_days' => 30,
+                'one_time_duration_days' => null, // Lifetime - no expiry
             ],
         ];
 

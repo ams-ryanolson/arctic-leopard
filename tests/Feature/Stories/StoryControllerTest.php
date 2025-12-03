@@ -1,16 +1,16 @@
 <?php
 
 use App\Enums\StoryAudience;
-use App\Models\AdminSetting;
 use App\Models\Story;
 use App\Models\StoryMedia;
 use App\Models\StoryReaction;
 use App\Models\StoryView;
 use App\Models\User;
+use Laravel\Pennant\Feature;
 
 beforeEach(function (): void {
     // Enable stories feature for tests
-    AdminSetting::set('feature_stories_enabled', true);
+    Feature::for(null)->activate('stories');
 });
 
 test('authenticated users can view stories list', function (): void {
@@ -46,7 +46,7 @@ test('authenticated users can view stories list', function (): void {
 });
 
 test('stories feature must be enabled to view stories', function (): void {
-    AdminSetting::set('feature_stories_enabled', false);
+    Feature::for(null)->deactivate('stories');
 
     $user = User::factory()->create([
         'profile_completed_at' => now(),

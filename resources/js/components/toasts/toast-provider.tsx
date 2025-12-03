@@ -193,11 +193,21 @@ export default function ToastProvider({
             const detail = (event as CustomEvent<{ id?: number | null }>)
                 .detail;
             const candidate = detail?.id ?? null;
-            setActiveConversationId(
+            const newId =
                 typeof candidate === 'number' && Number.isFinite(candidate)
                     ? candidate
-                    : null,
-            );
+                    : null;
+
+            if (import.meta.env.DEV) {
+                console.debug(
+                    '[toast] Active conversation changed',
+                    candidate,
+                    '->',
+                    newId,
+                );
+            }
+
+            setActiveConversationId(newId);
         };
 
         window.addEventListener(
@@ -241,10 +251,11 @@ export default function ToastProvider({
 
     const shouldSuppressToast = useCallback(
         (payload: ToastPayload): boolean => {
-            if (!payload.meta) {
+            if (payload.category !== 'messaging' || !payload.meta) {
                 return false;
             }
 
+            // Check by numeric conversation ID
             const rawConversation =
                 payload.meta.conversation_id ??
                 payload.meta.conversationId ??
@@ -257,17 +268,39 @@ export default function ToastProvider({
                       ? Number.parseInt(rawConversation, 10)
                       : null;
 
-            if (
-                parsedConversationId === null ||
-                !Number.isFinite(parsedConversationId)
-            ) {
-                return false;
+            // Check if user is currently viewing this conversation by checking the URL
+            const conversationUlid =
+                payload.meta.conversation_ulid ??
+                payload.meta.conversationUlid;
+
+            const currentPath =
+                typeof window !== 'undefined' ? window.location.pathname : '';
+            const isViewingByUlid =
+                typeof conversationUlid === 'string' &&
+                currentPath.includes(`/messages/${conversationUlid}`);
+
+            // Also check by active conversation ID state
+            const isViewingById =
+                parsedConversationId !== null &&
+                Number.isFinite(parsedConversationId) &&
+                parsedConversationId === activeConversationId;
+
+            const shouldSuppress = isViewingByUlid || isViewingById;
+
+            if (import.meta.env.DEV) {
+                console.debug('[toast] shouldSuppressToast check', {
+                    category: payload.category,
+                    parsedConversationId,
+                    conversationUlid,
+                    activeConversationId,
+                    currentPath,
+                    isViewingByUlid,
+                    isViewingById,
+                    shouldSuppress,
+                });
             }
 
-            return (
-                payload.category === 'messaging' &&
-                parsedConversationId === activeConversationId
-            );
+            return shouldSuppress;
         },
         [activeConversationId],
     );

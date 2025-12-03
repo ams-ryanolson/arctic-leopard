@@ -11,20 +11,34 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import AppLayout from '@/layouts/app-layout';
 import type { SharedData } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
 import {
     AlertCircle,
     BarChart3,
+    ChevronDown,
+    ChevronUp,
     DollarSign,
+    Edit,
     Eye,
+    MoreVertical,
     MousePointerClick,
+    Search,
+    Trash2,
     TrendingDown,
     TrendingUp,
     Users,
+    X,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 
 type Ad = {
     id: number;
@@ -33,10 +47,10 @@ type Ad = {
     status: string;
     start_date: string | null;
     end_date: string | null;
-    budget_amount: number;
-    budget_currency: string;
+    budget_amount: number | null;
+    budget_currency: string | null;
     spent_amount: number;
-    pricing_model: string;
+    pricing_model: string | null;
     impressions_count: number;
     clicks_count: number;
     advertiser: {
@@ -111,11 +125,6 @@ type AdminAdsIndexProps = SharedData & {
     analytics: AnalyticsData;
 };
 
-type FilterFormState = {
-    search: string;
-    status: string;
-};
-
 export default function AdminAdsIndex({
     ads,
     filters,
@@ -123,11 +132,37 @@ export default function AdminAdsIndex({
     analytics,
 }: AdminAdsIndexProps) {
     const ALL_OPTION = 'all';
+    const [searchQuery, setSearchQuery] = useState(filters.search ?? '');
+    const [statusFilter, setStatusFilter] = useState(filters.status ?? ALL_OPTION);
+    const [showAnalytics, setShowAnalytics] = useState(true);
+    const isInitialMount = useRef(true);
 
-    const [formState, setFormState] = useState<FilterFormState>({
-        search: filters.search ?? '',
-        status: filters.status ?? '',
-    });
+    // Sync state with props when they change (but not on initial mount)
+    // Only update if state doesn't match props to prevent unnecessary updates
+    useEffect(() => {
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            return;
+        }
+        
+        const newSearch = filters.search ?? '';
+        const newStatus = filters.status ?? ALL_OPTION;
+        
+        // Only update state if it's different from current state
+        // Use functional updates to avoid stale closure issues
+        setSearchQuery((prev) => {
+            if (prev !== newSearch) {
+                return newSearch;
+            }
+            return prev;
+        });
+        setStatusFilter((prev) => {
+            if (prev !== newStatus) {
+                return newStatus;
+            }
+            return prev;
+        });
+    }, [filters.search, filters.status]);
 
     const paginationMeta = {
         currentPage: ads.meta.current_page,
@@ -136,25 +171,43 @@ export default function AdminAdsIndex({
         hasMorePages: ads.meta.current_page < ads.meta.last_page,
     };
 
-    const applyFilters = () => {
+    // Memoize applyFilters with useCallback
+    const applyFilters = useCallback(() => {
         const query: Record<string, string> = {};
 
-        if (formState.search) query.search = formState.search;
-        if (formState.status) query.status = formState.status;
+        if (searchQuery.trim()) query.search = searchQuery.trim();
+        if (statusFilter && statusFilter !== ALL_OPTION) query.status = statusFilter;
+
+        // Only call router.visit if query actually changed
+        const currentQuery = new URLSearchParams(window.location.search);
+        const hasChanged =
+            (query.search || '') !== (currentQuery.get('search') || '') ||
+            (query.status || '') !== (currentQuery.get('status') || '');
+
+        if (!hasChanged) return;
 
         router.visit('/admin/ads', {
             data: query,
             preserveScroll: true,
             only: ['ads', 'filters'],
         });
-    };
+    }, [searchQuery, statusFilter]);
 
-    const resetFilters = () => {
-        setFormState({
-            search: '',
-            status: '',
-        });
+    // Debounced search - skip on initial mount
+    useEffect(() => {
+        // Skip on initial mount
+        if (isInitialMount.current) return;
 
+        const timer = setTimeout(() => {
+            applyFilters();
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [searchQuery, statusFilter, applyFilters]);
+
+    const clearSearch = () => {
+        setSearchQuery('');
+        setStatusFilter(ALL_OPTION);
         router.visit('/admin/ads', {
             preserveScroll: true,
             only: ['ads', 'filters'],
@@ -164,9 +217,8 @@ export default function AdminAdsIndex({
     const handlePageChange = (page: number) => {
         const query: Record<string, string> = {};
 
-        if (filters.search) query.search = filters.search;
-        if (filters.status) query.status = filters.status;
-
+        if (searchQuery.trim()) query.search = searchQuery.trim();
+        if (statusFilter && statusFilter !== ALL_OPTION) query.status = statusFilter;
         query.page = page.toString();
 
         router.visit('/admin/ads', {
@@ -213,12 +265,14 @@ export default function AdminAdsIndex({
                 name: 'Revenue',
                 values: analytics.timeline.map((point) => ({
                     label: point.label,
-                    value: point.revenue / 100, // Convert to dollars
+                    value: point.revenue / 100,
                 })),
                 color: 'rgba(190, 242, 100, 0.85)',
             },
         ];
     }, [analytics.timeline]);
+
+    const hasActiveFilters = searchQuery.trim() || (statusFilter && statusFilter !== ALL_OPTION);
 
     return (
         <AppLayout
@@ -228,431 +282,313 @@ export default function AdminAdsIndex({
                 { title: 'Ads', href: '/admin/ads' },
             ]}
         >
-            <Head title="Ads Dashboard · Admin" />
+            <Head title="Ads · Admin" />
 
             <div className="space-y-6 text-white">
-                <header className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-6">
+                {/* Header */}
+                <div className="flex flex-wrap items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">
-                            Ads Dashboard
+                        <h1 className="text-2xl font-semibold tracking-tight">
+                            Ads
                         </h1>
                         <p className="mt-1 text-sm text-white/60">
-                            Comprehensive analytics, insights, and ad
-                            management.
+                            Manage advertising campaigns and track performance
                         </p>
                     </div>
                     <Link
                         href="/admin/ads/create"
-                        className="rounded-full bg-white px-6 py-2.5 text-xs font-semibold tracking-[0.35em] text-black uppercase shadow-[0_30px_70px_-45px_rgba(255,255,255,0.55)] transition-transform hover:scale-[1.02]"
+                        className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-white/90"
                     >
                         Create Ad
                     </Link>
-                </header>
-
-                {/* Overview Metrics */}
-                <div>
-                    <h2 className="mb-4 text-lg font-semibold text-white/90">
-                        Overview
-                    </h2>
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                        <MetricCard
-                            title="Total Ads"
-                            value={analytics.overview.total_ads}
-                            icon={BarChart3}
-                            trend={null}
-                        />
-                        <MetricCard
-                            title="Active Ads"
-                            value={analytics.overview.active_ads}
-                            icon={TrendingUp}
-                            trend={null}
-                        />
-                        <MetricCard
-                            title="Pending Review"
-                            value={analytics.overview.pending_ads}
-                            icon={AlertCircle}
-                            trend={null}
-                            highlight={analytics.overview.pending_ads > 0}
-                        />
-                        <MetricCard
-                            title="Total Revenue"
-                            value={`$${((analytics.overview.total_revenue || 0) / 100).toFixed(2)}`}
-                            icon={DollarSign}
-                            trend={null}
-                        />
-                    </div>
                 </div>
 
-                {/* Performance Metrics */}
-                <div>
-                    <h2 className="mb-4 text-lg font-semibold text-white/90">
-                        Performance (Last 30 Days)
-                    </h2>
-                    <div className="grid gap-4 md:grid-cols-3">
-                        <MetricCard
-                            title="Impressions"
-                            value={analytics.overview.total_impressions.toLocaleString()}
-                            icon={Eye}
-                            trend={null}
-                        />
-                        <MetricCard
-                            title="Clicks"
-                            value={analytics.overview.total_clicks.toLocaleString()}
-                            icon={MousePointerClick}
-                            trend={null}
-                        />
-                        <MetricCard
-                            title="Average CTR"
-                            value={`${analytics.overview.average_ctr}%`}
-                            icon={TrendingUp}
-                            trend={null}
-                        />
-                    </div>
+                {/* Quick Stats */}
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <MetricCard
+                        title="Total Ads"
+                        value={analytics.overview.total_ads}
+                        icon={BarChart3}
+                    />
+                    <MetricCard
+                        title="Active"
+                        value={analytics.overview.active_ads}
+                        icon={TrendingUp}
+                        highlight={analytics.overview.active_ads > 0}
+                    />
+                    <MetricCard
+                        title="Pending"
+                        value={analytics.overview.pending_ads}
+                        icon={AlertCircle}
+                        highlight={analytics.overview.pending_ads > 0}
+                    />
+                    <MetricCard
+                        title="Revenue"
+                        value={`$${((analytics.overview.total_revenue || 0) / 100).toFixed(2)}`}
+                        icon={DollarSign}
+                    />
                 </div>
 
-                {/* Charts */}
-                <div>
-                    <h2 className="mb-4 text-lg font-semibold text-white/90">
-                        Analytics
-                    </h2>
-                    <div className="grid gap-6 lg:grid-cols-2">
-                        <Card className="border-white/10 bg-white/5">
-                            <CardHeader className="pb-3">
-                                <CardTitle className="text-base font-semibold">
-                                    Impressions & Clicks
-                                </CardTitle>
-                                <p className="mt-1 text-xs text-white/50">
-                                    Daily performance over the last 30 days
-                                </p>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="rounded-2xl border border-white/10 bg-black/30 p-6">
-                                    <ChartWithAxes
-                                        series={chartSeries}
-                                        width={520}
-                                        height={260}
-                                        xAxisLabel="Date"
-                                        yAxisLabel="Count"
-                                        formatYValue={(v) => v.toLocaleString()}
-                                    />
+                {/* Collapsible Analytics */}
+                <Card className="border-white/10 bg-white/5">
+                    <CardHeader className="pb-3">
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setShowAnalytics((prev) => !prev);
+                            }}
+                            className="flex w-full items-center justify-between cursor-pointer select-none hover:opacity-80 transition-opacity focus:outline-none"
+                            aria-expanded={showAnalytics}
+                        >
+                            <CardTitle className="text-base font-semibold">
+                                Analytics & Insights
+                            </CardTitle>
+                            {showAnalytics ? (
+                                <ChevronUp className="size-4 text-white/60" />
+                            ) : (
+                                <ChevronDown className="size-4 text-white/60" />
+                            )}
+                        </button>
+                    </CardHeader>
+                    {showAnalytics && (
+                        <CardContent className="space-y-6 pt-0">
+                            {/* Performance Metrics */}
+                            <div className="grid gap-4 sm:grid-cols-3">
+                                <div className="rounded-lg border border-white/10 bg-black/20 p-4">
+                                    <div className="text-xs font-medium text-white/60 uppercase tracking-wide">
+                                        Impressions
+                                    </div>
+                                    <div className="mt-1 text-2xl font-semibold">
+                                        {analytics.overview.total_impressions.toLocaleString()}
+                                    </div>
                                 </div>
-                                <div className="flex flex-wrap items-center gap-4 text-xs text-white/65">
-                                    {chartSeries.map((series, index) => (
-                                        <span
-                                            key={series.name}
-                                            className="inline-flex items-center gap-2"
-                                        >
-                                            <span
-                                                className={`inline-flex size-2.5 rounded-full ${
-                                                    index === 0
-                                                        ? 'bg-amber-400'
-                                                        : 'bg-sky-300'
-                                                }`}
-                                            />
-                                            <span className="font-medium">
-                                                {series.name}
-                                            </span>
-                                        </span>
-                                    ))}
+                                <div className="rounded-lg border border-white/10 bg-black/20 p-4">
+                                    <div className="text-xs font-medium text-white/60 uppercase tracking-wide">
+                                        Clicks
+                                    </div>
+                                    <div className="mt-1 text-2xl font-semibold">
+                                        {analytics.overview.total_clicks.toLocaleString()}
+                                    </div>
                                 </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="border-white/10 bg-white/5">
-                            <CardHeader className="pb-3">
-                                <CardTitle className="text-base font-semibold">
-                                    Revenue
-                                </CardTitle>
-                                <p className="mt-1 text-xs text-white/50">
-                                    Daily revenue generated over the last 30
-                                    days
-                                </p>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="rounded-2xl border border-white/10 bg-black/30 p-6">
-                                    <ChartWithAxes
-                                        series={revenueChartSeries}
-                                        width={520}
-                                        height={260}
-                                        xAxisLabel="Date"
-                                        yAxisLabel="Revenue ($)"
-                                        formatYValue={(v) => `$${v.toFixed(2)}`}
-                                    />
+                                <div className="rounded-lg border border-white/10 bg-black/20 p-4">
+                                    <div className="text-xs font-medium text-white/60 uppercase tracking-wide">
+                                        Avg CTR
+                                    </div>
+                                    <div className="mt-1 text-2xl font-semibold">
+                                        {analytics.overview.average_ctr}%
+                                    </div>
                                 </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
-
-                {/* Breakdowns & Top Ads */}
-                <div>
-                    <h2 className="mb-4 text-lg font-semibold text-white/90">
-                        Insights
-                    </h2>
-                    <div className="grid gap-6 lg:grid-cols-3">
-                        <Card className="border-white/10 bg-white/5">
-                            <CardHeader className="pb-3">
-                                <CardTitle className="text-base font-semibold">
-                                    Status Breakdown
-                                </CardTitle>
-                                <p className="mt-1 text-xs text-white/50">
-                                    Distribution of ads by status
-                                </p>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                {Object.entries(analytics.status_breakdown)
-                                    .length === 0 ? (
-                                    <p className="text-sm text-white/50">
-                                        No data available
-                                    </p>
-                                ) : (
-                                    Object.entries(
-                                        analytics.status_breakdown,
-                                    ).map(([status, count]) => (
-                                        <div
-                                            key={status}
-                                            className="flex items-center justify-between rounded-lg border border-white/10 bg-black/20 px-3 py-2"
-                                        >
-                                            <span className="text-sm font-medium text-white/80 capitalize">
-                                                {status.replace('_', ' ')}
-                                            </span>
-                                            <Badge className="rounded-full border-white/20 bg-white/10 px-2.5 py-0.5 text-xs font-semibold">
-                                                {count}
-                                            </Badge>
-                                        </div>
-                                    ))
-                                )}
-                            </CardContent>
-                        </Card>
-
-                        <Card className="border-white/10 bg-white/5">
-                            <CardHeader className="pb-3">
-                                <CardTitle className="text-base font-semibold">
-                                    Placement Breakdown
-                                </CardTitle>
-                                <p className="mt-1 text-xs text-white/50">
-                                    Number of creatives by placement
-                                </p>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                {Object.entries(analytics.placement_breakdown)
-                                    .length === 0 ? (
-                                    <p className="text-sm text-white/50">
-                                        No data available
-                                    </p>
-                                ) : (
-                                    Object.entries(
-                                        analytics.placement_breakdown,
-                                    ).map(([placement, count]) => (
-                                        <div
-                                            key={placement}
-                                            className="flex items-center justify-between rounded-lg border border-white/10 bg-black/20 px-3 py-2"
-                                        >
-                                            <span className="text-sm font-medium text-white/80 capitalize">
-                                                {placement
-                                                    .replace('_', ' ')
-                                                    .replace(
-                                                        'dashboard',
-                                                        'sidebar',
-                                                    )}
-                                            </span>
-                                            <Badge className="rounded-full border-white/20 bg-white/10 px-2.5 py-0.5 text-xs font-semibold">
-                                                {count}
-                                            </Badge>
-                                        </div>
-                                    ))
-                                )}
-                            </CardContent>
-                        </Card>
-
-                        <Card className="border-white/10 bg-white/5">
-                            <CardHeader className="pb-3">
-                                <CardTitle className="text-base font-semibold">
-                                    Top Performing Ads
-                                </CardTitle>
-                                <p className="mt-1 text-xs text-white/50">
-                                    Highest impression ads (last 30 days)
-                                </p>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                {analytics.top_ads.length === 0 ? (
-                                    <p className="text-sm text-white/50">
-                                        No performance data yet
-                                    </p>
-                                ) : (
-                                    analytics.top_ads.map((ad, index) => (
-                                        <div
-                                            key={ad.id}
-                                            className="space-y-2 rounded-lg border border-white/10 bg-black/20 p-3"
-                                        >
-                                            <div className="flex items-start justify-between gap-2">
-                                                <div className="min-w-0 flex-1">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="flex size-5 items-center justify-center rounded-full bg-amber-500/20 text-[10px] font-bold text-amber-300">
-                                                            {index + 1}
-                                                        </span>
-                                                        <Link
-                                                            href={`/admin/ads/${ad.id}`}
-                                                            className="truncate text-sm font-semibold text-white hover:text-amber-300 hover:underline"
-                                                        >
-                                                            {ad.name}
-                                                        </Link>
-                                                    </div>
-                                                    <p className="mt-1 text-xs text-white/50">
-                                                        {ad.advertiser}
-                                                    </p>
-                                                </div>
-                                                <Badge className="rounded-full border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">
-                                                    {ad.ctr}% CTR
-                                                </Badge>
-                                            </div>
-                                            <div className="flex gap-3 text-xs text-white/60">
-                                                <span className="flex items-center gap-1">
-                                                    <Eye className="size-3" />
-                                                    {ad.impressions_count.toLocaleString()}
-                                                </span>
-                                                <span className="flex items-center gap-1">
-                                                    <MousePointerClick className="size-3" />
-                                                    {ad.clicks_count.toLocaleString()}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
-
-                {/* Ad Management Section */}
-                <section className="space-y-4 border-t border-white/10 pt-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h2 className="text-lg font-semibold text-white/90">
-                                Ad Management
-                            </h2>
-                            <p className="mt-1 text-sm text-white/50">
-                                Search, filter, and manage all ads
-                            </p>
-                        </div>
-                    </div>
-
-                    <Card className="border-white/10 bg-white/5">
-                        <CardContent className="space-y-4 p-6">
-                            <div className="grid gap-3 lg:grid-cols-[minmax(0,280px)_minmax(0,200px)_minmax(0,200px)] lg:items-center">
-                                <Input
-                                    placeholder="Search ads by name or advertiser..."
-                                    value={formState.search}
-                                    onChange={(event) =>
-                                        setFormState((prev) => ({
-                                            ...prev,
-                                            search: event.target.value,
-                                        }))
-                                    }
-                                    onKeyDown={(event) => {
-                                        if (event.key === 'Enter') {
-                                            applyFilters();
-                                        }
-                                    }}
-                                    className="rounded-full border-white/20 bg-black/25 text-sm text-white transition-all placeholder:text-white/40 focus-visible:border-amber-400/50 focus-visible:ring-amber-400/40"
-                                />
-
-                                <Select
-                                    value={
-                                        formState.status === ''
-                                            ? ALL_OPTION
-                                            : formState.status
-                                    }
-                                    onValueChange={(value) =>
-                                        setFormState((prev) => ({
-                                            ...prev,
-                                            status:
-                                                value === ALL_OPTION
-                                                    ? ''
-                                                    : value,
-                                        }))
-                                    }
-                                >
-                                    <SelectTrigger className="rounded-full border-white/20 bg-black/25 text-sm text-white transition-all focus-visible:border-amber-400/50 focus-visible:ring-amber-400/40">
-                                        <SelectValue placeholder="Filter by status" />
-                                    </SelectTrigger>
-                                    <SelectContent className="rounded-2xl border border-white/10 bg-black/85 text-white shadow-[0_30px_70px_-50px_rgba(0,0,0,0.70)] backdrop-blur-xl">
-                                        <SelectItem
-                                            value={ALL_OPTION}
-                                            className="text-sm text-white/75"
-                                        >
-                                            All statuses
-                                        </SelectItem>
-                                        {statusOptions.map((status) => (
-                                            <SelectItem
-                                                key={status}
-                                                value={status}
-                                                className="text-sm text-white/80 transition-colors hover:bg-white/10 hover:text-white"
-                                            >
-                                                {status
-                                                    .replace('_', ' ')
-                                                    .replace(/\b\w/g, (l) =>
-                                                        l.toUpperCase(),
-                                                    )}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
                             </div>
 
-                            <div className="flex flex-wrap items-center gap-3">
-                                <Button
-                                    type="button"
-                                    onClick={applyFilters}
-                                    className="rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-6 py-2.5 text-xs font-semibold tracking-[0.35em] text-white uppercase shadow-[0_25px_65px_-35px_rgba(249,115,22,0.6)] transition-all hover:scale-[1.02]"
-                                >
-                                    Apply Filters
-                                </Button>
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    onClick={resetFilters}
-                                    className="rounded-full border border-white/15 bg-white/10 px-5 py-2.5 text-xs font-semibold tracking-[0.35em] text-white/70 uppercase transition-all hover:border-white/30 hover:bg-white/15 hover:text-white"
-                                >
-                                    Reset
-                                </Button>
+                            {/* Charts */}
+                            <div className="grid gap-6 lg:grid-cols-2">
+                                <div className="space-y-3">
+                                    <h3 className="text-sm font-semibold text-white/90">
+                                        Impressions & Clicks
+                                    </h3>
+                                    <div className="rounded-lg border border-white/10 bg-black/30 p-4">
+                                        <ChartWithAxes
+                                            series={chartSeries}
+                                            width={480}
+                                            height={200}
+                                            xAxisLabel="Date"
+                                            yAxisLabel="Count"
+                                            formatYValue={(v) => v.toLocaleString()}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-3">
+                                    <h3 className="text-sm font-semibold text-white/90">
+                                        Revenue
+                                    </h3>
+                                    <div className="rounded-lg border border-white/10 bg-black/30 p-4">
+                                        <ChartWithAxes
+                                            series={revenueChartSeries}
+                                            width={480}
+                                            height={200}
+                                            xAxisLabel="Date"
+                                            yAxisLabel="Revenue ($)"
+                                            formatYValue={(v) => `$${v.toFixed(2)}`}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Breakdowns */}
+                            <div className="grid gap-4 sm:grid-cols-3">
+                                <div className="space-y-2">
+                                    <h3 className="text-sm font-semibold text-white/90">
+                                        Status Breakdown
+                                    </h3>
+                                    <div className="space-y-1.5">
+                                        {Object.entries(analytics.status_breakdown).map(
+                                            ([status, count]) => (
+                                                <div
+                                                    key={status}
+                                                    className="flex items-center justify-between rounded border border-white/10 bg-black/20 px-3 py-1.5 text-sm"
+                                                >
+                                                    <span className="capitalize text-white/80">
+                                                        {status.replace('_', ' ')}
+                                                    </span>
+                                                    <Badge className="bg-white/10 text-white text-xs">
+                                                        {count}
+                                                    </Badge>
+                                                </div>
+                                            ),
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <h3 className="text-sm font-semibold text-white/90">
+                                        Placement Breakdown
+                                    </h3>
+                                    <div className="space-y-1.5">
+                                        {Object.entries(analytics.placement_breakdown).map(
+                                            ([placement, count]) => (
+                                                <div
+                                                    key={placement}
+                                                    className="flex items-center justify-between rounded border border-white/10 bg-black/20 px-3 py-1.5 text-sm"
+                                                >
+                                                    <span className="capitalize text-white/80">
+                                                        {placement
+                                                            .replace('_', ' ')
+                                                            .replace('dashboard', 'sidebar')}
+                                                    </span>
+                                                    <Badge className="bg-white/10 text-white text-xs">
+                                                        {count}
+                                                    </Badge>
+                                                </div>
+                                            ),
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <h3 className="text-sm font-semibold text-white/90">
+                                        Top Ads
+                                    </h3>
+                                    <div className="space-y-1.5">
+                                        {analytics.top_ads.slice(0, 5).map((ad, index) => (
+                                            <div
+                                                key={ad.id}
+                                                className="rounded border border-white/10 bg-black/20 p-2 text-sm"
+                                            >
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <Link
+                                                        href={`/admin/ads/${ad.id}`}
+                                                        className="flex-1 truncate font-medium text-white hover:text-amber-300 hover:underline"
+                                                    >
+                                                        {ad.name}
+                                                    </Link>
+                                                    <Badge className="bg-emerald-500/20 text-emerald-300 text-xs">
+                                                        {ad.ctr}%
+                                                    </Badge>
+                                                </div>
+                                                <div className="mt-1 flex gap-3 text-xs text-white/60">
+                                                    <span>
+                                                        {ad.impressions_count.toLocaleString()}{' '}
+                                                        views
+                                                    </span>
+                                                    <span>
+                                                        {ad.clicks_count.toLocaleString()} clicks
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         </CardContent>
-                    </Card>
+                    )}
+                </Card>
 
+                {/* Filters & Ad List */}
+                <div className="space-y-4">
+                    <div className="flex flex-wrap items-center gap-3">
+                        <div className="relative flex-1 min-w-[200px]">
+                            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/40" />
+                            <Input
+                                placeholder="Search ads..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-9 pr-9 border-white/10 bg-black/30 text-white placeholder:text-white/40"
+                            />
+                            {searchQuery && (
+                                <button
+                                    onClick={clearSearch}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60"
+                                >
+                                    <X className="size-4" />
+                                </button>
+                            )}
+                        </div>
+                        <Select
+                            value={statusFilter}
+                            onValueChange={setStatusFilter}
+                        >
+                            <SelectTrigger className="w-[180px] border-white/10 bg-black/30 text-white">
+                                <SelectValue placeholder="All statuses" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-black/95 text-white">
+                                <SelectItem value={ALL_OPTION}>All statuses</SelectItem>
+                                {statusOptions.map((status) => (
+                                    <SelectItem key={status} value={status}>
+                                        {status
+                                            .replace('_', ' ')
+                                            .replace(/\b\w/g, (l) => l.toUpperCase())}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {hasActiveFilters && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={clearSearch}
+                                className="text-white/60 hover:text-white"
+                            >
+                                Clear
+                            </Button>
+                        )}
+                    </div>
+
+                    {/* Ad List */}
                     {ads.data.length === 0 ? (
                         <Card className="border-white/10 bg-white/5">
-                            <CardContent className="flex flex-col items-center gap-4 p-12 text-center">
-                                <div className="rounded-full border border-white/15 bg-white/10 px-5 py-2 text-xs font-semibold tracking-[0.35em] text-white/60 uppercase">
-                                    Nothing Found
-                                </div>
+                            <CardContent className="flex flex-col items-center justify-center gap-3 p-12 text-center">
                                 <p className="text-white/70">
-                                    No ads match the current filters.
+                                    {hasActiveFilters
+                                        ? 'No ads match your filters'
+                                        : 'No ads yet'}
                                 </p>
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    onClick={resetFilters}
-                                    className="mt-2 rounded-full border border-white/15 bg-white/10 px-5 py-2 text-xs font-semibold tracking-[0.35em] text-white/70 uppercase transition-all hover:border-white/30 hover:bg-white/15 hover:text-white"
-                                >
-                                    Clear Filters
-                                </Button>
+                                {hasActiveFilters && (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={clearSearch}
+                                        className="text-white/60 hover:text-white"
+                                    >
+                                        Clear filters
+                                    </Button>
+                                )}
                             </CardContent>
                         </Card>
                     ) : (
-                        <div className="space-y-3">
+                        <div className="space-y-2">
                             {ads.data.map((ad) => (
                                 <AdminAdRow key={ad.id} ad={ad} />
                             ))}
                         </div>
                     )}
 
-                    <Pagination
-                        meta={paginationMeta}
-                        onPageChange={handlePageChange}
-                        className="border-white/10 bg-white/5"
-                    />
-                </section>
+                    {ads.data.length > 0 && (
+                        <Pagination
+                            meta={paginationMeta}
+                            onPageChange={handlePageChange}
+                        />
+                    )}
+                </div>
             </div>
         </AppLayout>
     );
@@ -662,7 +598,6 @@ type MetricCardProps = {
     title: string;
     value: string | number;
     icon: React.ComponentType<{ className?: string }>;
-    trend: number | null;
     highlight?: boolean;
 };
 
@@ -670,25 +605,24 @@ function MetricCard({
     title,
     value,
     icon: Icon,
-    trend,
     highlight,
 }: MetricCardProps) {
     return (
         <Card
-            className={`border transition-all hover:border-white/20 ${
+            className={`border transition-colors ${
                 highlight
                     ? 'border-amber-500/40 bg-amber-500/10'
                     : 'border-white/10 bg-white/5'
             }`}
         >
-            <CardContent className="p-6">
+            <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                    <div className="space-y-1.5">
-                        <p className="text-xs font-medium tracking-[0.35em] text-white/50 uppercase">
+                    <div>
+                        <p className="text-xs font-medium text-white/60 uppercase tracking-wide">
                             {title}
                         </p>
                         <p
-                            className={`text-3xl font-bold tracking-tight ${
+                            className={`mt-1 text-xl font-semibold ${
                                 highlight ? 'text-amber-300' : 'text-white'
                             }`}
                         >
@@ -696,35 +630,17 @@ function MetricCard({
                         </p>
                     </div>
                     <div
-                        className={`rounded-xl p-3 transition-colors ${
+                        className={`rounded-lg p-2 ${
                             highlight ? 'bg-amber-500/20' : 'bg-white/10'
                         }`}
                     >
                         <Icon
-                            className={`size-6 ${highlight ? 'text-amber-300' : 'text-white/70'}`}
+                            className={`size-5 ${
+                                highlight ? 'text-amber-300' : 'text-white/70'
+                            }`}
                         />
                     </div>
                 </div>
-                {trend !== null && (
-                    <div className="mt-4 flex items-center gap-1.5 text-xs">
-                        {trend > 0 ? (
-                            <>
-                                <TrendingUp className="size-3.5 text-emerald-400" />
-                                <span className="font-semibold text-emerald-400">
-                                    +{trend}%
-                                </span>
-                            </>
-                        ) : (
-                            <>
-                                <TrendingDown className="size-3.5 text-red-400" />
-                                <span className="font-semibold text-red-400">
-                                    {trend}%
-                                </span>
-                            </>
-                        )}
-                        <span className="text-white/50">vs last period</span>
-                    </div>
-                )}
             </CardContent>
         </Card>
     );
@@ -738,7 +654,7 @@ function AdminAdRow({ ad }: AdminAdRowProps) {
     const [processing, setProcessing] = useState(false);
 
     const handleAction = async (
-        action: 'approve' | 'reject' | 'pause' | 'resume',
+        action: 'approve' | 'reject' | 'pause' | 'resume' | 'delete',
     ) => {
         setProcessing(true);
 
@@ -764,110 +680,175 @@ function AdminAdRow({ ad }: AdminAdRowProps) {
             case 'resume':
                 router.post(`/admin/ads/${ad.id}/resume`, {}, options);
                 break;
+            case 'delete':
+                if (confirm('Are you sure you want to delete this ad?')) {
+                    router.delete(`/admin/ads/${ad.id}`, options);
+                }
+                break;
         }
     };
 
     const statusColors: Record<string, string> = {
-        draft: 'bg-gray-500/20 text-gray-300',
-        pending_review: 'bg-yellow-500/20 text-yellow-300',
-        active: 'bg-green-500/20 text-green-300',
-        paused: 'bg-orange-500/20 text-orange-300',
-        expired: 'bg-red-500/20 text-red-300',
-        rejected: 'bg-red-500/20 text-red-300',
+        draft: 'bg-gray-500/20 text-gray-300 border-gray-500/30',
+        pending_review: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
+        active: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+        paused: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
+        expired: 'bg-red-500/20 text-red-300 border-red-500/30',
+        rejected: 'bg-red-500/20 text-red-300 border-red-500/30',
     };
 
-    return (
-        <Card className="border-white/10 bg-white/5 text-white transition-all hover:border-white/20 hover:bg-white/[0.07]">
-            <CardContent className="flex flex-col gap-4 p-6 md:flex-row md:items-center md:justify-between">
-                <div className="flex-1 space-y-3">
-                    <div className="flex flex-wrap items-center gap-2.5">
-                        <Link
-                            href={`/admin/ads/${ad.id}`}
-                            className="text-lg font-semibold text-white transition-colors hover:text-amber-300 hover:underline"
-                        >
-                            {ad.name}
-                        </Link>
-                        <Badge
-                            className={`rounded-full px-2.5 py-0.5 text-[0.65rem] font-semibold ${
-                                statusColors[ad.status] ??
-                                'bg-gray-500/20 text-gray-300'
-                            }`}
-                        >
-                            {ad.status.replace('_', ' ')}
-                        </Badge>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-3 text-sm text-white/60">
-                        <span className="flex items-center gap-1.5">
-                            <Users className="size-3.5" />
-                            {ad.advertiser.display_name ??
-                                ad.advertiser.username}
-                        </span>
-                        <span>·</span>
-                        <span>
-                            Budget: ${(ad.budget_amount / 100).toFixed(2)}
-                        </span>
-                        <span>·</span>
-                        <span>
-                            Spent: ${(ad.spent_amount / 100).toFixed(2)}
-                        </span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                        <Badge className="rounded-full border-white/20 bg-white/10 px-2.5 py-0.5 text-[0.65rem] font-medium">
-                            <Eye className="mr-1.5 inline size-3" />
-                            {(ad.impressions_count ?? 0).toLocaleString()}{' '}
-                            impressions
-                        </Badge>
-                        <Badge className="rounded-full border-white/20 bg-white/10 px-2.5 py-0.5 text-[0.65rem] font-medium">
-                            <MousePointerClick className="mr-1.5 inline size-3" />
-                            {(ad.clicks_count ?? 0).toLocaleString()} clicks
-                        </Badge>
-                        <Badge className="rounded-full border-white/20 bg-white/10 px-2.5 py-0.5 text-[0.65rem] font-medium">
-                            {ad.pricing_model.toUpperCase()}
-                        </Badge>
-                    </div>
-                </div>
+    const ctr =
+        ad.impressions_count > 0
+            ? ((ad.clicks_count / ad.impressions_count) * 100).toFixed(2)
+            : '0.00';
 
-                <div className="flex flex-wrap items-center gap-2 md:ml-4">
-                    {ad.status === 'pending_review' && ad.can.approve && (
-                        <Button
-                            size="sm"
-                            disabled={processing}
-                            onClick={() => handleAction('approve')}
-                            className="rounded-full bg-emerald-500/90 px-4 py-2 text-xs font-semibold tracking-[0.35em] text-white uppercase shadow-[0_20px_50px_-30px_rgba(16,185,129,0.5)] transition-all hover:scale-[1.02] hover:bg-emerald-500"
+    return (
+        <Card className="border-white/10 bg-white/5">
+            <CardContent className="p-4">
+                <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0 space-y-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <Link
+                                href={`/admin/ads/${ad.id}`}
+                                className="text-base font-semibold text-white hover:text-amber-300 hover:underline truncate"
+                            >
+                                {ad.name}
+                            </Link>
+                            <Badge
+                                className={`rounded-full border px-2 py-0.5 text-xs font-medium ${
+                                    statusColors[ad.status] ??
+                                    'bg-gray-500/20 text-gray-300 border-gray-500/30'
+                                }`}
+                            >
+                                {ad.status.replace('_', ' ')}
+                            </Badge>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-3 text-sm text-white/60">
+                            <span className="flex items-center gap-1.5">
+                                <Users className="size-3.5" />
+                                {ad.advertiser.display_name ?? ad.advertiser.username}
+                            </span>
+                            {ad.budget_amount !== null && (
+                                <>
+                                    <span>·</span>
+                                    <span>
+                                        Budget: ${(ad.budget_amount / 100).toFixed(2)}
+                                        {ad.budget_currency && ` ${ad.budget_currency}`}
+                                    </span>
+                                </>
+                            )}
+                            {ad.budget_amount === null && (
+                                <>
+                                    <span>·</span>
+                                    <span className="text-amber-300">Admin/Promotional</span>
+                                </>
+                            )}
+                            <span>·</span>
+                            <span>Spent: ${(ad.spent_amount / 100).toFixed(2)}</span>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2">
+                            <Badge className="rounded border-white/20 bg-white/10 px-2 py-0.5 text-xs text-white">
+                                <Eye className="mr-1 inline size-3" />
+                                {(ad.impressions_count ?? 0).toLocaleString()}
+                            </Badge>
+                            <Badge className="rounded border-white/20 bg-white/10 px-2 py-0.5 text-xs text-white">
+                                <MousePointerClick className="mr-1 inline size-3" />
+                                {(ad.clicks_count ?? 0).toLocaleString()}
+                            </Badge>
+                            <Badge className="rounded border-white/20 bg-white/10 px-2 py-0.5 text-xs text-white">
+                                {ctr}% CTR
+                            </Badge>
+                            {ad.pricing_model && (
+                                <Badge className="rounded border-white/20 bg-white/10 px-2 py-0.5 text-xs text-white">
+                                    {ad.pricing_model.toUpperCase()}
+                                </Badge>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <Link
+                            href={`/admin/ads/${ad.id}/edit`}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/20 active:bg-white/30"
                         >
-                            Approve
-                        </Button>
-                    )}
-                    {ad.status === 'pending_review' && ad.can.reject && (
-                        <Button
-                            size="sm"
-                            disabled={processing}
-                            onClick={() => handleAction('reject')}
-                            className="rounded-full bg-red-500/90 px-4 py-2 text-xs font-semibold tracking-[0.35em] text-white uppercase shadow-[0_20px_50px_-30px_rgba(239,68,68,0.5)] transition-all hover:scale-[1.02] hover:bg-red-500"
-                        >
-                            Reject
-                        </Button>
-                    )}
-                    {ad.status === 'active' && ad.can.pause && (
-                        <Button
-                            size="sm"
-                            disabled={processing}
-                            onClick={() => handleAction('pause')}
-                            className="rounded-full border-white/25 bg-white/10 px-4 py-2 text-xs font-semibold tracking-[0.35em] text-white/75 uppercase transition-all hover:border-white/40 hover:bg-white/20 hover:text-white"
-                        >
-                            Pause
-                        </Button>
-                    )}
-                    {ad.status === 'paused' && ad.can.resume && (
-                        <Button
-                            size="sm"
-                            disabled={processing}
-                            onClick={() => handleAction('resume')}
-                            className="rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 px-4 py-2 text-xs font-semibold tracking-[0.35em] text-white uppercase shadow-[0_20px_50px_-30px_rgba(16,185,129,0.5)] transition-all hover:scale-[1.02]"
-                        >
-                            Resume
-                        </Button>
-                    )}
+                            <Edit className="size-3.5" />
+                            Edit
+                        </Link>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    disabled={processing}
+                                    className="h-8 w-8 p-0"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <MoreVertical className="size-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                                align="end"
+                                className="bg-black/95 border-white/10 text-white"
+                            >
+                                <DropdownMenuItem asChild>
+                                    <Link
+                                        href={`/admin/ads/${ad.id}`}
+                                        className="cursor-pointer"
+                                    >
+                                        <Eye className="mr-2 size-4" />
+                                        View Details
+                                    </Link>
+                                </DropdownMenuItem>
+                                {ad.status === 'pending_review' && ad.can.approve && (
+                                    <DropdownMenuItem
+                                        onClick={() => handleAction('approve')}
+                                        className="cursor-pointer text-emerald-300"
+                                    >
+                                        Approve
+                                    </DropdownMenuItem>
+                                )}
+                                {ad.status === 'pending_review' && ad.can.reject && (
+                                    <DropdownMenuItem
+                                        onClick={() => handleAction('reject')}
+                                        className="cursor-pointer text-red-300"
+                                    >
+                                        Reject
+                                    </DropdownMenuItem>
+                                )}
+                                {ad.status === 'active' && ad.can.pause && (
+                                    <DropdownMenuItem
+                                        onClick={() => handleAction('pause')}
+                                        className="cursor-pointer"
+                                    >
+                                        Pause
+                                    </DropdownMenuItem>
+                                )}
+                                {ad.status === 'paused' && ad.can.resume && (
+                                    <DropdownMenuItem
+                                        onClick={() => handleAction('resume')}
+                                        className="cursor-pointer text-emerald-300"
+                                    >
+                                        Resume
+                                    </DropdownMenuItem>
+                                )}
+                                {ad.can.delete && (
+                                    <>
+                                        <DropdownMenuSeparator className="bg-white/10" />
+                                        <DropdownMenuItem
+                                            onClick={() => handleAction('delete')}
+                                            className="cursor-pointer text-red-300"
+                                        >
+                                            <Trash2 className="mr-2 size-4" />
+                                            Delete
+                                        </DropdownMenuItem>
+                                    </>
+                                )}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
             </CardContent>
         </Card>

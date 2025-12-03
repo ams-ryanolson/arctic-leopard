@@ -6,12 +6,14 @@ use App\Http\Resources\PostResource;
 use App\Models\AdminSetting;
 use App\Models\Bookmark;
 use App\Models\Comment;
+use App\Models\Memberships\MembershipPlan;
 use App\Models\Post;
 use App\Models\PostMedia;
 use App\Models\User;
 use App\Models\Wishlists\WishlistItem;
 use App\Services\Cache\TimelineCacheService;
 use App\Services\Feed\FeedService;
+use App\Services\Messaging\MessagingAuthorizationService;
 use App\Services\Payments\EntitlementService;
 use App\Support\Feed\FeedFilters;
 use Illuminate\Http\Request;
@@ -27,10 +29,15 @@ class ProfileController extends Controller
 
     private const FEED_PER_PAGE = 20;
 
+    private const MEDIA_PAGE_NAME = 'profileMedia';
+
+    private const MEDIA_PER_PAGE = 30;
+
     public function __construct(
         private readonly TimelineCacheService $timelineCache,
         private readonly EntitlementService $entitlements,
         private readonly FeedService $feedService,
+        private readonly MessagingAuthorizationService $messagingAuthorization,
     ) {}
 
     public function show(Request $request, string $username): Response
@@ -217,7 +224,14 @@ class ProfileController extends Controller
                 'can_block' => $authUser !== null && ! $isOwnProfile && config('block.enabled'),
                 'has_blocked' => $authUser !== null ? $authUser->isBlocking($user) : false,
                 'is_blocked_by' => $authUser !== null ? $authUser->isBlockedBy($user) : false,
+                'can_message' => $authUser !== null && ! $isOwnProfile
+                    ? $this->messagingAuthorization->canMessage($authUser, $user)
+                    : false,
+                'can_receive_gift' => $authUser !== null && ! $isOwnProfile && $this->canReceiveGift($user),
             ],
+            'giftMembershipPlans' => $authUser !== null && ! $isOwnProfile
+                ? $this->getAvailableGiftMembershipPlans()
+                : [],
             'stats' => $this->profileStats($user, $followersCount),
         ]);
     }
@@ -264,12 +278,181 @@ class ProfileController extends Controller
             ->count();
 
         // Wishlist items count (if feature enabled)
-        if (AdminSetting::get('feature_signals_enabled', true) && AdminSetting::get('feature_wishlist_enabled', true)) {
+        if ((bool) AdminSetting::get('feature_signals_enabled', true) && (bool) AdminSetting::get('feature_wishlist_enabled', true)) {
             $stats['wishlist_items'] = WishlistItem::query()
                 ->where('creator_id', $user->id)
                 ->count();
         }
 
         return $stats;
+    }
+
+    public function media(Request $request, string $username): Response
+    {
+        $normalizedUsername = Str::lower($username);
+
+        $user = User::query()
+            ->where(function ($query) use ($username, $normalizedUsername): void {
+                $query->where('username_lower', $normalizedUsername)
+                    ->orWhere('username', $username)
+                    ->orWhereRaw('LOWER(username) = ?', [$normalizedUsername]);
+            })
+            ->firstOrFail();
+
+        $authUser = $request->user();
+
+        if ($authUser !== null && $authUser->hasBlockRelationshipWith($user)) {
+            return Inertia::render('Profile/Blocked', [
+                'user' => [
+                    'id' => $user->id,
+                    'username' => $user->username,
+                    'display_name' => $user->display_name,
+                    'avatar_url' => $user->avatar_url,
+                ],
+                'blocked' => [
+                    'viewer_has_blocked' => $authUser->isBlocking($user),
+                    'profile_has_blocked_viewer' => $authUser->isBlockedBy($user),
+                ],
+                'message' => __('This profile is not available at this time.'),
+            ]);
+        }
+
+        $page = max(1, (int) $request->input(self::MEDIA_PAGE_NAME, 1));
+
+        $media = Inertia::scroll(
+            function () use ($request, $user, $authUser, $page) {
+                $query = PostMedia::query()
+                    ->whereHas('post', function ($query) use ($user): void {
+                        $query->where('user_id', $user->id)
+                            ->whereNotNull('published_at');
+                    })
+                    ->with([
+                        'post' => function ($query) use ($authUser): void {
+                            $query->with([
+                                'author',
+                                'media',
+                                'poll.options',
+                                'hashtags',
+                            ])
+                                ->withCount(['bookmarks as bookmarks_count'])
+                                ->withBookmarkStateFor($authUser);
+                        },
+                    ])
+                    ->orderBy('created_at', 'desc');
+
+                $paginator = $query->paginate(
+                    self::MEDIA_PER_PAGE,
+                    ['*'],
+                    self::MEDIA_PAGE_NAME,
+                    $page,
+                );
+
+                $items = $paginator->getCollection()->map(function (PostMedia $media) use ($request, $authUser) {
+                    $post = $media->post;
+                    $postData = null;
+
+                    if ($post !== null) {
+                        // Attach viewer state (likes, bookmarks)
+                        if ($authUser !== null) {
+                            $authUser->attachLikeStatus($post);
+                            $authUser->attachBookmarkStatus($post);
+                        }
+
+                        // Use PostResource to format the post data
+                        $postData = (new PostResource($post))->toArray($request);
+                    }
+
+                    return [
+                        'id' => $media->id,
+                        'url' => $media->url,
+                        'thumbnail_url' => $media->thumbnail_url,
+                        'optimized_url' => $media->optimized_url,
+                        'blur_url' => $media->blur_url,
+                        'mime_type' => $media->mime_type,
+                        'is_video' => str_starts_with($media->mime_type ?? '', 'video/'),
+                        'post_id' => $media->post_id,
+                        'width' => $media->width,
+                        'height' => $media->height,
+                        'post' => $postData,
+                    ];
+                });
+
+                return [
+                    'data' => $items->all(),
+                    'meta' => [
+                        'current_page' => $paginator->currentPage(),
+                        'last_page' => $paginator->lastPage(),
+                        'per_page' => $paginator->perPage(),
+                        'total' => $paginator->total(),
+                    ],
+                ];
+            },
+            metadata: static function (array $payload): ScrollMetadata {
+                $current = (int) data_get($payload, 'meta.current_page', 1);
+                $last = (int) data_get($payload, 'meta.last_page', $current);
+
+                return new ScrollMetadata(
+                    ProfileController::MEDIA_PAGE_NAME,
+                    $current > 1 ? $current - 1 : null,
+                    $current < $last ? $current + 1 : null,
+                    $current,
+                );
+            },
+        );
+
+        return Inertia::render('Profile/Media', [
+            'user' => [
+                'id' => $user->id,
+                'username' => $user->username,
+                'display_name' => $user->display_name,
+                'avatar_url' => $user->avatar_url,
+            ],
+            'media' => $media,
+            'mediaPageName' => self::MEDIA_PAGE_NAME,
+            'mediaPerPage' => self::MEDIA_PER_PAGE,
+        ]);
+    }
+
+    /**
+     * Check if a user can receive a gift membership (doesn't have active membership).
+     */
+    private function canReceiveGift(User $user): bool
+    {
+        return ! $user->memberships()
+            ->where('status', 'active')
+            ->where(function ($query) {
+                $query->whereNull('ends_at')
+                    ->orWhere('ends_at', '>', now());
+            })
+            ->exists();
+    }
+
+    /**
+     * Get available membership plans for gifting (one-time only).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function getAvailableGiftMembershipPlans(): array
+    {
+        return MembershipPlan::query()
+            ->where('is_active', true)
+            ->where('is_public', true)
+            ->where('allows_one_time', true)
+            ->orderBy('display_order')
+            ->orderBy('name')
+            ->get()
+            ->map(static function (MembershipPlan $plan) {
+                return [
+                    'id' => $plan->id,
+                    'uuid' => $plan->uuid,
+                    'name' => $plan->name,
+                    'slug' => $plan->slug,
+                    'description' => $plan->description,
+                    'monthly_price' => $plan->monthly_price,
+                    'currency' => $plan->currency,
+                    'one_time_duration_days' => $plan->one_time_duration_days,
+                ];
+            })
+            ->all();
     }
 }

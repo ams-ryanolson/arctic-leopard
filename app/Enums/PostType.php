@@ -8,6 +8,7 @@ enum PostType: string
     case Media = 'media';
     case Poll = 'poll';
     case System = 'system';
+    case Amplify = 'amplify';
 
     /**
      * @return list<string>

@@ -4,11 +4,12 @@ import { CheckCheck } from 'lucide-react';
 import { useState } from 'react';
 import MessageActions from './message-actions';
 import MessageAttachment from './message-attachment';
+import MessageImageLightbox from './message-image-lightbox';
 import MessageReactions from './message-reactions';
 import { formatMessageTime, isOnlyEmojis } from './message-utils';
 import TipMessage from './tip-message';
 import TipRequestMessage from './tip-request-message';
-import type { Message, TipMessageMetadata } from './types';
+import type { Attachment, Message, TipMessageMetadata } from './types';
 
 type MessageItemProps = {
     message: Message;
@@ -187,48 +188,60 @@ export default function MessageItem({
             0,
         ) ?? 0;
 
+    // Get all image attachments for lightbox
+    const imageAttachments =
+        message.attachments?.filter((att) => att.type === 'image') ?? [];
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [lightboxStartIndex, setLightboxStartIndex] = useState(0);
+
+    const handleImageClick = (clickedIndex: number) => {
+        setLightboxStartIndex(clickedIndex);
+        setLightboxOpen(true);
+    };
+
     return (
-        <div
-            className={cn(
-                'group relative flex gap-3 px-2 py-1.5 transition-all duration-150 hover:bg-white/3',
-                isOwnMessage ? 'flex-row-reverse' : 'flex-row',
-            )}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-        >
-            {/* Avatar */}
+        <>
+            <div
+                className={cn(
+                    'group relative flex gap-3 transition-colors hover:bg-white/[0.015] px-2 py-1.5',
+                    isOwnMessage ? 'flex-row-reverse' : 'flex-row',
+                )}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+            >
+            {/* Avatar - smaller and only when needed */}
             {showAvatar ? (
                 <div
                     className={cn(
-                        'flex shrink-0 flex-col items-end justify-start pt-1',
+                        'flex shrink-0 flex-col items-end justify-start pt-0.5',
                         isOwnMessage && 'items-start',
                     )}
                 >
-                    <Avatar className="size-8 border-2 border-white/10 shadow-lg ring-2 ring-black/20">
+                    <Avatar className="size-6 border border-white/10 sm:size-7">
                         {authorAvatar ? (
                             <AvatarImage src={authorAvatar} alt={authorName} />
                         ) : (
-                            <AvatarFallback className="bg-gradient-to-br from-amber-500/20 to-amber-600/30 text-xs font-semibold text-amber-200">
+                            <AvatarFallback className="bg-gradient-to-br from-amber-500/20 to-amber-600/30 text-[10px] font-semibold text-amber-200 sm:text-xs">
                                 {authorInitials}
                             </AvatarFallback>
                         )}
                     </Avatar>
                 </div>
             ) : (
-                <div className="w-8 shrink-0" />
+                <div className="w-6 shrink-0 sm:w-7" />
             )}
 
             {/* Message Content */}
             <div
                 className={cn(
-                    'flex min-w-0 flex-1 flex-col gap-1.5',
+                    'flex min-w-0 flex-1 flex-col gap-0.5',
                     isOwnMessage ? 'items-end' : 'items-start',
                 )}
             >
                 {/* Author Name (only in group chats) */}
                 {showAuthor && (
-                    <div className="flex items-center gap-2 px-1">
-                        <span className="text-xs font-semibold text-white/70">
+                    <div className="flex items-center gap-1 px-1">
+                        <span className="text-[11px] font-medium text-white/60 sm:text-xs">
                             {authorName}
                         </span>
                     </div>
@@ -237,12 +250,14 @@ export default function MessageItem({
                 {/* Message Bubble */}
                 <div
                     className={cn(
-                        'relative max-w-[90%] rounded-2xl px-4 py-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.3)] transition-all duration-200 sm:max-w-[85%] lg:max-w-[65%]',
-                        shouldShowEmojiStyle ? 'px-6 py-5' : '',
-                        isOwnMessage
-                            ? 'border border-emerald-400/30 bg-gradient-to-br from-emerald-500/20 to-emerald-600/25 text-emerald-50 shadow-emerald-500/10'
-                            : 'border border-white/20 bg-white/10 text-white shadow-white/5 backdrop-blur-sm',
-                        'hover:shadow-[0_4px_12px_rgba(0,0,0,0.4)]',
+                        'relative max-w-[85%] rounded-2xl transition-all sm:max-w-[75%] lg:max-w-[65%]',
+                        shouldShowEmojiStyle ? 'px-4 py-3' : message.body ? 'px-3 py-1.5' : 'p-0',
+                        // Only show background/border if there's text content
+                        message.body && isOwnMessage
+                            ? 'bg-emerald-500/20 text-emerald-50 shadow-[0_2px_8px_rgba(16,185,129,0.15)] border border-emerald-500/20'
+                            : message.body
+                              ? 'bg-white/10 text-white shadow-[0_2px_8px_rgba(0,0,0,0.2)] border border-white/10'
+                              : '', // No background/border for attachment-only messages
                     )}
                 >
                     {message.deleted_at ? (
@@ -251,32 +266,25 @@ export default function MessageItem({
                         </span>
                     ) : (
                         <>
-                            {/* Reply Reference */}
+                            {/* Reply Reference - compact */}
                             {referencedMessage && (
                                 <div
                                     className={cn(
-                                        'mb-2.5 rounded-xl border px-3 py-2 text-xs',
+                                        'mb-1.5 rounded-lg border-l-2 pl-2 text-[11px]',
                                         isOwnMessage
-                                            ? 'border-emerald-400/20 bg-emerald-500/10'
-                                            : 'border-white/15 bg-white/5',
+                                            ? 'border-l-emerald-400/40'
+                                            : 'border-l-white/30',
                                     )}
                                 >
-                                    <p className="mb-1 font-medium text-white/60">
+                                    <p className="font-medium text-white/60">
                                         {referencedMessage.author
                                             ?.display_name ??
                                             referencedMessage.author
                                                 ?.username ??
                                             'Unknown'}
                                     </p>
-                                    <p className="line-clamp-2 text-white/80">
-                                        {(referencedMessage.body ?? '').slice(
-                                            0,
-                                            120,
-                                        )}
-                                        {(referencedMessage.body ?? '').length >
-                                        120
-                                            ? '…'
-                                            : ''}
+                                    <p className="line-clamp-1 text-white/70">
+                                        {referencedMessage.body ?? ''}
                                     </p>
                                 </div>
                             )}
@@ -287,8 +295,8 @@ export default function MessageItem({
                                     className={cn(
                                         'break-words whitespace-pre-wrap',
                                         shouldShowEmojiStyle
-                                            ? 'text-center text-5xl leading-none'
-                                            : 'text-[15px] leading-[1.5] text-white/95',
+                                            ? 'text-center text-4xl leading-none'
+                                            : 'text-sm leading-[1.4] text-white/95',
                                     )}
                                 >
                                     {message.body}
@@ -300,74 +308,68 @@ export default function MessageItem({
                                 message.attachments.length > 0 && (
                                     <div
                                         className={cn(
-                                            'grid gap-2',
                                             message.attachments.length > 1
-                                                ? 'mt-3 grid-cols-2'
-                                                : 'mt-3',
+                                                ? 'grid grid-cols-2 gap-2'
+                                                : '',
+                                            message.body ? 'mt-2' : '', // Only add margin if there's text above
                                         )}
                                     >
                                         {message.attachments.map(
-                                            (attachment) => (
-                                                <MessageAttachment
-                                                    key={attachment.id}
-                                                    attachment={attachment}
-                                                />
-                                            ),
+                                            (attachment, index) => {
+                                                const imageIndex =
+                                                    imageAttachments.findIndex(
+                                                        (img) =>
+                                                            img.id ===
+                                                            attachment.id,
+                                                    );
+                                                return (
+                                                    <MessageAttachment
+                                                        key={attachment.id}
+                                                        attachment={
+                                                            attachment
+                                                        }
+                                                        onImageClick={
+                                                            attachment.type ===
+                                                            'image'
+                                                                ? () =>
+                                                                      handleImageClick(
+                                                                          imageIndex,
+                                                                      )
+                                                                : undefined
+                                                        }
+                                                    />
+                                                );
+                                            },
                                         )}
                                     </div>
                                 )}
 
-                            {/* Timestamp and Read Receipt (always at bottom right for sent, bottom left for received) */}
-                            {!shouldShowEmojiStyle && (
-                                <div
-                                    className={cn(
-                                        'mt-1.5 flex items-center gap-1',
-                                        isOwnMessage
-                                            ? 'justify-end'
-                                            : 'justify-start',
-                                    )}
-                                >
-                                    <span className="text-[11px] text-white/50">
-                                        {formatMessageTime(createdAt)}
-                                    </span>
-                                    {isOwnMessage && (
-                                        <CheckCheck
-                                            className="h-3 w-3 text-white/50"
-                                            strokeWidth={2.5}
-                                        />
-                                    )}
-                                </div>
-                            )}
-                            {/* For emoji-only messages, show timestamp below */}
-                            {shouldShowEmojiStyle && (
-                                <div
-                                    className={cn(
-                                        'mt-2 flex items-center gap-1',
-                                        isOwnMessage
-                                            ? 'justify-end'
-                                            : 'justify-start',
-                                    )}
-                                >
-                                    <span className="text-[11px] text-white/50">
-                                        {formatMessageTime(createdAt)}
-                                    </span>
-                                    {isOwnMessage && (
-                                        <CheckCheck
-                                            className="h-3 w-3 text-white/50"
-                                            strokeWidth={2.5}
-                                        />
-                                    )}
-                                </div>
-                            )}
+                            {/* Timestamp and Read Receipt - inline at bottom */}
+                            <div
+                                className={cn(
+                                    'mt-1 flex items-center gap-1',
+                                    isOwnMessage ? 'justify-end' : 'justify-start',
+                                )}
+                            >
+                                <span className="text-[10px] text-white/40">
+                                    {formatMessageTime(createdAt)}
+                                </span>
+                                {isOwnMessage && (
+                                    <CheckCheck
+                                        className="h-2.5 w-2.5 text-white/40"
+                                        strokeWidth={2.5}
+                                    />
+                                )}
+                            </div>
                         </>
                     )}
                 </div>
 
-                {/* Message Actions (hover-only) */}
+                {/* Message Actions - inline below message bubble */}
                 {!message.deleted_at && (
                     <div
                         className={cn(
-                            'flex items-center px-1',
+                            'flex items-center gap-1 px-1',
                             isOwnMessage ? 'justify-end' : 'justify-start',
                         )}
                     >
@@ -386,10 +388,10 @@ export default function MessageItem({
                     </div>
                 )}
 
-                {/* Expanded Reactions */}
+                {/* Expanded Reactions - compact */}
                 {!message.deleted_at &&
                     expandedReactionsMessageId === message.id && (
-                        <div className="mt-1 px-1">
+                        <div className="mt-0.5 px-1">
                             <MessageReactions
                                 messageId={message.id}
                                 reactions={message.reaction_summary ?? []}
@@ -400,6 +402,17 @@ export default function MessageItem({
                         </div>
                     )}
             </div>
+
+            {/* Image Lightbox */}
+            {imageAttachments.length > 0 && (
+                <MessageImageLightbox
+                    attachments={imageAttachments}
+                    open={lightboxOpen}
+                    onOpenChange={setLightboxOpen}
+                    startIndex={lightboxStartIndex}
+                />
+            )}
         </div>
+        </>
     );
 }

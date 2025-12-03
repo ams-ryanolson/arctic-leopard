@@ -72,7 +72,7 @@ export default function PostAnalyticsPage(props: PageProps) {
                     : []),
                 {
                     title: 'Post analytics',
-                    href: postAnalyticsRoutes.show.url({ post: post.id }),
+                    href: postAnalyticsRoutes.show.url({ post: post.ulid ?? post.id }),
                 },
             ]}
         >
@@ -221,7 +221,7 @@ function Hero({
                         breakdowns, and live metrics adapt instantly.
                     </p>
                     <RangeSelector
-                        postId={post.id}
+                        postId={post.ulid ?? post.id}
                         options={range.options}
                         active={range.value}
                     />
@@ -644,7 +644,7 @@ function RangeSelector({
     options,
     active,
 }: {
-    postId: number;
+    postId: string | number;
     options: PageProps['range']['options'];
     active: PageProps['range']['value'];
 }) {

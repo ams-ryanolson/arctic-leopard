@@ -80,7 +80,7 @@ class CreateNewUser implements CreatesNewUsers
 
         $now = now();
 
-        return User::create([
+        $user = User::create([
             'username' => Arr::get($input, 'username'),
             'email' => Arr::get($input, 'email'),
             'password' => Arr::get($input, 'password'),
@@ -93,5 +93,20 @@ class CreateNewUser implements CreatesNewUsers
             'accepted_terms_at' => $acceptedTerms ? $now : null,
             'accepted_privacy_at' => $acceptedPrivacy ? $now : null,
         ]);
+
+        // Assign default "User" role
+        if (method_exists($user, 'assignRole')) {
+            try {
+                $userRole = \Spatie\Permission\Models\Role::where('name', 'User')->first();
+                if ($userRole && ! $user->hasRole('User')) {
+                    $user->assignRole('User');
+                }
+            } catch (\Exception $e) {
+                // Role might not exist yet, but this shouldn't happen in production
+                \Illuminate\Support\Facades\Log::warning("Could not assign User role during registration: {$e->getMessage()}");
+            }
+        }
+
+        return $user;
     }
 }

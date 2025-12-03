@@ -4,7 +4,6 @@ namespace App\Jobs;
 
 use App\Enums\PostAudience;
 use App\Enums\TimelineVisibilitySource;
-use App\Events\TimelineEntryBroadcast;
 use App\Models\Post;
 use App\Models\PostPurchase;
 use App\Models\Timeline;
@@ -142,26 +141,9 @@ class RebuildTimelineJob implements ShouldQueue
                         ['visibility_source', 'context', 'visible_at', 'updated_at']
                     );
 
-                    $entries = Timeline::query()
-                        ->where('user_id', $user->getKey())
-                        ->whereIn('post_id', $newPostIds)
-                        ->get(['id', 'user_id', 'post_id']);
-
-                    foreach ($entries as $entry) {
-                        /** @var Post|null $post */
-                        $post = $postsById->get($entry->post_id);
-
-                        if ($post === null) {
-                            continue;
-                        }
-
-                        event(new TimelineEntryBroadcast(
-                            $entry->id,
-                            $entry->user_id,
-                            $post,
-                            $sourceByPost[$entry->post_id] ?? TimelineVisibilitySource::SelfAuthored->value,
-                        ));
-                    }
+                    // Don't broadcast timeline entries during rebuild - this is a background operation
+                    // that backfills old posts. Broadcasting should only happen for new posts via
+                    // TimelineFanOutJob or when amplifying posts.
                 }
             });
 

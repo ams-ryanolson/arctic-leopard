@@ -45,7 +45,9 @@ class AdResource extends JsonResource
                 'display_name' => $this->advertiser->display_name ?? $this->advertiser->name,
             ]),
             'campaign' => $this->whenLoaded('campaign', fn () => new CampaignResource($this->campaign)),
-            'creatives' => $this->whenLoaded('creatives', fn () => AdCreativeResource::collection($this->creatives)),
+            'creatives' => $this->relationLoaded('creatives')
+                ? AdCreativeResource::collection($this->creatives)->resolve($request)
+                : [],
             'impressions_count' => $this->impressions_count ?? null,
             'clicks_count' => $this->clicks_count ?? null,
             'can' => [

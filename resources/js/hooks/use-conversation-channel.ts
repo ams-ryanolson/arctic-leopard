@@ -1,330 +1,205 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { normalizeMessage, normalizeNumeric } from '@/components/messaging/message-utils';
-import type {
-    Message,
-    PresenceMember,
-    ReactionSummary,
-    Thread,
-} from '@/components/messaging/types';
-import { getPresenceChannel, leaveEchoChannel } from '@/lib/echo';
-import http from '@/lib/http';
-
-type MessageEvent = {
-    message: Message;
-};
-
-type MessageDeletedEvent = {
-    message_id: number;
-    conversation_id: number;
-    deleted_at: string | null;
-};
+import type { PresenceMember } from '@/components/messaging/types';
+import { getPresenceChannel } from '@/lib/echo';
 
 type UseConversationChannelOptions = {
-    selectedConversationId: number | null;
+    selectedConversationUlid: string | null;
     viewerId: number;
     viewerName: string;
-    onMessageReceived: (message: Message) => void;
-    onMessageDeleted: (messageId: number, deletedAt: string | null) => void;
-    onThreadUpdate: (
-        updater: Thread[] | ((previous: Thread[]) => Thread[]),
-    ) => void;
-    onMarkRead: (messageId?: number) => Promise<void>;
-    setTypingUsers: (users: string[]) => void;
-    typingTimeoutsRef: React.MutableRefObject<Record<number, number>>;
-    typingUsersRef: React.MutableRefObject<Map<number, string>>;
+    onMessageReceived?: (message: Record<string, unknown>) => void;
+    onMessageDeleted?: (messageId: number) => void;
+    onReactionUpdated?: (messageId: number, reactionSummary: Array<{ emoji: string; variant?: string | null; count: number; reacted: boolean }>) => void;
+    onMarkRead?: (userId: number, messageId?: number) => void;
+    onThreadUpdate?: (conversationId: number, lastMessage: Record<string, unknown>) => void;
+    setTypingUsers?: (users: Array<{ id: number; name: string }>) => void;
 };
 
 export function useConversationChannel({
-    selectedConversationId,
+    selectedConversationUlid,
     viewerId,
     viewerName,
     onMessageReceived,
     onMessageDeleted,
-    onThreadUpdate,
+    onReactionUpdated,
     onMarkRead,
+    onThreadUpdate,
     setTypingUsers,
-    typingTimeoutsRef,
-    typingUsersRef,
 }: UseConversationChannelOptions) {
-    const [presenceMembers, setPresenceMembers] = useState<PresenceMember[]>(
-        [],
-    );
-    const conversationChannelRef = useRef<ReturnType<
-        typeof getPresenceChannel
-    > | null>(null);
-
-    // Presence heartbeat
+    const [presenceMembers, setPresenceMembers] = useState<PresenceMember[]>([]);
+    const typingTimeoutsRef = useRef<Map<number, number>>(new Map());
+    const channelRef = useRef<ReturnType<typeof getPresenceChannel> | null>(null);
+    
+    // Store callbacks in refs to avoid dependency issues
+    const callbacksRef = useRef({
+        onMessageReceived,
+        onMessageDeleted,
+        onReactionUpdated,
+        onMarkRead,
+        onThreadUpdate,
+        setTypingUsers,
+    });
+    
+    // Update callbacks ref when they change
     useEffect(() => {
-        if (!selectedConversationId) {
-            return undefined;
-        }
-
-        let retryCount = 0;
-        const maxRetries = 3;
-        let heartbeatInterval: number | null = null;
-
-        const sendHeartbeat = async () => {
-            try {
-                await http.post(
-                    `/api/conversations/${selectedConversationId}/presence/heartbeat`,
-                );
-                retryCount = 0;
-            } catch (error) {
-                console.error('Presence heartbeat failed', error);
-                retryCount++;
-
-                if (retryCount < maxRetries) {
-                    setTimeout(() => {
-                        void sendHeartbeat();
-                    }, 5000 * retryCount);
-                } else {
-                    console.error(
-                        'Presence heartbeat failed after max retries, stopping heartbeat',
-                    );
-                    if (heartbeatInterval) {
-                        window.clearInterval(heartbeatInterval);
-                        heartbeatInterval = null;
-                    }
-                }
-            }
+        callbacksRef.current = {
+            onMessageReceived,
+            onMessageDeleted,
+            onReactionUpdated,
+            onMarkRead,
+            onThreadUpdate,
+            setTypingUsers,
         };
+    }, [onMessageReceived, onMessageDeleted, onReactionUpdated, onMarkRead, onThreadUpdate, setTypingUsers]);
 
-        void sendHeartbeat();
-        heartbeatInterval = window.setInterval(() => {
-            void sendHeartbeat();
-        }, 25_000);
-
+    // Typing indicator cleanup
+    useEffect(() => {
         return () => {
-            if (heartbeatInterval) {
-                window.clearInterval(heartbeatInterval);
-            }
+            typingTimeoutsRef.current.forEach((timeout) => {
+                window.clearTimeout(timeout);
+            });
+            typingTimeoutsRef.current.clear();
         };
-    }, [selectedConversationId]);
+    }, []);
 
-    // Echo channel subscription
+    // Subscribe to conversation channel
     useEffect(() => {
-        if (!selectedConversationId) {
+        if (!selectedConversationUlid) {
             setPresenceMembers([]);
+            channelRef.current = null;
             return undefined;
         }
 
-        const channelName = `conversations.${selectedConversationId}`;
+        // Debug: ensure we have a string ULID, not an object
+        if (typeof selectedConversationUlid !== 'string') {
+            console.error('[broadcasting] selectedConversationUlid is not a string!', {
+                type: typeof selectedConversationUlid,
+                value: selectedConversationUlid,
+            });
+            return undefined;
+        }
+
+        console.debug('[broadcasting] Subscribing to conversation channel', {
+            ulid: selectedConversationUlid,
+            ulidType: typeof selectedConversationUlid,
+        });
+
+        const channelName = `conversations.${selectedConversationUlid}`;
         const channel = getPresenceChannel(channelName);
 
         if (!channel) {
+            console.error('[broadcasting] Unable to subscribe to conversation channel', channelName);
             return undefined;
         }
 
-        conversationChannelRef.current = channel;
+        channelRef.current = channel;
 
-        const mapMember = (member: PresenceMember) => ({
-            id: Number(member.id),
-            name: member.name,
-            avatar: member.avatar ?? null,
-            role: member.role ?? null,
+        // Handle presence updates
+        channel.here?.((members: PresenceMember[]) => {
+            setPresenceMembers(members);
         });
 
-        if (channel.here) {
-            channel.here((members: unknown[]) => {
-                setPresenceMembers(
-                    (members as PresenceMember[]).map(mapMember),
-                );
-            });
-        }
-
-        if (channel.joining) {
-            channel.joining((member: unknown) => {
-                const typedMember = member as PresenceMember;
-                setPresenceMembers((previous) => {
-                    const exists = previous.some(
-                        (item) => item.id === Number(typedMember.id),
-                    );
-
-                    if (exists) {
-                        return previous;
-                    }
-
-                    return [...previous, mapMember(typedMember)];
-                });
-            });
-        }
-
-        if (channel.leaving) {
-            channel.leaving((member: unknown) => {
-                const typedMember = member as PresenceMember;
-                setPresenceMembers((previous) =>
-                    previous.filter(
-                        (item) => item.id !== Number(typedMember.id),
-                    ),
-                );
-            });
-        }
-
-        channel.listen('MessageSent', (event: MessageEvent) => {
-            const normalisedMessage = normalizeMessage(event.message);
-            const conversationId = normalisedMessage.conversation_id;
-            const messageId = normalisedMessage.id;
-
-            if (
-                !Number.isFinite(conversationId) ||
-                !Number.isFinite(messageId)
-            ) {
-                return;
-            }
-
-            onThreadUpdate((previous) => {
-                let found = false;
-
-                const next = previous.map((thread) => {
-                    if (Number(thread.id) !== conversationId) {
-                        return thread;
-                    }
-
-                    found = true;
-
-                    const isCurrentConversation =
-                        conversationId === selectedConversationId;
-                    const isOwnMessage =
-                        normalisedMessage.author?.id === viewerId;
-                    const unreadCount =
-                        isCurrentConversation || isOwnMessage
-                            ? 0
-                            : (thread.unread_count ?? 0) + 1;
-
-                    return {
-                        ...thread,
-                        last_message: normalisedMessage,
-                        last_message_at:
-                            normalisedMessage.created_at ??
-                            normalisedMessage.updated_at ??
-                            new Date().toISOString(),
-                        unread_count: unreadCount,
-                    };
-                });
-
-                return found ? next : previous;
-            });
-
-            if (conversationId !== selectedConversationId) {
-                return;
-            }
-
-            onMessageReceived(normalisedMessage);
-
-            if (normalisedMessage.author?.id !== viewerId) {
-                void onMarkRead(messageId);
-            }
-        });
-
-        channel.listen('MessageDeleted', (event: MessageDeletedEvent) => {
-            const conversationId = normalizeNumeric(event.conversation_id);
-            const messageId = normalizeNumeric(event.message_id);
-
-            if (
-                !Number.isFinite(conversationId) ||
-                conversationId !== selectedConversationId
-            ) {
-                return;
-            }
-
-            onMessageDeleted(messageId, event.deleted_at);
-        });
-
-        const timeoutStore = typingTimeoutsRef.current;
-        const typingStore = typingUsersRef.current;
-
-        const refreshTypingUsers = () => {
-            setTypingUsers(Array.from(typingStore.values()));
-        };
-
-        const handleTypingWhisper = (payload: {
-            user_id?: number | string;
-            name?: string;
-        }) => {
-            const rawUserId = payload.user_id;
-            const userId =
-                typeof rawUserId === 'number'
-                    ? rawUserId
-                    : typeof rawUserId === 'string'
-                      ? Number.parseInt(rawUserId, 10)
-                      : null;
-
-            if (
-                userId === null ||
-                !Number.isFinite(userId) ||
-                userId === viewerId
-            ) {
-                return;
-            }
-
-            const name = payload.name ?? 'Someone';
-            typingStore.set(userId, name);
-            refreshTypingUsers();
-
-            if (timeoutStore[userId]) {
-                window.clearTimeout(timeoutStore[userId]);
-            }
-
-            timeoutStore[userId] = window.setTimeout(() => {
-                typingStore.delete(userId);
-                refreshTypingUsers();
-                delete timeoutStore[userId];
-            }, 2800);
-        };
-
-        channel.listenForWhisper?.('typing', handleTypingWhisper);
-
-        return () => {
-            channel.stopListening('MessageSent');
-            channel.stopListening('MessageDeleted');
-            channel.stopListening?.('typing');
-            leaveEchoChannel(channelName);
-            if (conversationChannelRef.current === channel) {
-                conversationChannelRef.current = null;
-            }
-            // Clear all typing timeouts
-            Object.values(timeoutStore).forEach((timeout) => {
-                if (timeout) {
-                    window.clearTimeout(timeout);
+        channel.joining?.((member: PresenceMember) => {
+            setPresenceMembers((previous) => {
+                const exists = previous.some((m) => m.id === member.id);
+                if (exists) {
+                    return previous;
                 }
+                return [...previous, member];
             });
-            Object.keys(timeoutStore).forEach((key) => {
-                delete timeoutStore[Number(key)];
+        });
+
+        channel.leaving?.((member: PresenceMember) => {
+            setPresenceMembers((previous) => previous.filter((m) => m.id !== member.id));
+        });
+
+        // Listen for typing indicators (whispers)
+        channel.listenForWhisper?.('typing', (data: { user_id: number; name: string }) => {
+            if (data.user_id === viewerId) {
+                return; // Ignore own typing
+            }
+
+            callbacksRef.current.setTypingUsers?.((previous) => {
+                const exists = previous.some((u) => u.id === data.user_id);
+                if (exists) {
+                    return previous;
+                }
+                return [...previous, { id: data.user_id, name: data.name }];
             });
-            typingStore.clear();
-            setTypingUsers([]);
+
+            // Clear typing indicator after 3 seconds
+            const existingTimeout = typingTimeoutsRef.current.get(data.user_id);
+            if (existingTimeout) {
+                window.clearTimeout(existingTimeout);
+            }
+
+            const timeout = window.setTimeout(() => {
+                callbacksRef.current.setTypingUsers?.((previous) => previous.filter((u) => u.id !== data.user_id));
+                typingTimeoutsRef.current.delete(data.user_id);
+            }, 3000);
+
+            typingTimeoutsRef.current.set(data.user_id, timeout);
+        });
+
+        // Listen for message events
+        channel.listen('.MessageSent', (data: { message: Record<string, unknown> }) => {
+            console.debug('[broadcasting] MessageSent received', data);
+            if (data.message) {
+                callbacksRef.current.onMessageReceived?.(data.message);
+            }
+        });
+
+        channel.listen('.MessageDeleted', (data: { message_id: number }) => {
+            if (data.message_id) {
+                callbacksRef.current.onMessageDeleted?.(data.message_id);
+            }
+        });
+
+        channel.listen('.MessageReactionUpdated', (data: { message_id: number; reaction_summary: Array<{ emoji: string; variant?: string | null; count: number; reacted: boolean }> }) => {
+            if (data.message_id && data.reaction_summary) {
+                callbacksRef.current.onReactionUpdated?.(data.message_id, data.reaction_summary);
+            }
+        });
+
+        channel.listen('.MessageRead', (data: { user_id: number; message_id?: number }) => {
+            if (data.user_id) {
+                callbacksRef.current.onMarkRead?.(data.user_id, data.message_id);
+            }
+        });
+
+        // Error handling
+        const errorHandler = (error: unknown) => {
+            console.error('[broadcasting] Conversation channel error', error);
         };
-    }, [
-        selectedConversationId,
-        viewerId,
-        viewerName,
-        onMessageReceived,
-        onMessageDeleted,
-        onThreadUpdate,
-        onMarkRead,
-        setTypingUsers,
-        typingTimeoutsRef,
-        typingUsersRef,
-    ]);
 
-    const sendTypingSignal = () => {
-        const channel = conversationChannelRef.current;
+        // Return cleanup function
+        return () => {
+            if (channelRef.current) {
+                channelRef.current.stopListening?.('.MessageSent');
+                channelRef.current.stopListening?.('.MessageDeleted');
+                channelRef.current.stopListening?.('.MessageReactionUpdated');
+                channelRef.current.stopListening?.('.MessageRead');
+                channelRef.current.stopListeningForWhisper?.('typing');
+            }
+            channelRef.current = null;
+            setPresenceMembers([]);
+        };
+    }, [selectedConversationUlid, viewerId, viewerName]);
 
-        if (!channel?.whisper) {
+    // Send typing signal
+    const sendTypingSignal = useCallback(() => {
+        if (!channelRef.current || !selectedConversationUlid) {
             return;
         }
 
-        channel.whisper('typing', {
+        channelRef.current.whisper?.('typing', {
             user_id: viewerId,
             name: viewerName,
         });
-    };
+    }, [selectedConversationUlid, viewerId, viewerName]);
 
     return {
         presenceMembers,
-        conversationChannelRef,
         sendTypingSignal,
     };
 }
-

@@ -648,7 +648,8 @@ export default function CommentThreadPanel({
     layout = 'sheet',
     disableInteractions = false,
 }: CommentThreadPanelProps) {
-    const postId = post?.id ?? null;
+    // Use ULID if available, otherwise fall back to numeric ID
+    const postId = post?.ulid ?? post?.id ?? null;
     const instanceId = useId();
     const commentFieldId = `comment-body-${instanceId}`;
 

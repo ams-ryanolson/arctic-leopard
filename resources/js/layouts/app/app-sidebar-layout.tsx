@@ -42,7 +42,11 @@ export default function AppSidebarLayout({
             <AppSidebar />
             <AppContent
                 variant="sidebar"
-                className="relative overflow-x-hidden bg-neutral-950 text-white"
+                className={cn(
+                    'relative overflow-x-hidden bg-neutral-950 text-white',
+                    hideHeader &&
+                        'h-[calc(100svh-68px)] !min-h-0 overflow-hidden sm:h-svh md:!m-0 md:!rounded-none',
+                )}
             >
                 <div className="pointer-events-none absolute inset-0 -z-10">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(249,115,22,0.18),_transparent_60%)]" />
@@ -53,11 +57,10 @@ export default function AppSidebarLayout({
                 <div
                     className={cn(
                         'relative flex min-h-screen flex-col',
-                        hideHeader &&
-                            'h-[calc(100svh-16px)] min-h-0 overflow-hidden',
+                        hideHeader && 'h-full min-h-0 overflow-hidden',
                     )}
                 >
-                    {!hideHeader ? (
+                    {!hideHeader && (
                         <AppSidebarHeader
                             breadcrumbs={breadcrumbs}
                             actions={headerActions}
@@ -66,10 +69,6 @@ export default function AppSidebarLayout({
                             supportLinks={headerSupportLinks}
                             toolbar={headerToolbar}
                         />
-                    ) : (
-                        <div className="sticky top-0 z-40 border-b border-white/10 bg-black/45 px-3 py-3 text-sm tracking-[0.35em] text-white/60 uppercase backdrop-blur-2xl sm:px-4 md:px-8">
-                            Messages
-                        </div>
                     )}
 
                     <main
@@ -80,9 +79,9 @@ export default function AppSidebarLayout({
                     >
                         <div
                             className={cn(
-                                'mx-auto w-full max-w-6xl px-3 pt-4 pb-24 sm:px-4 sm:pt-6 sm:pb-16 md:px-8 md:pt-8',
+                                !hideHeader && 'mx-auto w-full max-w-6xl px-3 pt-4 pb-24 sm:px-4 sm:pt-6 sm:pb-16 md:px-8 md:pt-8',
                                 hideHeader &&
-                                    'flex h-full min-h-0 flex-col pb-24 sm:pb-16',
+                                    'flex h-full min-h-0 flex-col !p-0',
                                 contentClassName,
                             )}
                         >

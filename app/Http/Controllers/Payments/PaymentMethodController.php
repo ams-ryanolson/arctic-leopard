@@ -35,9 +35,19 @@ class PaymentMethodController extends Controller
         try {
             $token = $driver->generateFrontendToken();
 
+            // Include frontend application ID for widget initialization
+            $applicationId = null;
+            if ($gateway === 'ccbill' && method_exists($driver, 'getFrontendApplicationId')) {
+                $applicationId = $driver->getFrontendApplicationId();
+            } elseif ($gateway === 'ccbill') {
+                // Fallback: get from config directly
+                $applicationId = config('payments.gateways.ccbill.options.frontend_app_id');
+            }
+
             return response()->json([
                 'token' => $token,
                 'gateway' => $gateway,
+                'application_id' => $applicationId,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -66,11 +76,25 @@ class PaymentMethodController extends Controller
         $gateway = $request->input('gateway', 'ccbill');
 
         try {
+            // Build card details from request if provided
+            // CCBill doesn't return card details via API, so we accept them from frontend
+            $cardDetails = null;
+            if ($request->filled('card_last_four')) {
+                $cardDetails = \App\Payments\Data\CardDetails::fromArray([
+                    'last_four' => $request->input('card_last_four'),
+                    'brand' => $request->input('card_brand', 'unknown'),
+                    'exp_month' => $request->input('card_exp_month', ''),
+                    'exp_year' => $request->input('card_exp_year', ''),
+                    'fingerprint' => null,
+                ]);
+            }
+
             // Vault the token
             $paymentMethod = $this->paymentMethodService->vaultToken(
                 $user,
                 $request->input('provider_token_id'),
-                $gateway
+                $gateway,
+                $cardDetails
             );
 
             // Set as default if requested

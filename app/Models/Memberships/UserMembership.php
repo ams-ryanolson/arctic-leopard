@@ -18,6 +18,7 @@ class UserMembership extends Model
 
     protected $fillable = [
         'user_id',
+        'gifted_by_user_id',
         'membership_plan_id',
         'status',
         'billing_type',
@@ -54,6 +55,21 @@ class UserMembership extends Model
     public function payment(): BelongsTo
     {
         return $this->belongsTo(Payment::class);
+    }
+
+    public function giftedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'gifted_by_user_id');
+    }
+
+    public function scopeGifted($query)
+    {
+        return $query->whereNotNull('gifted_by_user_id');
+    }
+
+    public function scopeGiftedBy($query, User $user)
+    {
+        return $query->where('gifted_by_user_id', $user->id);
     }
 
     public function scopeActive($query)

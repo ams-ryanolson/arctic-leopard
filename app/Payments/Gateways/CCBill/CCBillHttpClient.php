@@ -228,6 +228,9 @@ class CCBillHttpClient
         try {
             $backendToken = $this->oauth->getBackendToken();
 
+            // Use a longer timeout for payment charges (30 seconds minimum)
+            $chargeTimeout = max($this->timeout, 30);
+
             $response = $this->makeRequestWithRetry(
                 'POST',
                 "/transactions/payment-tokens/{$tokenId}",
@@ -237,9 +240,12 @@ class CCBillHttpClient
                     'initialPrice' => $amount->toDecimal(2),
                     'initialPeriod' => $initialPeriod,
                     'currencyCode' => $this->mapCurrencyCode($amount->currency()),
+                    'rebills' => 0, // One-time charge, no recurring
+                    'createNewPaymentToken' => true, // Get a new token for future use
                 ],
                 $backendToken,
-                $correlationId
+                $correlationId,
+                $chargeTimeout
             );
 
             $data = $response->json();
@@ -251,7 +257,18 @@ class CCBillHttpClient
                 throw CCBillApiException::fromResponse($errorMessage, $errorCode, $data);
             }
 
-            if (! isset($data['transactionId'])) {
+            // Check if payment was approved
+            if (isset($data['approved']) && $data['approved'] === false) {
+                $declineText = $data['declineText'] ?? 'Payment declined';
+                $declineCode = $data['declineCode'] ?? null;
+
+                throw new CCBillApiException($declineText, $declineCode, $data);
+            }
+
+            // CCBill returns subscriptionId or paymentUniqueId, not transactionId
+            $transactionId = $data['subscriptionId'] ?? $data['paymentUniqueId'] ?? $data['transactionId'] ?? null;
+
+            if ($transactionId === null) {
                 throw new CCBillApiException(
                     'Transaction ID not found in response',
                     null,
@@ -259,9 +276,13 @@ class CCBillHttpClient
                 );
             }
 
+            // Normalize the response to include transactionId for consistency
+            $data['transactionId'] = $transactionId;
+
             Log::info('CCBillHttpClient: Payment token charged successfully', [
                 'correlation_id' => $correlationId,
-                'transaction_id' => $data['transactionId'],
+                'transaction_id' => $transactionId,
+                'subscription_id' => $data['subscriptionId'] ?? null,
             ]);
 
             return $data;
@@ -478,14 +499,15 @@ class CCBillHttpClient
         string $path,
         array $data,
         string $bearerToken,
-        string $correlationId
+        string $correlationId,
+        ?int $timeout = null
     ): \Illuminate\Http\Client\Response {
         $attempt = 0;
         $lastException = null;
 
         while ($attempt < $this->retryAttempts) {
             try {
-                return $this->makeRequest($method, $path, $data, $bearerToken, $correlationId);
+                return $this->makeRequest($method, $path, $data, $bearerToken, $correlationId, $timeout);
             } catch (CCBillApiException $e) {
                 // Don't retry API exceptions (client errors)
                 if ($e->errorCode !== null && str_starts_with((string) $e->errorCode, '4')) {
@@ -549,7 +571,8 @@ class CCBillHttpClient
         string $path,
         array $data,
         string $bearerToken,
-        string $correlationId
+        string $correlationId,
+        ?int $timeout = null
     ): \Illuminate\Http\Client\Response {
         $url = rtrim($this->baseUrl, '/').'/'.ltrim($path, '/');
 
@@ -562,7 +585,7 @@ class CCBillHttpClient
             'data' => $sanitizedData,
         ]);
 
-        $request = Http::timeout($this->timeout)
+        $request = Http::timeout($timeout ?? $this->timeout)
             ->withHeaders([
                 'Accept' => 'application/vnd.mcn.transaction-service.api.v.2+json',
                 'Authorization' => "Bearer {$bearerToken}",

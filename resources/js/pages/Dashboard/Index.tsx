@@ -1,5 +1,6 @@
 import SidebarAd from '@/components/ads/sidebar-ad';
 import TimelineAd from '@/components/ads/timeline-ad';
+import AmplifyModal from '@/components/feed/amplify-modal';
 import CommentThreadSheet from '@/components/feed/comment-thread-sheet';
 import FeedLoadingPlaceholder from '@/components/feed/feed-loading-placeholder';
 import FeedPostComposer from '@/components/feed/feed-post-composer';
@@ -144,6 +145,7 @@ type DashboardProps = SharedData & {
         story_count: number;
         has_new_stories: boolean;
     }>;
+    audiences?: Array<{ value: string; label: string }>;
     viewer: ViewerContext & { avatar?: string | null };
 };
 
@@ -155,11 +157,13 @@ export default function Dashboard() {
     const [_previousStoryId, setPreviousStoryId] = useState<number | null>(
         null,
     );
+    const [amplifyPostId, setAmplifyPostId] = useState<number | null>(null);
+    const [isAmplifyModalOpen, setIsAmplifyModalOpen] = useState(false);
 
-    const { timeline, composer, pulse, trending, sidebarAds, stories, viewer, features } =
+    const { timeline, composer, pulse, trending, sidebarAds, stories, audiences, viewer, features } =
         usePage<DashboardProps>().props;
     
-    const adsEnabled = features?.feature_ads_enabled ?? false;
+    const adsEnabled = features?.ads ?? false;
 
     const transformTimelinePayload = useCallback(
         (payload: TimelinePayload | PostCollectionPayload): TimelinePayload =>
@@ -181,6 +185,7 @@ export default function Dashboard() {
         pendingLikes,
         pendingBookmarks,
         pendingPurchases,
+        pendingAmplifies,
         activeCommentPost,
         isCommentSheetOpen,
         sentinelRef,
@@ -188,6 +193,7 @@ export default function Dashboard() {
         toggleLike,
         toggleBookmark,
         togglePurchase,
+        toggleAmplify,
         openComments,
         handleCommentAdded,
         handleCommentsOpenChange,
@@ -205,6 +211,29 @@ export default function Dashboard() {
     const handleComposerSubmitted = useCallback(() => {
         void refresh();
     }, [refresh]);
+
+    const handleAmplify = useCallback(
+        async (postId: number, comment?: string) => {
+            await toggleAmplify(postId, comment);
+            setIsAmplifyModalOpen(false);
+            setAmplifyPostId(null);
+        },
+        [toggleAmplify],
+    );
+
+    const handleUnamplify = useCallback(
+        async (postId: number) => {
+            await toggleAmplify(postId);
+            setIsAmplifyModalOpen(false);
+            setAmplifyPostId(null);
+        },
+        [toggleAmplify],
+    );
+
+    const handleAmplifyClick = useCallback((postId: number) => {
+        setAmplifyPostId(postId);
+        setIsAmplifyModalOpen(true);
+    }, []);
 
     const handleViewNewEntries = useCallback(async () => {
         if (isRefreshing || pendingBroadcasts.length === 0) {
@@ -292,6 +321,7 @@ export default function Dashboard() {
                     {features?.feature_stories_enabled && (
                         <StoriesSection
                             stories={stories}
+                            audiences={audiences}
                             onStoryClick={(storyId) => setSelectedStoryId(storyId)}
                         />
                     )}
@@ -328,6 +358,7 @@ export default function Dashboard() {
                                         </Button>
                                     </div>
                                 </CardHeader>
+                                <div className="border-b border-white/10" />
                                 <CardContent className="space-y-4">
                                     {pendingBroadcastCount > 0 && (
                                         <Alert className="flex flex-col items-center gap-3 border border-emerald-400/40 bg-emerald-500/15 text-center text-white shadow-lg shadow-emerald-500/10">
@@ -410,6 +441,9 @@ export default function Dashboard() {
                                                     ) ||
                                                     pendingBookmarks.includes(
                                                         postId,
+                                                    ) ||
+                                                    pendingAmplifies.includes(
+                                                        postId,
                                                     ));
 
                                             return (
@@ -420,6 +454,7 @@ export default function Dashboard() {
                                                     onBookmark={toggleBookmark}
                                                     onComment={openComments}
                                                     onPurchase={togglePurchase}
+                                                    onAmplify={handleAmplifyClick}
                                                     disabled={
                                                         isPostPending ||
                                                         isRefreshing
@@ -662,6 +697,31 @@ export default function Dashboard() {
                 open={isCommentSheetOpen && activeCommentPost !== null}
                 onOpenChange={handleCommentsOpenChange}
                 onCommentAdded={handleCommentAdded}
+            />
+            <AmplifyModal
+                open={isAmplifyModalOpen}
+                onOpenChange={setIsAmplifyModalOpen}
+                onAmplify={(comment) => {
+                    if (amplifyPostId !== null) {
+                        void handleAmplify(amplifyPostId, comment);
+                    }
+                }}
+                onUnamplify={() => {
+                    if (amplifyPostId !== null) {
+                        void handleUnamplify(amplifyPostId);
+                    }
+                }}
+                isAmplifying={
+                    amplifyPostId !== null &&
+                    pendingAmplifies.includes(amplifyPostId)
+                }
+                hasAmplified={
+                    amplifyPostId !== null
+                        ? entries.find(
+                              (entry) => entry.post?.id === amplifyPostId,
+                          )?.post?.has_amplified ?? false
+                        : false
+                }
             />
 
             {/* Story Viewer Modal */}

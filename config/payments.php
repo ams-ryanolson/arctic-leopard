@@ -73,12 +73,12 @@ return [
                 'backend_secret' => env('CCBILL_BACKEND_SECRET'),
                 'api_base_url' => env('CCBILL_API_BASE_URL', 'https://api.ccbill.com'),
                 'low_risk_non_recurring' => [
-                    'client_accnum' => env('CCBILL_LOW_RISK_NON_RECURRING_ACCNUM'),
-                    'client_subacc' => env('CCBILL_LOW_RISK_NON_RECURRING_SUBACC'),
+                    'client_accnum' => (int) env('CCBILL_LOW_RISK_NON_RECURRING_ACCNUM', 0),
+                    'client_subacc' => (int) env('CCBILL_LOW_RISK_NON_RECURRING_SUBACC', 0),
                 ],
                 'high_risk_non_recurring' => [
-                    'client_accnum' => env('CCBILL_HIGH_RISK_NON_RECURRING_ACCNUM'),
-                    'client_subacc' => env('CCBILL_HIGH_RISK_NON_RECURRING_SUBACC'),
+                    'client_accnum' => (int) env('CCBILL_HIGH_RISK_NON_RECURRING_ACCNUM', 0),
+                    'client_subacc' => (int) env('CCBILL_HIGH_RISK_NON_RECURRING_SUBACC', 0),
                 ],
                 'oauth_cache_ttl' => env('CCBILL_OAUTH_CACHE_TTL', 3600),
                 'http_timeout' => env('CCBILL_HTTP_TIMEOUT', 10),

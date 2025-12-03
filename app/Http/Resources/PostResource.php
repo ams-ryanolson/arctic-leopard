@@ -21,6 +21,11 @@ class PostResource extends JsonResource
         $type = $this->type instanceof PostType ? $this->type->value : $this->type;
         $audience = $this->audience instanceof PostAudience ? $this->audience->value : $this->audience;
 
+        // Ensure repostedPost is loaded for amplify posts so policy can check original author
+        if ($this->type === PostType::Amplify && ! $this->relationLoaded('repostedPost')) {
+            $this->loadMissing('repostedPost');
+        }
+
         $decision = AudienceDecision::make($this->resource, $request->user());
         $extraAttributes = $this->extra_attributes ?? [];
 
@@ -51,9 +56,41 @@ class PostResource extends JsonResource
 
         $isBookmarked = (bool) ($this->is_bookmarked ?? $this->viewer_has_bookmarked ?? false);
         $bookmarkId = $this->bookmark_id ?? null;
+        $hasAmplified = (bool) ($this->has_amplified ?? $this->viewer_has_amplified ?? false);
+        $isAmplify = $this->type === PostType::Amplify;
+
+        $originalPost = null;
+        if ($isAmplify && $this->relationLoaded('repostedPost') && $this->repostedPost) {
+            $originalPost = (new self($this->repostedPost))->toArray($request);
+        }
+
+        $amplifiedBy = [];
+        if ($this->relationLoaded('amplifiedBy') && ! $isAmplify) {
+            $amplifiedBy = $this->amplifiedBy
+                ->take(10)
+                ->map(function ($repost) {
+                    $user = $repost->user;
+                    if (! $user) {
+                        return null;
+                    }
+
+                    return [
+                        'id' => $user->id,
+                        'username' => $user->username,
+                        'display_name' => $user->display_name ?? $user->name,
+                        'name' => $user->name,
+                        'avatar_url' => $user->avatar_url,
+                        'is_verified' => (bool) $user->email_verified_at,
+                    ];
+                })
+                ->filter()
+                ->values()
+                ->all();
+        }
 
         return [
             'id' => $this->id,
+            'ulid' => $this->ulid,
             'type' => $type,
             'audience' => $audience,
             'is_system' => (bool) $this->is_system,
@@ -64,6 +101,10 @@ class PostResource extends JsonResource
             'has_liked' => (bool) ($this->has_liked ?? false),
             'comments_count' => (int) ($this->comments_count ?? 0),
             'reposts_count' => (int) ($this->reposts_count ?? 0),
+            'has_amplified' => $hasAmplified,
+            'reposted_post_id' => $isAmplify ? $this->reposted_post_id : null,
+            'original_post' => $originalPost,
+            'amplified_by' => $amplifiedBy,
             'poll_votes_count' => (int) ($this->poll_votes_count ?? 0),
             'views_count' => (int) ($this->views_count ?? 0),
             'bookmark_count' => $bookmarkCount,

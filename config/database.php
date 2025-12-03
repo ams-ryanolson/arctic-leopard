@@ -113,6 +113,21 @@ return [
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
+        'se4' => [
+            'driver' => 'mysql',
+            'host' => env('SE4_DB_HOST', '127.0.0.1'),
+            'port' => env('SE4_DB_PORT', '3306'),
+            'database' => env('SE4_DB_DATABASE', 'fetishmen'),
+            'username' => env('SE4_DB_USERNAME', 'root'),
+            'password' => env('SE4_DB_PASSWORD', ''),
+            'charset' => 'utf8mb3',
+            'collation' => 'utf8mb3_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => false,
+            'engine' => null,
+        ],
+
     ],
 
     /*

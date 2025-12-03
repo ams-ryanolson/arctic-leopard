@@ -5,7 +5,9 @@ namespace App\Services\Payments;
 use App\Models\Payments\PaymentMethod;
 use App\Models\User;
 use App\Payments\Data\CardDetails;
+use App\Payments\Exceptions\PaymentTokenVaultingException;
 use App\Payments\PaymentGatewayManager;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -20,6 +22,8 @@ class PaymentMethodService
      * Vault a payment token and store it as a payment method.
      *
      * @param  CardDetails|null  $cardDetails  Card details if already known, otherwise fetched from gateway
+     *
+     * @throws PaymentTokenVaultingException
      */
     public function vaultToken(
         User $user,
@@ -50,6 +54,32 @@ class PaymentMethodService
                 return $existing;
             }
 
+            // Check if user already has a card with the same last 4 digits
+            // This prevents duplicate cards from being added
+            $duplicateCard = PaymentMethod::query()
+                ->where('user_id', $user->id)
+                ->where('last_four', $cardDetails->lastFour)
+                ->active()
+                ->first();
+
+            if ($duplicateCard) {
+                Log::warning('PaymentMethodService: Duplicate card detected', [
+                    'user_id' => $user->id,
+                    'last_four' => $cardDetails->lastFour,
+                    'existing_payment_method_id' => $duplicateCard->id,
+                ]);
+
+                throw new PaymentTokenVaultingException(
+                    "A card ending in {$cardDetails->lastFour} is already saved to your account."
+                );
+            }
+
+            // Calculate card expiration date (last day of the expiration month)
+            $expiresAt = $this->calculateCardExpirationDate(
+                (int) $cardDetails->expMonth,
+                (int) $cardDetails->expYear
+            );
+
             // Create new payment method
             $paymentMethod = PaymentMethod::create([
                 'user_id' => $user->id,
@@ -61,6 +91,7 @@ class PaymentMethodService
                 'exp_month' => $cardDetails->expMonth,
                 'exp_year' => $cardDetails->expYear,
                 'fingerprint' => $cardDetails->fingerprint,
+                'expires_at' => $expiresAt,
                 'status' => \App\Enums\Payments\PaymentMethodStatus::Active,
                 'metadata' => [
                     'gateway' => $gateway,
@@ -83,10 +114,23 @@ class PaymentMethodService
                 'user_id' => $user->id,
                 'payment_method_id' => $paymentMethod->id,
                 'provider_token_id' => $this->sanitizeTokenId($providerTokenId),
+                'expires_at' => $expiresAt->toIso8601String(),
             ]);
 
             return $paymentMethod;
         });
+    }
+
+    /**
+     * Calculate the card expiration date (last day of the expiration month).
+     */
+    protected function calculateCardExpirationDate(int $expMonth, int $expYear): Carbon
+    {
+        // Create a date for the first day of the expiration month
+        // Then get the last day of that month at end of day (23:59:59)
+        return Carbon::create($expYear, $expMonth, 1)
+            ->endOfMonth()
+            ->endOfDay();
     }
 
     /**

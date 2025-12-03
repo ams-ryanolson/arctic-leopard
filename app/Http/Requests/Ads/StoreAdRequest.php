@@ -29,10 +29,17 @@ class StoreAdRequest extends FormRequest
             'max_clicks' => ['nullable', 'integer', 'min:1'],
             'daily_impression_cap' => ['nullable', 'integer', 'min:1'],
             'daily_click_cap' => ['nullable', 'integer', 'min:1'],
-            'budget_amount' => ['required', 'integer', 'min:1'],
-            'budget_currency' => ['required', 'string', 'size:3'],
-            'pricing_model' => ['required', Rule::enum(PricingModel::class)],
-            'pricing_rate' => ['required', 'integer', 'min:1'],
+            'budget_amount' => ['nullable', 'integer', 'min:0'],
+            'budget_currency' => ['required_with:budget_amount', 'string', 'size:3'],
+            'pricing_model' => [
+                'nullable',
+                function ($attribute, $value, $fail) {
+                    if ($value !== null && $value !== '' && ! PricingModel::tryFrom($value)) {
+                        $fail('The '.$attribute.' must be a valid pricing model.');
+                    }
+                },
+            ],
+            'pricing_rate' => ['nullable', 'integer', 'min:0'],
             'targeting' => ['nullable', 'array'],
             'metadata' => ['nullable', 'array'],
             'creatives' => ['required', 'array', 'min:1'],

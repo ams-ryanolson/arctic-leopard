@@ -230,6 +230,13 @@ class AdminSettingsSeeder extends Seeder
                 'type' => 'boolean',
                 'category' => 'features',
             ],
+            [
+                'key' => 'feature_live_streaming_enabled',
+                'value' => '0',
+                'description' => 'Enable live streaming functionality.',
+                'type' => 'boolean',
+                'category' => 'features',
+            ],
 
             // General
             [

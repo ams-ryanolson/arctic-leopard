@@ -35,6 +35,7 @@ export type FeedAuthor = {
 
 export type FeedPost = {
     id: number;
+    ulid?: string;
     type: string;
     audience: string;
     is_system: boolean;
@@ -48,6 +49,10 @@ export type FeedPost = {
     bookmark_id: number | null;
     comments_count: number;
     reposts_count: number;
+    has_amplified?: boolean;
+    reposted_post_id?: number | null;
+    original_post?: FeedPost | null;
+    amplified_by?: FeedAuthor[];
     poll_votes_count: number;
     views_count: number;
     paywall_price: number | null;

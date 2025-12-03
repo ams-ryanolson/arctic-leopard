@@ -193,8 +193,18 @@ class MessageService
 
                 $this->toasts->info($participant->user, sprintf('%s sent you a new message', $from), [
                     'category' => 'messaging',
+                    'title' => 'New message',
+                    'actions' => [
+                        [
+                            'key' => 'view-conversation',
+                            'label' => 'View',
+                            'method' => 'router.visit',
+                            'route' => route('messages.show', ['conversation' => $conversation->ulid]),
+                        ],
+                    ],
                     'meta' => [
                         'conversation_id' => $conversation->getKey(),
+                        'conversation_ulid' => $conversation->ulid,
                         'message_id' => $message->getKey(),
                         'preview' => $preview,
                     ],

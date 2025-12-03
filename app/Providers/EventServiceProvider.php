@@ -8,6 +8,7 @@ use App\Events\Content\ContentQueuedForModeration;
 use App\Events\Content\ContentRejected;
 use App\Events\Memberships\MembershipCancelled;
 use App\Events\Memberships\MembershipExpired;
+use App\Events\Memberships\MembershipGifted;
 use App\Events\Memberships\MembershipPurchased;
 use App\Events\Memberships\MembershipRenewed;
 use App\Events\Memberships\MembershipUpgraded;
@@ -25,6 +26,7 @@ use App\Events\Payments\SubscriptionExpired;
 use App\Events\Payments\SubscriptionPaymentFailed;
 use App\Events\Payments\SubscriptionRenewed;
 use App\Events\Payments\SubscriptionStarted;
+use App\Events\PostAmplified;
 use App\Events\PostAudienceChanged;
 use App\Events\PostBookmarked;
 use App\Events\PostDeleted;
@@ -49,6 +51,7 @@ use App\Listeners\Content\HandleContentRejection;
 use App\Listeners\Content\LogContentModeration;
 use App\Listeners\DispatchUserFollowedEvent;
 use App\Listeners\FlushTimelinesOnBlock;
+use App\Listeners\LogFailedLogin;
 use App\Listeners\LogTwoFactorDisabled;
 use App\Listeners\LogTwoFactorEnabled;
 use App\Listeners\LogUserBlockLifecycle;
@@ -58,6 +61,8 @@ use App\Listeners\Memberships\AssignRoleOnMembershipPurchased;
 use App\Listeners\Memberships\LogMembershipUpgrade;
 use App\Listeners\Memberships\ProcessRecurringRenewal;
 use App\Listeners\Memberships\RemoveRoleOnMembershipExpired;
+use App\Listeners\Memberships\SendMembershipGiftedNotification;
+use App\Listeners\Memberships\SendMembershipGiftPurchasedNotification;
 use App\Listeners\Memberships\UpdateRoleOnMembershipUpgraded;
 use App\Listeners\Payments\CompletePostPurchaseOnPaymentCaptured;
 use App\Listeners\Payments\CompleteTipOnPaymentCaptured;
@@ -73,6 +78,7 @@ use App\Listeners\Payments\LogSubscriptionLifecycle;
 use App\Listeners\Payments\RefundPostPurchaseOnPaymentRefunded;
 use App\Listeners\Payments\RefundTipOnPaymentRefunded;
 use App\Listeners\Payments\RefundWishlistPurchaseOnPaymentRefunded;
+use App\Listeners\Payments\RevokeGiftMembershipOnChargeback;
 use App\Listeners\Payments\TouchPaymentMethodOnUse;
 use App\Listeners\Payments\UpdateLedgerOnPaymentCaptured;
 use App\Listeners\Payments\UpdateLedgerOnPaymentRefunded;
@@ -82,6 +88,7 @@ use App\Listeners\RefreshFollowerTimeline;
 use App\Listeners\RefreshTimelineForAudienceChange;
 use App\Listeners\RemovePostFromTimelines;
 use App\Listeners\SendFollowRequestApprovedNotification;
+use App\Listeners\SendPostAmplifiedNotification;
 use App\Listeners\SendPostBookmarkedNotification;
 use App\Listeners\SendPostLikedNotification;
 use App\Listeners\SendUserFollowedNotification;
@@ -95,6 +102,7 @@ use App\Listeners\Users\LogUserSuspension;
 use App\Listeners\Users\LogUserWarning;
 use App\Listeners\Wishlists\SendWishlistThankYouNotification;
 use App\Listeners\Wishlists\UpdateWishlistItemStatus;
+use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -137,6 +145,9 @@ class EventServiceProvider extends ServiceProvider
         PostLiked::class => [
             SendPostLikedNotification::class,
         ],
+        PostAmplified::class => [
+            SendPostAmplifiedNotification::class,
+        ],
         PostBookmarked::class => [
             SendPostBookmarkedNotification::class,
         ],
@@ -157,8 +168,14 @@ class EventServiceProvider extends ServiceProvider
         UserFollowAccepted::class => [
             RefreshFollowerTimeline::class,
         ],
+        UserUnfollowed::class => [
+            RemoveUnfollowedUserPostsFromTimeline::class,
+        ],
         Login::class => [
             LogUserLogin::class,
+        ],
+        Failed::class => [
+            LogFailedLogin::class,
         ],
         Logout::class => [
             LogUserLogout::class,
@@ -189,6 +206,7 @@ class EventServiceProvider extends ServiceProvider
             FailTipOnPaymentFailed::class,
             FailWishlistPurchaseOnPaymentFailed::class,
             FailPostPurchaseOnPaymentFailed::class,
+            \App\Listeners\Payments\NotifyMembershipPaymentFailed::class,
         ],
         PaymentRefunded::class => [
             LogPaymentLifecycle::class,
@@ -196,6 +214,7 @@ class EventServiceProvider extends ServiceProvider
             RefundTipOnPaymentRefunded::class,
             RefundWishlistPurchaseOnPaymentRefunded::class,
             RefundPostPurchaseOnPaymentRefunded::class,
+            RevokeGiftMembershipOnChargeback::class,
             LogPaymentActivity::class.'@handlePaymentRefunded',
             \App\Listeners\Dashboard\InvalidateFinancialCache::class,
         ],
@@ -247,6 +266,11 @@ class EventServiceProvider extends ServiceProvider
             \App\Listeners\Dashboard\InvalidateFinancialCache::class,
         ],
         MembershipCancelled::class => [
+            \App\Listeners\Dashboard\InvalidateFinancialCache::class,
+        ],
+        MembershipGifted::class => [
+            SendMembershipGiftedNotification::class,
+            SendMembershipGiftPurchasedNotification::class,
             \App\Listeners\Dashboard\InvalidateFinancialCache::class,
         ],
         WishlistPurchaseCompleted::class => [

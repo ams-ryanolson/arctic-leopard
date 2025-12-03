@@ -290,12 +290,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('upgrade', [\App\Http\Controllers\Memberships\MembershipController::class, 'index'])
             ->name('upgrade');
-        Route::get('memberships/checkout/{plan}', [\App\Http\Controllers\Memberships\MembershipController::class, 'checkout'])
+        Route::get('memberships/checkout/{plan:slug}', [\App\Http\Controllers\Memberships\MembershipController::class, 'checkout'])
             ->name('memberships.checkout');
 
         Route::prefix('memberships')->as('memberships.')->group(function () {
             Route::post('purchase', [\App\Http\Controllers\Memberships\MembershipController::class, 'purchase'])
                 ->name('purchase');
+            Route::post('gift', [\App\Http\Controllers\Memberships\MembershipController::class, 'gift'])
+                ->name('gift');
+            Route::post('gift/complete', [\App\Http\Controllers\Memberships\MembershipController::class, 'completeGift'])
+                ->name('gift.complete');
             Route::post('{membership}/upgrade', [\App\Http\Controllers\Memberships\MembershipController::class, 'upgrade'])
                 ->name('upgrade');
             Route::post('{membership}/cancel', [\App\Http\Controllers\Memberships\MembershipController::class, 'cancel'])
@@ -365,9 +369,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
                         ->name('branding.upload');
                 });
 
+                Route::prefix('features')->as('features.')->group(function () {
+                    Route::get('/', [\App\Http\Controllers\Admin\FeatureFlagsController::class, 'index'])
+                        ->name('index');
+                    Route::post('{feature}/toggle', [\App\Http\Controllers\Admin\FeatureFlagsController::class, 'toggle'])
+                        ->name('toggle');
+                    Route::get('{feature}/users', [\App\Http\Controllers\Admin\FeatureFlagsController::class, 'getUserOverrides'])
+                        ->name('users');
+                    Route::get('users/search', [\App\Http\Controllers\Admin\FeatureFlagsController::class, 'searchUsers'])
+                        ->name('users.search');
+                    Route::post('{feature}/users/toggle', [\App\Http\Controllers\Admin\FeatureFlagsController::class, 'toggleUser'])
+                        ->name('users.toggle');
+                    Route::delete('{feature}/users', [\App\Http\Controllers\Admin\FeatureFlagsController::class, 'removeUserOverride'])
+                        ->name('users.remove');
+                });
+
                 Route::prefix('roles')->as('roles.')->group(function () {
                     Route::get('/', [\App\Http\Controllers\Admin\AdminRolesController::class, 'index'])
                         ->name('index')
+                        ->can('manage roles');
+                    Route::post('/', [\App\Http\Controllers\Admin\AdminRolesController::class, 'store'])
+                        ->name('store')
                         ->can('manage roles');
                     Route::patch('{role}', [\App\Http\Controllers\Admin\AdminRolesController::class, 'update'])
                         ->name('update')
@@ -593,6 +615,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('notifications', [NotificationController::class, 'destroyAll'])->name('notifications.destroy-all');
 
         Route::get('messages', \App\Http\Controllers\Messaging\InboxController::class)->middleware('feature:feature_messaging_enabled')->name('messages.index');
+        Route::get('messages/settings', [\App\Http\Controllers\Messaging\InboxController::class, 'settings'])->middleware('feature:feature_messaging_enabled')->name('messages.settings');
+        Route::post('messages/settings', [\App\Http\Controllers\Messaging\InboxController::class, 'updateSettings'])->middleware('feature:feature_messaging_enabled')->name('messages.settings.update');
         Route::get('messages/{conversation:ulid?}', \App\Http\Controllers\Messaging\InboxController::class)
             ->middleware('feature:feature_messaging_enabled')
             ->where('conversation', '[A-Z0-9]+')
@@ -629,6 +653,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::get('p/{username}', [ProfileController::class, 'show'])
     ->name('profile.show');
 
+Route::get('p/{username}/media', [ProfileController::class, 'media'])
+    ->name('profile.media');
+
 Route::get('f/{username}', [ProfileFollowersController::class, 'show'])
     ->name('profile.followers');
 Route::get('f/{username}/{tab}', [ProfileFollowersController::class, 'show'])
@@ -648,6 +675,40 @@ Route::middleware(['auth', 'verified', 'feature:feature_signals_enabled', 'featu
 
 Route::get('username/check', UsernameAvailabilityController::class)->name('username.check');
 Route::get('email/check', EmailAvailabilityController::class)->name('email.check');
+
+// Live Streaming Routes
+Route::middleware(['feature:feature_live_streaming_enabled'])->group(function () {
+    Route::prefix('live')->as('live.')->group(function () {
+        // Browse all live streams (public, no auth required)
+        Route::get('/', [\App\Http\Controllers\LiveStreaming\LiveStreamController::class, 'index'])->name('index');
+
+        // View a stream (public for public streams, auth for followers/subscribers)
+        Route::get('/{stream}', [\App\Http\Controllers\LiveStreaming\LiveStreamController::class, 'show'])->name('show');
+    });
+
+    // Broadcast routes (require authentication)
+    Route::middleware(['auth'])->prefix('live')->as('live.')->group(function () {
+        Route::get('/broadcast/start', [\App\Http\Controllers\LiveStreaming\LiveStreamBroadcastController::class, 'show'])->name('broadcast.start');
+        Route::post('/broadcast/start', [\App\Http\Controllers\LiveStreaming\LiveStreamBroadcastController::class, 'start'])->name('broadcast.store');
+        Route::get('/broadcast/obs', [\App\Http\Controllers\LiveStreaming\LiveStreamBroadcastController::class, 'obsSettingsWithoutStream'])->name('broadcast.obs.general');
+        Route::post('/broadcast/{stream}/end', [\App\Http\Controllers\LiveStreaming\LiveStreamBroadcastController::class, 'end'])->name('broadcast.end');
+        Route::get('/broadcast/{stream}/obs', [\App\Http\Controllers\LiveStreaming\LiveStreamBroadcastController::class, 'obsSettings'])->name('broadcast.obs');
+        Route::patch('/broadcast/{stream}/settings', [\App\Http\Controllers\LiveStreaming\LiveStreamBroadcastController::class, 'updateSettings'])->name('broadcast.settings');
+
+        // Stage management
+        Route::post('/{stream}/stage/invite', [\App\Http\Controllers\LiveStreaming\LiveStreamStageController::class, 'invite'])->name('stage.invite');
+        Route::delete('/{stream}/stage/{user}', [\App\Http\Controllers\LiveStreaming\LiveStreamStageController::class, 'remove'])->name('stage.remove');
+        Route::post('/{stream}/stage/{user}/promote', [\App\Http\Controllers\LiveStreaming\LiveStreamStageController::class, 'promote'])->name('stage.promote');
+
+        // Chat
+        Route::get('/{stream}/chat', [\App\Http\Controllers\LiveStreaming\LiveStreamChatController::class, 'index'])->name('chat.index');
+        Route::post('/{stream}/chat', [\App\Http\Controllers\LiveStreaming\LiveStreamChatController::class, 'store'])->name('chat.store');
+
+        // Tips
+        Route::post('/{stream}/tips', [\App\Http\Controllers\LiveStreaming\LiveStreamTipController::class, 'store'])->name('tips.store');
+        Route::get('/{stream}/tips/leaderboard', [\App\Http\Controllers\LiveStreaming\LiveStreamTipController::class, 'leaderboard'])->name('tips.leaderboard');
+    });
+});
 
 require __DIR__.'/settings.php';
 

@@ -59,6 +59,12 @@ export default function Login({
                     {...store.form()}
                     resetOnSuccess={['password']}
                     className="space-y-6 text-left"
+                    onError={(errors) => {
+                        console.error('Login form errors:', errors);
+                    }}
+                    onSuccess={() => {
+                        console.log('Login successful');
+                    }}
                 >
                     {({ processing, errors }) => (
                         <>
@@ -103,6 +109,11 @@ export default function Login({
                                         placeholder="Password"
                                     />
                                     <InputError message={errors.password} />
+                                    {errors && Object.keys(errors).length > 0 && !errors.email && !errors.password && (
+                                        <div className="text-sm text-red-400">
+                                            {Object.values(errors)[0]}
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="flex items-center gap-3">

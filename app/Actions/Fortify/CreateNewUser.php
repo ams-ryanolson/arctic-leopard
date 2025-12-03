@@ -2,8 +2,10 @@
 
 namespace App\Actions\Fortify;
 
+use App\Mail\WelcomeEmail;
 use App\Models\User;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
@@ -106,6 +108,9 @@ class CreateNewUser implements CreatesNewUsers
                 \Illuminate\Support\Facades\Log::warning("Could not assign User role during registration: {$e->getMessage()}");
             }
         }
+
+        // Send welcome email
+        Mail::to($user->email)->send(new WelcomeEmail($user));
 
         return $user;
     }

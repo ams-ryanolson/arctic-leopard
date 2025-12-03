@@ -1175,4 +1175,33 @@ class User extends Authenticatable
         $query->whereNull('suspended_at')
             ->whereNull('banned_at');
     }
+
+    /**
+     * Send the password reset notification using our custom Mailable.
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $resetUrl = url(route('password.reset', [
+            'token' => $token,
+            'email' => $this->getEmailForPasswordReset(),
+        ], false));
+
+        \Illuminate\Support\Facades\Mail::to($this->email)
+            ->send(new \App\Mail\ResetPasswordEmail($this, $resetUrl));
+    }
+
+    /**
+     * Send the email verification notification using our custom Mailable.
+     */
+    public function sendEmailVerificationNotification(): void
+    {
+        $verificationUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+            'verification.verify',
+            now()->addMinutes(60),
+            ['id' => $this->getKey(), 'hash' => sha1($this->getEmailForVerification())]
+        );
+
+        \Illuminate\Support\Facades\Mail::to($this->email)
+            ->send(new \App\Mail\VerifyEmail($this, $verificationUrl));
+    }
 }

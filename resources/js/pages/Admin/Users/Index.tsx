@@ -46,6 +46,7 @@ import {
     Clock,
     Gift,
     Loader2,
+    Mail,
     Search,
     ShieldCheck,
     ShieldOff,
@@ -520,6 +521,28 @@ export default function AdminUsersIndex({
             membershipExpiresAt,
             membershipReason,
         ],
+    );
+
+    const handleSendBetaInvitation = useCallback(
+        (userId: number) => {
+            if (processingAction === `beta-invite-${userId}`) {
+                return;
+            }
+
+            setProcessingAction(`beta-invite-${userId}`);
+
+            router.post(
+                `/admin/users/${userId}/send-beta-invitation`,
+                {},
+                {
+                    preserveScroll: true,
+                    onFinish: () => {
+                        setProcessingAction(null);
+                    },
+                },
+            );
+        },
+        [processingAction],
     );
 
     const getVerificationBadge = (
@@ -1055,6 +1078,30 @@ export default function AdminUsersIndex({
                                                             <span>
                                                                 Grant Free
                                                                 Membership
+                                                            </span>
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator className="bg-white/10" />
+                                                        <DropdownMenuItem
+                                                            onSelect={() =>
+                                                                handleSendBetaInvitation(
+                                                                    user.id,
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                processingAction ===
+                                                                `beta-invite-${user.id}`
+                                                            }
+                                                            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-white/85 focus:bg-white/10 focus:text-white"
+                                                        >
+                                                            {processingAction ===
+                                                            `beta-invite-${user.id}` ? (
+                                                                <Loader2 className="size-4 animate-spin text-cyan-400" />
+                                                            ) : (
+                                                                <Mail className="size-4 text-cyan-400" />
+                                                            )}
+                                                            <span>
+                                                                Send Beta
+                                                                Invitation
                                                             </span>
                                                         </DropdownMenuItem>
                                                     </DropdownMenuContent>

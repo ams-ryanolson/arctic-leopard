@@ -356,6 +356,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     Route::post('{user}/grant-free-membership', [AdminUserController::class, 'grantFreeMembership'])
                         ->name('grant-free-membership')
                         ->can('grantFreeMembership', 'user');
+                    Route::post('{user}/send-beta-invitation', [AdminUserController::class, 'sendBetaInvitation'])
+                        ->name('send-beta-invitation')
+                        ->can('update', 'user');
                 });
 
                 Route::prefix('settings')->as('settings.')->group(function () {

@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\GrantFreeMembershipRequest;
 use App\Http\Requests\Admin\SuspendUserRequest;
 use App\Http\Requests\Admin\UpdateUserRolesRequest;
 use App\Http\Requests\Admin\WarnUserRequest;
+use App\Mail\BetaInvitationEmail;
 use App\Models\Memberships\MembershipPlan;
 use App\Models\User;
 use App\Services\Memberships\MembershipService;
@@ -15,6 +16,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Role;
@@ -238,6 +240,23 @@ class AdminUserController extends Controller
             ->with('status', [
                 'type' => 'success',
                 'message' => 'Free membership granted successfully.',
+            ]);
+    }
+
+    /**
+     * Send a beta invitation email to a user.
+     */
+    public function sendBetaInvitation(Request $request, User $user): RedirectResponse
+    {
+        Gate::authorize('update', $user);
+
+        Mail::to($user->email)->send(new BetaInvitationEmail($user));
+
+        return redirect()
+            ->back()
+            ->with('status', [
+                'type' => 'success',
+                'message' => "Beta invitation sent to {$user->email}!",
             ]);
     }
 

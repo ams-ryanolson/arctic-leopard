@@ -69,7 +69,7 @@ export default function Notifications({
                         className="space-y-8"
                     >
                         {(
-                            { processing, recentlySuccessful, errors: _errors }, // eslint-disable-line @typescript-eslint/no-unused-vars
+                            { processing, recentlySuccessful, errors: _errors },  
                         ) => (
                             <>
                                 <div className="space-y-8">

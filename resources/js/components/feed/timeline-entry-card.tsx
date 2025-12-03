@@ -269,38 +269,6 @@ export default function TimelineEntryCard({
         );
     }
 
-    const publishedAt =
-        post.published_at ?? post.created_at ?? entry.visible_at;
-    const displayName =
-        post.author?.display_name ?? post.author?.username ?? 'Unknown creator';
-    const authorUsername = post.author?.username ?? null;
-    const authorProfileHref = authorUsername
-        ? profileRoutes.show.url(authorUsername)
-        : null;
-    const tipGoal =
-        post.extra_attributes &&
-        !Array.isArray(post.extra_attributes) &&
-        typeof post.extra_attributes === 'object' &&
-        'tip_goal' in post.extra_attributes
-            ? ((
-                  post.extra_attributes as {
-                      tip_goal?: {
-                          amount?: number;
-                          currency?: string;
-                          label?: string | null;
-                          deadline?: string | null;
-                      };
-                  }
-              ).tip_goal ?? null)
-            : null;
-
-    const formatCurrency = (amount: number, currency: string): string =>
-        new Intl.NumberFormat(undefined, {
-            style: 'currency',
-            currency,
-            minimumFractionDigits: 2,
-        }).format(amount / 100);
-
     const hasLiked = Boolean(post.has_liked);
     const isBookmarked = Boolean(post.is_bookmarked);
     const hasAmplified = Boolean(post.has_amplified);
@@ -309,12 +277,6 @@ export default function TimelineEntryCard({
     const viewsCount = post.views_count + (optimisticView ? 1 : 0);
     const isAmplifyPost = post.type === 'amplify';
     const originalPost = post.original_post ?? null;
-    const initials = displayName
-        .split(' ')
-        .map((segment) => segment.charAt(0))
-        .join('')
-        .slice(0, 2)
-        .toUpperCase();
 
     const handleMediaClick = (index: number) => {
         const targetPost = isAmplifyPost && originalPost ? originalPost : post;

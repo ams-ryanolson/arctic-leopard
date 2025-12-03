@@ -29,11 +29,6 @@ import {
 } from 'lucide-react';
 import { type ReactNode, useCallback, useState } from 'react';
 
-const getDefaultActions = (liveStreamingEnabled: boolean): HeaderAction[] => {
-    // Return empty array - we'll use notifications, messages, and create post instead
-    return [];
-};
-
 interface AppSidebarHeaderProps {
     breadcrumbs?: BreadcrumbItemType[];
     actions?: HeaderAction[];
@@ -105,15 +100,8 @@ export function AppSidebarHeader({
     supportLinks,
     toolbar,
 }: AppSidebarHeaderProps) {
-    const {
-        auth,
-        features: sharedFeatures,
-        notifications,
-        messaging,
-    } = usePage<SharedData>().props;
-    const features = (sharedFeatures ?? {}) as Record<string, boolean>;
+    const { auth, notifications, messaging } = usePage<SharedData>().props;
     const user = auth?.user;
-    const liveStreamingEnabled = features?.live_streaming ?? false;
     const getInitials = useInitials();
     const displayName = user?.display_name ?? user?.name ?? 'Scene Member';
     const initials = getInitials(displayName);

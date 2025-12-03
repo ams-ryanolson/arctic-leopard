@@ -91,7 +91,6 @@ export default function FeedMediaGallery({
     // On desktop, show up to MAX_MEDIA_ITEMS
     const mobileMaxItems = 3;
     const visibleMedia = media.slice(0, MAX_MEDIA_ITEMS);
-    const mobileVisibleMedia = media.slice(0, mobileMaxItems);
     const visibleCount = visibleMedia.length;
     const mobileVisibleCount = Math.min(visibleCount, mobileMaxItems);
     const overflowCount = media.length - visibleCount;

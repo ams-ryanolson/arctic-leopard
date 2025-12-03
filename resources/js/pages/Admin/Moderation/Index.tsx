@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import adminRoutes from '@/routes/admin';
-import { type SharedData } from '@/types';
 import { type Paginated } from '@/types/feed';
 import { Head, router, usePage } from '@inertiajs/react';
 import { formatDistanceToNow } from 'date-fns';
@@ -130,7 +129,6 @@ const getContentIcon = (type: string) => {
 };
 
 export default function AdminModerationIndex() {
-    const { auth } = usePage<SharedData>().props;
     const props = usePage<AdminModerationIndexProps>().props;
 
     const normalizedQueue = useMemo(() => {

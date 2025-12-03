@@ -51,11 +51,11 @@ interface ShowProps {
     isHost: boolean;
 }
 
-export default function Show({ stream, canModerate, isHost }: ShowProps) {
+export default function Show({ stream, canModerate: _canModerate, isHost }: ShowProps) {
     const { auth } = usePage<SharedData>().props;
     const [likes, setLikes] = useState(1234);
-    const [tips, setTips] = useState(0);
-    const [showChatMobile, setShowChatMobile] = useState(true);
+    const [_tips, _setTips] = useState(0);
+    const [_showChatMobile, _setShowChatMobile] = useState(true);
 
     const handleLike = () => {
         setLikes((prev) => prev + 1);

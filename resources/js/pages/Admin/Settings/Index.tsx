@@ -427,7 +427,7 @@ export default function AdminSettingsIndex({
     const verificationSettings = settings.filter(
         (s) => s.category === 'verification',
     );
-    const otherSettings = settings.filter(
+    const _otherSettings = settings.filter(
         (s) => s.category !== 'verification' && !s.key.startsWith('feature_'),
     );
     const commKeys = [

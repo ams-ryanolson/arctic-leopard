@@ -64,7 +64,7 @@ function formatExpiry(expMonth: string, expYear: string): string {
     return `${month}/${year}`;
 }
 
-function getCardIcon(brand: string): string {
+function _getCardIcon(brand: string): string {
     const icons: Record<string, string> = {
         visa: '💳',
         mastercard: '💳',

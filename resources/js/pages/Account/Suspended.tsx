@@ -1,5 +1,6 @@
 import { Head, router, usePage } from '@inertiajs/react';
 import { format, formatDistanceToNow } from 'date-fns';
+import { useState } from 'react';
 import { AlertCircle, Clock, FileText, ShieldOff } from 'lucide-react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -13,7 +14,6 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import accountRoutes from '@/routes/account';
-import { type SharedData } from '@/types';
 
 type Warning = {
     id: number;
@@ -38,8 +38,8 @@ type SuspendedPageProps = {
 };
 
 export default function Suspended() {
-    const { auth } = usePage<SharedData>().props;
     const props = usePage<SuspendedPageProps>().props;
+    const [now] = useState(() => Date.now());
 
     const handleAppeal = () => {
         router.visit(accountRoutes.appeal.create().url);
@@ -54,9 +54,7 @@ export default function Suspended() {
         ? new Date(props.suspended_until)
         : null;
     const daysRemaining = suspensionEnds
-        ? Math.ceil(
-              (suspensionEnds.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
-          )
+        ? Math.ceil((suspensionEnds.getTime() - now) / (1000 * 60 * 60 * 24))
         : null;
 
     return (

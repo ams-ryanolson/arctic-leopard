@@ -44,7 +44,6 @@ export function UserHoverCard({
     userId,
     username,
     displayName,
-    avatarUrl,
     children,
 }: UserHoverCardProps) {
     const getInitials = useInitials();

@@ -176,7 +176,7 @@ export default function AdminFeatureFlagsIndex({
             );
 
             if (response.ok) {
-                const data = await response.json();
+                const _data = await response.json();
                 // Refresh the user overrides list
                 await loadUserOverrides(selectedFeature.key);
                 setIsSearchDialogOpen(false);

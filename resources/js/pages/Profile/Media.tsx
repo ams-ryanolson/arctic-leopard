@@ -53,9 +53,9 @@ export default function ProfileMedia({
     user: initialUser,
     media: initialMedia,
     mediaPageName,
-    mediaPerPage,
+    mediaPerPage: _mediaPerPage,
 }: MediaPageProps) {
-    const { openLightbox } = useLightbox();
+    const { openLightbox: _openLightbox } = useLightbox();
     const { props } = usePage<{
         user: ProfileUser;
         media: typeof initialMedia;
@@ -233,7 +233,7 @@ export default function ProfileMedia({
     }, [hasMore, isLoadingMore, loadMore]);
 
     // Calculate item height based on aspect ratio
-    const getItemHeight = useCallback(
+    const _getItemHeight = useCallback(
         (item: MediaItem, columnWidth: number): number => {
             if (item.width && item.height) {
                 const aspectRatio = item.width / item.height;

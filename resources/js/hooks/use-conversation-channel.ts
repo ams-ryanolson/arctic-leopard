@@ -228,7 +228,7 @@ export function useConversationChannel({
         );
 
         // Error handling
-        const errorHandler = (error: unknown) => {
+        const _errorHandler = (error: unknown) => {
             console.error('[broadcasting] Conversation channel error', error);
         };
 

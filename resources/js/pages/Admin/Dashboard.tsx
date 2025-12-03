@@ -279,6 +279,7 @@ export default function AdminDashboard({
     ];
 
     // Prepare revenue breakdown pie chart data
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     const revenueBreakdownData = useMemo(() => {
         if (!financial?.breakdown) {
             return [];
@@ -309,6 +310,7 @@ export default function AdminDashboard({
     }, [financial?.breakdown]);
 
     // Format monthly revenue chart data
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     const monthlyRevenueData = useMemo(() => {
         if (!financial?.monthly_revenue_chart) {
             return [];

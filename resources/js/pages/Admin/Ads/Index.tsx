@@ -482,7 +482,7 @@ export default function AdminAdsIndex({
                                     <div className="space-y-1.5">
                                         {analytics.top_ads
                                             .slice(0, 5)
-                                            .map((ad, index) => (
+                                            .map((ad) => (
                                                 <div
                                                     key={ad.id}
                                                     className="rounded border border-white/10 bg-black/20 p-2 text-sm"

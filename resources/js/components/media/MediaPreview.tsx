@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Loader2, X } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 
 export type MediaPreviewProps = {
     file: File;
@@ -20,16 +20,14 @@ export default function MediaPreview({
     onRemove,
     className,
 }: MediaPreviewProps) {
-    const objectUrlRef = useRef<string | null>(null);
+    const [objectUrl, setObjectUrl] = useState<string | null>(null);
 
     useEffect(() => {
         const url = URL.createObjectURL(file);
-        objectUrlRef.current = url;
+        setObjectUrl(url);
 
         return () => {
-            if (objectUrlRef.current) {
-                URL.revokeObjectURL(objectUrlRef.current);
-            }
+            URL.revokeObjectURL(url);
         };
     }, [file]);
 
@@ -38,17 +36,17 @@ export default function MediaPreview({
 
     return (
         <div className={cn('relative overflow-hidden rounded-lg', className)}>
-            {isImage && objectUrlRef.current && (
+            {isImage && objectUrl && (
                 <img
-                    src={objectUrlRef.current}
+                    src={objectUrl}
                     alt={file.name}
                     className="h-full w-full object-cover"
                 />
             )}
 
-            {isVideo && objectUrlRef.current && (
+            {isVideo && objectUrl && (
                 <video
-                    src={objectUrlRef.current}
+                    src={objectUrl}
                     className="h-full w-full object-cover"
                     muted
                 />

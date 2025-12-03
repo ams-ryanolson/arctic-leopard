@@ -11,7 +11,6 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import accountRoutes from '@/routes/account';
-import { type SharedData } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { AlertCircle, FileText } from 'lucide-react';
 
@@ -27,7 +26,6 @@ type AppealCreatePageProps = {
 };
 
 export default function AppealCreate() {
-    const { auth } = usePage<SharedData>().props;
     const props = usePage<AppealCreatePageProps>().props;
 
     const form = useForm({
@@ -46,7 +44,6 @@ export default function AppealCreate() {
     };
 
     const isBanned = props.user_status.is_banned;
-    const isSuspended = props.user_status.is_suspended;
     const statusType = isBanned ? 'ban' : 'suspension';
     const statusReason = isBanned
         ? props.user_status.banned_reason

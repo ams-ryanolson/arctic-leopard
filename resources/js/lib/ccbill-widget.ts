@@ -3,6 +3,9 @@
  * Handles widget initialization, token creation, and 3DS authentication
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
+// Using `any` types for CCBill SDK which doesn't have TypeScript definitions
+
 declare global {
     interface Window {
         ccbill?: {

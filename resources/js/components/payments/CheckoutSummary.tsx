@@ -40,7 +40,7 @@ export function CheckoutSummary({
         subtotal ?? items.reduce((sum, item) => sum + item.amount, 0);
     const totalFees = fees.reduce((sum, fee) => sum + fee.amount, 0);
     const discountAmount = discount?.amount ?? 0;
-    const calculatedTotal = displaySubtotal + totalFees - discountAmount;
+    const _calculatedTotal = displaySubtotal + totalFees - discountAmount;
 
     return (
         <div className={className}>

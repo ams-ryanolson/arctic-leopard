@@ -105,7 +105,7 @@ export default function MembershipCheckout({
     >(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const { data, setData, post, processing, errors } = useForm({
+    const { data: _data, setData, post: _post, processing: _processing, errors } = useForm({
         plan_id: plan.id,
         billing_type: getDefaultBillingType(),
         billing_interval: 'monthly',
@@ -126,7 +126,7 @@ export default function MembershipCheckout({
         setData('billing_interval', billingInterval);
     }, [billingInterval]);
 
-    const formatPrice = (cents: number, currency: string = 'USD'): string => {
+    const _formatPrice = (cents: number, currency: string = 'USD'): string => {
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
             currency,

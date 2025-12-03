@@ -13,7 +13,6 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import accountRoutes from '@/routes/account';
-import { type SharedData } from '@/types';
 import { Head as InertiaHead } from '@inertiajs/react';
 
 type Warning = {
@@ -38,7 +37,6 @@ type BannedPageProps = {
 };
 
 export default function Banned() {
-    const { auth } = usePage<SharedData>().props;
     const props = usePage<BannedPageProps>().props;
 
     const handleAppeal = () => {

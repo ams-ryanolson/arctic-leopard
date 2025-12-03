@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import adminRoutes from '@/routes/admin';
-import { type SharedData } from '@/types';
 import { type Paginated } from '@/types/feed';
 import { Head, router, usePage } from '@inertiajs/react';
 import { formatDistanceToNow } from 'date-fns';
@@ -93,7 +92,6 @@ const getStatusBadge = (status: string) => {
 };
 
 export default function AdminAppealsIndex() {
-    const { auth } = usePage<SharedData>().props;
     const props = usePage<AdminAppealsIndexProps>().props;
 
     const normalizedAppeals = useMemo(() => {

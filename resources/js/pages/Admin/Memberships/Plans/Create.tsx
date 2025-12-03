@@ -64,7 +64,7 @@ export default function AdminMembershipsPlansCreate({
     };
 
     // Helper to convert cents to dollars for display
-    const centsToDollars = (cents: number | string): string => {
+    const _centsToDollars = (cents: number | string): string => {
         const num = typeof cents === 'string' ? parseFloat(cents) || 0 : cents;
         return (num / 100).toFixed(2);
     };

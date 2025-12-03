@@ -616,7 +616,9 @@ export default function AnnouncementBar(propsIn?: {
                                         adminDismissKeys.ann!,
                                         '1',
                                     );
-                                } catch {}
+                                } catch {
+                                    // Ignore localStorage errors (e.g., in private browsing)
+                                }
                                 setIsVisible(false);
                             },
                             'secondary',

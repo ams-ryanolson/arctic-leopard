@@ -14,7 +14,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import adminRoutes from '@/routes/admin';
-import { type SharedData } from '@/types';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { Ban, CheckCircle2, Clock, ShieldOff, XCircle } from 'lucide-react';
@@ -53,7 +52,6 @@ type AdminAppealShowPageProps = {
 };
 
 export default function AdminAppealShow() {
-    const { auth } = usePage<SharedData>().props;
     const props = usePage<AdminAppealShowPageProps>().props;
     const { appeal } = props;
 

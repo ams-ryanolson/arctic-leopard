@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
+// Using `any` types for CCBill SDK which doesn't have TypeScript definitions
+
 import {
     LocationAutocomplete,
     type LocationSuggestion,

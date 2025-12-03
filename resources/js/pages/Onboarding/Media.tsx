@@ -41,8 +41,8 @@ export default function MediaSetup({ profile }: MediaSetupProps) {
         useState<string>(initialAvatarPreview);
     const [coverUploading, setCoverUploading] = useState(false);
     const [avatarUploading, setAvatarUploading] = useState(false);
-    const [coverFile, setCoverFile] = useState<File | null>(null);
-    const [avatarFile, setAvatarFile] = useState<File | null>(null);
+    const [_coverFile, setCoverFile] = useState<File | null>(null);
+    const [_avatarFile, setAvatarFile] = useState<File | null>(null);
 
     const form = useForm({
         avatar_upload_id: '',

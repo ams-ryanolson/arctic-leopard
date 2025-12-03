@@ -14,7 +14,6 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import adminRoutes from '@/routes/admin';
 import adminUsersRoutes from '@/routes/admin/users';
-import { type SharedData } from '@/types';
 import { type Paginated } from '@/types/feed';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -80,7 +79,6 @@ type AdminSuspensionsProps = {
 };
 
 export default function AdminSuspensions() {
-    const { auth } = usePage<SharedData>().props;
     const props = usePage<AdminSuspensionsProps>().props;
 
     const normalizedUsers = useMemo(() => {

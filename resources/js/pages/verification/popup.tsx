@@ -69,7 +69,7 @@ declare global {
 }
 
 export default function VerificationPopup({
-    verificationStatus: _verificationStatus, // eslint-disable-line @typescript-eslint/no-unused-vars
+    verificationStatus: _verificationStatus,  
 }: {
     verificationStatus: VerificationStatus;
 }) {

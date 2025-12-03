@@ -80,9 +80,6 @@ export default function DesktopMessagingView({
     onMessageSent,
     onTyping,
     onScroll,
-    onBackFromSettings,
-    setReplyTo,
-    setExpandedReactionsMessageId,
 }: DesktopMessagingViewProps) {
     return (
         <>

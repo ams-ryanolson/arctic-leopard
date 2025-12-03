@@ -8,7 +8,6 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { type SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { formatDistanceToNow } from 'date-fns';
 import { CheckCircle2, Clock, Home, XCircle } from 'lucide-react';
@@ -66,7 +65,6 @@ const statusConfig = {
 };
 
 export default function AppealShow() {
-    const { auth } = usePage<SharedData>().props;
     const props = usePage<AppealShowPageProps>().props;
     const { appeal } = props;
 

@@ -61,7 +61,6 @@ export default function MessageComposer({
     onTyping,
     isConversationBlocked = false,
     blockedMessage,
-    keyboardHeight = 0,
     viewer,
 }: MessageComposerProps) {
     const { features: sharedFeatures } = usePage<SharedData>().props;
@@ -90,11 +89,7 @@ export default function MessageComposer({
     const [showMediaMenu, setShowMediaMenu] = useState(false);
     const mediaMenuRef = useRef<HTMLDivElement>(null);
 
-    const photoUploaderRef = useRef<{ click: () => void } | null>(null);
-    const videoUploaderRef = useRef<{ click: () => void } | null>(null);
-
     const hasAttachments = uploads.length > 0;
-    const bodyCharacterCount = body.trim().length;
     const blockedNotice =
         blockedMessage ??
         'This conversation is currently unavailable. One of you has restricted messaging, so new messages cannot be sent.';

@@ -42,16 +42,13 @@ type TriggerInfo = {
 
 const MENTION_PATTERN = /@([a-zA-Z0-9_]{1,30})$/; // Require at least 1 character
 const HASHTAG_PATTERN = /#([a-z0-9_]{1,120})$/; // Require at least 1 character
-const MAX_QUERY_LENGTH_MENTION = 30;
-const MAX_QUERY_LENGTH_HASHTAG = 120;
+// Max lengths are encoded in the patterns above
 
 export default function MentionHashtagAutocomplete({
     value,
     selectionStart,
-    selectionEnd,
     onInsert,
     textareaRef,
-    overlayRef,
     disabled = false,
 }: MentionHashtagAutocompleteProps) {
     const [suggestions, setSuggestions] = useState<Suggestion[]>([]);

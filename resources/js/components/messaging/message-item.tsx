@@ -57,6 +57,9 @@ export default function MessageItem({
     const authorAvatar = message.author?.avatar_url;
     const authorInitials = authorName.slice(0, 2).toUpperCase();
     const [isHovered, setIsHovered] = useState(false);
+    // These hooks must be declared before any early returns
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [lightboxStartIndex, setLightboxStartIndex] = useState(0);
 
     if (messageType === 'tip') {
         return (
@@ -191,8 +194,6 @@ export default function MessageItem({
     // Get all image attachments for lightbox
     const imageAttachments =
         message.attachments?.filter((att) => att.type === 'image') ?? [];
-    const [lightboxOpen, setLightboxOpen] = useState(false);
-    const [lightboxStartIndex, setLightboxStartIndex] = useState(0);
 
     const handleImageClick = (clickedIndex: number) => {
         setLightboxStartIndex(clickedIndex);
@@ -322,7 +323,7 @@ export default function MessageItem({
                                             )}
                                         >
                                             {message.attachments.map(
-                                                (attachment, index) => {
+                                                (attachment) => {
                                                     const imageIndex =
                                                         imageAttachments.findIndex(
                                                             (img) =>

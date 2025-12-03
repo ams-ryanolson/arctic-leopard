@@ -14,7 +14,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import adminRoutes from '@/routes/admin';
-import { type SharedData } from '@/types';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { format, formatDistanceToNow } from 'date-fns';
 import {
@@ -75,7 +74,6 @@ type AdminModerationShowPageProps = {
 };
 
 export default function AdminModerationShow() {
-    const { auth } = usePage<SharedData>().props;
     const props = usePage<AdminModerationShowPageProps>().props;
 
     const [action, setAction] = useState<

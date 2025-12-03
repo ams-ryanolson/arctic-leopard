@@ -49,25 +49,7 @@ export default function VideoPlayer({
     // Check if this is an FLV file
     const isFlv = mimeType === 'video/x-flv' || src.endsWith('.flv');
 
-    // Use FLV player for FLV files
-    if (isFlv) {
-        return (
-            <FlvPlayer
-                src={src}
-                className={className}
-                aspectRatio={aspectRatio}
-                maxHeight={maxHeight}
-                controls={controls}
-                autoplay={autoplay}
-                muted={muted}
-                onReady={onReady}
-                onError={onError}
-                onPlay={onPlay}
-                onPause={onPause}
-                onEnded={onEnded}
-            />
-        );
-    }
+    // All hooks must be declared before any conditional returns
     const containerRef = useRef<HTMLDivElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
     const playerRef = useRef<ReturnType<typeof videojs> | null>(null);
@@ -75,9 +57,10 @@ export default function VideoPlayer({
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Intersection Observer for lazy loading
+    // Intersection Observer for lazy loading (must be before early return)
     useEffect(() => {
-        if (!lazyLoad) {
+        // Skip if using FLV player
+        if (isFlv || !lazyLoad) {
             return;
         }
 
@@ -127,10 +110,14 @@ export default function VideoPlayer({
         return () => {
             observer.disconnect();
         };
-    }, [lazyLoad, lazyLoadRootMargin]);
+    }, [isFlv, lazyLoad, lazyLoadRootMargin]);
 
-    // Initialize Video.js when in view
+    // Initialize Video.js when in view (must be before early return)
     useEffect(() => {
+        // Skip if using FLV player
+        if (isFlv) {
+            return;
+        }
         // Don't re-initialize if player already exists
         if (playerRef.current) {
             return;
@@ -146,7 +133,6 @@ export default function VideoPlayer({
 
         // Wait for the element to be in the DOM
         // Use double requestAnimationFrame to ensure DOM is fully ready
-        let initFrame: number;
         let timeout: NodeJS.Timeout;
         let retryCount = 0;
         const MAX_RETRIES = 10;
@@ -217,7 +203,7 @@ export default function VideoPlayer({
                 };
 
                 // Set up event listeners
-                let loadingTimeout: NodeJS.Timeout;
+                let loadingTimeout: NodeJS.Timeout | null = null;
                 let hasHiddenLoading = false;
 
                 const hideLoading = () => {
@@ -255,14 +241,14 @@ export default function VideoPlayer({
                 loadingTimeout = setTimeout(() => {
                     hideLoading();
                 }, 5000);
-            } catch (error) {
+            } catch {
                 setError('Failed to initialize video player');
                 setIsLoading(false);
             }
         };
 
         // Use requestAnimationFrame to ensure DOM is ready
-        initFrame = requestAnimationFrame(() => {
+        const initFrame = requestAnimationFrame(() => {
             requestAnimationFrame(() => {
                 initializePlayer();
             });
@@ -279,7 +265,7 @@ export default function VideoPlayer({
             if (playerRef.current) {
                 try {
                     playerRef.current.dispose();
-                } catch (e) {
+                } catch {
                     // Ignore disposal errors
                 }
                 playerRef.current = null;
@@ -287,7 +273,27 @@ export default function VideoPlayer({
         };
         // Only re-run if src, mimeType, or isInView changes - not on callback changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isInView, src, mimeType]);
+    }, [isFlv, isInView, src, mimeType]);
+
+    // Use FLV player for FLV files (after all hooks)
+    if (isFlv) {
+        return (
+            <FlvPlayer
+                src={src}
+                className={className}
+                aspectRatio={aspectRatio}
+                maxHeight={maxHeight}
+                controls={controls}
+                autoplay={autoplay}
+                muted={muted}
+                onReady={onReady}
+                onError={onError}
+                onPlay={onPlay}
+                onPause={onPause}
+                onEnded={onEnded}
+            />
+        );
+    }
 
     return (
         <div

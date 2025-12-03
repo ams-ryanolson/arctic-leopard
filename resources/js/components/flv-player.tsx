@@ -146,7 +146,7 @@ export default function FlvPlayer({
                             playerRef.current.unload();
                             playerRef.current.detachMediaElement();
                             playerRef.current.destroy();
-                        } catch (e) {
+                        } catch {
                             // Ignore cleanup errors
                         }
                         playerRef.current = null;
@@ -229,7 +229,7 @@ export default function FlvPlayer({
                         playerRef.current.unload();
                         playerRef.current.detachMediaElement();
                         playerRef.current.destroy();
-                    } catch (e) {
+                    } catch {
                         // Ignore cleanup errors
                     }
                     playerRef.current = null;

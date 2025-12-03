@@ -762,7 +762,7 @@ function HashtagResultCard({ hashtag }: { hashtag: SearchResult }) {
     );
 }
 
-function EmptyState({ query, type }: { query: string; type?: string }) {
+function EmptyState({ query: _query, type }: { query: string; type?: string }) {
     return (
         <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="mb-4 flex size-16 items-center justify-center rounded-full border border-white/10 bg-white/5">

@@ -22,13 +22,14 @@ import { Link, useForm, usePage } from '@inertiajs/react';
 import { Radio, Settings, Video } from 'lucide-react';
 import { useState } from 'react';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface BroadcastStartProps {
     // TODO: Add props when form data is implemented
 }
 
-export default function BroadcastStart({}: BroadcastStartProps) {
+export default function BroadcastStart(_props: BroadcastStartProps) {
     const { auth } = usePage<SharedData>().props;
-    const user = auth?.user;
+    const _user = auth?.user;
 
     const { data, setData, post, processing, errors } = useForm({
         title: '',

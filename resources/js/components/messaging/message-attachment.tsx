@@ -126,11 +126,7 @@ type MessageVideoPlayerProps = {
     mimeType?: string | null;
 };
 
-function MessageVideoPlayer({
-    url,
-    filename,
-    mimeType,
-}: MessageVideoPlayerProps) {
+function MessageVideoPlayer({ url, mimeType }: MessageVideoPlayerProps) {
     return (
         <figure>
             <VideoPlayer
@@ -456,27 +452,14 @@ function AudioPlayer({
 
                 // Try to extract duration from WebM file
                 // WebM stores duration in the EBML structure, often at the end
-                const extractedDuration: number | null = null;
+                // For WebM files, duration will be extracted via audio element seeking
                 if (
                     blob.type.includes('webm') ||
                     filename.toLowerCase().endsWith('.webm')
                 ) {
-                    try {
-                        // Read the last 64KB of the file where duration metadata often is
-                        const endBytes = Math.min(65536, blob.size);
-                        const startByte = Math.max(0, blob.size - endBytes);
-                        const endSlice = blob.slice(startByte);
-                        const arrayBuffer = await endSlice.arrayBuffer();
-                        const uint8Array = new Uint8Array(arrayBuffer);
-
-                        // Look for duration in WebM (simplified - WebM uses EBML which is complex)
-                        // For now, we'll try to get it from the audio element after seeking
-                        console.log(
-                            '[AudioPlayer] WebM file detected, will try to extract duration via seeking',
-                        );
-                    } catch (err) {
-                        console.error('[AudioPlayer] Error parsing WebM:', err);
-                    }
+                    console.log(
+                        '[AudioPlayer] WebM file detected, will try to extract duration via seeking',
+                    );
                 }
 
                 // Create object URL from blob

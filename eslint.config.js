@@ -11,6 +11,20 @@ export default [
     reactHooks.configs.flat.recommended,
     ...typescript.configs.recommended,
     {
+        rules: {
+            '@typescript-eslint/no-unused-vars': [
+                'error',
+                {
+                    argsIgnorePattern: '^_',
+                    varsIgnorePattern: '^_',
+                    caughtErrorsIgnorePattern: '^_',
+                },
+            ],
+            // Temporarily downgrade to warning while migrating types
+            '@typescript-eslint/no-explicit-any': 'warn',
+        },
+    },
+    {
         ...react.configs.flat.recommended,
         ...react.configs.flat['jsx-runtime'], // Required for React 17+
         languageOptions: {

@@ -61,8 +61,7 @@ export function AppSidebar() {
     const userRoles = user?.roles?.map((role) => role.name) ?? [];
     const isAdmin =
         userRoles.includes('Admin') || userRoles.includes('Super Admin');
-    const isModerator = userRoles.includes('Moderator');
-    const isStaff = isAdmin || isModerator;
+    const _isModerator = userRoles.includes('Moderator');
 
     const unreadNotifications =
         (typeof notifications === 'object' &&

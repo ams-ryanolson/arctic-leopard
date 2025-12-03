@@ -86,8 +86,8 @@ export default function MessagesIndex() {
         setShouldStickToBottom,
         setTypingUsers,
         setTipRequestActionMessageId,
-        typingTimeoutsRef,
-        typingUsersRef,
+        typingTimeoutsRef: _typingTimeoutsRef,
+        typingUsersRef: _typingUsersRef,
         updateThreads,
     } = messagingState;
 

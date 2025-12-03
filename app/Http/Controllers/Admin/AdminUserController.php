@@ -250,7 +250,23 @@ class AdminUserController extends Controller
     {
         Gate::authorize('update', $user);
 
-        Mail::to($user->email)->send(new BetaInvitationEmail($user));
+        try {
+            Mail::to($user->email)->send(new BetaInvitationEmail($user));
+        } catch (\Throwable $e) {
+            \Log::error('Beta invitation email failed', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return redirect()
+                ->back()
+                ->with('status', [
+                    'type' => 'error',
+                    'message' => "Failed to send email: {$e->getMessage()}",
+                ]);
+        }
 
         return redirect()
             ->back()

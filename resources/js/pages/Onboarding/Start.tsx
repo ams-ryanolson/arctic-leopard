@@ -1,5 +1,5 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { LocationModal } from '@/components/onboarding/location-modal';
 import { Button } from '@/components/ui/button';
@@ -15,9 +15,17 @@ export default function OnboardingStart() {
     const user = auth.user;
     const [showLocationModal, setShowLocationModal] = useState(false);
 
-    // Check if user is missing location coordinates on mount
+    // Track if we've already shown/dismissed the modal this session
+    const hasHandledLocationModal = useRef(false);
+
+    // Check if user is missing location coordinates on mount (only once)
     useEffect(() => {
-        if (user && (!user.location_latitude || !user.location_longitude)) {
+        if (
+            user &&
+            (!user.location_latitude || !user.location_longitude) &&
+            !hasHandledLocationModal.current
+        ) {
+            hasHandledLocationModal.current = true;
             setShowLocationModal(true);
         }
     }, [user]);

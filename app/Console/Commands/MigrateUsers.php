@@ -286,7 +286,7 @@ class MigrateUsers extends Command
      * Pre-fetch all field values for a batch of users to avoid N+1 queries.
      *
      * @param  array<int>  $userIds
-     * @return array<int, array{6?: string, 61?: string, 64?: string}>
+     * @return array<int, array{6?: string, 13?: string, 61?: string, 64?: string}>
      */
     protected function prefetchFieldValues(array $userIds): array
     {
@@ -296,7 +296,7 @@ class MigrateUsers extends Command
 
         // Fetch all field values for this batch in one query
         $fieldValues = SE4UserFieldValue::whereIn('item_id', $userIds)
-            ->whereIn('field_id', [6, 61, 64]) // birthdate, city, country
+            ->whereIn('field_id', [6, 13, 61, 64]) // birthdate, bio, city, country
             ->get()
             ->groupBy('item_id')
             ->map(function ($values) {
@@ -315,7 +315,7 @@ class MigrateUsers extends Command
     /**
      * Migrate a single SE4 user to Laravel.
      *
-     * @param  array<int, array{6?: string, 61?: string, 64?: string}>  $prefetchedFieldValues
+     * @param  array<int, array{6?: string, 13?: string, 61?: string, 64?: string}>  $prefetchedFieldValues
      * @param  array<string>  $existingEmails
      * @param  array<string>  $existingUsernames
      * @param  array<int>  $existingMappings
@@ -375,6 +375,9 @@ class MigrateUsers extends Command
         // Parse birthdate from pre-fetched field values
         $birthdate = $this->parseBirthdate($userFieldValues[6] ?? null, $se4User->user_id);
 
+        // Get bio from field values (field_id = 13) and convert to HTML
+        $bio = $this->convertBioToHtml($userFieldValues[13] ?? null);
+
         // Map SE4 fields to Laravel User fields
         $userData = [
             'username_lower' => Str::lower($se4User->displayname),
@@ -383,7 +386,7 @@ class MigrateUsers extends Command
             'password' => $password,
             'name' => $se4User->displayname,
             'display_name' => $se4User->displayname,
-            'bio' => $se4User->status,
+            'bio' => $bio,
             'email_verified_at' => null, // Force null - migrated users must verify email
             'profile_completed_at' => null, // Force null - migrated users must complete onboarding
             'created_at' => $se4User->creation_date,
@@ -577,6 +580,31 @@ class MigrateUsers extends Command
 
             return null;
         }
+    }
+
+    /**
+     * Convert plain text bio to HTML, preserving newlines as <br> tags.
+     * Only uses tags allowed by RichTextEditor: strong, em, u, s, br
+     */
+    protected function convertBioToHtml(?string $plainText): ?string
+    {
+        if (empty($plainText) || empty(trim($plainText))) {
+            return null;
+        }
+
+        $text = trim($plainText);
+
+        // Escape HTML entities to prevent XSS
+        $text = htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
+
+        // Normalize line endings
+        $text = str_replace(["\r\n", "\r"], "\n", $text);
+
+        // Convert newlines to <br> tags (this is what RichTextEditor uses)
+        // Use nl2br with false to output <br> not <br />
+        $html = nl2br($text, false);
+
+        return $html ?: null;
     }
 
     /**

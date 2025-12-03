@@ -53,12 +53,17 @@ class ProfileController extends Controller
             })
             ->firstOrFail();
 
+        $authUser = $request->user();
+
+        // Show public preview for unauthenticated users
+        if ($authUser === null) {
+            return $this->showPublicPreview($user, $request);
+        }
+
         // TODO: Privacy - Check if viewer is blocked by user
         // TODO: Privacy - Check if viewer has permission to view this profile
         // TODO: Privacy - Apply region-based blocking
         // TODO: Privacy - Check public vs authenticated access requirements
-
-        $authUser = $request->user();
         $isOwnProfile = $authUser?->id === $user->id;
         $isCreator = $user->hasRole('Creator');
 
@@ -233,6 +238,53 @@ class ProfileController extends Controller
                 ? $this->getAvailableGiftMembershipPlans()
                 : [],
             'stats' => $this->profileStats($user, $followersCount),
+        ]);
+    }
+
+    /**
+     * Show public profile preview for unauthenticated users.
+     */
+    private function showPublicPreview(User $user, Request $request): Response
+    {
+        $followersCount = method_exists($user, 'approvedFollowers')
+            ? $user->approvedFollowers()->count()
+            : 0;
+
+        $followingCount = method_exists($user, 'approvedFollowings')
+            ? $user->approvedFollowings()->count()
+            : 0;
+
+        $postsCount = Post::query()->forAuthor($user)->count();
+
+        $profileUrl = $request->url();
+
+        return Inertia::render('Profile/Preview', [
+            'user' => [
+                'id' => $user->id,
+                'username' => $user->username,
+                'display_name' => $user->display_name,
+                'pronouns' => $user->pronouns,
+                'bio' => $user->bio,
+                'avatar_url' => $user->avatar_url,
+                'cover_url' => $user->cover_url,
+                'location' => $this->formatLocation($user),
+                'is_traveling' => (bool) $user->is_traveling,
+                'is_creator' => $user->hasRole('Creator'),
+                'is_verified' => $user->isIdVerified(),
+                'interests' => $user->interests->pluck('name')->all(),
+                'hashtags' => $user->hashtags->pluck('name')->all(),
+                'circles' => $user->circles->map(fn ($circle) => [
+                    'id' => $circle->id,
+                    'name' => $circle->name,
+                    'slug' => $circle->slug,
+                ])->all(),
+            ],
+            'stats' => [
+                'followers' => $followersCount,
+                'following' => $followingCount,
+                'posts' => $postsCount,
+            ],
+            'profileUrl' => $profileUrl,
         ]);
     }
 

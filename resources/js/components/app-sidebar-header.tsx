@@ -100,7 +100,8 @@ export function AppSidebarHeader({
     supportLinks,
     toolbar,
 }: AppSidebarHeaderProps) {
-    const { auth, notifications, messaging } = usePage<SharedData>().props;
+    const { auth, notifications, messaging, features: sharedFeatures } = usePage<SharedData>().props;
+    const features = (sharedFeatures ?? {}) as Record<string, boolean>;
     const user = auth?.user;
     const getInitials = useInitials();
     const displayName = user?.display_name ?? user?.name ?? 'Scene Member';

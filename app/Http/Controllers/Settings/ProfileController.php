@@ -71,6 +71,8 @@ class ProfileController extends Controller
                 'location_country' => $user->location_country,
                 'interest_ids' => $user->interests()->pluck('interests.id'),
                 'hashtags' => $user->hashtags()->pluck('name'),
+                'avatar_url' => $user->avatar_url,
+                'cover_url' => $user->cover_url,
             ],
             'interests' => $interests,
             'hashtags' => $hashtags,

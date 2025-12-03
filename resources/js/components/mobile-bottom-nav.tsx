@@ -24,9 +24,10 @@ interface NavItem {
 export function MobileBottomNav() {
     const isMobile = useIsMobile();
     const page = usePage<SharedData>();
-    const { notifications, messaging, features } = page.props;
+    const { notifications, messaging, features: sharedFeatures } = page.props;
+    const features = (sharedFeatures ?? {}) as Record<string, boolean>;
     const { setOpenMobile } = useSidebar();
-    const circlesEnabled = features?.circles ?? false;
+    const circlesEnabled = features.feature_circles_enabled ?? false;
 
     const unreadNotifications =
         (typeof notifications === 'object' &&

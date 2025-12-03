@@ -1263,7 +1263,7 @@ export default function ProfileShow() {
                             {/* Creator-specific cards */}
                             {user.is_creator && (
                                 <>
-                                    {features.signals &&
+                                    {features.feature_signals_enabled &&
                                         subscriptionTiers.length > 0 && (
                                             <Card className="border-white/10 bg-white/5 text-white">
                                                 <CardHeader>
@@ -1330,7 +1330,7 @@ export default function ProfileShow() {
                                             </Card>
                                         )}
 
-                                    {features.signals &&
+                                    {features.feature_signals_enabled &&
                                         tipOptions.length > 0 && (
                                             <Card className="border-white/10 bg-white/5 text-white">
                                                 <CardHeader>
@@ -1372,8 +1372,8 @@ export default function ProfileShow() {
                                             </Card>
                                         )}
 
-                                    {features.signals &&
-                                        features.wishlist &&
+                                    {features.feature_signals_enabled &&
+                                        features.feature_wishlist_enabled &&
                                         wishlist.length > 0 && (
                                             <Card className="border-white/10 bg-white/5 text-white">
                                                 <CardHeader>

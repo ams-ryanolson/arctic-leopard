@@ -60,7 +60,8 @@ const sidebarNavItems: NavItem[] = [
 type SettingsLayoutProps = PropsWithChildren;
 
 export default function SettingsLayout({ children }: SettingsLayoutProps) {
-    const { features } = usePage<SharedData>().props;
+    const { features: sharedFeatures } = usePage<SharedData>().props;
+    const features = (sharedFeatures ?? {}) as Record<string, boolean>;
     const navItems = useMemo(() => {
         return sidebarNavItems.filter(() => {
             // Filter based on feature flags if needed

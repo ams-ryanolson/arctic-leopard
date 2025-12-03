@@ -1,15 +1,18 @@
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Transition } from '@headlessui/react';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 
+import CoverGradient from '@/components/cover-gradient';
 import InputError from '@/components/input-error';
 import {
     LocationAutocomplete,
     type LocationSuggestion,
 } from '@/components/location-autocomplete';
+import MediaUploader from '@/components/media/MediaUploader';
 import RichTextEditor from '@/components/rich-text-editor';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,12 +24,13 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useInitials } from '@/hooks/use-initials';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { cn } from '@/lib/utils';
 import circlesRoutes from '@/routes/circles';
 import type { Circle } from '@/types/circles';
-import { Hash, Heart, MapPin, User, X } from 'lucide-react';
+import { Camera, Hash, Heart, ImageIcon, MapPin, User, X } from 'lucide-react';
 
 const numberFormatter = new Intl.NumberFormat();
 
@@ -219,12 +223,29 @@ export default function Profile({
         location_country: string | null;
         interest_ids: number[];
         hashtags: string[];
+        avatar_url: string | null;
+        cover_url: string | null;
     };
     interests: InterestResource[];
     hashtags: HashtagResource[];
     circleMemberships: Circle[];
 }) {
     const { auth } = usePage<SharedData>().props;
+    const getInitials = useInitials();
+
+    // Media upload state
+    const [coverPreview, setCoverPreview] = useState<string>(
+        profile.cover_url ?? '',
+    );
+    const [avatarPreview, setAvatarPreview] = useState<string>(
+        profile.avatar_url ?? '',
+    );
+    const [coverUploading, setCoverUploading] = useState(false);
+    const [avatarUploading, setAvatarUploading] = useState(false);
+    const [mediaProcessing, setMediaProcessing] = useState(false);
+    const [avatarUploadId, setAvatarUploadId] = useState('');
+    const [coverUploadId, setCoverUploadId] = useState('');
+    const [mediaErrors, setMediaErrors] = useState<Record<string, string>>({});
 
     const form = useForm({
         username: profile.username,
@@ -351,6 +372,78 @@ export default function Profile({
         setLocationStatus('idle');
     };
 
+    // Media upload handlers
+    const handleCoverUploadComplete = (identifiers: string[]) => {
+        if (identifiers.length > 0) {
+            setCoverUploadId(identifiers[0]);
+            setCoverUploading(false);
+            setMediaErrors((prev) => ({ ...prev, cover_upload_id: '' }));
+        }
+    };
+
+    const handleCoverUploadError = (error: string) => {
+        setMediaErrors((prev) => ({ ...prev, cover_upload_id: error }));
+        setCoverUploading(false);
+        setCoverPreview(profile.cover_url ?? '');
+    };
+
+    const handleCoverFileSelect = (file: File) => {
+        setCoverUploading(true);
+        setMediaErrors((prev) => ({ ...prev, cover_upload_id: '' }));
+        const objectUrl = URL.createObjectURL(file);
+        setCoverPreview(objectUrl);
+    };
+
+    const handleAvatarUploadComplete = (identifiers: string[]) => {
+        if (identifiers.length > 0) {
+            setAvatarUploadId(identifiers[0]);
+            setAvatarUploading(false);
+            setMediaErrors((prev) => ({ ...prev, avatar_upload_id: '' }));
+        }
+    };
+
+    const handleAvatarUploadError = (error: string) => {
+        setMediaErrors((prev) => ({ ...prev, avatar_upload_id: error }));
+        setAvatarUploading(false);
+        setAvatarPreview(profile.avatar_url ?? '');
+    };
+
+    const handleAvatarFileSelect = (file: File) => {
+        setAvatarUploading(true);
+        setMediaErrors((prev) => ({ ...prev, avatar_upload_id: '' }));
+        const objectUrl = URL.createObjectURL(file);
+        setAvatarPreview(objectUrl);
+    };
+
+    const handleMediaSubmit = () => {
+        if (!avatarUploadId && !coverUploadId) {
+            return;
+        }
+
+        setMediaProcessing(true);
+        router.patch(
+            ProfileController.updateMedia.url(),
+            {
+                avatar_upload_id: avatarUploadId,
+                cover_upload_id: coverUploadId,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setAvatarUploadId('');
+                    setCoverUploadId('');
+                    setMediaProcessing(false);
+                },
+                onError: (errors) => {
+                    setMediaErrors(errors as Record<string, string>);
+                    setMediaProcessing(false);
+                },
+            },
+        );
+    };
+
+    const hasMediaChanges = avatarUploadId !== '' || coverUploadId !== '';
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Profile settings" />
@@ -377,6 +470,155 @@ export default function Profile({
                                     </p>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Profile Photo & Cover Section */}
+                    <div className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 text-white shadow-[0_32px_85px_-40px_rgba(236,72,153,0.45)] transition-all duration-300 hover:border-rose-400/30 hover:shadow-[0_40px_100px_-40px_rgba(236,72,153,0.55)]">
+                        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(236,72,153,0.15),_transparent_60%)]" />
+                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-rose-500/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+                        {/* Cover Photo */}
+                        <div className="relative h-40 w-full overflow-hidden sm:h-48">
+                            {coverPreview ? (
+                                <img
+                                    src={coverPreview}
+                                    alt="Cover"
+                                    className="h-full w-full object-cover"
+                                />
+                            ) : (
+                                <CoverGradient className="h-full w-full" />
+                            )}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+
+                            {/* Cover Upload Button */}
+                            <MediaUploader
+                                accept="image/jpeg,image/png,image/webp"
+                                onUploadComplete={handleCoverUploadComplete}
+                                onError={handleCoverUploadError}
+                                onFileSelect={handleCoverFileSelect}
+                                disabled={coverUploading || mediaProcessing}
+                                className="absolute right-4 bottom-4"
+                            >
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="secondary"
+                                    className="rounded-full border border-white/20 bg-black/50 px-4 text-white backdrop-blur-sm hover:bg-black/70"
+                                    disabled={coverUploading || mediaProcessing}
+                                >
+                                    <ImageIcon className="mr-2 size-4" />
+                                    {coverUploading
+                                        ? 'Uploading...'
+                                        : 'Change cover'}
+                                </Button>
+                            </MediaUploader>
+                        </div>
+
+                        {/* Avatar & Info */}
+                        <div className="relative px-6 pb-6">
+                            {/* Avatar positioned overlapping the cover */}
+                            <div className="-mt-12 mb-4 flex items-end gap-4 sm:-mt-16">
+                                <div className="relative">
+                                    <Avatar className="size-24 border-4 border-black/80 shadow-xl sm:size-28">
+                                        <AvatarImage
+                                            src={avatarPreview}
+                                            alt={
+                                                profile.display_name ??
+                                                profile.username
+                                            }
+                                        />
+                                        <AvatarFallback className="bg-gradient-to-br from-amber-400/20 to-violet-500/20 text-2xl text-white">
+                                            {getInitials(
+                                                profile.display_name ??
+                                                    profile.username,
+                                            )}
+                                        </AvatarFallback>
+                                    </Avatar>
+
+                                    {/* Avatar Upload Button */}
+                                    <MediaUploader
+                                        accept="image/jpeg,image/png,image/webp"
+                                        onUploadComplete={
+                                            handleAvatarUploadComplete
+                                        }
+                                        onError={handleAvatarUploadError}
+                                        onFileSelect={handleAvatarFileSelect}
+                                        disabled={
+                                            avatarUploading || mediaProcessing
+                                        }
+                                        className="absolute -right-1 -bottom-1"
+                                    >
+                                        <button
+                                            type="button"
+                                            className="flex size-8 items-center justify-center rounded-full border border-white/20 bg-black/70 text-white shadow-lg backdrop-blur-sm transition hover:bg-black/90"
+                                            disabled={
+                                                avatarUploading ||
+                                                mediaProcessing
+                                            }
+                                        >
+                                            <Camera className="size-4" />
+                                        </button>
+                                    </MediaUploader>
+                                </div>
+
+                                <div className="mb-2">
+                                    <h3 className="text-lg font-semibold text-white">
+                                        {profile.display_name ??
+                                            profile.username}
+                                    </h3>
+                                    <p className="text-sm text-white/60">
+                                        @{profile.username}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Section Header */}
+                            <div className="mb-4 flex items-center gap-3">
+                                <div className="flex items-center justify-center rounded-xl border border-rose-400/40 bg-gradient-to-br from-rose-400/30 to-rose-500/20 p-2.5 shadow-[0_12px_30px_-18px_rgba(236,72,153,0.65)]">
+                                    <Camera className="h-4 w-4 text-rose-300" />
+                                </div>
+                                <div className="flex items-center gap-2 text-xs font-medium tracking-[0.35em] text-white/70 uppercase">
+                                    Profile Photos
+                                </div>
+                            </div>
+
+                            <p className="mb-4 text-sm text-white/60">
+                                Update your profile photo and cover image. These
+                                are the first things people see when they visit
+                                your profile.
+                            </p>
+
+                            {/* Error Messages */}
+                            {(mediaErrors.avatar_upload_id ||
+                                mediaErrors.cover_upload_id) && (
+                                <div className="mb-4 space-y-1">
+                                    <InputError
+                                        message={mediaErrors.avatar_upload_id}
+                                    />
+                                    <InputError
+                                        message={mediaErrors.cover_upload_id}
+                                    />
+                                </div>
+                            )}
+
+                            {/* Save Button */}
+                            {hasMediaChanges && (
+                                <Button
+                                    type="button"
+                                    onClick={handleMediaSubmit}
+                                    disabled={
+                                        mediaProcessing ||
+                                        avatarUploading ||
+                                        coverUploading
+                                    }
+                                    className="rounded-full bg-gradient-to-r from-rose-500 to-rose-600 px-6 py-2.5 text-sm font-semibold text-white shadow-[0_4px_12px_-4px_rgba(236,72,153,0.4)] transition-all hover:scale-[1.02] hover:shadow-[0_6px_16px_-4px_rgba(236,72,153,0.5)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+                                >
+                                    {mediaProcessing
+                                        ? 'Saving...'
+                                        : 'Save photos'}
+                                </Button>
+                            )}
                         </div>
                     </div>
 

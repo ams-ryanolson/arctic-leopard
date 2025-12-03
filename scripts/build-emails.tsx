@@ -43,6 +43,7 @@ import VerificationRejected from '../resources/emails/verification-rejected';
 import WeeklyDigest from '../resources/emails/weekly-digest';
 import UnreadMessages from '../resources/emails/unread-messages';
 import WeMissYou from '../resources/emails/we-miss-you';
+import BetaInvitation from '../resources/emails/beta-invitation';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUTPUT_DIR = path.join(__dirname, '../resources/views/emails');
@@ -377,6 +378,14 @@ const templates: Record<string, { Component: React.FC<any>; props: Record<string
             newFollowers: '{{ $newFollowers }}',
             newMessages: '{{ $newMessages }}',
             newContent: '{{ $newContent }}'
+        }
+    },
+    'beta-invitation': {
+        Component: BetaInvitation,
+        props: {
+            username: '{{ $username }}',
+            displayName: '{{ $displayName }}',
+            resetPasswordUrl: '{{ $resetPasswordUrl }}'
         }
     }
 };

@@ -87,6 +87,7 @@ export default function TimelineEntryCard({
     const recordedViewRef = useRef(false);
 
     const postId = post?.id ?? null;
+    const postUlid = post?.ulid ?? null;
     const commentsCount =
         postId !== null && postId in pendingCounts
             ? pendingCounts[postId]
@@ -125,17 +126,17 @@ export default function TimelineEntryCard({
     const visibilitySource = entry.visibility_source;
 
     const sendViewEvent = useCallback(() => {
-        if (postId === null) {
+        if (postUlid === null) {
             return;
         }
 
-        const id = postId;
+        const ulid = postUlid;
 
-        if (id === null || recordedViewRef.current) {
+        if (ulid === null || recordedViewRef.current) {
             return;
         }
 
-        const cacheKey = `rk:view:${id}`;
+        const cacheKey = `rk:view:${ulid}`;
         let alreadyTracked = false;
 
         if (typeof window !== 'undefined') {
@@ -161,7 +162,7 @@ export default function TimelineEntryCard({
 
         const sessionUuid = ensureViewSessionUuid();
 
-        recordPostView(id, {
+        recordPostView(ulid, {
             sessionUuid,
             context: {
                 source: visibilitySource,
@@ -184,13 +185,13 @@ export default function TimelineEntryCard({
                 }
             }
         });
-    }, [contextualLocation, ensureViewSessionUuid, postId, visibilitySource]);
+    }, [contextualLocation, ensureViewSessionUuid, postUlid, visibilitySource]);
 
     useEffect(() => {
         recordedViewRef.current = false;
 
         setOptimisticView(false);
-    }, [postId]);
+    }, [postUlid]);
 
     useEffect(() => {
         const element = cardWrapperRef.current;

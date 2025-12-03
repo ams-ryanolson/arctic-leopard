@@ -411,7 +411,7 @@ type RecordPostViewPayload = {
 };
 
 export async function recordPostView(
-    postId: number,
+    postId: string,
     payload: RecordPostViewPayload = {},
     options: { signal?: AbortSignal } = {},
 ): Promise<void> {

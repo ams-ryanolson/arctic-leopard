@@ -34,12 +34,12 @@ it('broadcasts message events and pushes toast notifications', function (): void
     $recipient = realtimeUser();
     $conversation = realtimeConversation($sender, $recipient);
 
-    actingAs($sender)->postJson("/api/conversations/{$conversation->getKey()}/messages", [
+    actingAs($sender)->postJson("/api/conversations/{$conversation->ulid}/messages", [
         'body' => 'Realtime hello',
     ])->assertCreated();
 
     Event::assertDispatched(MessageSent::class, function (MessageSent $event) use ($conversation, $sender): bool {
-        return $event->message->conversation_id === $conversation->getKey()
+        return (int) $event->message->conversation_id === (int) $conversation->id
             && (int) $event->message->user_id === (int) $sender->getKey();
     });
 
@@ -55,12 +55,12 @@ it('records presence heartbeat and typing signals', function (): void {
     $conversation = realtimeConversation($user, $other);
 
     actingAs($user)
-        ->postJson("/api/conversations/{$conversation->getKey()}/presence/heartbeat")
+        ->postJson("/api/conversations/{$conversation->ulid}/presence/heartbeat")
         ->assertOk()
         ->assertJsonCount(1, 'online');
 
     actingAs($user)
-        ->postJson("/api/conversations/{$conversation->getKey()}/presence/typing", [
+        ->postJson("/api/conversations/{$conversation->ulid}/presence/typing", [
             'is_typing' => true,
         ])
         ->assertOk()

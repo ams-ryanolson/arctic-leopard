@@ -109,7 +109,7 @@ it('adds participants to an existing conversation', function (): void {
 
     $conversation->update(['participant_count' => 3]);
 
-    $response = actingAs($initiator)->postJson("/api/conversations/{$conversation->getKey()}/participants", [
+    $response = actingAs($initiator)->postJson("/api/conversations/{$conversation->ulid}/participants", [
         'participant_ids' => [$invitee->getKey()],
     ]);
 
@@ -144,7 +144,7 @@ it('allows a participant to leave a conversation', function (): void {
     ]);
 
     actingAs($member)
-        ->deleteJson("/api/conversations/{$conversation->getKey()}/participants/{$member->getKey()}")
+        ->deleteJson("/api/conversations/{$conversation->ulid}/participants/{$member->getKey()}")
         ->assertNoContent();
 
     expect($conversation->fresh()->participant_count)->toBe(1)

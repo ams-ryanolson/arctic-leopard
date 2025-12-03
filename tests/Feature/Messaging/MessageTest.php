@@ -34,7 +34,7 @@ it('sends a message within a conversation', function (): void {
     $recipient = messagingUser();
     $conversation = makeDirectConversation($sender, $recipient);
 
-    $response = actingAs($sender)->postJson("/api/conversations/{$conversation->getKey()}/messages", [
+    $response = actingAs($sender)->postJson("/api/conversations/{$conversation->ulid}/messages", [
         'body' => 'Hello world',
     ]);
 
@@ -57,7 +57,7 @@ it('blocks messaging when another participant has blocked the sender', function 
     ]);
 
     actingAs($sender)
-        ->postJson("/api/conversations/{$conversation->getKey()}/messages", [
+        ->postJson("/api/conversations/{$conversation->ulid}/messages", [
             'body' => 'Hi there',
         ])
         ->assertForbidden();
@@ -68,7 +68,7 @@ it('deletes and undoes a message', function (): void {
     $recipient = messagingUser();
     $conversation = makeDirectConversation($sender, $recipient);
 
-    $messageResponse = actingAs($sender)->postJson("/api/conversations/{$conversation->getKey()}/messages", [
+    $messageResponse = actingAs($sender)->postJson("/api/conversations/{$conversation->ulid}/messages", [
         'body' => 'Will remove',
     ])->assertCreated();
 
@@ -95,11 +95,11 @@ it('returns thread context for reply chains', function (): void {
     $recipient = messagingUser();
     $conversation = makeDirectConversation($sender, $recipient);
 
-    $initial = actingAs($sender)->postJson("/api/conversations/{$conversation->getKey()}/messages", [
+    $initial = actingAs($sender)->postJson("/api/conversations/{$conversation->ulid}/messages", [
         'body' => 'Root message',
     ])->json('data');
 
-    $reply = actingAs($recipient)->postJson("/api/conversations/{$conversation->getKey()}/messages", [
+    $reply = actingAs($recipient)->postJson("/api/conversations/{$conversation->ulid}/messages", [
         'body' => 'Reply message',
         'reply_to_id' => $initial['id'],
     ])->json('data');
@@ -123,7 +123,7 @@ it('attaches uploaded images to messages', function (): void {
 
     $upload = $temporaryUploads->store(UploadedFile::fake()->image('photo.jpg', 640, 480));
 
-    $response = actingAs($sender)->postJson("/api/conversations/{$conversation->getKey()}/messages", [
+    $response = actingAs($sender)->postJson("/api/conversations/{$conversation->ulid}/messages", [
         'body' => 'Photo attached',
         'attachments' => [
             [
@@ -151,7 +151,7 @@ it('toggles message reactions', function (): void {
     $recipient = messagingUser();
     $conversation = makeDirectConversation($sender, $recipient);
 
-    $message = actingAs($sender)->postJson("/api/conversations/{$conversation->getKey()}/messages", [
+    $message = actingAs($sender)->postJson("/api/conversations/{$conversation->ulid}/messages", [
         'body' => 'React to this',
     ])->assertCreated()->json('data');
 

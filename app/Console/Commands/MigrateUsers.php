@@ -387,7 +387,7 @@ class MigrateUsers extends Command
             'name' => $se4User->displayname,
             'display_name' => $se4User->displayname,
             'bio' => $bio,
-            'email_verified_at' => null, // Force null - migrated users must verify email
+            'email_verified_at' => $se4User->creation_date ?? now(), // Pre-verify migrated users (they already verified in SE4)
             'profile_completed_at' => null, // Force null - migrated users must complete onboarding
             'created_at' => $se4User->creation_date,
             'updated_at' => $se4User->modified_date ?: $se4User->creation_date,

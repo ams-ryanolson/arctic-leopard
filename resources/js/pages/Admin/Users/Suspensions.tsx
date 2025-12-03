@@ -449,8 +449,14 @@ export default function AdminSuspensions() {
 
                 {normalizedUsers.meta.last_page > 1 && (
                     <Pagination
-                        currentPage={normalizedUsers.meta.current_page}
-                        totalPages={normalizedUsers.meta.last_page}
+                        meta={{
+                            currentPage: normalizedUsers.meta.current_page,
+                            perPage: normalizedUsers.meta.per_page,
+                            total: normalizedUsers.meta.total,
+                            hasMorePages:
+                                normalizedUsers.meta.current_page <
+                                normalizedUsers.meta.last_page,
+                        }}
                         onPageChange={(page) => {
                             const params = new URLSearchParams(
                                 window.location.search,

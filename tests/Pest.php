@@ -33,11 +33,8 @@ beforeEach(function (): void {
     // Seed roles and permissions globally for all tests that need them
     $this->seed(RolesAndPermissionsSeeder::class);
 
-    // Fake only the broadcasting events that implement ShouldBroadcast to prevent hangs
-    // Note: We use Event::fake() with specific events to avoid interfering with test assertions
-    Event::fake([
-        \App\Events\TimelineEntryBroadcast::class,
-    ]);
+    // Note: Don't globally fake events that have dedicated tests verifying they're dispatched
+    // Individual tests should call Event::fake() as needed
 
     // Fake HTTP requests globally to prevent hangs from external API calls (e.g., CountryResolver)
     // Tests can override this by calling Http::fake() again with specific configurations

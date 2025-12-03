@@ -37,16 +37,18 @@ test('an authenticated creator can publish a post via the web composer route', f
 
 test('users without a completed profile cannot publish via the composer route', function () {
     $user = User::factory()->create([
+        'email_verified_at' => now(),
         'profile_completed_at' => null,
     ]);
 
     $this->actingAs($user);
 
+    // Route has 'profile.completed' middleware which redirects before policy check
     $this->post(route('posts.store'), [
         'type' => PostType::Text->value,
         'audience' => PostAudience::Public->value,
         'body' => 'Unauthorized attempt.',
-    ])->assertForbidden();
+    ])->assertRedirect(route('onboarding.start'));
 
     expect(Post::query()->count())->toBe(0);
 });

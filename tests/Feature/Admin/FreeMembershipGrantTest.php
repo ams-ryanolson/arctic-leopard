@@ -12,11 +12,14 @@ use function Pest\Laravel\actingAs;
 it('allows admin to grant free membership to user', function (): void {
     Event::fake([FreeMembershipGranted::class]);
 
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
 
     $plan = MembershipPlan::factory()->create([
-        'role_to_assign' => 'Member',
+        'role_to_assign' => 'Bronze',
     ]);
 
     $user = User::factory()->create();
@@ -46,7 +49,10 @@ it('allows admin to grant free membership to user', function (): void {
 });
 
 it('requires valid membership plan when granting free membership', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
 
     $user = User::factory()->create();
@@ -60,7 +66,10 @@ it('requires valid membership plan when granting free membership', function (): 
 });
 
 it('requires expiry date in future when granting free membership', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
 
     $plan = MembershipPlan::factory()->create();

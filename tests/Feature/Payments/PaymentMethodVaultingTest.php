@@ -26,11 +26,9 @@ it('lists user payment methods via API', function (): void {
     $response = $this->getJson(route('payment-methods.index'));
 
     $response->assertSuccessful()
-        ->assertJsonCount(3, 'data')
+        ->assertJsonCount(3)
         ->assertJsonStructure([
-            'data' => [
-                '*' => ['id', 'brand', 'last_four', 'exp_month', 'exp_year', 'is_default'],
-            ],
+            '*' => ['id', 'brand', 'last_four', 'exp_month', 'exp_year', 'is_default'],
         ]);
 });
 
@@ -55,7 +53,7 @@ it('vaults a payment token via API', function (): void {
         ]);
 
     expect(PaymentMethod::query()->where('user_id', $user->id)->count())->toBe(1)
-        ->and(PaymentMethod::query()->where('user_id', $user->id)->first()->is_default)->toBeTrue();
+        ->and((bool) PaymentMethod::query()->where('user_id', $user->id)->first()->is_default)->toBeTrue();
 });
 
 it('sets first payment method as default automatically', function (): void {
@@ -70,7 +68,7 @@ it('sets first payment method as default automatically', function (): void {
     $response->assertCreated();
 
     $paymentMethod = PaymentMethod::query()->where('user_id', $user->id)->first();
-    expect($paymentMethod->is_default)->toBeTrue();
+    expect((bool) $paymentMethod->is_default)->toBeTrue();
 });
 
 it('does not set second payment method as default automatically', function (): void {
@@ -94,8 +92,8 @@ it('does not set second payment method as default automatically', function (): v
     $methods = PaymentMethod::query()->where('user_id', $user->id)->get();
     expect($methods->count())->toBe(2)
         ->and($methods->where('is_default', true)->count())->toBe(1)
-        ->and($methods->first()->is_default)->toBeTrue()
-        ->and($methods->last()->is_default)->toBeFalse();
+        ->and((bool) $methods->first()->is_default)->toBeTrue()
+        ->and((bool) $methods->last()->is_default)->toBeFalse();
 });
 
 it('deletes a payment method via API', function (): void {
@@ -154,8 +152,8 @@ it('sets a payment method as default via API', function (): void {
     $method1->refresh();
     $method2->refresh();
 
-    expect($method1->is_default)->toBeFalse()
-        ->and($method2->is_default)->toBeTrue();
+    expect((bool) $method1->is_default)->toBeFalse()
+        ->and((bool) $method2->is_default)->toBeTrue();
 });
 
 it('prevents setting other users payment methods as default', function (): void {

@@ -8,7 +8,6 @@ use App\Services\Memberships\MembershipService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
-use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
 
@@ -19,7 +18,6 @@ beforeEach(function (): void {
 
 it('expires membership and removes role when no other active memberships exist', function (): void {
     $user = User::factory()->create();
-    $role = Role::firstOrCreate(['name' => 'Premium', 'guard_name' => 'web']);
 
     $plan = MembershipPlan::factory()->create([
         'role_to_assign' => 'Gold',
@@ -33,7 +31,7 @@ it('expires membership and removes role when no other active memberships exist',
     ]);
 
     $user->assignRole('Gold');
-    expect($user->hasRole('Premium'))->toBeTrue();
+    expect($user->hasRole('Gold'))->toBeTrue();
 
     $service = app(MembershipService::class);
     $service->expire($membership);
@@ -43,12 +41,11 @@ it('expires membership and removes role when no other active memberships exist',
     $listener->handle(new \App\Events\Memberships\MembershipExpired($membership));
 
     expect($membership->fresh()->status)->toBe('expired')
-        ->and($user->fresh()->hasRole('Premium'))->toBeFalse();
+        ->and($user->fresh()->hasRole('Gold'))->toBeFalse();
 });
 
 it('does not remove role if user has another active membership with same role', function (): void {
     $user = User::factory()->create();
-    $role = Role::firstOrCreate(['name' => 'Premium', 'guard_name' => 'web']);
 
     $plan = MembershipPlan::factory()->create([
         'role_to_assign' => 'Gold',
@@ -79,12 +76,11 @@ it('does not remove role if user has another active membership with same role', 
     $listener->handle(new \App\Events\Memberships\MembershipExpired($expiredMembership));
 
     // Role should still be assigned because of active membership
-    expect($user->fresh()->hasRole('Premium'))->toBeTrue();
+    expect($user->fresh()->hasRole('Gold'))->toBeTrue();
 });
 
 it('never removes base User role', function (): void {
     $user = User::factory()->create();
-    $userRole = Role::firstOrCreate(['name' => 'User', 'guard_name' => 'web']);
 
     $plan = MembershipPlan::factory()->create([
         'role_to_assign' => 'User',

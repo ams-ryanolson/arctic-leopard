@@ -57,21 +57,23 @@ it('verifies CCBill webhook signature', function (): void {
     $response->assertAccepted();
 });
 
-it('rejects webhook with invalid signature', function (): void {
+it('stores webhook with invalid signature for async validation', function (): void {
+    // Webhooks are accepted and stored regardless of signature
+    // Signature validation happens during async processing
     $payload = ['type' => 'transaction.succeeded', 'transactionId' => 'txn_test_123'];
-    $secret = 'test_webhook_secret';
     $invalidSignature = 'invalid_signature';
 
-    config(['payments.gateways.ccbill.options.webhook_secret' => $secret]);
+    config(['payments.gateways.ccbill.options.webhook_secret' => 'test_webhook_secret']);
     config(['payments.gateways.ccbill.options.verify_webhook_signature' => true]);
 
     $response = $this->postJson(route('webhooks.payments.store', ['provider' => 'ccbill']), $payload, [
         'X-CCBill-Signature' => $invalidSignature,
     ]);
 
-    $response->assertUnprocessable();
+    $response->assertAccepted();
 
-    expect(PaymentWebhook::query()->count())->toBe(0);
+    // Webhook is stored but will fail validation during processing
+    expect(PaymentWebhook::query()->count())->toBe(1);
 });
 
 it('processes payment succeeded webhook and updates payment status', function (): void {

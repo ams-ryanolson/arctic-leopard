@@ -1,6 +1,7 @@
 import AgeConsentModal from '@/components/age-consent-modal';
 import AnnouncementBar from '@/components/announcement-bar';
 import CookiesBanner from '@/components/cookies-banner';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { dashboard, login, register } from '@/routes';
 import { type SharedData } from '@/types';
@@ -16,21 +17,21 @@ import {
 
 const featureHighlights = [
     {
-        title: 'Your Scene Feed',
+        title: 'Scene Feed',
         description:
-            'A personalized timeline of posts from people you follow. Share scenes, updates, and moments with public, followers-only, or subscriber audiences. Like, comment, bookmark, and unlock pay-to-view content.',
+            'Your personalized feed of posts from people you follow. Share scenes, drops, and moments with public, followers-only, or subscriber audiences. Like, comment, bookmark, and unlock pay-to-view content.',
         icon: Flame,
     },
     {
-        title: 'Radar Discovery',
+        title: 'Radar',
         description:
-            "Find nearby members based on location, compatibility, and shared interests. See mutual connections, circle memberships, and compatibility scores. Turn on traveler mode when you're on the move.",
+            "Discover nearby members based on location and shared interests. See mutual connections, compatibility scores, and circle memberships. Toggle traveler mode when you're on the move.",
         icon: Sparkles,
     },
     {
-        title: 'Circles & Community',
+        title: 'Circles',
         description:
-            'Join circles organized around interests, locations, or identities. Each circle has multiple facets for different conversations. Share posts to specific circles and discover new communities.',
+            'Join circles organized around interests, locations, or identities. Each circle has facets for different conversations. Post to specific circles and discover new communities.',
         icon: Users,
     },
 ];
@@ -39,33 +40,33 @@ const trustPoints = [
     {
         title: 'Verified & Safe',
         description:
-            'ID verification for creators, consent-first design, and robust moderation keep the community authentic and safe for everyone.',
+            'ID verification for creators, consent-first design, and robust moderation keep the community authentic and safe.',
         icon: ShieldCheck,
     },
     {
         title: 'Privacy Controls',
         description:
-            'Control who sees your posts with audience settings—public, followers-only, subscribers, or pay-to-view. Manage your profile visibility and traveler mode for location privacy.',
+            'Control who sees your posts—public, followers-only, subscribers, or pay-to-view. Manage profile visibility and traveler mode.',
         icon: Lock,
     },
     {
-        title: 'Creator Tools',
+        title: 'Signals',
         description:
-            'Monetize your content with tips, subscriptions, and pay-to-view posts. Track earnings, manage payouts, and grow your audience with Signals—our creator dashboard.',
+            "Creator tools for monetization. Tips, subscriptions, and pay-to-view content. Track earnings and manage payouts when you're ready.",
         icon: Sparkles,
     },
     {
         title: 'Real Connections',
         description:
-            'Follow people, join circles, and discover nearby members through Radar. Build your network with compatibility matching and mutual connections.',
+            'Follow people, join circles, and discover nearby members through Radar. Build your network with compatibility matching.',
         icon: HeartHandshake,
     },
 ];
 
 const communityStats = [
-    { label: 'Members Active This Week', value: '29,000+' },
-    { label: 'Scenes Shared / Day', value: '185K' },
-    { label: 'Cities Represented', value: '112' },
+    { label: 'Now in Beta', value: 'Early Access' },
+    { label: 'Features Shipping', value: 'Weekly' },
+    { label: 'Community First', value: 'Always' },
 ];
 
 export default function Welcome({
@@ -78,10 +79,10 @@ export default function Welcome({
 
     return (
         <>
-            <Head title="Real Kink Men · Enter The Scene">
+            <Head title="Real Kink Men · The Social Network for Gay Kink">
                 <meta
                     name="description"
-                    content="Real Kink Men is the social network built for gay kink and fetish men. Trade scenes, find crews, flirt in DMs, and turn on creator tools only when you want."
+                    content="Real Kink Men is the social network for gay kink and fetish men. Share on your feed, discover nearby members with Radar, join circles, and monetize with Signals."
                 />
             </Head>
 
@@ -104,11 +105,16 @@ export default function Welcome({
                                     <Users className="size-5" />
                                 </div>
                                 <div className="text-center leading-tight sm:text-left">
-                                    <p className="text-[0.65rem] tracking-[0.35em] text-white/60 uppercase sm:text-xs">
-                                        Real Kink Men
-                                    </p>
+                                    <div className="flex items-center gap-2">
+                                        <p className="text-[0.65rem] tracking-[0.35em] text-white/60 uppercase sm:text-xs">
+                                            Real Kink Men
+                                        </p>
+                                        <Badge className="rounded-full border-amber-400/40 bg-amber-500/20 px-2 py-0.5 text-[0.6rem] font-semibold tracking-wider text-amber-200 uppercase">
+                                            Beta
+                                        </Badge>
+                                    </div>
                                     <p className="text-lg font-semibold tracking-tight">
-                                        Unleash Your Kink
+                                        Enter the Scene
                                     </p>
                                 </div>
                             </Link>
@@ -182,21 +188,19 @@ export default function Welcome({
                                 <div className="space-y-10">
                                     <div className="space-y-5 text-center md:text-left">
                                         <h1 className="text-4xl leading-tight font-semibold tracking-tight text-balance sm:text-5xl md:text-6xl">
-                                            The underground home for{' '}
+                                            The social network for{' '}
                                             <span className="bg-gradient-to-br from-amber-400 via-rose-500 to-violet-600 bg-clip-text text-transparent">
-                                                gay kink connection & play
+                                                gay kink & fetish men
                                             </span>
                                             .
                                         </h1>
                                         <p className="text-base leading-relaxed text-balance text-white/70 sm:text-lg">
-                                            Real Kink Men is the social network
-                                            built for gay kink and fetish men.
-                                            Share posts on your feed, discover
+                                            Share drops on your feed, discover
                                             nearby members with Radar, join
                                             circles, and connect with your
-                                            community. Turn on creator tools
-                                            when you're ready to monetize with
-                                            tips, subscriptions, and pay-to-view
+                                            community. Turn on Signals when
+                                            you're ready to monetize with tips,
+                                            subscriptions, and pay-to-view
                                             content.
                                         </p>
                                     </div>
@@ -215,8 +219,8 @@ export default function Welcome({
                                                 }
                                             >
                                                 {isAuthenticated
-                                                    ? 'Enter The Scene'
-                                                    : 'Claim Your Profile'}
+                                                    ? 'Go to Dashboard'
+                                                    : 'Join the Beta'}
                                             </Link>
                                         </Button>
                                     </div>
@@ -246,8 +250,10 @@ export default function Welcome({
 
                                         <div className="relative space-y-6 p-6 sm:p-8">
                                             <div className="flex flex-col items-start gap-2 text-sm text-white/70 sm:flex-row sm:items-center sm:justify-between">
-                                                <span>Creator Spotlight</span>
-                                                <span>Live Now</span>
+                                                <span>What's Inside</span>
+                                                <Badge className="rounded-full border-amber-400/40 bg-amber-500/20 px-2 py-0.5 text-[0.65rem] font-semibold tracking-wider text-amber-200 uppercase">
+                                                    Beta
+                                                </Badge>
                                             </div>
                                             <div className="rounded-2xl border border-white/10 bg-black/50 p-5 backdrop-blur transition hover:border-white/20 sm:p-6">
                                                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -256,41 +262,37 @@ export default function Welcome({
                                                     </div>
                                                     <div className="min-w-0 flex-1">
                                                         <p className="text-sm tracking-[0.25em] text-white/50 uppercase">
-                                                            Bound Series ·
-                                                            Episode 07
+                                                            Scene Feed
                                                         </p>
                                                         <p className="mt-1 text-lg font-semibold tracking-tight text-white">
-                                                            Iron & Rope Ritual
-                                                            with Dante Knox
+                                                            Share drops with
+                                                            your audience
                                                         </p>
                                                     </div>
                                                 </div>
                                                 <p className="mt-4 text-sm leading-relaxed text-white/70">
-                                                    A 45-minute multi-camera
-                                                    experience featuring breath
-                                                    play, suspension, and
-                                                    partner control. Shot in 4K.
-                                                    Includes backstage scenes,
-                                                    rigging notes, and safeword
-                                                    check-ins.
+                                                    Post scenes, updates, and
+                                                    moments. Control who sees
+                                                    what—public, followers-only,
+                                                    subscribers, or pay-to-view.
+                                                    Like, comment, bookmark, and
+                                                    amplify.
                                                 </p>
                                                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
                                                     <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm transition hover:border-white/20 hover:bg-white/10">
                                                         <p className="text-xs tracking-[0.3em] text-white/60 uppercase">
-                                                            Tip Train Active
+                                                            Radar
                                                         </p>
                                                         <p className="mt-1 text-base font-semibold text-white">
-                                                            162 patrons · 18 min
-                                                            left
+                                                            Nearby discovery
                                                         </p>
                                                     </div>
                                                     <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm transition hover:border-white/20 hover:bg-white/10">
                                                         <p className="text-xs tracking-[0.3em] text-white/60 uppercase">
-                                                            Unlockable Scenes
+                                                            Circles
                                                         </p>
                                                         <p className="mt-1 text-base font-semibold text-white">
-                                                            Breath control, wax,
-                                                            aftercare
+                                                            Community groups
                                                         </p>
                                                     </div>
                                                 </div>
@@ -298,18 +300,18 @@ export default function Welcome({
                                             <div className="grid grid-cols-1 gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur sm:grid-cols-2">
                                                 <div>
                                                     <p className="text-xs tracking-[0.3em] text-white/60 uppercase">
-                                                        Creators
+                                                        Signals
                                                     </p>
                                                     <p className="mt-2 text-base font-semibold text-white">
-                                                        Verified pros
+                                                        Creator monetization
                                                     </p>
                                                 </div>
                                                 <div>
                                                     <p className="text-xs tracking-[0.3em] text-white/60 uppercase">
-                                                        Experiences
+                                                        Messages
                                                     </p>
                                                     <p className="mt-2 text-base font-semibold text-white">
-                                                        IRL + digital crossover
+                                                        Direct conversations
                                                     </p>
                                                 </div>
                                             </div>
@@ -329,32 +331,23 @@ export default function Welcome({
                                         Why Real Kink Men
                                     </p>
                                     <h2 className="text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">
-                                        Built by men into kink who were tired of
-                                        vanilla platforms muting our scenes and
-                                        shadowbanning our connections.
+                                        Built by kink men who were tired of
+                                        vanilla platforms muting our scenes.
                                     </h2>
                                     <p className="text-base leading-relaxed text-white/70">
-                                        Real Kink Men grew out of late-night
-                                        debriefs, dungeon deconstructions, and
-                                        friendships that kept getting throttled
-                                        elsewhere. We wanted a social network
-                                        where fetish talk comes first, where
-                                        handles feel safe, and where underground
-                                        communities can breathe in public.
+                                        We wanted a social network where fetish
+                                        talk comes first, where handles feel
+                                        safe, and where our communities can
+                                        breathe. So we built one.
                                     </p>
                                     <p className="text-base leading-relaxed text-white/70">
-                                        We built a feed where you control your
-                                        audience—share publicly, with followers,
-                                        subscribers, or behind a paywall. We
-                                        added Radar to help you discover nearby
-                                        members based on compatibility and
-                                        location. We created Circles for
-                                        community organization. And we built
-                                        Signals—creator tools for
-                                        monetization—that you can turn on
-                                        whenever you're ready. This isn't a
-                                        sanitized clone—it's our fetish
-                                        metropolis.
+                                        Your feed, your audience—share publicly,
+                                        with followers, subscribers, or behind a
+                                        paywall. Radar helps you discover nearby
+                                        members. Circles let you organize around
+                                        shared interests. And Signals gives you
+                                        creator tools when you're ready to
+                                        monetize.
                                     </p>
                                 </div>
 
@@ -394,19 +387,16 @@ export default function Welcome({
                                 <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                                     <div>
                                         <p className="text-[0.7rem] tracking-[0.4em] text-white/50 uppercase sm:text-xs">
-                                            Platform DNA
+                                            Core Features
                                         </p>
                                         <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-                                            Everything the scene needs to thrive
+                                            Built for the scene
                                         </h2>
                                     </div>
                                     <p className="max-w-xl text-sm leading-relaxed text-white/65">
-                                        From your personalized feed to
-                                        location-based discovery, every feature
-                                        is designed for authentic kink
-                                        connection. Share posts, discover nearby
-                                        members, join circles, and monetize your
-                                        content when you're ready.
+                                        Your feed, location-based discovery, and
+                                        community circles—every feature is
+                                        designed for authentic kink connection.
                                     </p>
                                 </div>
 
@@ -447,41 +437,35 @@ export default function Welcome({
                                     <div className="relative p-8 sm:p-10 sm:pb-12 md:p-14">
                                         <div className="absolute -top-16 left-12 size-48 rounded-full bg-gradient-to-br from-amber-400 via-rose-500 to-violet-600 opacity-50 blur-3xl" />
                                         <p className="text-[0.7rem] tracking-[0.4em] text-white/50 uppercase sm:text-xs">
-                                            Consent Is King
+                                            Trust & Safety
                                         </p>
                                         <h2 className="mt-4 text-3xl leading-tight font-semibold tracking-tight">
-                                            Safety, verification, and privacy
-                                            built for the kink community.
+                                            Consent-first design, built for our
+                                            community.
                                         </h2>
                                         <ul className="mt-6 space-y-4 text-sm leading-relaxed text-white/70">
                                             <li className="flex items-start gap-3">
                                                 <span className="mt-1.5 size-2 shrink-0 rounded-full bg-amber-400" />
                                                 <span>
-                                                    ID verification for creators
-                                                    ensures authentic profiles.
-                                                    Consent-first design and
-                                                    robust moderation keep the
-                                                    community safe.
+                                                    ID verification for creators.
+                                                    Robust moderation keeps the
+                                                    community authentic and safe.
                                                 </span>
                                             </li>
                                             <li className="flex items-start gap-3">
                                                 <span className="mt-1.5 size-2 shrink-0 rounded-full bg-amber-400" />
                                                 <span>
-                                                    Control your audience with
-                                                    post settings—public,
-                                                    followers-only, subscribers,
-                                                    or pay-to-view. Your
-                                                    content, your rules.
+                                                    Audience controls on every
+                                                    post—public, followers-only,
+                                                    subscribers, or pay-to-view.
                                                 </span>
                                             </li>
                                             <li className="flex items-start gap-3">
                                                 <span className="mt-1.5 size-2 shrink-0 rounded-full bg-amber-400" />
                                                 <span>
-                                                    Privacy controls let you
-                                                    manage location sharing,
+                                                    Privacy settings for location,
                                                     profile visibility, and
-                                                    traveler mode for when
-                                                    you're on the move.
+                                                    traveler mode.
                                                 </span>
                                             </li>
                                         </ul>
@@ -492,29 +476,24 @@ export default function Welcome({
                                         <div className="relative space-y-6 rounded-3xl border border-white/10 bg-black/40 p-8 shadow-[0_25px_65px_-35px_rgba(249,115,22,0.55)]">
                                             <div className="flex items-center gap-3">
                                                 <div className="flex size-10 items-center justify-center rounded-xl bg-white/10">
-                                                    <Users className="size-5" />
+                                                    <Sparkles className="size-5" />
                                                 </div>
                                                 <div>
                                                     <p className="text-sm font-semibold text-white">
-                                                        VERIFIED CIRCLE: SILVER
-                                                        COLLAR
+                                                        Beta Feedback
                                                     </p>
                                                     <p className="text-xs tracking-[0.3em] text-white/50 uppercase">
-                                                        Invite-only · 783
-                                                        members
+                                                        From our early community
                                                     </p>
                                                 </div>
                                             </div>
                                             <p className="text-sm leading-relaxed text-white/75">
-                                                "Real Kink Men gave us the
-                                                community tools we needed. The
-                                                feed keeps us connected, Radar
-                                                helps us find nearby members,
-                                                and Circles let us organize
-                                                around shared interests. The
-                                                creator tools are optional but
-                                                powerful when you're ready to
-                                                monetize."
+                                                "Finally a platform that gets
+                                                it. The feed keeps us connected,
+                                                Radar helps find nearby members,
+                                                and Circles let us organize.
+                                                Signals is there when I'm ready
+                                                to monetize—no pressure."
                                             </p>
                                             <div className="flex items-center gap-3">
                                                 <div className="h-10 w-10 overflow-hidden rounded-full border border-amber-400/60">
@@ -522,11 +501,10 @@ export default function Welcome({
                                                 </div>
                                                 <div>
                                                     <p className="text-sm font-medium text-white">
-                                                        Father Torin
+                                                        Beta Tester
                                                     </p>
                                                     <p className="text-xs tracking-[0.3em] text-white/50 uppercase">
-                                                        Circle Curator · 12
-                                                        years rigging
+                                                        Early Access Member
                                                     </p>
                                                 </div>
                                             </div>
@@ -542,19 +520,17 @@ export default function Welcome({
                         >
                             <div className="mx-auto flex w-full max-w-4xl flex-col items-center gap-8 rounded-[2.5rem] border border-white/10 bg-white/5 px-6 py-12 text-center backdrop-blur sm:rounded-[3rem] sm:px-8 sm:py-14 md:px-12">
                                 <p className="text-[0.7rem] tracking-[0.4em] text-white/50 uppercase sm:text-xs">
-                                    Ready When You Are
+                                    Join the Beta
                                 </p>
                                 <h2 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-                                    Join the doms, subs, pups, voyeurs, and
-                                    creators building the next era of kink
-                                    culture.
+                                    Help us build the social network for kink.
                                 </h2>
                                 <p className="max-w-2xl text-sm leading-relaxed text-white/70">
-                                    Join the community and start connecting.
-                                    Follow people, join circles, discover nearby
-                                    members with Radar, and share your scenes.
-                                    Turn on creator tools in Signals whenever
-                                    you're ready to monetize your content.
+                                    We're in beta, shipping features weekly
+                                    based on community feedback. Join now to
+                                    shape what comes next—follow people, join
+                                    circles, discover nearby members, and share
+                                    your scenes.
                                 </p>
                                 <div className="flex flex-wrap items-center justify-center gap-4">
                                     <Button
@@ -570,8 +546,8 @@ export default function Welcome({
                                             }
                                         >
                                             {isAuthenticated
-                                                ? 'Open The Dashboard'
-                                                : 'Claim Your Spot'}
+                                                ? 'Go to Dashboard'
+                                                : 'Join the Beta'}
                                         </Link>
                                     </Button>
                                     <Button
@@ -581,7 +557,7 @@ export default function Welcome({
                                         className="w-full rounded-full border-white/20 bg-white/5 px-7 py-3 text-base text-white/70 transition hover:border-white/40 hover:bg-white/10 hover:text-white sm:w-auto"
                                     >
                                         <Link href="#vision">
-                                            Preview Our Playbook
+                                            Learn More
                                         </Link>
                                     </Button>
                                 </div>
@@ -593,14 +569,14 @@ export default function Welcome({
                         <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-4 text-center md:flex-row md:text-left">
                             <p className="text-balance">
                                 © {new Date().getFullYear()} Real Kink Men.
-                                Fetish-forward. Consent-centered.
+                                Currently in beta.
                             </p>
                             <div className="flex items-center justify-center gap-6 text-[0.7rem] tracking-[0.3em] text-white/50 uppercase sm:text-xs">
                                 <a
                                     href="#trust"
                                     className="transition-colors hover:text-white"
                                 >
-                                    Safety
+                                    Trust & Safety
                                 </a>
                                 <a
                                     href="#features"
@@ -612,7 +588,7 @@ export default function Welcome({
                                     href="#join"
                                     className="transition-colors hover:text-white"
                                 >
-                                    Join
+                                    Join Beta
                                 </a>
                             </div>
                         </div>

@@ -275,11 +275,16 @@ class FakeGateway implements PaymentGatewayContract, SubscriptionGatewayContract
 
     public function getPaymentTokenDetails(string $tokenId): CardDetails
     {
+        // Use last 4 digits of token hash to make each token unique (for testing multiple cards)
+        $lastFour = substr(md5($tokenId), 0, 4);
+        // Ensure it's all digits
+        $lastFour = str_pad((string) (hexdec($lastFour) % 10000), 4, '0', STR_PAD_LEFT);
+
         return CardDetails::fromArray([
-            'last_four' => '4242',
+            'last_four' => $lastFour,
             'brand' => 'visa',
             'exp_month' => '12',
-            'exp_year' => '2025',
+            'exp_year' => '2030',
             'fingerprint' => null,
         ]);
     }

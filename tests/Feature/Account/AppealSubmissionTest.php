@@ -57,12 +57,12 @@ it('prevents user from submitting multiple pending appeals', function (): void {
         'status' => AppealStatus::Pending,
     ]);
 
+    // User with pending appeal should be forbidden from submitting another
     actingAs($user)
-        ->post('/account/appeal', [
+        ->postJson('/account/appeal', [
             'reason' => 'Second appeal attempt',
         ])
-        ->assertRedirect()
-        ->assertSessionHas('status');
+        ->assertForbidden();
 });
 
 it('requires minimum 10 characters in appeal reason', function (): void {

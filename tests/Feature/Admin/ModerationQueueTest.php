@@ -8,7 +8,10 @@ use App\Models\User;
 use function Pest\Laravel\actingAs;
 
 it('displays moderation queue with pending content', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
 
     $post = Post::factory()->create([
@@ -31,7 +34,10 @@ it('displays moderation queue with pending content', function (): void {
 });
 
 it('filters moderation queue by content type', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
 
     $post = Post::factory()->create();
@@ -47,7 +53,10 @@ it('filters moderation queue by content type', function (): void {
 });
 
 it('filters moderation queue by status', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
 
     $post = Post::factory()->create([

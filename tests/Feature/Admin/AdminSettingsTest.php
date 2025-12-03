@@ -43,7 +43,10 @@ beforeEach(function (): void {
 });
 
 it('allows admin to view settings', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
     $admin->givePermissionTo('manage settings');
 
@@ -58,7 +61,10 @@ it('allows admin to view settings', function (): void {
 });
 
 it('allows admin to view settings filtered by category', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
     $admin->givePermissionTo('manage settings');
 
@@ -82,7 +88,10 @@ it('requires admin permission to view settings', function (): void {
 });
 
 it('allows admin to update setting', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
     $admin->givePermissionTo('manage settings');
 
@@ -99,7 +108,10 @@ it('allows admin to update setting', function (): void {
 });
 
 it('allows admin to update boolean setting', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
     $admin->givePermissionTo('manage settings');
 
@@ -117,7 +129,10 @@ it('allows admin to update boolean setting', function (): void {
 });
 
 it('allows admin to update string setting', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
     $admin->givePermissionTo('manage settings');
 
@@ -134,7 +149,10 @@ it('allows admin to update string setting', function (): void {
 });
 
 it('creates new setting when updating non-existent key', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
     $admin->givePermissionTo('manage settings');
 
@@ -156,19 +174,23 @@ it('creates new setting when updating non-existent key', function (): void {
     ]);
 });
 
-it('infers feature category for feature_ prefixed keys', function (): void {
-    $admin = User::factory()->create();
+it('infers feature category for feature_*_enabled keys', function (): void {
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
     $admin->givePermissionTo('manage settings');
 
+    // Only feature_*_enabled keys are auto-categorized as 'features'
     actingAs($admin)
-        ->patchJson('/admin/settings/feature_new_feature', [
+        ->patchJson('/admin/settings/feature_new_feature_enabled', [
             'value' => true,
         ])
         ->assertRedirect();
 
     assertDatabaseHas('admin_settings', [
-        'key' => 'feature_new_feature',
+        'key' => 'feature_new_feature_enabled',
         'type' => 'boolean',
         'category' => 'features',
     ]);
@@ -185,7 +207,10 @@ it('requires admin permission to update settings', function (): void {
 });
 
 it('validates integer type for integer settings', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
     $admin->givePermissionTo('manage settings');
 
@@ -197,7 +222,10 @@ it('validates integer type for integer settings', function (): void {
 });
 
 it('validates boolean type for boolean settings', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
     $admin->givePermissionTo('manage settings');
 
@@ -209,7 +237,10 @@ it('validates boolean type for boolean settings', function (): void {
 });
 
 it('allows admin to bulk update settings', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
     $admin->givePermissionTo('manage settings');
 
@@ -241,7 +272,10 @@ it('allows admin to bulk update settings', function (): void {
 });
 
 it('creates new settings during bulk update', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
     $admin->givePermissionTo('manage settings');
 
@@ -251,7 +285,7 @@ it('creates new settings during bulk update', function (): void {
                 'new_string_setting' => 'string value',
                 'new_integer_setting' => 42,
                 'new_boolean_setting' => false,
-                'feature_new_feature' => true,
+                'feature_new_feature_enabled' => true,
             ],
         ])
         ->assertRedirect();
@@ -279,7 +313,7 @@ it('creates new settings during bulk update', function (): void {
     ]);
 
     assertDatabaseHas('admin_settings', [
-        'key' => 'feature_new_feature',
+        'key' => 'feature_new_feature_enabled',
         'value' => '1',
         'type' => 'boolean',
         'category' => 'features',
@@ -299,7 +333,10 @@ it('requires admin permission to bulk update settings', function (): void {
 });
 
 it('validates bulk update requires settings array', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
     $admin->givePermissionTo('manage settings');
 
@@ -309,7 +346,10 @@ it('validates bulk update requires settings array', function (): void {
 });
 
 it('validates feature flags are boolean in bulk update', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
     $admin->givePermissionTo('manage settings');
 
@@ -323,7 +363,10 @@ it('validates feature flags are boolean in bulk update', function (): void {
 });
 
 it('validates email format for email settings in bulk update', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
     $admin->givePermissionTo('manage settings');
 
@@ -337,7 +380,10 @@ it('validates email format for email settings in bulk update', function (): void
 });
 
 it('validates URL format for URL settings in bulk update', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
     $admin->givePermissionTo('manage settings');
 
@@ -351,7 +397,10 @@ it('validates URL format for URL settings in bulk update', function (): void {
 });
 
 it('validates consent reprompt days range in bulk update', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
     $admin->givePermissionTo('manage settings');
 
@@ -373,7 +422,10 @@ it('validates consent reprompt days range in bulk update', function (): void {
 });
 
 it('allows admin to upload branding asset', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
     $admin->givePermissionTo('manage settings');
 
@@ -421,7 +473,10 @@ it('allows admin to upload branding asset', function (): void {
 });
 
 it('maps logo types to correct setting keys', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
     $admin->givePermissionTo('manage settings');
 
@@ -472,7 +527,10 @@ it('requires admin permission to upload branding asset', function (): void {
 });
 
 it('validates logo type in branding upload', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
     $admin->givePermissionTo('manage settings');
 
@@ -487,7 +545,10 @@ it('validates logo type in branding upload', function (): void {
 });
 
 it('validates file is required in branding upload', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
     $admin->givePermissionTo('manage settings');
 
@@ -499,7 +560,10 @@ it('validates file is required in branding upload', function (): void {
 });
 
 it('validates file is an image in branding upload', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
     $admin->givePermissionTo('manage settings');
 
@@ -514,7 +578,10 @@ it('validates file is an image in branding upload', function (): void {
 });
 
 it('validates file size limit in branding upload', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
     $admin->givePermissionTo('manage settings');
 
@@ -530,7 +597,10 @@ it('validates file size limit in branding upload', function (): void {
 });
 
 it('generates unique filename for branding uploads', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
     $admin->givePermissionTo('manage settings');
 

@@ -42,6 +42,12 @@ class AdminModerationController extends Controller
             ],
             'queue' => $queue->through(function ($item) {
                 $content = $item->moderatable;
+
+                // Skip items where the content was deleted
+                if ($content === null) {
+                    return null;
+                }
+
                 $author = null;
 
                 if ($content instanceof Post || $content instanceof Story || $content instanceof Comment) {
@@ -67,7 +73,7 @@ class AdminModerationController extends Controller
                         'username' => $author->username,
                     ] : null,
                 ];
-            }),
+            })->filter()->values(),
         ]);
     }
 
@@ -146,7 +152,7 @@ class AdminModerationController extends Controller
         $this->moderationService->reject(
             content: $content,
             moderator: $request->user(),
-            reason: $request->validated()['rejection_reason'],
+            reason: $request->validated()['reason'],
             notes: $request->validated()['notes'] ?? null
         );
 
@@ -252,15 +258,17 @@ class AdminModerationController extends Controller
     protected function formatContentForDisplay(Model $content): array
     {
         if ($content instanceof Post) {
+            $user = $content->user;
+
             return [
                 'type' => 'post',
                 'id' => $content->id,
                 'body' => $content->body,
-                'user' => [
-                    'id' => $content->user->id,
-                    'name' => $content->user->name,
-                    'username' => $content->user->username,
-                ],
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'username' => $user->username,
+                ] : null,
                 'created_at' => $content->created_at->toIso8601String(),
                 'moderation_status' => $content->moderation_status?->value,
                 'moderation_notes' => $content->moderation_notes,
@@ -274,15 +282,17 @@ class AdminModerationController extends Controller
         }
 
         if ($content instanceof Story) {
+            $user = $content->user;
+
             return [
                 'type' => 'story',
                 'id' => $content->id,
                 'body' => $content->body,
-                'user' => [
-                    'id' => $content->user->id,
-                    'name' => $content->user->name,
-                    'username' => $content->user->username,
-                ],
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'username' => $user->username,
+                ] : null,
                 'created_at' => $content->created_at->toIso8601String(),
                 'moderation_status' => $content->moderation_status?->value,
                 'moderation_notes' => $content->moderation_notes,
@@ -296,15 +306,17 @@ class AdminModerationController extends Controller
         }
 
         if ($content instanceof Comment) {
+            $user = $content->user;
+
             return [
                 'type' => 'comment',
                 'id' => $content->id,
                 'body' => $content->body,
-                'user' => [
-                    'id' => $content->user->id,
-                    'name' => $content->user->name,
-                    'username' => $content->user->username,
-                ],
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'username' => $user->username,
+                ] : null,
                 'post' => $content->post ? [
                     'id' => $content->post->id,
                     'body' => $content->post->body,

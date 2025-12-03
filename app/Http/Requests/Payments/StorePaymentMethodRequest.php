@@ -13,9 +13,14 @@ class StorePaymentMethodRequest extends FormRequest
 
     public function rules(): array
     {
+        // Allow 'fake' gateway in testing environment
+        $allowedGateways = app()->environment('testing')
+            ? 'ccbill,fake'
+            : 'ccbill';
+
         return [
             'provider_token_id' => ['required', 'string'],
-            'gateway' => ['nullable', 'string', 'in:ccbill'],
+            'gateway' => ['nullable', 'string', 'in:'.$allowedGateways],
             'is_default' => ['boolean'],
             'billing_address' => ['nullable', 'array'],
             // Card details - required for CCBill since their API doesn't return card info

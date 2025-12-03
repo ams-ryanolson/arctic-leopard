@@ -38,7 +38,7 @@ it('broadcasts a timeline entry when fan out runs', function (): void {
     });
 });
 
-it('broadcasts timeline entries when a rebuild occurs', function (): void {
+it('does not broadcast timeline entries when a rebuild occurs (rebuilds are background backfills)', function (): void {
     Event::fake([TimelineEntryBroadcast::class]);
 
     $author = User::factory()->create();
@@ -58,8 +58,13 @@ it('broadcasts timeline entries when a rebuild occurs', function (): void {
 
     (new RebuildTimelineJob($follower->getKey()))->handle();
 
-    Event::assertDispatched(TimelineEntryBroadcast::class, function (TimelineEntryBroadcast $event) use ($follower, $post): bool {
-        return $event->userId === $follower->getKey()
-            && $event->post->getKey() === $post->getKey();
-    });
+    // Rebuilds should NOT broadcast - they're background operations for backfilling old posts
+    // Only TimelineFanOutJob should broadcast for new posts
+    Event::assertNotDispatched(TimelineEntryBroadcast::class);
+
+    // But the timeline entry SHOULD be created
+    $this->assertDatabaseHas('timelines', [
+        'user_id' => $follower->getKey(),
+        'post_id' => $post->getKey(),
+    ]);
 });

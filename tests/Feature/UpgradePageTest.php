@@ -9,7 +9,6 @@ test('guests cannot view upgrade page', function () {
 
 test('authenticated users can view upgrade page', function () {
     // Seed membership plans
-    \Database\Seeders\MembershipPlansSeeder::class;
     app(\Database\Seeders\MembershipPlansSeeder::class)->run();
 
     $this->actingAs(User::factory()->create());
@@ -19,8 +18,8 @@ test('authenticated users can view upgrade page', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->component('Memberships/Upgrade')
             ->has('plans', 3)
-            ->where('plans.0.slug', 'premium')
-            ->where('plans.1.slug', 'elite')
-            ->where('plans.2.slug', 'unlimited')
+            ->where('plans.0.slug', 'bronze')
+            ->where('plans.1.slug', 'silver')
+            ->where('plans.2.slug', 'gold')
         );
 });

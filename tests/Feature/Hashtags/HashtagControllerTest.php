@@ -29,7 +29,10 @@ test('hashtag index page displays hashtags', function () {
 });
 
 test('hashtag show page displays hashtag with posts', function () {
-    $viewer = User::factory()->create();
+    $viewer = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $user = User::factory()->create();
     $hashtag = Hashtag::factory()->create([
         'name' => 'testhashtag',
@@ -54,7 +57,8 @@ test('hashtag show page displays hashtag with posts', function () {
         ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
             ->component('Hashtags/Show')
             ->where('hashtag.name', 'testhashtag')
-            ->where('posts', fn ($posts) => count($posts) === 1)
+            // Posts is a paginated response with 'data' array containing the actual posts
+            ->where('posts.data', fn ($posts) => count($posts) === 1)
         );
 });
 

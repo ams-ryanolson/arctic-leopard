@@ -29,11 +29,10 @@ beforeEach(function (): void {
 it('can purchase a gift membership for another user', function (): void {
     $gifter = User::factory()->create();
     $recipient = User::factory()->create();
-    $role = Role::firstOrCreate(['name' => 'Premium', 'guard_name' => 'web']);
 
     $plan = MembershipPlan::factory()->create([
-        'name' => 'Premium Plan',
-        'slug' => 'premium-plan',
+        'name' => 'Gold Plan',
+        'slug' => 'gold-plan',
         'role_to_assign' => 'Gold',
         'monthly_price' => 1000,
         'allows_one_time' => true,
@@ -99,7 +98,7 @@ it('can purchase a gift membership for another user', function (): void {
         ->and($membership->gifted_by_user_id)->toBe($gifter->id)
         ->and($membership->status)->toBe('active')
         ->and($membership->billing_type)->toBe('one_time')
-        ->and($recipient->fresh()->hasRole('Premium'))->toBeTrue();
+        ->and($recipient->fresh()->hasRole('Gold'))->toBeTrue();
 
     // Verify event was fired
     Event::assertDispatched(MembershipGifted::class, function ($event) use ($membership, $gifter) {
@@ -347,8 +346,8 @@ it('creates gift membership with correct duration', function (): void {
         ->where('membership_plan_id', $plan->id)
         ->first();
 
-    // Verify duration is correct
+    // Verify duration is correct (use absolute value since ends_at is in the future)
     expect($membership)->not->toBeNull()
-        ->and($membership->ends_at->diffInDays(now()))->toBeGreaterThan(89)
-        ->and($membership->ends_at->diffInDays(now()))->toBeLessThan(91);
+        ->and(abs($membership->ends_at->diffInDays(now())))->toBeGreaterThan(89)
+        ->and(abs($membership->ends_at->diffInDays(now())))->toBeLessThan(91);
 });

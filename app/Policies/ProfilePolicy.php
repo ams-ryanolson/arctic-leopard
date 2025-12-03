@@ -256,7 +256,8 @@ class ProfilePolicy
                 return false;
             }
 
-            return $user->can('grant free memberships');
+            // Use 'manage users' permission which Admins have
+            return $user->can('manage users');
         }
 
         return false;

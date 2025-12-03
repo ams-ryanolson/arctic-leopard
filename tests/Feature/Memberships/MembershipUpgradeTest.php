@@ -14,7 +14,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
-use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
 
@@ -27,26 +26,24 @@ beforeEach(function (): void {
 
 it('calculates prorated upgrade price correctly', function (): void {
     $user = User::factory()->create();
-    $premiumRole = Role::firstOrCreate(['name' => 'Premium', 'guard_name' => 'web']);
-    $eliteRole = Role::firstOrCreate(['name' => 'Elite', 'guard_name' => 'web']);
 
-    $premiumPlan = MembershipPlan::factory()->create([
-        'name' => 'Premium Plan',
-        'slug' => 'premium-plan',
-        'role_to_assign' => 'Gold',
+    $bronzePlan = MembershipPlan::factory()->create([
+        'name' => 'Bronze Plan',
+        'slug' => 'bronze-plan',
+        'role_to_assign' => 'Bronze',
         'monthly_price' => 1000, // $10
     ]);
 
-    $elitePlan = MembershipPlan::factory()->create([
-        'name' => 'Elite Plan',
-        'slug' => 'elite-plan',
-        'role_to_assign' => 'Elite',
+    $goldPlan = MembershipPlan::factory()->create([
+        'name' => 'Gold Plan',
+        'slug' => 'gold-plan',
+        'role_to_assign' => 'Gold',
         'monthly_price' => 2000, // $20
     ]);
 
     $currentMembership = UserMembership::factory()->create([
         'user_id' => $user->id,
-        'membership_plan_id' => $premiumPlan->id,
+        'membership_plan_id' => $bronzePlan->id,
         'status' => 'active',
         'starts_at' => now()->subDays(15), // 15 days ago
         'ends_at' => now()->addDays(15), // 15 days remaining
@@ -57,7 +54,7 @@ it('calculates prorated upgrade price correctly', function (): void {
     $this->actingAs($user);
 
     $membershipService = app(MembershipService::class);
-    $upgradePrice = $membershipService->calculateUpgradePrice($currentMembership, $elitePlan, 'monthly');
+    $upgradePrice = $membershipService->calculateUpgradePrice($currentMembership, $goldPlan, 'monthly');
 
     // Should be prorated: (1000 / 30) * 15 = 500 remaining value
     // Upgrade price: 2000 - 500 = 1500
@@ -68,26 +65,24 @@ it('calculates prorated upgrade price correctly', function (): void {
 
 it('upgrades membership and swaps roles', function (): void {
     $user = User::factory()->create();
-    $premiumRole = Role::firstOrCreate(['name' => 'Premium', 'guard_name' => 'web']);
-    $eliteRole = Role::firstOrCreate(['name' => 'Elite', 'guard_name' => 'web']);
 
-    $premiumPlan = MembershipPlan::factory()->create([
-        'name' => 'Premium Plan',
-        'slug' => 'premium-plan',
-        'role_to_assign' => 'Gold',
+    $bronzePlan = MembershipPlan::factory()->create([
+        'name' => 'Bronze Plan',
+        'slug' => 'bronze-plan',
+        'role_to_assign' => 'Bronze',
         'monthly_price' => 1000,
     ]);
 
-    $elitePlan = MembershipPlan::factory()->create([
-        'name' => 'Elite Plan',
-        'slug' => 'elite-plan',
-        'role_to_assign' => 'Elite',
+    $goldPlan = MembershipPlan::factory()->create([
+        'name' => 'Gold Plan',
+        'slug' => 'gold-plan',
+        'role_to_assign' => 'Gold',
         'monthly_price' => 2000,
     ]);
 
     $currentMembership = UserMembership::factory()->create([
         'user_id' => $user->id,
-        'membership_plan_id' => $premiumPlan->id,
+        'membership_plan_id' => $bronzePlan->id,
         'status' => 'active',
         'starts_at' => now()->subDays(15),
         'ends_at' => now()->addDays(15),
@@ -95,13 +90,13 @@ it('upgrades membership and swaps roles', function (): void {
         'billing_type' => 'recurring',
     ]);
 
-    $user->assignRole('Gold');
-    expect($user->hasRole('Premium'))->toBeTrue();
+    $user->assignRole('Bronze');
+    expect($user->hasRole('Bronze'))->toBeTrue();
 
     $this->actingAs($user);
 
     $response = $this->post(route('memberships.upgrade', $currentMembership), [
-        'plan_id' => $elitePlan->id,
+        'plan_id' => $goldPlan->id,
         'billing_type' => 'recurring',
         'billing_interval' => 'monthly',
         'gateway' => 'fake',
@@ -131,7 +126,7 @@ it('upgrades membership and swaps roles', function (): void {
     // Manually call the role update listener since MembershipUpgraded event is faked
     $newMembership = UserMembership::query()
         ->where('user_id', $user->id)
-        ->where('membership_plan_id', $elitePlan->id)
+        ->where('membership_plan_id', $goldPlan->id)
         ->where('status', 'active')
         ->first();
 
@@ -146,31 +141,31 @@ it('upgrades membership and swaps roles', function (): void {
         ->and($currentMembership->fresh()->cancellation_reason)->toBe('upgraded')
         ->and(UserMembership::query()
             ->where('user_id', $user->id)
-            ->where('membership_plan_id', $elitePlan->id)
+            ->where('membership_plan_id', $goldPlan->id)
             ->where('status', 'active')
             ->exists())->toBeTrue()
-        ->and($user->hasRole('Elite'))->toBeTrue()
-        ->and($user->hasRole('Premium'))->toBeFalse();
+        ->and($user->hasRole('Gold'))->toBeTrue()
+        ->and($user->hasRole('Bronze'))->toBeFalse();
 });
 
 it('keeps same expiry date when upgrading', function (): void {
     $user = User::factory()->create();
-    $premiumPlan = MembershipPlan::factory()->create([
-        'name' => 'Premium Plan Test',
-        'slug' => 'premium-plan-test',
+    $silverPlan = MembershipPlan::factory()->create([
+        'name' => 'Silver Plan',
+        'slug' => 'silver-plan',
         'monthly_price' => 1000,
-        'role_to_assign' => 'Gold',
+        'role_to_assign' => 'Silver',
     ]);
-    $elitePlan = MembershipPlan::factory()->create([
-        'name' => 'Elite Plan Test',
-        'slug' => 'elite-plan-test',
+    $goldPlan = MembershipPlan::factory()->create([
+        'name' => 'Gold Plan',
+        'slug' => 'gold-plan',
         'monthly_price' => 2000,
-        'role_to_assign' => 'Elite',
+        'role_to_assign' => 'Gold',
     ]);
 
     $currentMembership = UserMembership::factory()->create([
         'user_id' => $user->id,
-        'membership_plan_id' => $premiumPlan->id,
+        'membership_plan_id' => $silverPlan->id,
         'status' => 'active',
         'ends_at' => now()->addDays(15),
         'original_price' => 1000,
@@ -179,7 +174,7 @@ it('keeps same expiry date when upgrading', function (): void {
     $this->actingAs($user);
 
     $response = $this->post(route('memberships.upgrade', $currentMembership), [
-        'plan_id' => $elitePlan->id,
+        'plan_id' => $goldPlan->id,
         'billing_type' => 'recurring',
         'billing_interval' => 'monthly',
         'gateway' => 'fake',
@@ -204,7 +199,7 @@ it('keeps same expiry date when upgrading', function (): void {
 
     $newMembership = UserMembership::query()
         ->where('user_id', $user->id)
-        ->where('membership_plan_id', $elitePlan->id)
+        ->where('membership_plan_id', $goldPlan->id)
         ->where('status', 'active')
         ->first();
 

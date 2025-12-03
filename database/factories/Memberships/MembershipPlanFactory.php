@@ -15,7 +15,12 @@ class MembershipPlanFactory extends Factory
 
     public function definition(): array
     {
-        $name = fake()->randomElement(['Premium', 'Elite', 'Unlimited', 'Basic', 'Pro']);
+        // Plan names can be anything, but role_to_assign must match actual seeded roles
+        $planNames = ['Bronze Plan', 'Silver Plan', 'Gold Plan', 'Basic Plan', 'Pro Plan'];
+        $roleNames = ['Bronze', 'Silver', 'Gold', 'Bronze', 'Gold']; // Map plan names to actual roles
+        $index = array_rand($planNames);
+        $name = $planNames[$index];
+        $role = $roleNames[$index];
 
         return [
             'name' => $name,
@@ -24,7 +29,7 @@ class MembershipPlanFactory extends Factory
             'monthly_price' => fake()->numberBetween(1000, 5000), // $10-$50
             'yearly_price' => fake()->numberBetween(10000, 50000), // $100-$500
             'currency' => 'USD',
-            'role_to_assign' => $name,
+            'role_to_assign' => $role,
             'permissions_to_grant' => null,
             'features' => [
                 'feature_1' => fake()->sentence(),

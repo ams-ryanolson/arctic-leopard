@@ -109,11 +109,14 @@ export default function Login({
                                         placeholder="Password"
                                     />
                                     <InputError message={errors.password} />
-                                    {errors && Object.keys(errors).length > 0 && !errors.email && !errors.password && (
-                                        <div className="text-sm text-red-400">
-                                            {Object.values(errors)[0]}
-                                        </div>
-                                    )}
+                                    {errors &&
+                                        Object.keys(errors).length > 0 &&
+                                        !errors.email &&
+                                        !errors.password && (
+                                            <div className="text-sm text-red-400">
+                                                {Object.values(errors)[0]}
+                                            </div>
+                                        )}
                                 </div>
 
                                 <div className="flex items-center gap-3">

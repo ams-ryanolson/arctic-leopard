@@ -2,6 +2,13 @@ import { ChartWithAxes } from '@/components/ads/chart-with-axes';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Pagination } from '@/components/ui/pagination';
 import {
@@ -11,13 +18,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import AppLayout from '@/layouts/app-layout';
 import type { SharedData } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
@@ -33,12 +33,11 @@ import {
     MousePointerClick,
     Search,
     Trash2,
-    TrendingDown,
     TrendingUp,
     Users,
     X,
 } from 'lucide-react';
-import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 type Ad = {
     id: number;
@@ -133,7 +132,9 @@ export default function AdminAdsIndex({
 }: AdminAdsIndexProps) {
     const ALL_OPTION = 'all';
     const [searchQuery, setSearchQuery] = useState(filters.search ?? '');
-    const [statusFilter, setStatusFilter] = useState(filters.status ?? ALL_OPTION);
+    const [statusFilter, setStatusFilter] = useState(
+        filters.status ?? ALL_OPTION,
+    );
     const [showAnalytics, setShowAnalytics] = useState(true);
     const isInitialMount = useRef(true);
 
@@ -144,10 +145,10 @@ export default function AdminAdsIndex({
             isInitialMount.current = false;
             return;
         }
-        
+
         const newSearch = filters.search ?? '';
         const newStatus = filters.status ?? ALL_OPTION;
-        
+
         // Only update state if it's different from current state
         // Use functional updates to avoid stale closure issues
         setSearchQuery((prev) => {
@@ -176,7 +177,8 @@ export default function AdminAdsIndex({
         const query: Record<string, string> = {};
 
         if (searchQuery.trim()) query.search = searchQuery.trim();
-        if (statusFilter && statusFilter !== ALL_OPTION) query.status = statusFilter;
+        if (statusFilter && statusFilter !== ALL_OPTION)
+            query.status = statusFilter;
 
         // Only call router.visit if query actually changed
         const currentQuery = new URLSearchParams(window.location.search);
@@ -218,7 +220,8 @@ export default function AdminAdsIndex({
         const query: Record<string, string> = {};
 
         if (searchQuery.trim()) query.search = searchQuery.trim();
-        if (statusFilter && statusFilter !== ALL_OPTION) query.status = statusFilter;
+        if (statusFilter && statusFilter !== ALL_OPTION)
+            query.status = statusFilter;
         query.page = page.toString();
 
         router.visit('/admin/ads', {
@@ -272,7 +275,8 @@ export default function AdminAdsIndex({
         ];
     }, [analytics.timeline]);
 
-    const hasActiveFilters = searchQuery.trim() || (statusFilter && statusFilter !== ALL_OPTION);
+    const hasActiveFilters =
+        searchQuery.trim() || (statusFilter && statusFilter !== ALL_OPTION);
 
     return (
         <AppLayout
@@ -339,7 +343,7 @@ export default function AdminAdsIndex({
                                 e.stopPropagation();
                                 setShowAnalytics((prev) => !prev);
                             }}
-                            className="flex w-full items-center justify-between cursor-pointer select-none hover:opacity-80 transition-opacity focus:outline-none"
+                            className="flex w-full cursor-pointer items-center justify-between transition-opacity select-none hover:opacity-80 focus:outline-none"
                             aria-expanded={showAnalytics}
                         >
                             <CardTitle className="text-base font-semibold">
@@ -357,7 +361,7 @@ export default function AdminAdsIndex({
                             {/* Performance Metrics */}
                             <div className="grid gap-4 sm:grid-cols-3">
                                 <div className="rounded-lg border border-white/10 bg-black/20 p-4">
-                                    <div className="text-xs font-medium text-white/60 uppercase tracking-wide">
+                                    <div className="text-xs font-medium tracking-wide text-white/60 uppercase">
                                         Impressions
                                     </div>
                                     <div className="mt-1 text-2xl font-semibold">
@@ -365,7 +369,7 @@ export default function AdminAdsIndex({
                                     </div>
                                 </div>
                                 <div className="rounded-lg border border-white/10 bg-black/20 p-4">
-                                    <div className="text-xs font-medium text-white/60 uppercase tracking-wide">
+                                    <div className="text-xs font-medium tracking-wide text-white/60 uppercase">
                                         Clicks
                                     </div>
                                     <div className="mt-1 text-2xl font-semibold">
@@ -373,7 +377,7 @@ export default function AdminAdsIndex({
                                     </div>
                                 </div>
                                 <div className="rounded-lg border border-white/10 bg-black/20 p-4">
-                                    <div className="text-xs font-medium text-white/60 uppercase tracking-wide">
+                                    <div className="text-xs font-medium tracking-wide text-white/60 uppercase">
                                         Avg CTR
                                     </div>
                                     <div className="mt-1 text-2xl font-semibold">
@@ -395,7 +399,9 @@ export default function AdminAdsIndex({
                                             height={200}
                                             xAxisLabel="Date"
                                             yAxisLabel="Count"
-                                            formatYValue={(v) => v.toLocaleString()}
+                                            formatYValue={(v) =>
+                                                v.toLocaleString()
+                                            }
                                         />
                                     </div>
                                 </div>
@@ -410,7 +416,9 @@ export default function AdminAdsIndex({
                                             height={200}
                                             xAxisLabel="Date"
                                             yAxisLabel="Revenue ($)"
-                                            formatYValue={(v) => `$${v.toFixed(2)}`}
+                                            formatYValue={(v) =>
+                                                `$${v.toFixed(2)}`
+                                            }
                                         />
                                     </div>
                                 </div>
@@ -423,21 +431,21 @@ export default function AdminAdsIndex({
                                         Status Breakdown
                                     </h3>
                                     <div className="space-y-1.5">
-                                        {Object.entries(analytics.status_breakdown).map(
-                                            ([status, count]) => (
-                                                <div
-                                                    key={status}
-                                                    className="flex items-center justify-between rounded border border-white/10 bg-black/20 px-3 py-1.5 text-sm"
-                                                >
-                                                    <span className="capitalize text-white/80">
-                                                        {status.replace('_', ' ')}
-                                                    </span>
-                                                    <Badge className="bg-white/10 text-white text-xs">
-                                                        {count}
-                                                    </Badge>
-                                                </div>
-                                            ),
-                                        )}
+                                        {Object.entries(
+                                            analytics.status_breakdown,
+                                        ).map(([status, count]) => (
+                                            <div
+                                                key={status}
+                                                className="flex items-center justify-between rounded border border-white/10 bg-black/20 px-3 py-1.5 text-sm"
+                                            >
+                                                <span className="text-white/80 capitalize">
+                                                    {status.replace('_', ' ')}
+                                                </span>
+                                                <Badge className="bg-white/10 text-xs text-white">
+                                                    {count}
+                                                </Badge>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                                 <div className="space-y-2">
@@ -445,23 +453,26 @@ export default function AdminAdsIndex({
                                         Placement Breakdown
                                     </h3>
                                     <div className="space-y-1.5">
-                                        {Object.entries(analytics.placement_breakdown).map(
-                                            ([placement, count]) => (
-                                                <div
-                                                    key={placement}
-                                                    className="flex items-center justify-between rounded border border-white/10 bg-black/20 px-3 py-1.5 text-sm"
-                                                >
-                                                    <span className="capitalize text-white/80">
-                                                        {placement
-                                                            .replace('_', ' ')
-                                                            .replace('dashboard', 'sidebar')}
-                                                    </span>
-                                                    <Badge className="bg-white/10 text-white text-xs">
-                                                        {count}
-                                                    </Badge>
-                                                </div>
-                                            ),
-                                        )}
+                                        {Object.entries(
+                                            analytics.placement_breakdown,
+                                        ).map(([placement, count]) => (
+                                            <div
+                                                key={placement}
+                                                className="flex items-center justify-between rounded border border-white/10 bg-black/20 px-3 py-1.5 text-sm"
+                                            >
+                                                <span className="text-white/80 capitalize">
+                                                    {placement
+                                                        .replace('_', ' ')
+                                                        .replace(
+                                                            'dashboard',
+                                                            'sidebar',
+                                                        )}
+                                                </span>
+                                                <Badge className="bg-white/10 text-xs text-white">
+                                                    {count}
+                                                </Badge>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                                 <div className="space-y-2">
@@ -469,33 +480,36 @@ export default function AdminAdsIndex({
                                         Top Ads
                                     </h3>
                                     <div className="space-y-1.5">
-                                        {analytics.top_ads.slice(0, 5).map((ad, index) => (
-                                            <div
-                                                key={ad.id}
-                                                className="rounded border border-white/10 bg-black/20 p-2 text-sm"
-                                            >
-                                                <div className="flex items-start justify-between gap-2">
-                                                    <Link
-                                                        href={`/admin/ads/${ad.id}`}
-                                                        className="flex-1 truncate font-medium text-white hover:text-amber-300 hover:underline"
-                                                    >
-                                                        {ad.name}
-                                                    </Link>
-                                                    <Badge className="bg-emerald-500/20 text-emerald-300 text-xs">
-                                                        {ad.ctr}%
-                                                    </Badge>
+                                        {analytics.top_ads
+                                            .slice(0, 5)
+                                            .map((ad, index) => (
+                                                <div
+                                                    key={ad.id}
+                                                    className="rounded border border-white/10 bg-black/20 p-2 text-sm"
+                                                >
+                                                    <div className="flex items-start justify-between gap-2">
+                                                        <Link
+                                                            href={`/admin/ads/${ad.id}`}
+                                                            className="flex-1 truncate font-medium text-white hover:text-amber-300 hover:underline"
+                                                        >
+                                                            {ad.name}
+                                                        </Link>
+                                                        <Badge className="bg-emerald-500/20 text-xs text-emerald-300">
+                                                            {ad.ctr}%
+                                                        </Badge>
+                                                    </div>
+                                                    <div className="mt-1 flex gap-3 text-xs text-white/60">
+                                                        <span>
+                                                            {ad.impressions_count.toLocaleString()}{' '}
+                                                            views
+                                                        </span>
+                                                        <span>
+                                                            {ad.clicks_count.toLocaleString()}{' '}
+                                                            clicks
+                                                        </span>
+                                                    </div>
                                                 </div>
-                                                <div className="mt-1 flex gap-3 text-xs text-white/60">
-                                                    <span>
-                                                        {ad.impressions_count.toLocaleString()}{' '}
-                                                        views
-                                                    </span>
-                                                    <span>
-                                                        {ad.clicks_count.toLocaleString()} clicks
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        ))}
+                                            ))}
                                     </div>
                                 </div>
                             </div>
@@ -506,18 +520,18 @@ export default function AdminAdsIndex({
                 {/* Filters & Ad List */}
                 <div className="space-y-4">
                     <div className="flex flex-wrap items-center gap-3">
-                        <div className="relative flex-1 min-w-[200px]">
-                            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/40" />
+                        <div className="relative min-w-[200px] flex-1">
+                            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-white/40" />
                             <Input
                                 placeholder="Search ads..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-9 pr-9 border-white/10 bg-black/30 text-white placeholder:text-white/40"
+                                className="border-white/10 bg-black/30 pr-9 pl-9 text-white placeholder:text-white/40"
                             />
                             {searchQuery && (
                                 <button
                                     onClick={clearSearch}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60"
+                                    className="absolute top-1/2 right-3 -translate-y-1/2 text-white/40 hover:text-white/60"
                                 >
                                     <X className="size-4" />
                                 </button>
@@ -531,12 +545,16 @@ export default function AdminAdsIndex({
                                 <SelectValue placeholder="All statuses" />
                             </SelectTrigger>
                             <SelectContent className="bg-black/95 text-white">
-                                <SelectItem value={ALL_OPTION}>All statuses</SelectItem>
+                                <SelectItem value={ALL_OPTION}>
+                                    All statuses
+                                </SelectItem>
                                 {statusOptions.map((status) => (
                                     <SelectItem key={status} value={status}>
                                         {status
                                             .replace('_', ' ')
-                                            .replace(/\b\w/g, (l) => l.toUpperCase())}
+                                            .replace(/\b\w/g, (l) =>
+                                                l.toUpperCase(),
+                                            )}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -601,12 +619,7 @@ type MetricCardProps = {
     highlight?: boolean;
 };
 
-function MetricCard({
-    title,
-    value,
-    icon: Icon,
-    highlight,
-}: MetricCardProps) {
+function MetricCard({ title, value, icon: Icon, highlight }: MetricCardProps) {
     return (
         <Card
             className={`border transition-colors ${
@@ -618,7 +631,7 @@ function MetricCard({
             <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                     <div>
-                        <p className="text-xs font-medium text-white/60 uppercase tracking-wide">
+                        <p className="text-xs font-medium tracking-wide text-white/60 uppercase">
                             {title}
                         </p>
                         <p
@@ -706,18 +719,18 @@ function AdminAdRow({ ad }: AdminAdRowProps) {
         <Card className="border-white/10 bg-white/5">
             <CardContent className="p-4">
                 <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0 space-y-2">
-                        <div className="flex items-center gap-2 flex-wrap">
+                    <div className="min-w-0 flex-1 space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
                             <Link
                                 href={`/admin/ads/${ad.id}`}
-                                className="text-base font-semibold text-white hover:text-amber-300 hover:underline truncate"
+                                className="truncate text-base font-semibold text-white hover:text-amber-300 hover:underline"
                             >
                                 {ad.name}
                             </Link>
                             <Badge
                                 className={`rounded-full border px-2 py-0.5 text-xs font-medium ${
                                     statusColors[ad.status] ??
-                                    'bg-gray-500/20 text-gray-300 border-gray-500/30'
+                                    'border-gray-500/30 bg-gray-500/20 text-gray-300'
                                 }`}
                             >
                                 {ad.status.replace('_', ' ')}
@@ -727,25 +740,32 @@ function AdminAdRow({ ad }: AdminAdRowProps) {
                         <div className="flex flex-wrap items-center gap-3 text-sm text-white/60">
                             <span className="flex items-center gap-1.5">
                                 <Users className="size-3.5" />
-                                {ad.advertiser.display_name ?? ad.advertiser.username}
+                                {ad.advertiser.display_name ??
+                                    ad.advertiser.username}
                             </span>
                             {ad.budget_amount !== null && (
                                 <>
                                     <span>·</span>
                                     <span>
-                                        Budget: ${(ad.budget_amount / 100).toFixed(2)}
-                                        {ad.budget_currency && ` ${ad.budget_currency}`}
+                                        Budget: $
+                                        {(ad.budget_amount / 100).toFixed(2)}
+                                        {ad.budget_currency &&
+                                            ` ${ad.budget_currency}`}
                                     </span>
                                 </>
                             )}
                             {ad.budget_amount === null && (
                                 <>
                                     <span>·</span>
-                                    <span className="text-amber-300">Admin/Promotional</span>
+                                    <span className="text-amber-300">
+                                        Admin/Promotional
+                                    </span>
                                 </>
                             )}
                             <span>·</span>
-                            <span>Spent: ${(ad.spent_amount / 100).toFixed(2)}</span>
+                            <span>
+                                Spent: ${(ad.spent_amount / 100).toFixed(2)}
+                            </span>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2">
@@ -791,7 +811,7 @@ function AdminAdRow({ ad }: AdminAdRowProps) {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
                                 align="end"
-                                className="bg-black/95 border-white/10 text-white"
+                                className="border-white/10 bg-black/95 text-white"
                             >
                                 <DropdownMenuItem asChild>
                                     <Link
@@ -802,22 +822,28 @@ function AdminAdRow({ ad }: AdminAdRowProps) {
                                         View Details
                                     </Link>
                                 </DropdownMenuItem>
-                                {ad.status === 'pending_review' && ad.can.approve && (
-                                    <DropdownMenuItem
-                                        onClick={() => handleAction('approve')}
-                                        className="cursor-pointer text-emerald-300"
-                                    >
-                                        Approve
-                                    </DropdownMenuItem>
-                                )}
-                                {ad.status === 'pending_review' && ad.can.reject && (
-                                    <DropdownMenuItem
-                                        onClick={() => handleAction('reject')}
-                                        className="cursor-pointer text-red-300"
-                                    >
-                                        Reject
-                                    </DropdownMenuItem>
-                                )}
+                                {ad.status === 'pending_review' &&
+                                    ad.can.approve && (
+                                        <DropdownMenuItem
+                                            onClick={() =>
+                                                handleAction('approve')
+                                            }
+                                            className="cursor-pointer text-emerald-300"
+                                        >
+                                            Approve
+                                        </DropdownMenuItem>
+                                    )}
+                                {ad.status === 'pending_review' &&
+                                    ad.can.reject && (
+                                        <DropdownMenuItem
+                                            onClick={() =>
+                                                handleAction('reject')
+                                            }
+                                            className="cursor-pointer text-red-300"
+                                        >
+                                            Reject
+                                        </DropdownMenuItem>
+                                    )}
                                 {ad.status === 'active' && ad.can.pause && (
                                     <DropdownMenuItem
                                         onClick={() => handleAction('pause')}
@@ -838,7 +864,9 @@ function AdminAdRow({ ad }: AdminAdRowProps) {
                                     <>
                                         <DropdownMenuSeparator className="bg-white/10" />
                                         <DropdownMenuItem
-                                            onClick={() => handleAction('delete')}
+                                            onClick={() =>
+                                                handleAction('delete')
+                                            }
                                             className="cursor-pointer text-red-300"
                                         >
                                             <Trash2 className="mr-2 size-4" />

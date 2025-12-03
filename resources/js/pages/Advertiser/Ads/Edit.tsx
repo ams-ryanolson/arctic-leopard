@@ -36,5 +36,3 @@ export default function AdvertiserAdsEdit({ ad }: AdvertiserAdsEditProps) {
         </AppLayout>
     );
 }
-
-

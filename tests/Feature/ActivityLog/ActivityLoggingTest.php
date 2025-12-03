@@ -94,7 +94,7 @@ test('membership upgrade is logged', function () {
     $newPlan = MembershipPlan::factory()->create([
         'name' => 'Premium Plan',
         'slug' => 'premium-plan',
-        'role_to_assign' => 'Premium',
+        'role_to_assign' => 'Gold',
     ]);
 
     $oldMembership = UserMembership::factory()->create([

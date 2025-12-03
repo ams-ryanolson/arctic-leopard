@@ -4,11 +4,11 @@ import {
     destroy as commentsDestroy,
     index as commentsIndex,
     store as commentsStore,
-} from '@/routes/posts/comments';
+} from '@/routes/api/posts/comments';
 import {
     destroy as commentLikeDestroy,
     store as commentLikeStore,
-} from '@/routes/posts/comments/like';
+} from '@/routes/api/posts/comments/like';
 import type { Comment, CommentCollectionPayload } from '@/types/feed';
 
 type HeaderMap = Record<string, string>;

@@ -105,8 +105,8 @@ export default function AmplifyModal({
                         Amplify post
                     </DialogTitle>
                     <DialogDescription className="text-white/70">
-                        Share this post with your followers. You can add a comment
-                        to provide context.
+                        Share this post with your followers. You can add a
+                        comment to provide context.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -168,7 +168,9 @@ export default function AmplifyModal({
                             <Button
                                 type="button"
                                 onClick={handleAmplifyWithComment}
-                                disabled={isAmplifying || comment.trim().length === 0}
+                                disabled={
+                                    isAmplifying || comment.trim().length === 0
+                                }
                                 className="flex-1 rounded-full bg-gradient-to-r from-amber-500 to-rose-500 font-semibold text-white transition hover:from-amber-600 hover:to-rose-600 disabled:opacity-50"
                             >
                                 {isAmplifying ? 'Amplifying...' : 'Amplify'}
@@ -192,4 +194,3 @@ export default function AmplifyModal({
         </Dialog>
     );
 }
-

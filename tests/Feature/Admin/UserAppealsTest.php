@@ -86,8 +86,11 @@ it('allows admin to review and reject appeal', function (): void {
         ->and($appeal->reviewed_by_id)->toBe($admin->id);
 });
 
-it('allows moderator to review appeals', function (): void {
-    $moderator = User::factory()->create();
+it('denies moderator access to appeals (admin only)', function (): void {
+    $moderator = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $moderator->assignRole('Moderator');
 
     $suspendedUser = User::factory()->create();
@@ -99,7 +102,8 @@ it('allows moderator to review appeals', function (): void {
         'status' => AppealStatus::Pending,
     ]);
 
+    // Appeals are admin-only, moderators get redirected (302 redirect means access denied)
     actingAs($moderator)
         ->get("/admin/appeals/{$appeal->id}")
-        ->assertSuccessful();
+        ->assertRedirect();
 });

@@ -101,14 +101,12 @@ export default function MessageReactions({
                         'flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs transition-all duration-150',
                         reaction.reacted
                             ? 'bg-amber-400/20 text-amber-100'
-                            : 'hover:bg-white/10 text-white/70',
+                            : 'text-white/70 hover:bg-white/10',
                     )}
                     aria-pressed={reaction.reacted}
                 >
                     <span className="text-sm">{reaction.emoji}</span>
-                    <span className="font-medium">
-                        {reaction.count}
-                    </span>
+                    <span className="font-medium">{reaction.count}</span>
                 </button>
             ))}
             <div className="flex items-center gap-0.5 rounded-full border-l border-white/20 pl-1.5">

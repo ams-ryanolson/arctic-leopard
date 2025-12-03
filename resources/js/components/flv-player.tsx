@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
-import flvjs from 'flv.js';
 import { cn } from '@/lib/utils';
+import flvjs from 'flv.js';
+import { useEffect, useRef, useState } from 'react';
 
 export type FlvPlayerProps = {
     src: string;
@@ -65,10 +65,12 @@ export default function FlvPlayer({
                             errorMsg = 'Network error - check CORS settings';
                             break;
                         case 3:
-                            errorMsg = 'Decode error - video codec not supported';
+                            errorMsg =
+                                'Decode error - video codec not supported';
                             break;
                         case 4:
-                            errorMsg = 'Format not supported. FLV files may need to be converted to MP4/H.264.';
+                            errorMsg =
+                                'Format not supported. FLV files may need to be converted to MP4/H.264.';
                             break;
                     }
                 }
@@ -91,7 +93,10 @@ export default function FlvPlayer({
             }
 
             return () => {
-                video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+                video.removeEventListener(
+                    'loadedmetadata',
+                    handleLoadedMetadata,
+                );
                 video.removeEventListener('error', handleError);
             };
         }
@@ -128,9 +133,11 @@ export default function FlvPlayer({
 
             const handleError = (errorType: number, errorDetail: string) => {
                 // Check for unsupported codec errors
-                const isCodecError = errorDetail?.includes('Unsupported') && 
-                    (errorDetail?.includes('codec') || errorDetail?.includes('CodecUnsupported'));
-                
+                const isCodecError =
+                    errorDetail?.includes('Unsupported') &&
+                    (errorDetail?.includes('codec') ||
+                        errorDetail?.includes('CodecUnsupported'));
+
                 if (isCodecError && !useNativePlayer) {
                     // Try falling back to native video player
                     if (playerRef.current) {
@@ -144,12 +151,12 @@ export default function FlvPlayer({
                         }
                         playerRef.current = null;
                     }
-                    
+
                     // Try native HTML5 video player as fallback
                     setUseNativePlayer(true);
                     setIsLoading(true);
                     setError(null);
-                    
+
                     // Set up native video element
                     if (videoRef.current) {
                         videoRef.current.src = src;
@@ -157,18 +164,22 @@ export default function FlvPlayer({
                     }
                     return;
                 }
-                
+
                 let errorMsg = `FLV playback error: ${errorDetail}`;
-                
+
                 // Check for CORS-related errors
-                if (errorDetail?.toLowerCase().includes('cors') || 
+                if (
+                    errorDetail?.toLowerCase().includes('cors') ||
                     errorDetail?.toLowerCase().includes('cross-origin') ||
-                    errorType === flvjs.ErrorTypes.NETWORK_ERROR) {
-                    errorMsg = 'CORS error: The CDN must allow cross-origin requests. Please configure CORS headers on cdn.fetishmen.net to allow your domain.';
+                    errorType === flvjs.ErrorTypes.NETWORK_ERROR
+                ) {
+                    errorMsg =
+                        'CORS error: The CDN must allow cross-origin requests. Please configure CORS headers on cdn.fetishmen.net to allow your domain.';
                 } else if (isCodecError) {
-                    errorMsg = 'Video uses unsupported codec (Sorenson H.263). FLV files need to be converted to MP4 (H.264/AAC) for browser playback. The native player will be attempted as a fallback.';
+                    errorMsg =
+                        'Video uses unsupported codec (Sorenson H.263). FLV files need to be converted to MP4 (H.264/AAC) for browser playback. The native player will be attempted as a fallback.';
                 }
-                
+
                 setError(errorMsg);
                 setIsLoading(false);
                 onError?.(new Error(errorMsg));
@@ -197,7 +208,10 @@ export default function FlvPlayer({
                 onReady?.();
             };
 
-            videoRef.current.addEventListener('loadedmetadata', handleLoadedMetadata);
+            videoRef.current.addEventListener(
+                'loadedmetadata',
+                handleLoadedMetadata,
+            );
 
             // Set autoplay and muted if needed
             if (autoplay) {
@@ -222,12 +236,25 @@ export default function FlvPlayer({
                 }
             };
         } catch (err) {
-            const errorMsg = err instanceof Error ? err.message : 'Failed to initialize FLV player';
+            const errorMsg =
+                err instanceof Error
+                    ? err.message
+                    : 'Failed to initialize FLV player';
             setError(errorMsg);
             setIsLoading(false);
             onError?.(new Error(errorMsg));
         }
-    }, [src, autoplay, muted, onReady, onError, onPlay, onPause, onEnded, useNativePlayer]);
+    }, [
+        src,
+        autoplay,
+        muted,
+        onReady,
+        onError,
+        onPlay,
+        onPause,
+        onEnded,
+        useNativePlayer,
+    ]);
 
     return (
         <div
@@ -250,7 +277,7 @@ export default function FlvPlayer({
                         {isLoading && (
                             <div className="absolute inset-0 z-10 rounded-lg bg-black/20">
                                 <div
-                                    className="absolute inset-0 rounded-lg bg-white/10 animate-pulse"
+                                    className="absolute inset-0 animate-pulse rounded-lg bg-white/10"
                                     style={{
                                         aspectRatio,
                                         minWidth: '100%',
@@ -273,4 +300,3 @@ export default function FlvPlayer({
         </div>
     );
 }
-

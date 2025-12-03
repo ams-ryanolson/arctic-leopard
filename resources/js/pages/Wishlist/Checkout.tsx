@@ -82,7 +82,9 @@ export default function WishlistCheckout({
     const [contributionAmount, setContributionAmount] = useState<string>(
         item.is_crowdfunded ? '' : item.amount ? String(item.amount / 100) : '',
     );
-    const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<number | null>(null);
+    const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<
+        number | null
+    >(null);
 
     const { data, setData, post, processing, errors } = useForm({
         amount: item.is_crowdfunded
@@ -91,7 +93,8 @@ export default function WishlistCheckout({
         currency: item.currency ?? 'USD',
         covers_fee: false,
         message: '',
-        gateway: ccbill_client_accnum && ccbill_client_subacc ? 'ccbill' : 'fake',
+        gateway:
+            ccbill_client_accnum && ccbill_client_subacc ? 'ccbill' : 'fake',
         method: 'card',
         payment_method_id: null as number | null,
     });
@@ -361,19 +364,27 @@ export default function WishlistCheckout({
 
                                     <div className="space-y-2">
                                         <Label>Payment Method</Label>
-                                        {ccbill_client_accnum && ccbill_client_subacc ? (
+                                        {ccbill_client_accnum &&
+                                        ccbill_client_subacc ? (
                                             <PaymentMethodSelector
-                                                selectedId={selectedPaymentMethodId}
-                                                onSelect={setSelectedPaymentMethodId}
+                                                selectedId={
+                                                    selectedPaymentMethodId
+                                                }
+                                                onSelect={
+                                                    setSelectedPaymentMethodId
+                                                }
                                                 onAddNew={() => {
                                                     // Could open a modal or navigate to settings
-                                                    window.location.href = '/settings/payment-methods';
+                                                    window.location.href =
+                                                        '/settings/payment-methods';
                                                 }}
                                                 showAddButton={true}
                                             />
                                         ) : (
                                             <p className="text-sm text-white/60">
-                                                Payment method selection will be available after CCBill is configured.
+                                                Payment method selection will be
+                                                available after CCBill is
+                                                configured.
                                             </p>
                                         )}
                                     </div>
@@ -389,7 +400,9 @@ export default function WishlistCheckout({
                                                     ) *
                                                         100 <
                                                         minimum_contribution)) ||
-                                            (!selectedPaymentMethodId && ccbill_client_accnum && ccbill_client_subacc)
+                                            (!selectedPaymentMethodId &&
+                                                ccbill_client_accnum &&
+                                                ccbill_client_subacc)
                                         }
                                         className="w-full rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 text-white"
                                     >
@@ -436,7 +449,9 @@ export default function WishlistCheckout({
                                                   {
                                                       label: `Platform Fee (${fee_percent}%)`,
                                                       amount: feeAmount,
-                                                      currency: item.currency ?? 'USD',
+                                                      currency:
+                                                          item.currency ??
+                                                          'USD',
                                                   },
                                               ]
                                             : []

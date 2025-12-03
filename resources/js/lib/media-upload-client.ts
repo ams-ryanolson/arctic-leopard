@@ -35,11 +35,14 @@ export async function uploadFile(
 
     // Get CSRF token (meta tag first, then cookie)
     const csrfToken =
-        document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
-        getCsrfToken();
+        document
+            .querySelector('meta[name="csrf-token"]')
+            ?.getAttribute('content') || getCsrfToken();
 
     if (!csrfToken) {
-        throw new Error('CSRF token not found. Please refresh the page and try again.');
+        throw new Error(
+            'CSRF token not found. Please refresh the page and try again.',
+        );
     }
 
     return new Promise((resolve, reject) => {
@@ -86,7 +89,8 @@ export async function uploadFile(
                         size: payload.size || file.size,
                         disk: payload.disk || '',
                         url: payload.url || '',
-                        thumbnail_url: payload.thumbnail_url || payload.url || '',
+                        thumbnail_url:
+                            payload.thumbnail_url || payload.url || '',
                     });
                     return;
                 }
@@ -123,7 +127,8 @@ export async function uploadFile(
         // Handle network errors
         xhr.onerror = () => {
             reject({
-                message: 'Network error. Please check your connection and try again.',
+                message:
+                    'Network error. Please check your connection and try again.',
                 errors: {},
             });
         };
@@ -140,4 +145,3 @@ export async function uploadFile(
         xhr.send(formData);
     });
 }
-

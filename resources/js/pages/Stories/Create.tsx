@@ -40,5 +40,3 @@ export default function StoriesCreate({ audiences }: StoriesCreateProps) {
         </AppLayout>
     );
 }
-
-

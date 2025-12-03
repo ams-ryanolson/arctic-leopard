@@ -1618,7 +1618,10 @@ function ReviewStep({
                             className="text-sm font-medium text-white/85"
                         >
                             I agree to the{' '}
-                            <TextLink href="/legal/terms" className="text-white">
+                            <TextLink
+                                href="/legal/terms"
+                                className="text-white"
+                            >
                                 Terms of Service
                             </TextLink>
                             .
@@ -1642,7 +1645,10 @@ function ReviewStep({
                             className="text-sm font-medium text-white/85"
                         >
                             I agree to the{' '}
-                            <TextLink href="/legal/privacy" className="text-white">
+                            <TextLink
+                                href="/legal/privacy"
+                                className="text-white"
+                            >
                                 Privacy Policy
                             </TextLink>
                             .

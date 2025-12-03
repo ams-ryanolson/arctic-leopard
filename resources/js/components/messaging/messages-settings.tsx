@@ -1,10 +1,10 @@
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
-import { router, useForm, usePage } from '@inertiajs/react';
 import messagesRoutes from '@/routes/messages';
 import type { SharedData } from '@/types';
-import type { MessagingPreferences } from './types';
+import { router, useForm, usePage } from '@inertiajs/react';
+import { ArrowLeft } from 'lucide-react';
 import { useEffect } from 'react';
+import type { MessagingPreferences } from './types';
 
 type MessagesSettingsProps = {
     onBack?: () => void;
@@ -21,7 +21,11 @@ export default function MessagesSettings({
     showBackButton = false,
 }: MessagesSettingsProps) {
     const pageProps = usePage<MessagesSettingsPageProps>().props;
-    const { features: sharedFeatures, messagingPreferences, success } = pageProps;
+    const {
+        features: sharedFeatures,
+        messagingPreferences,
+        success,
+    } = pageProps;
     const features = (sharedFeatures ?? {}) as Record<string, boolean>;
     const signalsEnabled = features.feature_signals_enabled ?? false;
 
@@ -89,7 +93,10 @@ export default function MessagesSettings({
 
             {/* Settings Content */}
             <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 sm:py-8">
-                <form onSubmit={handleSubmit} className="mx-auto max-w-2xl space-y-8">
+                <form
+                    onSubmit={handleSubmit}
+                    className="mx-auto max-w-2xl space-y-8"
+                >
                     {/* Allow message requests from */}
                     <div className="space-y-4">
                         <div>
@@ -101,25 +108,36 @@ export default function MessagesSettings({
                                 you.{' '}
                                 <button
                                     type="button"
-                                    className="text-amber-400 hover:text-amber-300 underline"
+                                    className="text-amber-400 underline hover:text-amber-300"
                                 >
                                     Learn more
                                 </button>
                             </p>
                         </div>
                         <div className="space-y-3">
-                            <label className="flex items-center justify-between gap-4 cursor-pointer">
-                                <span className="text-sm text-white">No one</span>
+                            <label className="flex cursor-pointer items-center justify-between gap-4">
+                                <span className="text-sm text-white">
+                                    No one
+                                </span>
                                 <input
                                     type="radio"
                                     name="message_request_mode"
                                     value="no-one"
-                                    checked={form.data.message_request_mode === 'no-one'}
-                                    onChange={(e) => form.setData('message_request_mode', e.target.value as MessagingPreferences['message_request_mode'])}
+                                    checked={
+                                        form.data.message_request_mode ===
+                                        'no-one'
+                                    }
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'message_request_mode',
+                                            e.target
+                                                .value as MessagingPreferences['message_request_mode'],
+                                        )
+                                    }
                                     className="h-4 w-4 border-white/20 bg-white/5 text-amber-400 focus:ring-amber-400/40 focus:ring-offset-0"
                                 />
                             </label>
-                            <label className="flex items-center justify-between gap-4 cursor-pointer">
+                            <label className="flex cursor-pointer items-center justify-between gap-4">
                                 <span className="text-sm text-white">
                                     Verified users
                                 </span>
@@ -127,12 +145,21 @@ export default function MessagesSettings({
                                     type="radio"
                                     name="message_request_mode"
                                     value="verified"
-                                    checked={form.data.message_request_mode === 'verified'}
-                                    onChange={(e) => form.setData('message_request_mode', e.target.value as MessagingPreferences['message_request_mode'])}
+                                    checked={
+                                        form.data.message_request_mode ===
+                                        'verified'
+                                    }
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'message_request_mode',
+                                            e.target
+                                                .value as MessagingPreferences['message_request_mode'],
+                                        )
+                                    }
                                     className="h-4 w-4 border-white/20 bg-white/5 text-amber-400 focus:ring-amber-400/40 focus:ring-offset-0"
                                 />
                             </label>
-                            <label className="flex items-center justify-between gap-4 cursor-pointer">
+                            <label className="flex cursor-pointer items-center justify-between gap-4">
                                 <span className="text-sm text-white">
                                     Following
                                 </span>
@@ -140,12 +167,21 @@ export default function MessagesSettings({
                                     type="radio"
                                     name="message_request_mode"
                                     value="following"
-                                    checked={form.data.message_request_mode === 'following'}
-                                    onChange={(e) => form.setData('message_request_mode', e.target.value as MessagingPreferences['message_request_mode'])}
+                                    checked={
+                                        form.data.message_request_mode ===
+                                        'following'
+                                    }
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'message_request_mode',
+                                            e.target
+                                                .value as MessagingPreferences['message_request_mode'],
+                                        )
+                                    }
                                     className="h-4 w-4 border-white/20 bg-white/5 text-amber-400 focus:ring-amber-400/40 focus:ring-offset-0"
                                 />
                             </label>
-                            <label className="flex items-center justify-between gap-4 cursor-pointer">
+                            <label className="flex cursor-pointer items-center justify-between gap-4">
                                 <span className="text-sm text-white">
                                     Verified users & Following
                                 </span>
@@ -153,12 +189,21 @@ export default function MessagesSettings({
                                     type="radio"
                                     name="message_request_mode"
                                     value="verified-and-following"
-                                    checked={form.data.message_request_mode === 'verified-and-following'}
-                                    onChange={(e) => form.setData('message_request_mode', e.target.value as MessagingPreferences['message_request_mode'])}
+                                    checked={
+                                        form.data.message_request_mode ===
+                                        'verified-and-following'
+                                    }
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'message_request_mode',
+                                            e.target
+                                                .value as MessagingPreferences['message_request_mode'],
+                                        )
+                                    }
                                     className="h-4 w-4 border-white/20 bg-white/5 text-amber-400 focus:ring-amber-400/40 focus:ring-offset-0"
                                 />
                             </label>
-                            <label className="flex items-center justify-between gap-4 cursor-pointer">
+                            <label className="flex cursor-pointer items-center justify-between gap-4">
                                 <span className="text-sm text-white">
                                     Everyone
                                 </span>
@@ -166,8 +211,17 @@ export default function MessagesSettings({
                                     type="radio"
                                     name="message_request_mode"
                                     value="everyone"
-                                    checked={form.data.message_request_mode === 'everyone'}
-                                    onChange={(e) => form.setData('message_request_mode', e.target.value as MessagingPreferences['message_request_mode'])}
+                                    checked={
+                                        form.data.message_request_mode ===
+                                        'everyone'
+                                    }
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'message_request_mode',
+                                            e.target
+                                                .value as MessagingPreferences['message_request_mode'],
+                                        )
+                                    }
                                     className="h-4 w-4 border-white/20 bg-white/5 text-amber-400 focus:ring-amber-400/40 focus:ring-offset-0"
                                 />
                             </label>
@@ -188,20 +242,27 @@ export default function MessagesSettings({
                                         messaging settings.{' '}
                                         <button
                                             type="button"
-                                            className="text-amber-400 hover:text-amber-300 underline"
+                                            className="text-amber-400 underline hover:text-amber-300"
                                         >
                                             Learn more
                                         </button>
                                     </p>
                                 </div>
-                                <label className="relative inline-flex items-center cursor-pointer">
+                                <label className="relative inline-flex cursor-pointer items-center">
                                     <input
                                         type="checkbox"
-                                        checked={form.data.allow_subscriber_messages}
-                                        onChange={(e) => form.setData('allow_subscriber_messages', e.target.checked)}
+                                        checked={
+                                            form.data.allow_subscriber_messages
+                                        }
+                                        onChange={(e) =>
+                                            form.setData(
+                                                'allow_subscriber_messages',
+                                                e.target.checked,
+                                            )
+                                        }
                                         className="peer sr-only"
                                     />
-                                    <div className="h-6 w-11 rounded-full border border-white/20 bg-white/5 transition-colors peer-checked:bg-amber-400 peer-checked:border-amber-400 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-amber-400/40">
+                                    <div className="h-6 w-11 rounded-full border border-white/20 bg-white/5 transition-colors peer-checked:border-amber-400 peer-checked:bg-amber-400 peer-focus:ring-2 peer-focus:ring-amber-400/40 peer-focus:outline-none">
                                         <div className="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white transition-transform peer-checked:translate-x-5"></div>
                                     </div>
                                 </label>
@@ -225,20 +286,25 @@ export default function MessagesSettings({
                                     want.{' '}
                                     <button
                                         type="button"
-                                        className="text-amber-400 hover:text-amber-300 underline"
+                                        className="text-amber-400 underline hover:text-amber-300"
                                     >
                                         Learn more
                                     </button>
                                 </p>
                             </div>
-                            <label className="relative inline-flex items-center cursor-pointer">
+                            <label className="relative inline-flex cursor-pointer items-center">
                                 <input
                                     type="checkbox"
                                     checked={form.data.filter_low_quality}
-                                    onChange={(e) => form.setData('filter_low_quality', e.target.checked)}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'filter_low_quality',
+                                            e.target.checked,
+                                        )
+                                    }
                                     className="peer sr-only"
                                 />
-                                <div className="h-6 w-11 rounded-full border border-white/20 bg-white/5 transition-colors peer-checked:bg-amber-400 peer-checked:border-amber-400 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-amber-400/40">
+                                <div className="h-6 w-11 rounded-full border border-white/20 bg-white/5 transition-colors peer-checked:border-amber-400 peer-checked:bg-amber-400 peer-focus:ring-2 peer-focus:ring-amber-400/40 peer-focus:outline-none">
                                     <div className="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white transition-transform peer-checked:translate-x-5"></div>
                                 </div>
                             </label>

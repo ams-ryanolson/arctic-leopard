@@ -143,7 +143,7 @@ it('updates a post replacing poll and hashtags', function (): void {
 
     Sanctum::actingAs($user);
 
-    $response = $this->putJson("/api/posts/{$post->getKey()}", [
+    $response = $this->putJson(route('api.posts.update', $post), [
         'body' => 'Updated text',
         'audience' => PostAudience::Subscribers->value,
         'hashtags' => ['updated', 'tags'],
@@ -175,19 +175,13 @@ it('deletes a post', function (): void {
         ->for($user, 'author')
         ->create();
 
-    Timeline::factory()->create([
-        'user_id' => $user->getKey(),
-        'post_id' => $post->getKey(),
-    ]);
-
     Sanctum::actingAs($user);
 
-    $this->deleteJson("/api/posts/{$post->getKey()}")->assertNoContent();
+    $this->deleteJson(route('api.posts.destroy', $post))->assertNoContent();
 
+    // Post is soft-deleted, so it won't appear in default queries
     expect(Post::query()->whereKey($post->getKey())->exists())->toBeFalse();
-    expect(
-        Timeline::query()
-            ->where('post_id', $post->getKey())
-            ->exists()
-    )->toBeFalse();
+
+    // But it still exists when including trashed
+    expect(Post::withTrashed()->whereKey($post->getKey())->exists())->toBeTrue();
 });

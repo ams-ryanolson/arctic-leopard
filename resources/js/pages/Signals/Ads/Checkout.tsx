@@ -34,13 +34,16 @@ export default function SignalsAdsCheckout({
     ccbill_client_accnum,
     ccbill_client_subacc,
 }: SignalsAdsCheckoutProps) {
-    const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<number | null>(null);
+    const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<
+        number | null
+    >(null);
 
     const { post, processing } = useForm({
         ad_id: ad.id,
         amount: intent.amount,
         currency: intent.currency,
-        gateway: ccbill_client_accnum && ccbill_client_subacc ? 'ccbill' : 'fake',
+        gateway:
+            ccbill_client_accnum && ccbill_client_subacc ? 'ccbill' : 'fake',
         method: 'card',
         payment_method_id: null as number | null,
     });
@@ -94,18 +97,26 @@ export default function SignalsAdsCheckout({
                                             <label className="text-sm font-medium text-white/70">
                                                 Payment Method
                                             </label>
-                                            {ccbill_client_accnum && ccbill_client_subacc ? (
+                                            {ccbill_client_accnum &&
+                                            ccbill_client_subacc ? (
                                                 <PaymentMethodSelector
-                                                    selectedId={selectedPaymentMethodId}
-                                                    onSelect={setSelectedPaymentMethodId}
+                                                    selectedId={
+                                                        selectedPaymentMethodId
+                                                    }
+                                                    onSelect={
+                                                        setSelectedPaymentMethodId
+                                                    }
                                                     onAddNew={() => {
-                                                        window.location.href = '/settings/payment-methods';
+                                                        window.location.href =
+                                                            '/settings/payment-methods';
                                                     }}
                                                     showAddButton={true}
                                                 />
                                             ) : (
                                                 <p className="text-sm text-white/60">
-                                                    Payment method selection will be available after CCBill is configured.
+                                                    Payment method selection
+                                                    will be available after
+                                                    CCBill is configured.
                                                 </p>
                                             )}
                                         </div>
@@ -138,7 +149,9 @@ export default function SignalsAdsCheckout({
                                         className="mt-6 w-full"
                                         disabled={
                                             processing ||
-                                            (!selectedPaymentMethodId && ccbill_client_accnum && ccbill_client_subacc)
+                                            (!selectedPaymentMethodId &&
+                                                ccbill_client_accnum &&
+                                                ccbill_client_subacc)
                                         }
                                         size="lg"
                                     >

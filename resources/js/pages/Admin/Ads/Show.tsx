@@ -26,7 +26,6 @@ type AdminAdsShowProps = {
     };
 };
 
- 
 export default function AdminAdsShow({
     ad,
     report,

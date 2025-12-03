@@ -99,7 +99,12 @@ export type PresenceMember = {
 };
 
 export type MessagingPreferences = {
-    message_request_mode: 'no-one' | 'verified' | 'following' | 'verified-and-following' | 'everyone';
+    message_request_mode:
+        | 'no-one'
+        | 'verified'
+        | 'following'
+        | 'verified-and-following'
+        | 'everyone';
     allow_subscriber_messages: boolean;
     filter_low_quality: boolean;
 };

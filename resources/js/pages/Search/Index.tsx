@@ -2,20 +2,20 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { UserCard } from '@/components/users/user-card';
-import AppLayout from '@/layouts/app-layout';
 import { useInitials } from '@/hooks/use-initials';
+import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import {
+    ArrowRight,
     Calendar,
     Circle,
     Hash,
     Search,
-    Users,
-    TrendingUp,
-    ArrowRight,
     Sparkles,
+    TrendingUp,
+    Users,
 } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 
 type SearchResult = {
     type: 'user' | 'event' | 'circle' | 'hashtag';
@@ -78,7 +78,8 @@ export default function SearchIndex({
         circles.length > 0 ||
         hashtags.length > 0;
 
-    const allResultsCount = users.length + events.length + circles.length + hashtags.length;
+    const allResultsCount =
+        users.length + events.length + circles.length + hashtags.length;
 
     return (
         <AppLayout
@@ -88,20 +89,24 @@ export default function SearchIndex({
             ]}
             contentClassName="max-w-7xl"
         >
-            <Head title={`Search${query ? `: ${query}` : ''} · Real Kink Men`} />
+            <Head
+                title={`Search${query ? `: ${query}` : ''} · Real Kink Men`}
+            />
 
             <div className="flex gap-6 lg:gap-8">
                 {/* Main Content - Center */}
                 <div className="min-w-0 flex-1">
                     <div className="space-y-6">
                         {/* Search Header */}
-                        <div className="sticky top-0 z-10 -mx-3 -mt-4 border-b border-white/10 bg-black/80 px-3 pb-4 pt-4 backdrop-blur-xl sm:-mx-4 sm:px-4 md:-mx-8 md:px-8">
+                        <div className="sticky top-0 z-10 -mx-3 -mt-4 border-b border-white/10 bg-black/80 px-3 pt-4 pb-4 backdrop-blur-xl sm:-mx-4 sm:px-4 md:-mx-8 md:px-8">
                             <div className="space-y-4">
                                 <h1 className="text-2xl font-bold text-white sm:text-3xl">
                                     {query ? (
                                         <>
                                             Search results for{' '}
-                                            <span className="text-amber-400">"{query}"</span>
+                                            <span className="text-amber-400">
+                                                "{query}"
+                                            </span>
                                         </>
                                     ) : (
                                         'Explore'
@@ -109,7 +114,10 @@ export default function SearchIndex({
                                 </h1>
 
                                 {query && (
-                                    <Tabs value={activeTab} onValueChange={handleTabChange}>
+                                    <Tabs
+                                        value={activeTab}
+                                        onValueChange={handleTabChange}
+                                    >
                                         <TabsList className="inline-flex h-10 items-center justify-start rounded-lg border border-white/10 bg-white/5 p-1">
                                             <TabsTrigger
                                                 value="all"
@@ -174,25 +182,28 @@ export default function SearchIndex({
 
                         {/* Results Content */}
                         {query ? (
-                            <Tabs value={activeTab} onValueChange={handleTabChange}>
+                            <Tabs
+                                value={activeTab}
+                                onValueChange={handleTabChange}
+                            >
                                 <TabsContent value="all" className="mt-0">
                                     {hasResults ? (
                                         <div className="space-y-8">
-                                        {users.length > 0 && (
-                                            <section>
-                                                <h2 className="mb-4 text-lg font-semibold text-white">
-                                                    Users
-                                                </h2>
-                                                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
-                                                    {users.map((user) => (
-                                                        <UserResultCard
-                                                            key={`user-${user.id}`}
-                                                            user={user}
-                                                        />
-                                                    ))}
-                                                </div>
-                                            </section>
-                                        )}
+                                            {users.length > 0 && (
+                                                <section>
+                                                    <h2 className="mb-4 text-lg font-semibold text-white">
+                                                        Users
+                                                    </h2>
+                                                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
+                                                        {users.map((user) => (
+                                                            <UserResultCard
+                                                                key={`user-${user.id}`}
+                                                                user={user}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                </section>
+                                            )}
 
                                             {events.length > 0 && (
                                                 <section>
@@ -216,12 +227,16 @@ export default function SearchIndex({
                                                         Circles
                                                     </h2>
                                                     <div className="space-y-2">
-                                                        {circles.map((circle) => (
-                                                            <CircleResultCard
-                                                                key={`circle-${circle.id}`}
-                                                                circle={circle}
-                                                            />
-                                                        ))}
+                                                        {circles.map(
+                                                            (circle) => (
+                                                                <CircleResultCard
+                                                                    key={`circle-${circle.id}`}
+                                                                    circle={
+                                                                        circle
+                                                                    }
+                                                                />
+                                                            ),
+                                                        )}
                                                     </div>
                                                 </section>
                                             )}
@@ -232,12 +247,16 @@ export default function SearchIndex({
                                                         Hashtags
                                                     </h2>
                                                     <div className="space-y-2">
-                                                        {hashtags.map((hashtag) => (
-                                                            <HashtagResultCard
-                                                                key={`hashtag-${hashtag.id}`}
-                                                                hashtag={hashtag}
-                                                            />
-                                                        ))}
+                                                        {hashtags.map(
+                                                            (hashtag) => (
+                                                                <HashtagResultCard
+                                                                    key={`hashtag-${hashtag.id}`}
+                                                                    hashtag={
+                                                                        hashtag
+                                                                    }
+                                                                />
+                                                            ),
+                                                        )}
                                                     </div>
                                                 </section>
                                             )}
@@ -258,7 +277,10 @@ export default function SearchIndex({
                                             ))}
                                         </div>
                                     ) : (
-                                        <EmptyState query={query} type="users" />
+                                        <EmptyState
+                                            query={query}
+                                            type="users"
+                                        />
                                     )}
                                 </TabsContent>
 
@@ -273,7 +295,10 @@ export default function SearchIndex({
                                             ))}
                                         </div>
                                     ) : (
-                                        <EmptyState query={query} type="events" />
+                                        <EmptyState
+                                            query={query}
+                                            type="events"
+                                        />
                                     )}
                                 </TabsContent>
 
@@ -288,7 +313,10 @@ export default function SearchIndex({
                                             ))}
                                         </div>
                                     ) : (
-                                        <EmptyState query={query} type="circles" />
+                                        <EmptyState
+                                            query={query}
+                                            type="circles"
+                                        />
                                     )}
                                 </TabsContent>
 
@@ -303,7 +331,10 @@ export default function SearchIndex({
                                             ))}
                                         </div>
                                     ) : (
-                                        <EmptyState query={query} type="hashtags" />
+                                        <EmptyState
+                                            query={query}
+                                            type="hashtags"
+                                        />
                                     )}
                                 </TabsContent>
                             </Tabs>
@@ -314,7 +345,8 @@ export default function SearchIndex({
                                         Popular Now
                                     </h2>
                                     <p className="text-sm text-white/60">
-                                        Discover trending users, events, circles, and hashtags
+                                        Discover trending users, events,
+                                        circles, and hashtags
                                     </p>
                                 </div>
 
@@ -388,7 +420,8 @@ export default function SearchIndex({
                                     <div className="flex flex-col items-center justify-center py-16 text-center">
                                         <Search className="mb-4 size-12 text-white/40" />
                                         <p className="text-lg text-white/60">
-                                            No popular content available at the moment
+                                            No popular content available at the
+                                            moment
                                         </p>
                                     </div>
                                 )}
@@ -412,12 +445,17 @@ export default function SearchIndex({
                                 <div className="space-y-2.5 text-sm">
                                     <div className="flex items-start gap-3">
                                         <div className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md bg-amber-500/20 text-amber-400">
-                                            <span className="text-xs font-semibold">@</span>
+                                            <span className="text-xs font-semibold">
+                                                @
+                                            </span>
                                         </div>
                                         <div>
-                                            <p className="font-medium text-white">Search users</p>
+                                            <p className="font-medium text-white">
+                                                Search users
+                                            </p>
                                             <p className="mt-0.5 text-xs text-white/60">
-                                                Type @username to find specific profiles
+                                                Type @username to find specific
+                                                profiles
                                             </p>
                                         </div>
                                     </div>
@@ -426,9 +464,12 @@ export default function SearchIndex({
                                             <Hash className="size-3.5" />
                                         </div>
                                         <div>
-                                            <p className="font-medium text-white">Find hashtags</p>
+                                            <p className="font-medium text-white">
+                                                Find hashtags
+                                            </p>
                                             <p className="mt-0.5 text-xs text-white/60">
-                                                Type #hashtag to discover trending topics
+                                                Type #hashtag to discover
+                                                trending topics
                                             </p>
                                         </div>
                                     </div>
@@ -437,9 +478,12 @@ export default function SearchIndex({
                                             <Search className="size-3.5" />
                                         </div>
                                         <div>
-                                            <p className="font-medium text-white">General search</p>
+                                            <p className="font-medium text-white">
+                                                General search
+                                            </p>
                                             <p className="mt-0.5 text-xs text-white/60">
-                                                Search across users, events, circles, and hashtags
+                                                Search across users, events,
+                                                circles, and hashtags
                                             </p>
                                         </div>
                                     </div>
@@ -470,11 +514,15 @@ export default function SearchIndex({
                                                         #{hashtag.name}
                                                     </span>
                                                 </div>
-                                                {hashtag.recent_usage_count !== undefined &&
-                                                    hashtag.recent_usage_count > 0 && (
+                                                {hashtag.recent_usage_count !==
+                                                    undefined &&
+                                                    hashtag.recent_usage_count >
+                                                        0 && (
                                                         <p className="mt-1 text-xs text-white/60">
-                                                            {hashtag.recent_usage_count} posts in
-                                                            last 24h
+                                                            {
+                                                                hashtag.recent_usage_count
+                                                            }{' '}
+                                                            posts in last 24h
                                                         </p>
                                                     )}
                                             </div>
@@ -497,8 +545,11 @@ export default function SearchIndex({
                                 <CardContent className="space-y-2">
                                     {users.slice(0, 5).map((user) => {
                                         const displayName =
-                                            user.display_name || user.username || 'User';
-                                        const initials = getInitials(displayName);
+                                            user.display_name ||
+                                            user.username ||
+                                            'User';
+                                        const initials =
+                                            getInitials(displayName);
                                         return (
                                             <Link
                                                 key={user.id}
@@ -508,7 +559,9 @@ export default function SearchIndex({
                                                 <Avatar className="size-10 shrink-0 border border-white/10">
                                                     {user.avatar_url ? (
                                                         <AvatarImage
-                                                            src={user.avatar_url}
+                                                            src={
+                                                                user.avatar_url
+                                                            }
                                                             alt={displayName}
                                                         />
                                                     ) : null}
@@ -563,7 +616,7 @@ export default function SearchIndex({
                                                     </p>
                                                 )}
                                             </div>
-                                            <ArrowRight className="ml-2 mt-1 size-4 shrink-0 text-white/40 opacity-0 transition-opacity group-hover:opacity-100" />
+                                            <ArrowRight className="mt-1 ml-2 size-4 shrink-0 text-white/40 opacity-0 transition-opacity group-hover:opacity-100" />
                                         </Link>
                                     ))}
                                 </CardContent>
@@ -599,7 +652,7 @@ export default function SearchIndex({
                                                     </p>
                                                 )}
                                             </div>
-                                            <ArrowRight className="ml-2 mt-1 size-4 shrink-0 text-white/40 opacity-0 transition-opacity group-hover:opacity-100" />
+                                            <ArrowRight className="mt-1 ml-2 size-4 shrink-0 text-white/40 opacity-0 transition-opacity group-hover:opacity-100" />
                                         </Link>
                                     ))}
                                 </CardContent>
@@ -612,11 +665,7 @@ export default function SearchIndex({
     );
 }
 
-function UserResultCard({
-    user,
-}: {
-    user: SearchResult;
-}) {
+function UserResultCard({ user }: { user: SearchResult }) {
     return (
         <UserCard
             user={{
@@ -642,14 +691,16 @@ function EventResultCard({ event }: { event: SearchResult }) {
                         <Calendar className="size-7" />
                     </div>
                     <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-white">{event.title}</p>
+                        <p className="font-semibold text-white">
+                            {event.title}
+                        </p>
                         {event.description && (
                             <p className="mt-1.5 line-clamp-2 text-sm text-white/60">
                                 {event.description}
                             </p>
                         )}
                     </div>
-                    <ArrowRight className="ml-auto mt-1 size-5 shrink-0 text-white/40 opacity-0 transition-all group-hover:translate-x-1 group-hover:opacity-100" />
+                    <ArrowRight className="mt-1 ml-auto size-5 shrink-0 text-white/40 opacity-0 transition-all group-hover:translate-x-1 group-hover:opacity-100" />
                 </CardContent>
             </Card>
         </Link>
@@ -665,14 +716,16 @@ function CircleResultCard({ circle }: { circle: SearchResult }) {
                         <Circle className="size-7" />
                     </div>
                     <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-white">{circle.name}</p>
+                        <p className="font-semibold text-white">
+                            {circle.name}
+                        </p>
                         {circle.tagline && (
                             <p className="mt-1.5 line-clamp-2 text-sm text-white/60">
                                 {circle.tagline}
                             </p>
                         )}
                     </div>
-                    <ArrowRight className="ml-auto mt-1 size-5 shrink-0 text-white/40 opacity-0 transition-all group-hover:translate-x-1 group-hover:opacity-100" />
+                    <ArrowRight className="mt-1 ml-auto size-5 shrink-0 text-white/40 opacity-0 transition-all group-hover:translate-x-1 group-hover:opacity-100" />
                 </CardContent>
             </Card>
         </Link>
@@ -688,29 +741,28 @@ function HashtagResultCard({ hashtag }: { hashtag: SearchResult }) {
                         <Hash className="size-7" />
                     </div>
                     <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-white">#{hashtag.name}</p>
+                        <p className="font-semibold text-white">
+                            #{hashtag.name}
+                        </p>
                         {hashtag.recent_usage_count !== undefined &&
                             hashtag.recent_usage_count > 0 && (
                                 <div className="mt-1.5 flex items-center gap-1.5 text-sm text-white/60">
                                     <TrendingUp className="size-3.5" />
-                                    <span>{hashtag.recent_usage_count} posts in last 24h</span>
+                                    <span>
+                                        {hashtag.recent_usage_count} posts in
+                                        last 24h
+                                    </span>
                                 </div>
                             )}
                     </div>
-                    <ArrowRight className="ml-auto mt-1 size-5 shrink-0 text-white/40 opacity-0 transition-all group-hover:translate-x-1 group-hover:opacity-100" />
+                    <ArrowRight className="mt-1 ml-auto size-5 shrink-0 text-white/40 opacity-0 transition-all group-hover:translate-x-1 group-hover:opacity-100" />
                 </CardContent>
             </Card>
         </Link>
     );
 }
 
-function EmptyState({
-    query,
-    type,
-}: {
-    query: string;
-    type?: string;
-}) {
+function EmptyState({ query, type }: { query: string; type?: string }) {
     return (
         <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="mb-4 flex size-16 items-center justify-center rounded-full border border-white/10 bg-white/5">

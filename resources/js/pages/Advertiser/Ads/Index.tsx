@@ -112,5 +112,3 @@ export default function AdvertiserAdsIndex({ ads }: AdvertiserAdsIndexProps) {
         </AppLayout>
     );
 }
-
-

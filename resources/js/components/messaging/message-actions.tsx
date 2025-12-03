@@ -1,5 +1,5 @@
-import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 import { CornerUpRight, SmilePlus } from 'lucide-react';
 
 type MessageActionsProps = {
@@ -43,14 +43,12 @@ export default function MessageActions({
                 className={cn(
                     'rounded-full p-1.5 text-white/50 transition-all duration-150 hover:bg-white/10 hover:text-white/70 active:scale-95',
                     isMobile && 'p-1',
-                    isReactionsExpanded &&
-                        'bg-amber-400/20 text-amber-300',
+                    isReactionsExpanded && 'bg-amber-400/20 text-amber-300',
                 )}
             >
-                <SmilePlus className={cn(
-                    'h-3.5 w-3.5',
-                    isMobile && 'h-3 w-3',
-                )} />
+                <SmilePlus
+                    className={cn('h-3.5 w-3.5', isMobile && 'h-3 w-3')}
+                />
             </button>
             <button
                 type="button"
@@ -64,10 +62,9 @@ export default function MessageActions({
                     isMobile && 'p-1',
                 )}
             >
-                <CornerUpRight className={cn(
-                    'h-3.5 w-3.5',
-                    isMobile && 'h-3 w-3',
-                )} />
+                <CornerUpRight
+                    className={cn('h-3.5 w-3.5', isMobile && 'h-3 w-3')}
+                />
             </button>
         </div>
     );

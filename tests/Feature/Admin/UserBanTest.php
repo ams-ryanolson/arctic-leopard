@@ -10,7 +10,10 @@ use function Pest\Laravel\actingAs;
 it('allows admin to ban a user', function (): void {
     Event::fake([UserBanned::class]);
 
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
 
     $user = User::factory()->create();
@@ -38,11 +41,18 @@ it('allows admin to ban a user', function (): void {
 it('allows admin to unban a user', function (): void {
     Event::fake([UserUnbanned::class]);
 
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
 
     $user = User::factory()->create();
-    $user->ban(reason: 'Test ban', admin: $admin);
+    $user->update([
+        'banned_at' => now(),
+        'banned_reason' => 'Test ban',
+        'banned_by_id' => $admin->getKey(),
+    ]);
 
     actingAs($admin)
         ->post("/admin/users/{$user->id}/unban")
@@ -61,7 +71,10 @@ it('allows admin to unban a user', function (): void {
 });
 
 it('requires reason when banning user', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
 
     $user = User::factory()->create();

@@ -8,6 +8,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Dialog,
     DialogContent,
@@ -16,7 +17,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
@@ -38,9 +38,8 @@ import {
     Trash2,
     Users,
     Video,
-    X,
 } from 'lucide-react';
-import { FormEvent, useEffect, useState } from 'react';
+import { useState } from 'react';
 
 type Feature = {
     key: string;
@@ -80,7 +79,9 @@ export default function AdminFeatureFlagsIndex({
     featureFlags: initialFeatures,
 }: AdminFeatureFlagsIndexProps) {
     const [features, setFeatures] = useState(initialFeatures);
-    const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
+    const [selectedFeature, setSelectedFeature] = useState<Feature | null>(
+        null,
+    );
     const [userOverrides, setUserOverrides] = useState<UserOverride[]>([]);
     const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
     const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
@@ -92,9 +93,7 @@ export default function AdminFeatureFlagsIndex({
 
     const loadUserOverrides = async (featureKey: string) => {
         try {
-            const response = await fetch(
-                `/admin/features/${featureKey}/users`,
-            );
+            const response = await fetch(`/admin/features/${featureKey}/users`);
             const data = await response.json();
             setUserOverrides(data.overrides || []);
         } catch (error) {
@@ -164,9 +163,10 @@ export default function AdminFeatureFlagsIndex({
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document
-                            .querySelector('meta[name="csrf-token"]')
-                            ?.getAttribute('content') || '',
+                        'X-CSRF-TOKEN':
+                            document
+                                .querySelector('meta[name="csrf-token"]')
+                                ?.getAttribute('content') || '',
                         'X-Requested-With': 'XMLHttpRequest',
                         Accept: 'application/json',
                     },
@@ -202,9 +202,10 @@ export default function AdminFeatureFlagsIndex({
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document
-                            .querySelector('meta[name="csrf-token"]')
-                            ?.getAttribute('content') || '',
+                        'X-CSRF-TOKEN':
+                            document
+                                .querySelector('meta[name="csrf-token"]')
+                                ?.getAttribute('content') || '',
                         'X-Requested-With': 'XMLHttpRequest',
                         Accept: 'application/json',
                     },
@@ -278,13 +279,15 @@ export default function AdminFeatureFlagsIndex({
                                             ) : (
                                                 <Checkbox
                                                     checked={feature.enabled}
-                                                    onCheckedChange={(checked) =>
+                                                    onCheckedChange={(
+                                                        checked,
+                                                    ) =>
                                                         handleFeatureToggle(
                                                             feature,
                                                             checked === true,
                                                         )
                                                     }
-                                                    className="border-white/20 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                                                    className="border-white/20 data-[state=checked]:border-emerald-500 data-[state=checked]:bg-emerald-500"
                                                 />
                                             )}
                                         </div>
@@ -322,7 +325,10 @@ export default function AdminFeatureFlagsIndex({
                 </div>
 
                 {/* User Overrides Dialog */}
-                <Dialog open={isUserDialogOpen} onOpenChange={setIsUserDialogOpen}>
+                <Dialog
+                    open={isUserDialogOpen}
+                    onOpenChange={setIsUserDialogOpen}
+                >
                     <DialogContent className="max-w-2xl border-white/10 bg-[#0a0a0a] text-white">
                         <DialogHeader>
                             <DialogTitle>
@@ -381,14 +387,18 @@ export default function AdminFeatureFlagsIndex({
                                                             src={undefined}
                                                         />
                                                         <AvatarFallback className="bg-white/10 text-xs">
-                                                            {(override.name || override.email)
+                                                            {(
+                                                                override.name ||
+                                                                override.email
+                                                            )
                                                                 .charAt(0)
                                                                 .toUpperCase()}
                                                         </AvatarFallback>
                                                     </Avatar>
                                                     <div>
                                                         <p className="text-sm font-medium text-white">
-                                                            {override.name || override.email}
+                                                            {override.name ||
+                                                                override.email}
                                                         </p>
                                                         <p className="text-xs text-white/50">
                                                             {override.email}
@@ -420,7 +430,7 @@ export default function AdminFeatureFlagsIndex({
                                                                 override.id,
                                                             )
                                                         }
-                                                        className="text-white/50 hover:text-white hover:bg-white/10"
+                                                        className="text-white/50 hover:bg-white/10 hover:text-white"
                                                     >
                                                         <Trash2 className="h-4 w-4" />
                                                     </Button>
@@ -459,7 +469,7 @@ export default function AdminFeatureFlagsIndex({
 
                         <div className="space-y-4">
                             <div className="relative">
-                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
+                                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-white/50" />
                                 <Input
                                     placeholder="Search by email or name..."
                                     value={searchQuery}
@@ -583,4 +593,3 @@ export default function AdminFeatureFlagsIndex({
         </AppLayout>
     );
 }
-

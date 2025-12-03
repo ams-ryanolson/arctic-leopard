@@ -1,14 +1,23 @@
 import { useCallback, useMemo, useState } from 'react';
 
-import { UserCard } from '@/components/users/user-card';
-import { UserListItem } from '@/components/users/user-list-item';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { UserCard } from '@/components/users/user-card';
+import { UserListItem } from '@/components/users/user-list-item';
 import AppLayout from '@/layouts/app-layout';
 import { type SharedData } from '@/types';
 import { Link, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, Grid3x3, List, Search, Users, UserPlus, UserCheck2, X } from 'lucide-react';
+import {
+    ArrowLeft,
+    Grid3x3,
+    List,
+    Search,
+    UserCheck2,
+    UserPlus,
+    Users,
+    X,
+} from 'lucide-react';
 
 interface User {
     id: number;
@@ -54,16 +63,24 @@ export default function Followers({
     const [viewMode, setViewMode] = useState<ViewMode>('card');
     const [searchQuery, setSearchQuery] = useState('');
 
-    const [followStates, setFollowStates] = useState<Record<number, {
-        isFollowing: boolean;
-        isPending: boolean;
-        isProcessing: boolean;
-    }>>(() => {
-        const state: Record<number, {
-            isFollowing: boolean;
-            isPending: boolean;
-            isProcessing: boolean;
-        }> = {};
+    const [followStates, setFollowStates] = useState<
+        Record<
+            number,
+            {
+                isFollowing: boolean;
+                isPending: boolean;
+                isProcessing: boolean;
+            }
+        >
+    >(() => {
+        const state: Record<
+            number,
+            {
+                isFollowing: boolean;
+                isPending: boolean;
+                isProcessing: boolean;
+            }
+        > = {};
 
         [...followers, ...following, ...mutual].forEach((u) => {
             state[u.id] = {
@@ -76,35 +93,42 @@ export default function Followers({
         return state;
     });
 
-    const handleTabChange = useCallback((value: string) => {
-        router.visit(`/f/${user.username}/${value}`, {
-            preserveState: false,
-            preserveScroll: false,
-        });
-    }, [user.username]);
+    const handleTabChange = useCallback(
+        (value: string) => {
+            router.visit(`/f/${user.username}/${value}`, {
+                preserveState: false,
+                preserveScroll: false,
+            });
+        },
+        [user.username],
+    );
 
-    const getFollowState = useCallback((userId: number) => {
-        return followStates[userId] ?? {
-            isFollowing: false,
-            isPending: false,
-            isProcessing: false,
-        };
-    }, [followStates]);
+    const getFollowState = useCallback(
+        (userId: number) => {
+            return (
+                followStates[userId] ?? {
+                    isFollowing: false,
+                    isPending: false,
+                    isProcessing: false,
+                }
+            );
+        },
+        [followStates],
+    );
 
-    const handleFollowChange = useCallback((
-        userId: number,
-        isFollowing: boolean,
-        isPending: boolean,
-    ) => {
-        setFollowStates((prev) => ({
-            ...prev,
-            [userId]: {
-                isFollowing,
-                isPending,
-                isProcessing: false,
-            },
-        }));
-    }, []);
+    const handleFollowChange = useCallback(
+        (userId: number, isFollowing: boolean, isPending: boolean) => {
+            setFollowStates((prev) => ({
+                ...prev,
+                [userId]: {
+                    isFollowing,
+                    isPending,
+                    isProcessing: false,
+                },
+            }));
+        },
+        [],
+    );
 
     const getCurrentUsers = () => {
         switch (activeTab) {
@@ -155,7 +179,8 @@ export default function Followers({
                     return {
                         icon: Users,
                         title: 'No followers yet',
-                        description: 'When people follow this profile, they\'ll show up here.',
+                        description:
+                            "When people follow this profile, they'll show up here.",
                     };
                 }
 
@@ -163,14 +188,16 @@ export default function Followers({
                     return {
                         icon: UserPlus,
                         title: 'Not following anyone',
-                        description: 'Accounts this person follows will appear here.',
+                        description:
+                            'Accounts this person follows will appear here.',
                     };
                 }
 
                 return {
                     icon: UserCheck2,
                     title: 'No mutual followers',
-                    description: 'When you both follow the same accounts, they\'ll appear here.',
+                    description:
+                        "When you both follow the same accounts, they'll appear here.",
                 };
             };
 
@@ -290,12 +317,16 @@ export default function Followers({
 
                     {/* Tab Navigation */}
                     <Tabs value={activeTab} onValueChange={handleTabChange}>
-                        <TabsList className={`flex h-auto w-full gap-0 border-0 bg-transparent p-0 ${isAuthenticated ? '' : ''}`}>
+                        <TabsList
+                            className={`flex h-auto w-full gap-0 border-0 bg-transparent p-0 ${isAuthenticated ? '' : ''}`}
+                        >
                             <TabsTrigger
                                 value="followers"
                                 className="group relative flex flex-1 flex-col items-center gap-1 border-b-2 border-transparent bg-transparent px-4 py-3 font-medium text-white/60 transition-colors hover:bg-white/5 hover:text-white/80 data-[state=active]:border-white data-[state=active]:text-white sm:flex-row sm:justify-center sm:gap-2"
                             >
-                                <span className="text-sm sm:text-base">Followers</span>
+                                <span className="text-sm sm:text-base">
+                                    Followers
+                                </span>
                                 <span className="text-xs text-white/40 group-data-[state=active]:text-white/70 sm:text-sm">
                                     {counts.followers.toLocaleString()}
                                 </span>
@@ -304,7 +335,9 @@ export default function Followers({
                                 value="following"
                                 className="group relative flex flex-1 flex-col items-center gap-1 border-b-2 border-transparent bg-transparent px-4 py-3 font-medium text-white/60 transition-colors hover:bg-white/5 hover:text-white/80 data-[state=active]:border-white data-[state=active]:text-white sm:flex-row sm:justify-center sm:gap-2"
                             >
-                                <span className="text-sm sm:text-base">Following</span>
+                                <span className="text-sm sm:text-base">
+                                    Following
+                                </span>
                                 <span className="text-xs text-white/40 group-data-[state=active]:text-white/70 sm:text-sm">
                                     {counts.following.toLocaleString()}
                                 </span>
@@ -314,7 +347,9 @@ export default function Followers({
                                     value="mutual"
                                     className="group relative flex flex-1 flex-col items-center gap-1 border-b-2 border-transparent bg-transparent px-4 py-3 font-medium text-white/60 transition-colors hover:bg-white/5 hover:text-white/80 data-[state=active]:border-white data-[state=active]:text-white sm:flex-row sm:justify-center sm:gap-2"
                                 >
-                                    <span className="text-sm sm:text-base">Mutual</span>
+                                    <span className="text-sm sm:text-base">
+                                        Mutual
+                                    </span>
                                     <span className="text-xs text-white/40 group-data-[state=active]:text-white/70 sm:text-sm">
                                         {counts.mutual.toLocaleString()}
                                     </span>
@@ -329,20 +364,20 @@ export default function Followers({
                     {/* Search and View Controls */}
                     <div className="mb-4 flex items-center gap-3">
                         <div className="relative flex-1">
-                            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/40" />
+                            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-white/40" />
                             <Input
                                 type="search"
                                 placeholder="Search"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="h-10 rounded-full border-white/10 bg-white/5 pl-9 pr-9 text-sm text-white placeholder:text-white/40 focus-visible:border-white/20 focus-visible:ring-0"
+                                className="h-10 rounded-full border-white/10 bg-white/5 pr-9 pl-9 text-sm text-white placeholder:text-white/40 focus-visible:border-white/20 focus-visible:ring-0"
                             />
                             {searchQuery && (
                                 <Button
                                     variant="ghost"
                                     size="icon"
                                     onClick={() => setSearchQuery('')}
-                                    className="absolute right-1 top-1/2 size-8 -translate-y-1/2 rounded-full text-white/40 hover:bg-white/10 hover:text-white/70"
+                                    className="absolute top-1/2 right-1 size-8 -translate-y-1/2 rounded-full text-white/40 hover:bg-white/10 hover:text-white/70"
                                 >
                                     <X className="size-4" />
                                 </Button>

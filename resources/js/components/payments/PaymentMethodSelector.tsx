@@ -1,7 +1,10 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { usePaymentMethods, type PaymentMethod } from '@/hooks/use-payment-methods';
+import {
+    usePaymentMethods,
+    type PaymentMethod,
+} from '@/hooks/use-payment-methods';
 import { CreditCard, Plus } from 'lucide-react';
 
 type PaymentMethodSelectorProps = {
@@ -42,7 +45,9 @@ export function PaymentMethodSelector({
         <div className="space-y-4">
             <RadioGroup
                 value={selectedId?.toString() ?? ''}
-                onValueChange={(value) => onSelect(value ? parseInt(value, 10) : null)}
+                onValueChange={(value) =>
+                    onSelect(value ? parseInt(value, 10) : null)
+                }
             >
                 {paymentMethods.map((method: PaymentMethod) => (
                     <label
@@ -60,16 +65,24 @@ export function PaymentMethodSelector({
                                 <div>
                                     <div className="flex items-center gap-2">
                                         <span className="font-medium">
-                                            {formatCardBrand(method.brand)} •••• {method.last_four}
+                                            {formatCardBrand(method.brand)} ••••{' '}
+                                            {method.last_four}
                                         </span>
                                         {method.is_default && (
-                                            <Badge variant="secondary" className="text-xs">
+                                            <Badge
+                                                variant="secondary"
+                                                className="text-xs"
+                                            >
                                                 Default
                                             </Badge>
                                         )}
                                     </div>
                                     <p className="text-sm text-white/60">
-                                        Expires {formatExpiry(method.exp_month, method.exp_year)}
+                                        Expires{' '}
+                                        {formatExpiry(
+                                            method.exp_month,
+                                            method.exp_year,
+                                        )}
                                     </p>
                                 </div>
                             </div>
@@ -92,6 +105,3 @@ export function PaymentMethodSelector({
         </div>
     );
 }
-
-
-

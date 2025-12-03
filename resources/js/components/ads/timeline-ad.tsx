@@ -46,5 +46,3 @@ export default function TimelineAd({ ad }: TimelineAdProps) {
         </Card>
     );
 }
-
-

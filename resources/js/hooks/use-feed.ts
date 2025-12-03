@@ -473,12 +473,12 @@ export function useFeed(options: UseFeedOptions): UseFeedResult {
 
                 // Update the post in the feed
                 updatePostInPages({ ...targetPost, ...updatedPost });
-                
+
                 // Refresh feed to show the amplify post (like when creating a new post)
                 if (!currentlyAmplified) {
                     await refresh();
                 }
-                
+
                 setError(null);
             } catch (problem) {
                 handleFeedError(problem);

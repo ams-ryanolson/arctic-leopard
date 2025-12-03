@@ -19,7 +19,7 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import { Head, router, useForm } from '@inertiajs/react';
 import { Plus, Trash2 } from 'lucide-react';
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 type CreativeFormData = {
     placement: string;
@@ -133,64 +133,89 @@ export default function AdminAdsEdit({ ad }: AdminAdsEditProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // Only run once on mount
 
-    const formatDateForInput = useCallback((dateString: string | null): string => {
-        if (!dateString) {
-            return '';
-        }
-        const date = new Date(dateString);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        return `${year}-${month}-${day}T${hours}:${minutes}`;
-    }, []);
+    const formatDateForInput = useCallback(
+        (dateString: string | null): string => {
+            if (!dateString) {
+                return '';
+            }
+            const date = new Date(dateString);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        },
+        [],
+    );
 
     // Memoize initial form data to prevent re-initialization
-    const initialFormData = useMemo<AdFormData>(() => ({
-        name: ad.name || '',
-        campaign_id: '',
-        status: ad.status || 'draft',
-        start_date: formatDateForInput(ad.start_date),
-        end_date: formatDateForInput(ad.end_date),
-        max_impressions: ad.max_impressions?.toString() || '',
-        max_clicks: ad.max_clicks?.toString() || '',
-        daily_impression_cap: ad.daily_impression_cap?.toString() || '',
-        daily_click_cap: ad.daily_click_cap?.toString() || '',
-        budget_amount: ad.budget_amount?.toString() || '',
-        budget_currency: ad.budget_currency || 'USD',
-        pricing_model: ad.pricing_model || 'cpm',
-        pricing_rate: ad.pricing_rate?.toString() || '',
-        targeting: {},
-        creatives:
-            ad.creatives && Array.isArray(ad.creatives) && ad.creatives.length > 0
-                ? ad.creatives.map((creative) => ({
-                      placement: creative.placement || 'timeline_inline',
-                      size: creative.size || 'medium',
-                      asset_type: creative.asset_type || 'image',
-                      asset_url: creative.asset_url || '',
-                      headline: creative.headline || '',
-                      body_text: creative.body_text || '',
-                      cta_text: creative.cta_text || 'Learn More',
-                      cta_url: creative.cta_url || '',
-                      display_order: creative.display_order ?? 0,
-                  }))
-                : [
-                      {
-                          placement: 'timeline_inline',
-                          size: 'medium',
-                          asset_type: 'image',
-                          asset_url: '',
-                          headline: '',
-                          body_text: '',
-                          cta_text: 'Learn More',
-                          cta_url: '',
-                          display_order: 0,
-                      },
-                  ],
-    }), [ad.id, ad.name, ad.status, ad.start_date, ad.end_date, ad.max_impressions, ad.max_clicks, ad.daily_impression_cap, ad.daily_click_cap, ad.budget_amount, ad.budget_currency, ad.pricing_model, ad.pricing_rate, JSON.stringify(ad.creatives), formatDateForInput]);
+    const initialFormData = useMemo<AdFormData>(
+        () => ({
+            name: ad.name || '',
+            campaign_id: '',
+            status: ad.status || 'draft',
+            start_date: formatDateForInput(ad.start_date),
+            end_date: formatDateForInput(ad.end_date),
+            max_impressions: ad.max_impressions?.toString() || '',
+            max_clicks: ad.max_clicks?.toString() || '',
+            daily_impression_cap: ad.daily_impression_cap?.toString() || '',
+            daily_click_cap: ad.daily_click_cap?.toString() || '',
+            budget_amount: ad.budget_amount?.toString() || '',
+            budget_currency: ad.budget_currency || 'USD',
+            pricing_model: ad.pricing_model || 'cpm',
+            pricing_rate: ad.pricing_rate?.toString() || '',
+            targeting: {},
+            creatives:
+                ad.creatives &&
+                Array.isArray(ad.creatives) &&
+                ad.creatives.length > 0
+                    ? ad.creatives.map((creative) => ({
+                          placement: creative.placement || 'timeline_inline',
+                          size: creative.size || 'medium',
+                          asset_type: creative.asset_type || 'image',
+                          asset_url: creative.asset_url || '',
+                          headline: creative.headline || '',
+                          body_text: creative.body_text || '',
+                          cta_text: creative.cta_text || 'Learn More',
+                          cta_url: creative.cta_url || '',
+                          display_order: creative.display_order ?? 0,
+                      }))
+                    : [
+                          {
+                              placement: 'timeline_inline',
+                              size: 'medium',
+                              asset_type: 'image',
+                              asset_url: '',
+                              headline: '',
+                              body_text: '',
+                              cta_text: 'Learn More',
+                              cta_url: '',
+                              display_order: 0,
+                          },
+                      ],
+        }),
+        [
+            ad.id,
+            ad.name,
+            ad.status,
+            ad.start_date,
+            ad.end_date,
+            ad.max_impressions,
+            ad.max_clicks,
+            ad.daily_impression_cap,
+            ad.daily_click_cap,
+            ad.budget_amount,
+            ad.budget_currency,
+            ad.pricing_model,
+            ad.pricing_rate,
+            JSON.stringify(ad.creatives),
+            formatDateForInput,
+        ],
+    );
 
-    const { data, setData, put, processing, errors } = useForm<AdFormData>(initialFormData);
+    const { data, setData, put, processing, errors } =
+        useForm<AdFormData>(initialFormData);
 
     useEffect(() => {
         setIsAdminAd(!data.budget_amount || data.budget_amount.trim() === '');
@@ -240,30 +265,39 @@ export default function AdminAdsEdit({ ad }: AdminAdsEditProps) {
             campaign_id: data.campaign_id
                 ? Number.parseInt(data.campaign_id, 10)
                 : null,
-            budget_amount: data.budget_amount && data.budget_amount.trim() !== ''
-                ? Number.parseInt(data.budget_amount, 10)
-                : null,
-            budget_currency: data.budget_amount && data.budget_amount.trim() !== ''
-                ? data.budget_currency
-                : null,
-            pricing_model: data.pricing_model && data.pricing_model.trim() !== ''
-                ? data.pricing_model
-                : null,
-            pricing_rate: data.pricing_rate && data.pricing_rate.trim() !== ''
-                ? Number.parseInt(data.pricing_rate, 10)
-                : null,
-            max_impressions: data.max_impressions && data.max_impressions.trim() !== ''
-                ? Number.parseInt(data.max_impressions, 10)
-                : null,
-            max_clicks: data.max_clicks && data.max_clicks.trim() !== ''
-                ? Number.parseInt(data.max_clicks, 10)
-                : null,
-            daily_impression_cap: data.daily_impression_cap && data.daily_impression_cap.trim() !== ''
-                ? Number.parseInt(data.daily_impression_cap, 10)
-                : null,
-            daily_click_cap: data.daily_click_cap && data.daily_click_cap.trim() !== ''
-                ? Number.parseInt(data.daily_click_cap, 10)
-                : null,
+            budget_amount:
+                data.budget_amount && data.budget_amount.trim() !== ''
+                    ? Number.parseInt(data.budget_amount, 10)
+                    : null,
+            budget_currency:
+                data.budget_amount && data.budget_amount.trim() !== ''
+                    ? data.budget_currency
+                    : null,
+            pricing_model:
+                data.pricing_model && data.pricing_model.trim() !== ''
+                    ? data.pricing_model
+                    : null,
+            pricing_rate:
+                data.pricing_rate && data.pricing_rate.trim() !== ''
+                    ? Number.parseInt(data.pricing_rate, 10)
+                    : null,
+            max_impressions:
+                data.max_impressions && data.max_impressions.trim() !== ''
+                    ? Number.parseInt(data.max_impressions, 10)
+                    : null,
+            max_clicks:
+                data.max_clicks && data.max_clicks.trim() !== ''
+                    ? Number.parseInt(data.max_clicks, 10)
+                    : null,
+            daily_impression_cap:
+                data.daily_impression_cap &&
+                data.daily_impression_cap.trim() !== ''
+                    ? Number.parseInt(data.daily_impression_cap, 10)
+                    : null,
+            daily_click_cap:
+                data.daily_click_cap && data.daily_click_cap.trim() !== ''
+                    ? Number.parseInt(data.daily_click_cap, 10)
+                    : null,
             creatives: data.creatives.map((creative) => ({
                 ...creative,
                 display_order: creative.display_order,
@@ -433,7 +467,9 @@ export default function AdminAdsEdit({ ad }: AdminAdsEditProps) {
                         <CardHeader>
                             <CardTitle>Budget & Pricing</CardTitle>
                             <CardDescription className="text-white/60">
-                                Set your budget and pricing model. Leave empty for admin/promotional ads with unlimited impressions.
+                                Set your budget and pricing model. Leave empty
+                                for admin/promotional ads with unlimited
+                                impressions.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -452,9 +488,10 @@ export default function AdminAdsEdit({ ad }: AdminAdsEditProps) {
                                 />
                                 <Label
                                     htmlFor="is_admin_ad"
-                                    className="text-sm font-normal cursor-pointer"
+                                    className="cursor-pointer text-sm font-normal"
                                 >
-                                    Admin/Promotional Ad (no budget, unlimited impressions)
+                                    Admin/Promotional Ad (no budget, unlimited
+                                    impressions)
                                 </Label>
                             </div>
 

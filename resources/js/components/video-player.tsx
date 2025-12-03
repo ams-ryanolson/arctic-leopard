@@ -1,9 +1,9 @@
+import FlvPlayer from '@/components/flv-player';
+import { cn } from '@/lib/utils';
+import '@videojs/themes/dist/forest/index.css';
 import { useEffect, useRef, useState } from 'react';
 import videojs from 'video.js';
-import '@videojs/themes/dist/forest/index.css';
 import 'video.js/dist/video-js.css';
-import { cn } from '@/lib/utils';
-import FlvPlayer from '@/components/flv-player';
 
 export type VideoPlayerProps = {
     src: string;
@@ -135,11 +135,11 @@ export default function VideoPlayer({
         if (playerRef.current) {
             return;
         }
-        
+
         if (!isInView) {
             return;
         }
-        
+
         if (!videoRef.current) {
             return;
         }
@@ -156,7 +156,7 @@ export default function VideoPlayer({
             if (playerRef.current) {
                 return;
             }
-            
+
             if (!videoRef.current) {
                 return;
             }
@@ -176,25 +176,22 @@ export default function VideoPlayer({
 
             // Initialize Video.js player
             try {
-                const player = videojs(
-                    videoRef.current,
-                    {
-                        controls,
-                        responsive: true,
-                        fluid: false,
-                        preload,
-                        autoplay,
-                        muted,
-                        playsInline,
-                        playbackRates,
-                        sources: [
-                            {
-                                src,
-                                type: mimeType || 'video/mp4',
-                            },
-                        ],
-                    },
-                );
+                const player = videojs(videoRef.current, {
+                    controls,
+                    responsive: true,
+                    fluid: false,
+                    preload,
+                    autoplay,
+                    muted,
+                    playsInline,
+                    playbackRates,
+                    sources: [
+                        {
+                            src,
+                            type: mimeType || 'video/mp4',
+                        },
+                    ],
+                });
 
                 playerRef.current = player;
 
@@ -222,7 +219,7 @@ export default function VideoPlayer({
                 // Set up event listeners
                 let loadingTimeout: NodeJS.Timeout;
                 let hasHiddenLoading = false;
-                
+
                 const hideLoading = () => {
                     if (hasHiddenLoading) {
                         return;
@@ -243,12 +240,12 @@ export default function VideoPlayer({
                 player.on('play', handlePlay);
                 player.on('pause', handlePause);
                 player.on('ended', handleEnded);
-                
+
                 // Listen for loadedmetadata to hide loading state
                 player.on('loadedmetadata', () => {
                     hideLoading();
                 });
-                
+
                 // Also listen for canplay to ensure video is ready
                 player.on('canplay', () => {
                     hideLoading();
@@ -290,11 +287,7 @@ export default function VideoPlayer({
         };
         // Only re-run if src, mimeType, or isInView changes - not on callback changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-        isInView,
-        src,
-        mimeType,
-    ]);
+    }, [isInView, src, mimeType]);
 
     return (
         <div
@@ -304,7 +297,7 @@ export default function VideoPlayer({
         >
             <div
                 className="relative w-full"
-                style={{ 
+                style={{
                     aspectRatio,
                     minHeight: '200px',
                 }}
@@ -317,23 +310,31 @@ export default function VideoPlayer({
                     <>
                         {isLoading && (
                             <div className="absolute inset-0 z-10 rounded-lg bg-black/20">
-                                <div 
-                                    className="absolute inset-0 rounded-lg bg-white/10 animate-pulse"
-                                    style={{ 
+                                <div
+                                    className="absolute inset-0 animate-pulse rounded-lg bg-white/10"
+                                    style={{
                                         aspectRatio,
                                         minWidth: '100%',
                                         width: '100%',
-                                        height: '100%'
+                                        height: '100%',
                                     }}
                                 />
                             </div>
                         )}
-                        <div data-vjs-player className="h-full w-full" style={{ minHeight: '200px' }}>
+                        <div
+                            data-vjs-player
+                            className="h-full w-full"
+                            style={{ minHeight: '200px' }}
+                        >
                             <video
                                 ref={videoRef}
                                 className="video-js vjs-theme-forest"
                                 playsInline={playsInline}
-                                style={{ width: '100%', height: '100%', minHeight: '200px' }}
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    minHeight: '200px',
+                                }}
                             />
                         </div>
                     </>
@@ -342,4 +343,3 @@ export default function VideoPlayer({
         </div>
     );
 }
-

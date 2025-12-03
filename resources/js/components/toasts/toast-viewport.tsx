@@ -64,8 +64,7 @@ function ToastCard({
     const isProcessing = toast.status === 'processing';
     // Get conversation ULID for API calls (preferred)
     const conversationUlid =
-        toast.meta?.conversation_ulid ??
-        toast.meta?.conversationUlid;
+        toast.meta?.conversation_ulid ?? toast.meta?.conversationUlid;
     // Fallback to numeric ID if ULID not available
     const rawConversationMeta =
         toast.meta?.conversation_id ??
@@ -114,9 +113,12 @@ function ToastCard({
             setIsReplying(true);
             setReplyError(null);
 
-            await http.post(`/api/conversations/${conversationIdentifier}/messages`, {
-                body: replyBody,
-            });
+            await http.post(
+                `/api/conversations/${conversationIdentifier}/messages`,
+                {
+                    body: replyBody,
+                },
+            );
 
             setReplyBody('');
             setReplyOpen(false);

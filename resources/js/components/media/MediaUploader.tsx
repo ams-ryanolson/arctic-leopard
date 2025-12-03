@@ -1,6 +1,6 @@
-import { useCallback, useRef, useState } from 'react';
 import { uploadFile, type UploadError } from '@/lib/media-upload-client';
 import { cn } from '@/lib/utils';
+import { useCallback, useRef, useState } from 'react';
 
 export type MediaUploaderProps = {
     accept?: string;
@@ -234,4 +234,3 @@ export default function MediaUploader({
         </div>
     );
 }
-

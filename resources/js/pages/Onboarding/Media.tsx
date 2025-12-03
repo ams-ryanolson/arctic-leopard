@@ -177,16 +177,18 @@ export default function MediaSetup({ profile }: MediaSetupProps) {
                                     onError={handleCoverUploadError}
                                     onFileSelect={handleCoverFileSelect}
                                     disabled={coverUploading || processing}
-                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                                 />
                             </div>
-                            <div className="absolute inset-0 flex items-start justify-end p-4 pointer-events-none">
+                            <div className="pointer-events-none absolute inset-0 flex items-start justify-end p-4">
                                 <div className="pointer-events-auto">
                                     <MediaUploader
                                         accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
                                         maxFiles={1}
                                         multiple={false}
-                                        onUploadComplete={handleCoverUploadComplete}
+                                        onUploadComplete={
+                                            handleCoverUploadComplete
+                                        }
                                         onError={handleCoverUploadError}
                                         onFileSelect={handleCoverFileSelect}
                                         disabled={coverUploading || processing}
@@ -195,7 +197,9 @@ export default function MediaSetup({ profile }: MediaSetupProps) {
                                             type="button"
                                             variant="secondary"
                                             className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/15 px-3 py-2 text-xs text-white shadow-[0_12px_28px_-16px_rgba(249,115,22,0.55)] transition hover:border-white/35 hover:bg-white/20"
-                                            disabled={coverUploading || processing}
+                                            disabled={
+                                                coverUploading || processing
+                                            }
                                         >
                                             <Camera className="size-4" />
                                             <span className="max-w-[140px] truncate">
@@ -231,28 +235,44 @@ export default function MediaSetup({ profile }: MediaSetupProps) {
                                             accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
                                             maxFiles={1}
                                             multiple={false}
-                                            onUploadComplete={handleAvatarUploadComplete}
+                                            onUploadComplete={
+                                                handleAvatarUploadComplete
+                                            }
                                             onError={handleAvatarUploadError}
-                                            onFileSelect={handleAvatarFileSelect}
-                                            disabled={avatarUploading || processing}
-                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                            onFileSelect={
+                                                handleAvatarFileSelect
+                                            }
+                                            disabled={
+                                                avatarUploading || processing
+                                            }
+                                            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                                         />
-                                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 pointer-events-none">
+                                        <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2">
                                             <MediaUploader
                                                 accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
                                                 maxFiles={1}
                                                 multiple={false}
-                                                onUploadComplete={handleAvatarUploadComplete}
-                                                onError={handleAvatarUploadError}
-                                                onFileSelect={handleAvatarFileSelect}
-                                                disabled={avatarUploading || processing}
+                                                onUploadComplete={
+                                                    handleAvatarUploadComplete
+                                                }
+                                                onError={
+                                                    handleAvatarUploadError
+                                                }
+                                                onFileSelect={
+                                                    handleAvatarFileSelect
+                                                }
+                                                disabled={
+                                                    avatarUploading ||
+                                                    processing
+                                                }
                                             >
                                                 <Button
                                                     type="button"
                                                     variant="secondary"
-                                                    className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 py-1 text-xs text-white transition hover:border-white/35 hover:bg-white/20 pointer-events-auto"
+                                                    className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 py-1 text-xs text-white transition hover:border-white/35 hover:bg-white/20"
                                                     disabled={
-                                                        avatarUploading || processing
+                                                        avatarUploading ||
+                                                        processing
                                                     }
                                                 >
                                                     <Camera className="size-3.5" />

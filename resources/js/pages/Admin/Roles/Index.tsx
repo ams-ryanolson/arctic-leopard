@@ -27,7 +27,14 @@ import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import adminRoutes from '@/routes/admin';
 import { Head, router } from '@inertiajs/react';
-import { ChevronDown, Loader2, Plus, Save, Shield, ShieldCheck } from 'lucide-react';
+import {
+    ChevronDown,
+    Loader2,
+    Plus,
+    Save,
+    Shield,
+    ShieldCheck,
+} from 'lucide-react';
 import { FormEvent, useMemo, useState } from 'react';
 
 type Permission = {
@@ -129,13 +136,15 @@ export default function AdminRolesIndex({
     });
     const [processing, setProcessing] = useState<Record<number, boolean>>({});
     const [hasChanges, setHasChanges] = useState<Record<number, boolean>>({});
-    const [boostLimits, setBoostLimits] = useState<Record<number, number>>(() => {
-        const initial: Record<number, number> = {};
-        roles.forEach((role) => {
-            initial[role.id] = role.boost_radar_daily_limit ?? 1;
-        });
-        return initial;
-    });
+    const [boostLimits, setBoostLimits] = useState<Record<number, number>>(
+        () => {
+            const initial: Record<number, number> = {};
+            roles.forEach((role) => {
+                initial[role.id] = role.boost_radar_daily_limit ?? 1;
+            });
+            return initial;
+        },
+    );
     const [createRoleOpen, setCreateRoleOpen] = useState(false);
     const [newRoleName, setNewRoleName] = useState('');
     const [creatingRole, setCreatingRole] = useState(false);
@@ -269,8 +278,8 @@ export default function AdminRolesIndex({
                             Roles & Permissions
                         </h1>
                         <p className="text-sm text-white/60">
-                            Manage roles and their associated permissions. Click on
-                            a role to view and edit its permissions.
+                            Manage roles and their associated permissions. Click
+                            on a role to view and edit its permissions.
                         </p>
                     </div>
                     <Button
@@ -551,13 +560,22 @@ export default function AdminRolesIndex({
                                                                     htmlFor={`boost-limit-${role.id}`}
                                                                     className="text-sm font-medium text-white"
                                                                 >
-                                                                    Radar Boost Daily Limit
+                                                                    Radar Boost
+                                                                    Daily Limit
                                                                 </Label>
                                                                 <p className="text-xs text-white/60">
-                                                                    Maximum number of Radar boosts
-                                                                    users with this role can use per
-                                                                    day. Users need the "boost radar"
-                                                                    permission to boost.
+                                                                    Maximum
+                                                                    number of
+                                                                    Radar boosts
+                                                                    users with
+                                                                    this role
+                                                                    can use per
+                                                                    day. Users
+                                                                    need the
+                                                                    "boost
+                                                                    radar"
+                                                                    permission
+                                                                    to boost.
                                                                 </p>
                                                             </div>
                                                             <Input
@@ -565,19 +583,35 @@ export default function AdminRolesIndex({
                                                                 type="number"
                                                                 min="0"
                                                                 max="100"
-                                                                value={boostLimits[role.id] ?? 1}
-                                                                onChange={(e) => {
-                                                                    const newLimit = parseInt(
-                                                                        e.target.value,
-                                                                        10,
-                                                                    ) || 0;
-                                                                    setBoostLimits((prev) => ({
-                                                                        ...prev,
-                                                                        [role.id]: newLimit,
-                                                                    }));
+                                                                value={
+                                                                    boostLimits[
+                                                                        role.id
+                                                                    ] ?? 1
+                                                                }
+                                                                onChange={(
+                                                                    e,
+                                                                ) => {
+                                                                    const newLimit =
+                                                                        parseInt(
+                                                                            e
+                                                                                .target
+                                                                                .value,
+                                                                            10,
+                                                                        ) || 0;
+                                                                    setBoostLimits(
+                                                                        (
+                                                                            prev,
+                                                                        ) => ({
+                                                                            ...prev,
+                                                                            [role.id]:
+                                                                                newLimit,
+                                                                        }),
+                                                                    );
                                                                     const originalLimit =
                                                                         roles.find(
-                                                                            (r) =>
+                                                                            (
+                                                                                r,
+                                                                            ) =>
                                                                                 r.id ===
                                                                                 role.id,
                                                                         )
@@ -585,7 +619,9 @@ export default function AdminRolesIndex({
                                                                         1;
                                                                     const originalPermissions =
                                                                         roles.find(
-                                                                            (r) =>
+                                                                            (
+                                                                                r,
+                                                                            ) =>
                                                                                 r.id ===
                                                                                 role.id,
                                                                         )
@@ -593,30 +629,39 @@ export default function AdminRolesIndex({
                                                                         [];
                                                                     const currentPermissions =
                                                                         selectedPermissions[
-                                                                            role.id
+                                                                            role
+                                                                                .id
                                                                         ] || [];
                                                                     const permissionsChanged =
                                                                         currentPermissions.length !==
                                                                             originalPermissions.length ||
                                                                         !currentPermissions.every(
-                                                                            (id) =>
+                                                                            (
+                                                                                id,
+                                                                            ) =>
                                                                                 originalPermissions.includes(
                                                                                     id,
                                                                                 ),
                                                                         ) ||
                                                                         !originalPermissions.every(
-                                                                            (id) =>
+                                                                            (
+                                                                                id,
+                                                                            ) =>
                                                                                 currentPermissions.includes(
                                                                                     id,
                                                                                 ),
                                                                         );
-                                                                    setHasChanges((prev) => ({
-                                                                        ...prev,
-                                                                        [role.id]:
-                                                                            newLimit !==
-                                                                                originalLimit ||
-                                                                            permissionsChanged,
-                                                                    }));
+                                                                    setHasChanges(
+                                                                        (
+                                                                            prev,
+                                                                        ) => ({
+                                                                            ...prev,
+                                                                            [role.id]:
+                                                                                newLimit !==
+                                                                                    originalLimit ||
+                                                                                permissionsChanged,
+                                                                        }),
+                                                                    );
                                                                 }}
                                                                 className="max-w-[200px] bg-black/25"
                                                             />
@@ -672,15 +717,15 @@ export default function AdminRolesIndex({
                 </div>
 
                 <Dialog open={createRoleOpen} onOpenChange={setCreateRoleOpen}>
-                    <DialogContent className="bg-gradient-to-br from-black/40 via-black/30 to-black/40 border-white/10">
+                    <DialogContent className="border-white/10 bg-gradient-to-br from-black/40 via-black/30 to-black/40">
                         <DialogHeader>
                             <DialogTitle className="text-white">
                                 Create New Role
                             </DialogTitle>
                             <DialogDescription className="text-white/60">
                                 Create a new role to organize permissions. Once
-                                created, you can assign permissions and configure
-                                settings for this role.
+                                created, you can assign permissions and
+                                configure settings for this role.
                             </DialogDescription>
                         </DialogHeader>
                         <form onSubmit={handleCreateRole}>
@@ -699,7 +744,7 @@ export default function AdminRolesIndex({
                                             setNewRoleName(e.target.value)
                                         }
                                         placeholder="e.g., Gold, Silver, Bronze"
-                                        className="bg-black/25 border-white/10 text-white placeholder:text-white/40"
+                                        className="border-white/10 bg-black/25 text-white placeholder:text-white/40"
                                         required
                                         autoFocus
                                     />
@@ -723,7 +768,9 @@ export default function AdminRolesIndex({
                                 </Button>
                                 <Button
                                     type="submit"
-                                    disabled={creatingRole || !newRoleName.trim()}
+                                    disabled={
+                                        creatingRole || !newRoleName.trim()
+                                    }
                                 >
                                     {creatingRole ? (
                                         <>

@@ -35,7 +35,6 @@ type AdminDiscountsIndexProps = {
     }>;
 };
 
- 
 export default function AdminDiscountsIndex({
     discounts,
     plans: _plans,

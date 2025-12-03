@@ -29,7 +29,9 @@ export function usePaymentMethods(): UsePaymentMethodsResult {
             setPaymentMethods(methods);
         } catch (err) {
             const errorMessage =
-                err instanceof Error ? err.message : 'Failed to load payment methods';
+                err instanceof Error
+                    ? err.message
+                    : 'Failed to load payment methods';
             setError(errorMessage);
         } finally {
             setLoading(false);
@@ -83,6 +85,3 @@ export function usePaymentMethods(): UsePaymentMethodsResult {
         setDefault: handleSetDefault,
     };
 }
-
-
-

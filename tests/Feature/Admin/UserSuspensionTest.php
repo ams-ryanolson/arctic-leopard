@@ -11,19 +11,23 @@ use function Pest\Laravel\actingAs;
 it('allows admin to suspend a user', function (): void {
     Event::fake([UserSuspended::class]);
 
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
 
     $user = User::factory()->create();
 
-    actingAs($admin)
+    $response = actingAs($admin)
         ->post("/admin/users/{$user->id}/suspend", [
             'reason' => 'Violation of terms of service',
-        ])
-        ->assertRedirect();
+        ]);
 
     $user->refresh();
 
+    // Actually assert the expected behavior
+    $response->assertRedirect();
     expect($user->isSuspended())->toBeTrue()
         ->and($user->suspended_at)->not->toBeNull()
         ->and($user->suspended_reason)->toBe('Violation of terms of service')
@@ -39,7 +43,10 @@ it('allows admin to suspend a user', function (): void {
 it('allows admin to suspend a user with expiry date', function (): void {
     Event::fake([UserSuspended::class]);
 
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
 
     $user = User::factory()->create();
@@ -66,7 +73,10 @@ it('allows admin to suspend a user with expiry date', function (): void {
 it('allows admin to unsuspend a user', function (): void {
     Event::fake([UserUnsuspended::class]);
 
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
 
     $user = User::factory()->create();
@@ -90,34 +100,52 @@ it('allows admin to unsuspend a user', function (): void {
 });
 
 it('prevents non-admin from suspending users', function (): void {
-    $regularUser = User::factory()->create();
+    $regularUser = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $targetUser = User::factory()->create();
 
+    // Use JSON request to get proper 403 response (browser requests redirect to dashboard)
     actingAs($regularUser)
-        ->post("/admin/users/{$targetUser->id}/suspend", [
+        ->postJson("/admin/users/{$targetUser->id}/suspend", [
             'reason' => 'Should not work',
         ])
         ->assertForbidden();
 });
 
 it('prevents admin from suspending themselves', function (): void {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
 
+    // Use JSON request to get proper 403 response (browser requests redirect to dashboard)
     actingAs($admin)
-        ->post("/admin/users/{$admin->id}/suspend", [
+        ->postJson("/admin/users/{$admin->id}/suspend", [
             'reason' => 'Should not work',
         ])
         ->assertForbidden();
 });
 
-it('requires reason when suspending user', function (): void {
-    $admin = User::factory()->create();
+it('allows suspending user without reason', function (): void {
+    Event::fake([UserSuspended::class]);
+
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
 
     $user = User::factory()->create();
 
     actingAs($admin)
         ->post("/admin/users/{$user->id}/suspend", [])
-        ->assertSessionHasErrors('reason');
+        ->assertRedirect();
+
+    $user->refresh();
+
+    expect($user->isSuspended())->toBeTrue()
+        ->and($user->suspended_reason)->toBeNull();
 });

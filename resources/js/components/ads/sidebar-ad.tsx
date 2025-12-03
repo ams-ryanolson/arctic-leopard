@@ -38,10 +38,11 @@ export default function SidebarAd({ ad, size = 'large' }: SidebarAdProps) {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document
-                            .querySelector('meta[name="csrf-token"]')
-                            ?.getAttribute('content') || '',
-                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN':
+                            document
+                                .querySelector('meta[name="csrf-token"]')
+                                ?.getAttribute('content') || '',
+                        Accept: 'application/json',
                     },
                     body: JSON.stringify({
                         creative_id: ad.id,

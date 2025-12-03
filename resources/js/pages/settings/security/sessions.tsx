@@ -1,13 +1,17 @@
-import { Head, router } from '@inertiajs/react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import HeadingSmall from '@/components/heading-small';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Monitor, Smartphone, Tablet, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
-import HeadingSmall from '@/components/heading-small';
-import { type SharedData, type BreadcrumbItem } from '@/types';
-import { usePage } from '@inertiajs/react';
+import { type BreadcrumbItem, type SharedData } from '@/types';
+import { Head, router, usePage } from '@inertiajs/react';
+import { AlertCircle, Monitor, Smartphone, Tablet, Trash2 } from 'lucide-react';
 
 type Session = {
     id: string;
@@ -47,7 +51,11 @@ export default function SessionsPage({ sessions }: SessionsPageProps) {
     };
 
     const handleDeleteAll = () => {
-        if (confirm('Are you sure you want to delete all other sessions? This will log you out of all devices except this one.')) {
+        if (
+            confirm(
+                'Are you sure you want to delete all other sessions? This will log you out of all devices except this one.',
+            )
+        ) {
             router.delete('/settings/security/sessions');
         }
     };
@@ -77,14 +85,14 @@ export default function SessionsPage({ sessions }: SessionsPageProps) {
                                 variant="destructive"
                                 onClick={handleDeleteAll}
                             >
-                                <Trash2 className="h-4 w-4 mr-2" />
+                                <Trash2 className="mr-2 h-4 w-4" />
                                 End All Other Sessions
                             </Button>
                         )}
                     </div>
 
                     {flash?.status && (
-                        <div className="rounded-lg bg-green-50 dark:bg-green-900/20 p-4 text-green-800 dark:text-green-200">
+                        <div className="rounded-lg bg-green-50 p-4 text-green-800 dark:bg-green-900/20 dark:text-green-200">
                             {flash.status}
                         </div>
                     )}
@@ -98,22 +106,33 @@ export default function SessionsPage({ sessions }: SessionsPageProps) {
                                             {getDeviceIcon(session)}
                                             <div>
                                                 <CardTitle className="text-base">
-                                                    {session.device_info.os} - {session.device_info.browser}
+                                                    {session.device_info.os} -{' '}
+                                                    {
+                                                        session.device_info
+                                                            .browser
+                                                    }
                                                 </CardTitle>
                                                 <CardDescription>
-                                                    {session.ip_address} • {session.last_activity_human}
+                                                    {session.ip_address} •{' '}
+                                                    {
+                                                        session.last_activity_human
+                                                    }
                                                 </CardDescription>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             {session.is_current && (
-                                                <Badge variant="default">Current</Badge>
+                                                <Badge variant="default">
+                                                    Current
+                                                </Badge>
                                             )}
                                             {!session.is_current && (
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
-                                                    onClick={() => handleDelete(session.id)}
+                                                    onClick={() =>
+                                                        handleDelete(session.id)
+                                                    }
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                 </Button>
@@ -128,11 +147,15 @@ export default function SessionsPage({ sessions }: SessionsPageProps) {
                     <Card className="border-amber-200 dark:border-amber-800">
                         <CardHeader>
                             <div className="flex items-start gap-3">
-                                <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5" />
+                                <AlertCircle className="mt-0.5 h-5 w-5 text-amber-600 dark:text-amber-400" />
                                 <div>
-                                    <CardTitle className="text-sm">Security Tip</CardTitle>
-                                    <CardDescription className="text-xs mt-1">
-                                        If you see a session you don't recognize, delete it immediately and consider changing your password.
+                                    <CardTitle className="text-sm">
+                                        Security Tip
+                                    </CardTitle>
+                                    <CardDescription className="mt-1 text-xs">
+                                        If you see a session you don't
+                                        recognize, delete it immediately and
+                                        consider changing your password.
                                     </CardDescription>
                                 </div>
                             </div>
@@ -143,5 +166,3 @@ export default function SessionsPage({ sessions }: SessionsPageProps) {
         </AppLayout>
     );
 }
-
-

@@ -1,6 +1,6 @@
+import profileRoutes from '@/routes/profile';
 import { Link } from '@inertiajs/react';
 import { useMemo } from 'react';
-import profileRoutes from '@/routes/profile';
 
 type PostBodyProps = {
     body: string;
@@ -69,7 +69,9 @@ export default function PostBody({ body, className = '' }: PostBodyProps) {
             // Add match
             if (match.type === 'mention') {
                 // Validate username format before creating link
-                const isValidUsername = /^[a-zA-Z0-9_]{1,30}$/.test(match.content);
+                const isValidUsername = /^[a-zA-Z0-9_]{1,30}$/.test(
+                    match.content,
+                );
                 if (isValidUsername) {
                     parts.push({
                         type: 'mention',
@@ -116,7 +118,7 @@ export default function PostBody({ body, className = '' }: PostBodyProps) {
 
     return (
         <p
-            className={`whitespace-pre-line text-sm sm:text-base leading-relaxed ${className}`}
+            className={`text-sm leading-relaxed whitespace-pre-line sm:text-base ${className}`}
         >
             {parsedBody.map((part, index) => {
                 if (part.type === 'text') {
@@ -129,7 +131,7 @@ export default function PostBody({ body, className = '' }: PostBodyProps) {
                             key={index}
                             href={part.link}
                             prefetch
-                            className="text-blue-400 font-medium hover:text-blue-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded"
+                            className="rounded font-medium text-blue-400 transition-colors hover:text-blue-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
                         >
                             {part.content}
                         </Link>
@@ -142,7 +144,7 @@ export default function PostBody({ body, className = '' }: PostBodyProps) {
                             key={index}
                             href={part.link}
                             prefetch
-                            className="text-emerald-400 font-medium hover:text-emerald-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded"
+                            className="rounded font-medium text-emerald-400 transition-colors hover:text-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
                         >
                             {part.content}
                         </Link>
@@ -155,4 +157,3 @@ export default function PostBody({ body, className = '' }: PostBodyProps) {
         </p>
     );
 }
-

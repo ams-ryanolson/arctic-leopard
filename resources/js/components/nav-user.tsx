@@ -1,3 +1,4 @@
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -9,8 +10,6 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from '@/components/ui/sidebar';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { UserInfo } from '@/components/user-info';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -25,7 +24,7 @@ export function NavUser() {
     const supportEmail = support?.email || '';
     const contactUrl = support?.contact_url || '';
     const getInitials = useInitials();
-    
+
     const user = auth.user;
     const displayName =
         user.display_name ?? user.name ?? user.username ?? 'Member';
@@ -41,10 +40,13 @@ export function NavUser() {
                             data-test="sidebar-menu-button"
                         >
                             <Avatar className="h-8 w-8 shrink-0 overflow-hidden rounded-full group-data-[collapsible=icon]:h-10 group-data-[collapsible=icon]:w-10">
-                                {(user.avatar_url || user.avatar) ? (
-                                    <AvatarImage 
-                                        src={(user.avatar_url || user.avatar) as string} 
-                                        alt={displayName} 
+                                {user.avatar_url || user.avatar ? (
+                                    <AvatarImage
+                                        src={
+                                            (user.avatar_url ||
+                                                user.avatar) as string
+                                        }
+                                        alt={displayName}
                                     />
                                 ) : null}
                                 <AvatarFallback className="rounded-full bg-gradient-to-br from-amber-400/70 via-rose-500/70 to-violet-600/70 text-sm font-semibold text-white">
@@ -62,7 +64,7 @@ export function NavUser() {
                         </SidebarMenuButton>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
-                        className="w-(--radix-dropdown-menu-trigger-width) min-w-64 rounded-xl border border-white/10 bg-black/95 backdrop-blur-xl p-2 shadow-[0_24px_60px_-35px_rgba(249,115,22,0.45)]"
+                        className="w-(--radix-dropdown-menu-trigger-width) min-w-64 rounded-xl border border-white/10 bg-black/95 p-2 shadow-[0_24px_60px_-35px_rgba(249,115,22,0.45)] backdrop-blur-xl"
                         align="end"
                         side={
                             isMobile

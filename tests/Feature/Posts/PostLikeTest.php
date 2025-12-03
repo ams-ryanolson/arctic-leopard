@@ -14,7 +14,7 @@ it('allows an authenticated user to like a post', function (): void {
 
     Sanctum::actingAs($user);
 
-    $response = $this->postJson(route('posts.like.store', $post));
+    $response = $this->postJson(route('api.posts.like.store', $post));
 
     $response->assertOk()
         ->assertJsonPath('data.id', $post->getKey())
@@ -30,8 +30,8 @@ it('does not duplicate likes for the same user', function (): void {
 
     Sanctum::actingAs($user);
 
-    $this->postJson(route('posts.like.store', $post));
-    $this->postJson(route('posts.like.store', $post));
+    $this->postJson(route('api.posts.like.store', $post));
+    $this->postJson(route('api.posts.like.store', $post));
 
     expect($post->fresh()->likes_count)->toBe(1);
 });
@@ -42,9 +42,9 @@ it('allows a user to unlike a post', function (): void {
 
     Sanctum::actingAs($user);
 
-    $this->postJson(route('posts.like.store', $post));
+    $this->postJson(route('api.posts.like.store', $post));
 
-    $response = $this->deleteJson(route('posts.like.destroy', $post));
+    $response = $this->deleteJson(route('api.posts.like.destroy', $post));
 
     $response->assertOk()
         ->assertJsonPath('data.has_liked', false);

@@ -28,7 +28,7 @@ it('allows a user to purchase a paywalled post', function (): void {
 
     Sanctum::actingAs($buyer);
 
-    $response = $this->postJson("/api/posts/{$post->getKey()}/purchase", [
+    $response = $this->postJson(route('api.posts.purchase.store', $post), [
         'amount' => 1500,
         'currency' => 'USD',
         'provider' => 'stripe',

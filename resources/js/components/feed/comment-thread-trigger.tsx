@@ -18,7 +18,7 @@ export default function CommentThreadTrigger({
             type="button"
             variant="ghost"
             size="sm"
-            className="h-9 rounded-full px-3 text-[0.625rem] text-white/75 transition active:scale-95 hover:bg-white/10 hover:text-white sm:h-auto sm:px-4 sm:text-xs"
+            className="h-9 rounded-full px-3 text-[0.625rem] text-white/75 transition hover:bg-white/10 hover:text-white active:scale-95 sm:h-auto sm:px-4 sm:text-xs"
             onClick={() => onOpen?.(postId)}
             disabled={disabled}
         >

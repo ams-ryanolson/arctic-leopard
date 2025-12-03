@@ -34,7 +34,7 @@ it('can purchase a gift membership for another user', function (): void {
     $plan = MembershipPlan::factory()->create([
         'name' => 'Premium Plan',
         'slug' => 'premium-plan',
-        'role_to_assign' => 'Premium',
+        'role_to_assign' => 'Gold',
         'monthly_price' => 1000,
         'allows_one_time' => true,
         'one_time_duration_days' => 30,
@@ -116,7 +116,7 @@ it('cannot gift membership to user with active membership', function (): void {
     $plan = MembershipPlan::factory()->create([
         'name' => 'Premium Plan',
         'slug' => 'premium-plan',
-        'role_to_assign' => 'Premium',
+        'role_to_assign' => 'Gold',
         'monthly_price' => 1000,
         'allows_one_time' => true,
         'one_time_duration_days' => 30,
@@ -174,7 +174,7 @@ it('revokes gift membership on chargeback and notifies both users', function ():
     $plan = MembershipPlan::factory()->create([
         'name' => 'Premium Plan',
         'slug' => 'premium-plan',
-        'role_to_assign' => 'Premium',
+        'role_to_assign' => 'Gold',
         'monthly_price' => 1000,
         'allows_one_time' => true,
         'one_time_duration_days' => 30,
@@ -227,7 +227,7 @@ it('sends notifications to both gifter and recipient on gift purchase', function
     $plan = MembershipPlan::factory()->create([
         'name' => 'Premium Plan',
         'slug' => 'premium-plan',
-        'role_to_assign' => 'Premium',
+        'role_to_assign' => 'Gold',
         'monthly_price' => 1000,
         'allows_one_time' => true,
         'one_time_duration_days' => 30,
@@ -311,7 +311,7 @@ it('creates gift membership with correct duration', function (): void {
     $plan = MembershipPlan::factory()->create([
         'name' => 'Premium Plan',
         'slug' => 'premium-plan',
-        'role_to_assign' => 'Premium',
+        'role_to_assign' => 'Gold',
         'monthly_price' => 1000,
         'allows_one_time' => true,
         'one_time_duration_days' => 90, // 3 months

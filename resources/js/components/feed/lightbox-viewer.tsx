@@ -5,10 +5,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
 import type { FeedMedia, FeedPost } from '@/types/feed';
 
+import FlvPlayer from '@/components/flv-player';
 import CommentThreadPanel from './comment-thread-panel';
 import CommentThreadSheet from './comment-thread-sheet';
 import CommentThreadTrigger from './comment-thread-trigger';
-import FlvPlayer from '@/components/flv-player';
 
 type LightboxViewerProps = {
     media: FeedMedia[];
@@ -31,7 +31,8 @@ const isVideoMedia = (media: FeedMedia | null | undefined): boolean =>
     !!media?.type && media.type.startsWith('video/');
 
 const isFlvVideo = (media: FeedMedia | null | undefined): boolean =>
-    !!media?.type && (media.type === 'video/x-flv' || media.url?.endsWith('.flv'));
+    !!media?.type &&
+    (media.type === 'video/x-flv' || media.url?.endsWith('.flv'));
 
 export default function LightboxViewer({
     media,

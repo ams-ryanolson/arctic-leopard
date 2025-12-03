@@ -24,18 +24,12 @@ interface HashtagsIndexProps {
     };
 }
 
-export default function HashtagsIndex({
-    hashtags,
-    meta,
-}: HashtagsIndexProps) {
-    const handlePageChange = useCallback(
-        (page: number) => {
-            router.visit(`/hashtags?page=${page}`, {
-                preserveScroll: true,
-            });
-        },
-        [],
-    );
+export default function HashtagsIndex({ hashtags, meta }: HashtagsIndexProps) {
+    const handlePageChange = useCallback((page: number) => {
+        router.visit(`/hashtags?page=${page}`, {
+            preserveScroll: true,
+        });
+    }, []);
 
     return (
         <AppLayout
@@ -75,7 +69,8 @@ export default function HashtagsIndex({
                                                         <p className="text-lg font-semibold text-white">
                                                             #{hashtag.name}
                                                         </p>
-                                                        {hashtag.recent_usage_count > 0 && (
+                                                        {hashtag.recent_usage_count >
+                                                            0 && (
                                                             <Badge className="rounded-full border-emerald-400/30 bg-emerald-500/20 text-xs text-emerald-300">
                                                                 <TrendingUp className="mr-1 size-3" />
                                                                 Trending
@@ -83,14 +78,21 @@ export default function HashtagsIndex({
                                                         )}
                                                     </div>
                                                     <div className="mt-2 space-y-1 text-sm text-white/60">
-                                                        {hashtag.recent_usage_count > 0 && (
+                                                        {hashtag.recent_usage_count >
+                                                            0 && (
                                                             <p>
-                                                                {hashtag.recent_usage_count}{' '}
-                                                                posts in last 24h
+                                                                {
+                                                                    hashtag.recent_usage_count
+                                                                }{' '}
+                                                                posts in last
+                                                                24h
                                                             </p>
                                                         )}
                                                         <p>
-                                                            {hashtag.usage_count} total posts
+                                                            {
+                                                                hashtag.usage_count
+                                                            }{' '}
+                                                            total posts
                                                         </p>
                                                     </div>
                                                 </div>
@@ -121,4 +123,3 @@ export default function HashtagsIndex({
         </AppLayout>
     );
 }
-

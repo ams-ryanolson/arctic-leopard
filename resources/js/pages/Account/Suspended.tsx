@@ -1,13 +1,19 @@
 import { Head, router, usePage } from '@inertiajs/react';
+import { format, formatDistanceToNow } from 'date-fns';
 import { AlertCircle, Clock, FileText, ShieldOff } from 'lucide-react';
-import { formatDistanceToNow, format, isAfter } from 'date-fns';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { type SharedData } from '@/types';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import accountRoutes from '@/routes/account';
+import { type SharedData } from '@/types';
 
 type Warning = {
     id: number;
@@ -44,9 +50,13 @@ export default function Suspended() {
     };
 
     const isTemporary = props.suspended_until !== null;
-    const suspensionEnds = props.suspended_until ? new Date(props.suspended_until) : null;
+    const suspensionEnds = props.suspended_until
+        ? new Date(props.suspended_until)
+        : null;
     const daysRemaining = suspensionEnds
-        ? Math.ceil((suspensionEnds.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+        ? Math.ceil(
+              (suspensionEnds.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+          )
         : null;
 
     return (
@@ -77,7 +87,11 @@ export default function Suspended() {
                                     </CardTitle>
                                     {props.suspended_at && (
                                         <CardDescription className="text-white/60">
-                                            Suspended {formatDistanceToNow(new Date(props.suspended_at), { addSuffix: true })}
+                                            Suspended{' '}
+                                            {formatDistanceToNow(
+                                                new Date(props.suspended_at),
+                                                { addSuffix: true },
+                                            )}
                                         </CardDescription>
                                     )}
                                 </div>
@@ -87,13 +101,29 @@ export default function Suspended() {
                             {isTemporary && suspensionEnds && (
                                 <Alert className="border-amber-500/30 bg-amber-950/10">
                                     <Clock className="size-4 text-amber-400" />
-                                    <AlertTitle className="text-white">Temporary Suspension</AlertTitle>
+                                    <AlertTitle className="text-white">
+                                        Temporary Suspension
+                                    </AlertTitle>
                                     <AlertDescription className="text-white/80">
-                                        Your account will be automatically restored on{' '}
-                                        <strong>{format(suspensionEnds, 'MMMM d, yyyy \'at\' h:mm a')}</strong>
-                                        {daysRemaining !== null && daysRemaining > 0 && (
-                                            <> ({daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} remaining)</>
-                                        )}
+                                        Your account will be automatically
+                                        restored on{' '}
+                                        <strong>
+                                            {format(
+                                                suspensionEnds,
+                                                "MMMM d, yyyy 'at' h:mm a",
+                                            )}
+                                        </strong>
+                                        {daysRemaining !== null &&
+                                            daysRemaining > 0 && (
+                                                <>
+                                                    {' '}
+                                                    ({daysRemaining}{' '}
+                                                    {daysRemaining === 1
+                                                        ? 'day'
+                                                        : 'days'}{' '}
+                                                    remaining)
+                                                </>
+                                            )}
                                     </AlertDescription>
                                 </Alert>
                             )}
@@ -101,7 +131,9 @@ export default function Suspended() {
                             {props.reason && (
                                 <Alert className="border-amber-500/30 bg-amber-950/10">
                                     <AlertCircle className="size-4 text-amber-400" />
-                                    <AlertTitle className="text-white">Reason for suspension</AlertTitle>
+                                    <AlertTitle className="text-white">
+                                        Reason for suspension
+                                    </AlertTitle>
                                     <AlertDescription className="text-white/80">
                                         {props.reason}
                                     </AlertDescription>
@@ -110,67 +142,100 @@ export default function Suspended() {
 
                             <div className="space-y-4">
                                 <p className="text-sm leading-relaxed text-white/70">
-                                    Your account access has been temporarily restricted. During this suspension, you will not be able to access most features of the platform.
+                                    Your account access has been temporarily
+                                    restricted. During this suspension, you will
+                                    not be able to access most features of the
+                                    platform.
                                 </p>
 
-                                {props.can_appeal && !props.has_pending_appeal && (
-                                    <div className="flex flex-col gap-3">
-                                        <p className="text-sm text-white/60">
-                                            If you believe this suspension was issued in error, you may submit an appeal for review.
-                                        </p>
-                                        <Button
-                                            onClick={handleAppeal}
-                                            className="w-full sm:w-auto"
-                                            variant="default"
-                                        >
-                                            <FileText className="size-4" />
-                                            Submit Appeal
-                                        </Button>
-                                    </div>
-                                )}
+                                {props.can_appeal &&
+                                    !props.has_pending_appeal && (
+                                        <div className="flex flex-col gap-3">
+                                            <p className="text-sm text-white/60">
+                                                If you believe this suspension
+                                                was issued in error, you may
+                                                submit an appeal for review.
+                                            </p>
+                                            <Button
+                                                onClick={handleAppeal}
+                                                className="w-full sm:w-auto"
+                                                variant="default"
+                                            >
+                                                <FileText className="size-4" />
+                                                Submit Appeal
+                                            </Button>
+                                        </div>
+                                    )}
 
                                 {props.has_pending_appeal && (
                                     <Alert className="border-amber-500/30 bg-amber-950/10">
                                         <Clock className="size-4 text-amber-400" />
-                                        <AlertTitle className="text-white">Appeal pending</AlertTitle>
+                                        <AlertTitle className="text-white">
+                                            Appeal pending
+                                        </AlertTitle>
                                         <AlertDescription className="text-white/80">
-                                            You have a pending appeal. Our team will review it shortly.
+                                            You have a pending appeal. Our team
+                                            will review it shortly.
                                         </AlertDescription>
                                     </Alert>
                                 )}
 
-                                {props.active_warnings && props.active_warnings.length > 0 && (
-                                    <div className="space-y-3">
-                                        <h3 className="text-sm font-semibold text-white">Active Warnings</h3>
-                                        <div className="space-y-2">
-                                            {props.active_warnings.map((warning) => (
-                                                <div
-                                                    key={warning.id}
-                                                    className="rounded-lg border border-amber-500/20 bg-amber-950/10 p-3"
-                                                >
-                                                    <div className="flex items-start justify-between gap-2">
-                                                        <p className="text-sm text-white/80">{warning.reason}</p>
-                                                        {warning.expires_at && (
-                                                            <Badge variant="outline" className="text-xs">
-                                                                Expires {formatDistanceToNow(new Date(warning.expires_at), { addSuffix: true })}
-                                                            </Badge>
-                                                        )}
-                                                    </div>
-                                                    {warning.notes && (
-                                                        <p className="mt-2 text-xs text-white/60">{warning.notes}</p>
-                                                    )}
-                                                </div>
-                                            ))}
+                                {props.active_warnings &&
+                                    props.active_warnings.length > 0 && (
+                                        <div className="space-y-3">
+                                            <h3 className="text-sm font-semibold text-white">
+                                                Active Warnings
+                                            </h3>
+                                            <div className="space-y-2">
+                                                {props.active_warnings.map(
+                                                    (warning) => (
+                                                        <div
+                                                            key={warning.id}
+                                                            className="rounded-lg border border-amber-500/20 bg-amber-950/10 p-3"
+                                                        >
+                                                            <div className="flex items-start justify-between gap-2">
+                                                                <p className="text-sm text-white/80">
+                                                                    {
+                                                                        warning.reason
+                                                                    }
+                                                                </p>
+                                                                {warning.expires_at && (
+                                                                    <Badge
+                                                                        variant="outline"
+                                                                        className="text-xs"
+                                                                    >
+                                                                        Expires{' '}
+                                                                        {formatDistanceToNow(
+                                                                            new Date(
+                                                                                warning.expires_at,
+                                                                            ),
+                                                                            {
+                                                                                addSuffix: true,
+                                                                            },
+                                                                        )}
+                                                                    </Badge>
+                                                                )}
+                                                            </div>
+                                                            {warning.notes && (
+                                                                <p className="mt-2 text-xs text-white/60">
+                                                                    {
+                                                                        warning.notes
+                                                                    }
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    ),
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
+                                    )}
                             </div>
 
-                            <div className="flex flex-col gap-3 pt-4 border-t border-white/10">
+                            <div className="flex flex-col gap-3 border-t border-white/10 pt-4">
                                 <Button
                                     onClick={handleLogout}
                                     variant="outline"
-                                    className="w-full sm:w-auto border-white/25 bg-white/10 text-white hover:bg-white/15"
+                                    className="w-full border-white/25 bg-white/10 text-white hover:bg-white/15 sm:w-auto"
                                 >
                                     Logout
                                 </Button>
@@ -182,4 +247,3 @@ export default function Suspended() {
         </div>
     );
 }
-

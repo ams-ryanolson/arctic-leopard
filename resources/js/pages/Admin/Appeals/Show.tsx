@@ -1,17 +1,23 @@
+import InputError from '@/components/input-error';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import InputError from '@/components/input-error';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import adminRoutes from '@/routes/admin';
 import { type SharedData } from '@/types';
-import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { formatDistanceToNow, format } from 'date-fns';
-import { AlertCircle, Ban, CheckCircle2, Clock, ShieldOff, XCircle } from 'lucide-react';
+import { Head, useForm, usePage } from '@inertiajs/react';
+import { format, formatDistanceToNow } from 'date-fns';
+import { Ban, CheckCircle2, Clock, ShieldOff, XCircle } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 
 type AppealUser = {
@@ -51,7 +57,9 @@ export default function AdminAppealShow() {
     const props = usePage<AdminAppealShowPageProps>().props;
     const { appeal } = props;
 
-    const [reviewAction, setReviewAction] = useState<'approve' | 'reject' | 'dismiss' | null>(null);
+    const [reviewAction, setReviewAction] = useState<
+        'approve' | 'reject' | 'dismiss' | null
+    >(null);
     const form = useForm({
         status: '',
         review_notes: '',
@@ -59,7 +67,14 @@ export default function AdminAppealShow() {
 
     const handleReview = (action: 'approve' | 'reject' | 'dismiss') => {
         setReviewAction(action);
-        form.setData('status', action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : 'dismissed');
+        form.setData(
+            'status',
+            action === 'approve'
+                ? 'approved'
+                : action === 'reject'
+                  ? 'rejected'
+                  : 'dismissed',
+        );
     };
 
     const handleSubmitReview = (e: FormEvent) => {
@@ -74,12 +89,25 @@ export default function AdminAppealShow() {
     };
 
     const isPending = appeal.status === 'pending';
-    const statusConfig = {
-        pending: { icon: Clock, color: 'text-amber-400', label: 'Pending' },
-        approved: { icon: CheckCircle2, color: 'text-green-400', label: 'Approved' },
-        rejected: { icon: XCircle, color: 'text-red-400', label: 'Rejected' },
-        dismissed: { icon: XCircle, color: 'text-gray-400', label: 'Dismissed' },
-    }[appeal.status] || statusConfig.pending;
+    const statusConfig =
+        {
+            pending: { icon: Clock, color: 'text-amber-400', label: 'Pending' },
+            approved: {
+                icon: CheckCircle2,
+                color: 'text-green-400',
+                label: 'Approved',
+            },
+            rejected: {
+                icon: XCircle,
+                color: 'text-red-400',
+                label: 'Rejected',
+            },
+            dismissed: {
+                icon: XCircle,
+                color: 'text-gray-400',
+                label: 'Dismissed',
+            },
+        }[appeal.status] || statusConfig.pending;
 
     return (
         <AppLayout>
@@ -87,7 +115,9 @@ export default function AdminAppealShow() {
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold text-white">Appeal #{appeal.id}</h1>
+                        <h1 className="text-3xl font-bold text-white">
+                            Appeal #{appeal.id}
+                        </h1>
                         <p className="mt-1 text-sm text-white/60">
                             Review and respond to user appeal
                         </p>
@@ -97,17 +127,25 @@ export default function AdminAppealShow() {
                         variant="outline"
                         className="border-white/10 bg-white/5 text-white hover:bg-white/10"
                     >
-                        <a href={adminRoutes.appeals.index().url}>Back to Appeals</a>
+                        <a href={adminRoutes.appeals.index().url}>
+                            Back to Appeals
+                        </a>
                     </Button>
                 </div>
 
                 <div className="grid gap-6 lg:grid-cols-3">
-                    <div className="lg:col-span-2 space-y-6">
+                    <div className="space-y-6 lg:col-span-2">
                         <Card className="border-white/10 bg-white/5">
                             <CardHeader>
-                                <CardTitle className="text-white">Appeal Details</CardTitle>
+                                <CardTitle className="text-white">
+                                    Appeal Details
+                                </CardTitle>
                                 <CardDescription className="text-white/60">
-                                    Submitted {formatDistanceToNow(new Date(appeal.created_at), { addSuffix: true })}
+                                    Submitted{' '}
+                                    {formatDistanceToNow(
+                                        new Date(appeal.created_at),
+                                        { addSuffix: true },
+                                    )}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -117,17 +155,24 @@ export default function AdminAppealShow() {
                                     ) : (
                                         <ShieldOff className="size-5 text-amber-400" />
                                     )}
-                                    <Badge variant="outline" className="capitalize">
+                                    <Badge
+                                        variant="outline"
+                                        className="capitalize"
+                                    >
                                         {appeal.appeal_type} Appeal
                                     </Badge>
-                                    <Badge className={`${statusConfig.color.replace('text-', 'border-')}/30 ${statusConfig.color.replace('text-', 'bg-')}/10 ${statusConfig.color}`}>
+                                    <Badge
+                                        className={`${statusConfig.color.replace('text-', 'border-')}/30 ${statusConfig.color.replace('text-', 'bg-')}/10 ${statusConfig.color}`}
+                                    >
                                         {statusConfig.label}
                                     </Badge>
                                 </div>
 
                                 <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-                                    <Label className="text-white/70">Appeal Reason</Label>
-                                    <p className="mt-2 text-sm leading-relaxed text-white whitespace-pre-wrap">
+                                    <Label className="text-white/70">
+                                        Appeal Reason
+                                    </Label>
+                                    <p className="mt-2 text-sm leading-relaxed whitespace-pre-wrap text-white">
                                         {appeal.reason}
                                     </p>
                                 </div>
@@ -135,16 +180,26 @@ export default function AdminAppealShow() {
                                 {!isPending && appeal.reviewed_at && (
                                     <Alert className="border-white/10 bg-white/5">
                                         <statusConfig.icon className="size-4" />
-                                        <AlertTitle className="text-white">Review Decision</AlertTitle>
+                                        <AlertTitle className="text-white">
+                                            Review Decision
+                                        </AlertTitle>
                                         <AlertDescription className="text-white/80">
                                             {appeal.reviewed_by && (
                                                 <p className="mb-2">
-                                                    Reviewed by {appeal.reviewed_by.name} on{' '}
-                                                    {format(new Date(appeal.reviewed_at), 'MMMM d, yyyy \'at\' h:mm a')}
+                                                    Reviewed by{' '}
+                                                    {appeal.reviewed_by.name} on{' '}
+                                                    {format(
+                                                        new Date(
+                                                            appeal.reviewed_at,
+                                                        ),
+                                                        "MMMM d, yyyy 'at' h:mm a",
+                                                    )}
                                                 </p>
                                             )}
                                             {appeal.review_notes && (
-                                                <p className="whitespace-pre-wrap">{appeal.review_notes}</p>
+                                                <p className="whitespace-pre-wrap">
+                                                    {appeal.review_notes}
+                                                </p>
                                             )}
                                         </AlertDescription>
                                     </Alert>
@@ -154,31 +209,50 @@ export default function AdminAppealShow() {
 
                         <Card className="border-white/10 bg-white/5">
                             <CardHeader>
-                                <CardTitle className="text-white">User Information</CardTitle>
+                                <CardTitle className="text-white">
+                                    User Information
+                                </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="flex items-center gap-3">
                                     <Avatar className="size-12">
-                                        <AvatarImage src={appeal.user.avatar_url ?? undefined} />
+                                        <AvatarImage
+                                            src={
+                                                appeal.user.avatar_url ??
+                                                undefined
+                                            }
+                                        />
                                         <AvatarFallback>
-                                            {appeal.user.name.charAt(0).toUpperCase()}
+                                            {appeal.user.name
+                                                .charAt(0)
+                                                .toUpperCase()}
                                         </AvatarFallback>
                                     </Avatar>
                                     <div>
-                                        <p className="font-semibold text-white">{appeal.user.name}</p>
+                                        <p className="font-semibold text-white">
+                                            {appeal.user.name}
+                                        </p>
                                         {appeal.user.username && (
-                                            <p className="text-sm text-white/60">@{appeal.user.username}</p>
+                                            <p className="text-sm text-white/60">
+                                                @{appeal.user.username}
+                                            </p>
                                         )}
-                                        <p className="text-xs text-white/50">{appeal.user.email}</p>
+                                        <p className="text-xs text-white/50">
+                                            {appeal.user.email}
+                                        </p>
                                     </div>
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label className="text-white/70">Current Status</Label>
+                                    <Label className="text-white/70">
+                                        Current Status
+                                    </Label>
                                     {appeal.user.is_banned && (
                                         <Alert className="border-red-500/30 bg-red-950/10">
                                             <Ban className="size-4 text-red-400" />
-                                            <AlertTitle className="text-white">Banned</AlertTitle>
+                                            <AlertTitle className="text-white">
+                                                Banned
+                                            </AlertTitle>
                                             {appeal.user.banned_reason && (
                                                 <AlertDescription className="text-white/80">
                                                     {appeal.user.banned_reason}
@@ -189,15 +263,26 @@ export default function AdminAppealShow() {
                                     {appeal.user.is_suspended && (
                                         <Alert className="border-amber-500/30 bg-amber-950/10">
                                             <ShieldOff className="size-4 text-amber-400" />
-                                            <AlertTitle className="text-white">Suspended</AlertTitle>
+                                            <AlertTitle className="text-white">
+                                                Suspended
+                                            </AlertTitle>
                                             {appeal.user.suspended_reason && (
                                                 <AlertDescription className="text-white/80">
-                                                    {appeal.user.suspended_reason}
+                                                    {
+                                                        appeal.user
+                                                            .suspended_reason
+                                                    }
                                                 </AlertDescription>
                                             )}
                                             {appeal.user.suspended_until && (
                                                 <AlertDescription className="text-white/80">
-                                                    Until {format(new Date(appeal.user.suspended_until), 'MMMM d, yyyy')}
+                                                    Until{' '}
+                                                    {format(
+                                                        new Date(
+                                                            appeal.user.suspended_until,
+                                                        ),
+                                                        'MMMM d, yyyy',
+                                                    )}
                                                 </AlertDescription>
                                             )}
                                         </Alert>
@@ -211,20 +296,26 @@ export default function AdminAppealShow() {
                         {isPending && (
                             <Card className="border-white/10 bg-white/5">
                                 <CardHeader>
-                                    <CardTitle className="text-white">Review Appeal</CardTitle>
+                                    <CardTitle className="text-white">
+                                        Review Appeal
+                                    </CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     {reviewAction === null ? (
                                         <div className="space-y-3">
                                             <Button
-                                                onClick={() => handleReview('approve')}
+                                                onClick={() =>
+                                                    handleReview('approve')
+                                                }
                                                 className="w-full bg-green-600 hover:bg-green-700"
                                             >
                                                 <CheckCircle2 className="size-4" />
                                                 Approve Appeal
                                             </Button>
                                             <Button
-                                                onClick={() => handleReview('reject')}
+                                                onClick={() =>
+                                                    handleReview('reject')
+                                                }
                                                 variant="destructive"
                                                 className="w-full"
                                             >
@@ -232,7 +323,9 @@ export default function AdminAppealShow() {
                                                 Reject Appeal
                                             </Button>
                                             <Button
-                                                onClick={() => handleReview('dismiss')}
+                                                onClick={() =>
+                                                    handleReview('dismiss')
+                                                }
                                                 variant="outline"
                                                 className="w-full"
                                             >
@@ -240,20 +333,47 @@ export default function AdminAppealShow() {
                                             </Button>
                                         </div>
                                     ) : (
-                                        <form onSubmit={handleSubmitReview} className="space-y-4">
+                                        <form
+                                            onSubmit={handleSubmitReview}
+                                            className="space-y-4"
+                                        >
                                             <div className="space-y-2">
-                                                <Label htmlFor="review_notes" className="text-white">
-                                                    Review Notes {reviewAction === 'reject' && <span className="text-red-400">*</span>}
+                                                <Label
+                                                    htmlFor="review_notes"
+                                                    className="text-white"
+                                                >
+                                                    Review Notes{' '}
+                                                    {reviewAction ===
+                                                        'reject' && (
+                                                        <span className="text-red-400">
+                                                            *
+                                                        </span>
+                                                    )}
                                                 </Label>
                                                 <Textarea
                                                     id="review_notes"
-                                                    value={form.data.review_notes}
-                                                    onChange={(e) => form.setData('review_notes', e.target.value)}
+                                                    value={
+                                                        form.data.review_notes
+                                                    }
+                                                    onChange={(e) =>
+                                                        form.setData(
+                                                            'review_notes',
+                                                            e.target.value,
+                                                        )
+                                                    }
                                                     placeholder="Optional notes about your decision..."
                                                     rows={4}
-                                                    className={form.errors.review_notes ? 'border-red-500' : ''}
+                                                    className={
+                                                        form.errors.review_notes
+                                                            ? 'border-red-500'
+                                                            : ''
+                                                    }
                                                 />
-                                                <InputError message={form.errors.review_notes} />
+                                                <InputError
+                                                    message={
+                                                        form.errors.review_notes
+                                                    }
+                                                />
                                             </div>
                                             <div className="flex gap-2">
                                                 <Button
@@ -270,10 +390,17 @@ export default function AdminAppealShow() {
                                                 <Button
                                                     type="submit"
                                                     disabled={form.processing}
-                                                    variant={reviewAction === 'approve' ? 'default' : 'destructive'}
+                                                    variant={
+                                                        reviewAction ===
+                                                        'approve'
+                                                            ? 'default'
+                                                            : 'destructive'
+                                                    }
                                                     className="flex-1"
                                                 >
-                                                    {form.processing ? 'Processing...' : 'Confirm'}
+                                                    {form.processing
+                                                        ? 'Processing...'
+                                                        : 'Confirm'}
                                                 </Button>
                                             </div>
                                         </form>
@@ -287,4 +414,3 @@ export default function AdminAppealShow() {
         </AppLayout>
     );
 }
-

@@ -36,7 +36,8 @@ export function CheckoutSummary({
     currency,
     className,
 }: CheckoutSummaryProps) {
-    const displaySubtotal = subtotal ?? items.reduce((sum, item) => sum + item.amount, 0);
+    const displaySubtotal =
+        subtotal ?? items.reduce((sum, item) => sum + item.amount, 0);
     const totalFees = fees.reduce((sum, fee) => sum + fee.amount, 0);
     const discountAmount = discount?.amount ?? 0;
     const calculatedTotal = displaySubtotal + totalFees - discountAmount;
@@ -51,7 +52,9 @@ export function CheckoutSummary({
                                 key={index}
                                 className="flex items-center justify-between text-sm"
                             >
-                                <span className="text-white/80">{item.label}</span>
+                                <span className="text-white/80">
+                                    {item.label}
+                                </span>
                                 <span className="font-medium">
                                     {formatCurrency(item.amount, item.currency)}
                                 </span>
@@ -81,9 +84,14 @@ export function CheckoutSummary({
                                     key={index}
                                     className="flex items-center justify-between text-sm"
                                 >
-                                    <span className="text-white/80">{fee.label}</span>
+                                    <span className="text-white/80">
+                                        {fee.label}
+                                    </span>
                                     <span className="font-medium">
-                                        {formatCurrency(fee.amount, fee.currency)}
+                                        {formatCurrency(
+                                            fee.amount,
+                                            fee.currency,
+                                        )}
                                     </span>
                                 </div>
                             ))}
@@ -112,6 +120,3 @@ export function CheckoutSummary({
         </div>
     );
 }
-
-
-

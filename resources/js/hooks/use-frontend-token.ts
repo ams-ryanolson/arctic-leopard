@@ -1,4 +1,7 @@
-import { getFrontendToken, type FrontendTokenResponse } from '@/lib/payment-method-client';
+import {
+    getFrontendToken,
+    type FrontendTokenResponse,
+} from '@/lib/payment-method-client';
 import { useCallback, useState } from 'react';
 
 type UseFrontendTokenResult = {
@@ -20,13 +23,16 @@ export function useFrontendToken(): UseFrontendTokenResult {
         setError(null);
 
         try {
-            const response: FrontendTokenResponse = await getFrontendToken(gateway);
+            const response: FrontendTokenResponse =
+                await getFrontendToken(gateway);
             setToken(response.token);
             setApplicationId(response.application_id || null);
             return response.token;
         } catch (err) {
             const errorMessage =
-                err instanceof Error ? err.message : 'Failed to generate frontend token';
+                err instanceof Error
+                    ? err.message
+                    : 'Failed to generate frontend token';
             setError(errorMessage);
             throw err;
         } finally {
@@ -42,6 +48,3 @@ export function useFrontendToken(): UseFrontendTokenResult {
         fetchToken,
     };
 }
-
-
-

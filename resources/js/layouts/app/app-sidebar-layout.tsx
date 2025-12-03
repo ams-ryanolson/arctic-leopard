@@ -79,7 +79,8 @@ export default function AppSidebarLayout({
                     >
                         <div
                             className={cn(
-                                !hideHeader && 'mx-auto w-full max-w-6xl px-3 pt-4 pb-24 sm:px-4 sm:pt-6 sm:pb-16 md:px-8 md:pt-8',
+                                !hideHeader &&
+                                    'mx-auto w-full max-w-6xl px-3 pt-4 pb-24 sm:px-4 sm:pt-6 sm:pb-16 md:px-8 md:pt-8',
                                 hideHeader &&
                                     'flex h-full min-h-0 flex-col !p-0',
                                 contentClassName,

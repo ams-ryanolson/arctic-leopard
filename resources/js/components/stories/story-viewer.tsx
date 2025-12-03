@@ -263,9 +263,10 @@ export default function StoryViewer({
     const isImage = story.media?.mime_type?.startsWith('image/') ?? false;
     const isVideo = story.media?.mime_type?.startsWith('video/') ?? false;
     // Use optimized_url for images when available, fall back to url
-    const mediaUrl = isImage && story.media?.optimized_url
-        ? story.media.optimized_url
-        : story.media?.url;
+    const mediaUrl =
+        isImage && story.media?.optimized_url
+            ? story.media.optimized_url
+            : story.media?.url;
 
     return (
         <div

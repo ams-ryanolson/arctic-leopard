@@ -270,8 +270,7 @@ export default function ToastProvider({
 
             // Check if user is currently viewing this conversation by checking the URL
             const conversationUlid =
-                payload.meta.conversation_ulid ??
-                payload.meta.conversationUlid;
+                payload.meta.conversation_ulid ?? payload.meta.conversationUlid;
 
             const currentPath =
                 typeof window !== 'undefined' ? window.location.pathname : '';

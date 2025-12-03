@@ -26,11 +26,15 @@ export default function MessageImageLightbox({
     const hasMultiple = attachments.length > 1;
 
     const handlePrevious = useCallback(() => {
-        setCurrentIndex((prev) => (prev > 0 ? prev - 1 : attachments.length - 1));
+        setCurrentIndex((prev) =>
+            prev > 0 ? prev - 1 : attachments.length - 1,
+        );
     }, [attachments.length]);
 
     const handleNext = useCallback(() => {
-        setCurrentIndex((prev) => (prev < attachments.length - 1 ? prev + 1 : 0));
+        setCurrentIndex((prev) =>
+            prev < attachments.length - 1 ? prev + 1 : 0,
+        );
     }, [attachments.length]);
 
     useEffect(() => {
@@ -60,13 +64,14 @@ export default function MessageImageLightbox({
     return (
         <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
             <DialogPrimitive.Portal>
-                <DialogPrimitive.Overlay className="fixed inset-0 z-[110] bg-neutral-950/95 backdrop-blur-xl data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0" />
+                <DialogPrimitive.Overlay className="fixed inset-0 z-[110] bg-neutral-950/95 backdrop-blur-xl data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
                 <DialogPrimitive.Content
-                    className="fixed inset-0 z-[120] flex flex-col focus:outline-hidden data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0"
+                    className="fixed inset-0 z-[120] flex flex-col focus:outline-hidden data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0"
                     aria-label="Image lightbox"
                 >
                     <div className="relative flex flex-1 items-center justify-center overflow-hidden p-8">
-                        {currentAttachment && currentAttachment.type === 'image' ? (
+                        {currentAttachment &&
+                        currentAttachment.type === 'image' ? (
                             <>
                                 <img
                                     src={
@@ -93,7 +98,9 @@ export default function MessageImageLightbox({
                                             onClick={handleNext}
                                             className="group absolute top-1/2 right-6 flex size-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/60 text-white/80 shadow-[0_15px_30px_-15px_rgba(0,0,0,0.5)] backdrop-blur-xl transition hover:border-white/30 hover:bg-white/10 hover:text-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white/40"
                                         >
-                                            <span className="sr-only">View next image</span>
+                                            <span className="sr-only">
+                                                View next image
+                                            </span>
                                             <ChevronRight className="size-6 transition group-hover:scale-110" />
                                         </button>
                                     </>
@@ -123,5 +130,3 @@ export default function MessageImageLightbox({
         </DialogPrimitive.Root>
     );
 }
-
-

@@ -24,7 +24,9 @@ export function useVaultPaymentMethod(): UseVaultPaymentMethodResult {
             return paymentMethod;
         } catch (err) {
             const errorMessage =
-                err instanceof Error ? err.message : 'Failed to vault payment method';
+                err instanceof Error
+                    ? err.message
+                    : 'Failed to vault payment method';
             setError(errorMessage);
             throw err;
         } finally {
@@ -38,6 +40,3 @@ export function useVaultPaymentMethod(): UseVaultPaymentMethodResult {
         vault,
     };
 }
-
-
-

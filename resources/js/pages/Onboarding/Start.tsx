@@ -1,12 +1,12 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 
+import { LocationModal } from '@/components/onboarding/location-modal';
 import { Button } from '@/components/ui/button';
 import OnboardingLayout from '@/layouts/onboarding-layout';
 import onboardingRoutes from '@/routes/onboarding';
-import { ArrowRight, ShieldCheck, Sparkles, Users } from 'lucide-react';
-import { LocationModal } from '@/components/onboarding/location-modal';
 import type { SharedData } from '@/types';
+import { ArrowRight, ShieldCheck, Sparkles, Users } from 'lucide-react';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Real Kink Men';
 
@@ -17,10 +17,7 @@ export default function OnboardingStart() {
 
     // Check if user is missing location coordinates on mount
     useEffect(() => {
-        if (
-            user &&
-            (!user.location_latitude || !user.location_longitude)
-        ) {
+        if (user && (!user.location_latitude || !user.location_longitude)) {
             setShowLocationModal(true);
         }
     }, [user]);

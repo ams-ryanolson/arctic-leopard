@@ -9,9 +9,20 @@ type UseConversationChannelOptions = {
     viewerName: string;
     onMessageReceived?: (message: Record<string, unknown>) => void;
     onMessageDeleted?: (messageId: number) => void;
-    onReactionUpdated?: (messageId: number, reactionSummary: Array<{ emoji: string; variant?: string | null; count: number; reacted: boolean }>) => void;
+    onReactionUpdated?: (
+        messageId: number,
+        reactionSummary: Array<{
+            emoji: string;
+            variant?: string | null;
+            count: number;
+            reacted: boolean;
+        }>,
+    ) => void;
     onMarkRead?: (userId: number, messageId?: number) => void;
-    onThreadUpdate?: (conversationId: number, lastMessage: Record<string, unknown>) => void;
+    onThreadUpdate?: (
+        conversationId: number,
+        lastMessage: Record<string, unknown>,
+    ) => void;
     setTypingUsers?: (users: Array<{ id: number; name: string }>) => void;
 };
 
@@ -26,10 +37,14 @@ export function useConversationChannel({
     onThreadUpdate,
     setTypingUsers,
 }: UseConversationChannelOptions) {
-    const [presenceMembers, setPresenceMembers] = useState<PresenceMember[]>([]);
+    const [presenceMembers, setPresenceMembers] = useState<PresenceMember[]>(
+        [],
+    );
     const typingTimeoutsRef = useRef<Map<number, number>>(new Map());
-    const channelRef = useRef<ReturnType<typeof getPresenceChannel> | null>(null);
-    
+    const channelRef = useRef<ReturnType<typeof getPresenceChannel> | null>(
+        null,
+    );
+
     // Store callbacks in refs to avoid dependency issues
     const callbacksRef = useRef({
         onMessageReceived,
@@ -39,7 +54,7 @@ export function useConversationChannel({
         onThreadUpdate,
         setTypingUsers,
     });
-    
+
     // Update callbacks ref when they change
     useEffect(() => {
         callbacksRef.current = {
@@ -50,7 +65,14 @@ export function useConversationChannel({
             onThreadUpdate,
             setTypingUsers,
         };
-    }, [onMessageReceived, onMessageDeleted, onReactionUpdated, onMarkRead, onThreadUpdate, setTypingUsers]);
+    }, [
+        onMessageReceived,
+        onMessageDeleted,
+        onReactionUpdated,
+        onMarkRead,
+        onThreadUpdate,
+        setTypingUsers,
+    ]);
 
     // Typing indicator cleanup
     useEffect(() => {
@@ -72,10 +94,13 @@ export function useConversationChannel({
 
         // Debug: ensure we have a string ULID, not an object
         if (typeof selectedConversationUlid !== 'string') {
-            console.error('[broadcasting] selectedConversationUlid is not a string!', {
-                type: typeof selectedConversationUlid,
-                value: selectedConversationUlid,
-            });
+            console.error(
+                '[broadcasting] selectedConversationUlid is not a string!',
+                {
+                    type: typeof selectedConversationUlid,
+                    value: selectedConversationUlid,
+                },
+            );
             return undefined;
         }
 
@@ -88,7 +113,10 @@ export function useConversationChannel({
         const channel = getPresenceChannel(channelName);
 
         if (!channel) {
-            console.error('[broadcasting] Unable to subscribe to conversation channel', channelName);
+            console.error(
+                '[broadcasting] Unable to subscribe to conversation channel',
+                channelName,
+            );
             return undefined;
         }
 
@@ -110,44 +138,56 @@ export function useConversationChannel({
         });
 
         channel.leaving?.((member: PresenceMember) => {
-            setPresenceMembers((previous) => previous.filter((m) => m.id !== member.id));
+            setPresenceMembers((previous) =>
+                previous.filter((m) => m.id !== member.id),
+            );
         });
 
         // Listen for typing indicators (whispers)
-        channel.listenForWhisper?.('typing', (data: { user_id: number; name: string }) => {
-            if (data.user_id === viewerId) {
-                return; // Ignore own typing
-            }
-
-            callbacksRef.current.setTypingUsers?.((previous) => {
-                const exists = previous.some((u) => u.id === data.user_id);
-                if (exists) {
-                    return previous;
+        channel.listenForWhisper?.(
+            'typing',
+            (data: { user_id: number; name: string }) => {
+                if (data.user_id === viewerId) {
+                    return; // Ignore own typing
                 }
-                return [...previous, { id: data.user_id, name: data.name }];
-            });
 
-            // Clear typing indicator after 3 seconds
-            const existingTimeout = typingTimeoutsRef.current.get(data.user_id);
-            if (existingTimeout) {
-                window.clearTimeout(existingTimeout);
-            }
+                callbacksRef.current.setTypingUsers?.((previous) => {
+                    const exists = previous.some((u) => u.id === data.user_id);
+                    if (exists) {
+                        return previous;
+                    }
+                    return [...previous, { id: data.user_id, name: data.name }];
+                });
 
-            const timeout = window.setTimeout(() => {
-                callbacksRef.current.setTypingUsers?.((previous) => previous.filter((u) => u.id !== data.user_id));
-                typingTimeoutsRef.current.delete(data.user_id);
-            }, 3000);
+                // Clear typing indicator after 3 seconds
+                const existingTimeout = typingTimeoutsRef.current.get(
+                    data.user_id,
+                );
+                if (existingTimeout) {
+                    window.clearTimeout(existingTimeout);
+                }
 
-            typingTimeoutsRef.current.set(data.user_id, timeout);
-        });
+                const timeout = window.setTimeout(() => {
+                    callbacksRef.current.setTypingUsers?.((previous) =>
+                        previous.filter((u) => u.id !== data.user_id),
+                    );
+                    typingTimeoutsRef.current.delete(data.user_id);
+                }, 3000);
+
+                typingTimeoutsRef.current.set(data.user_id, timeout);
+            },
+        );
 
         // Listen for message events
-        channel.listen('.MessageSent', (data: { message: Record<string, unknown> }) => {
-            console.debug('[broadcasting] MessageSent received', data);
-            if (data.message) {
-                callbacksRef.current.onMessageReceived?.(data.message);
-            }
-        });
+        channel.listen(
+            '.MessageSent',
+            (data: { message: Record<string, unknown> }) => {
+                console.debug('[broadcasting] MessageSent received', data);
+                if (data.message) {
+                    callbacksRef.current.onMessageReceived?.(data.message);
+                }
+            },
+        );
 
         channel.listen('.MessageDeleted', (data: { message_id: number }) => {
             if (data.message_id) {
@@ -155,17 +195,37 @@ export function useConversationChannel({
             }
         });
 
-        channel.listen('.MessageReactionUpdated', (data: { message_id: number; reaction_summary: Array<{ emoji: string; variant?: string | null; count: number; reacted: boolean }> }) => {
-            if (data.message_id && data.reaction_summary) {
-                callbacksRef.current.onReactionUpdated?.(data.message_id, data.reaction_summary);
-            }
-        });
+        channel.listen(
+            '.MessageReactionUpdated',
+            (data: {
+                message_id: number;
+                reaction_summary: Array<{
+                    emoji: string;
+                    variant?: string | null;
+                    count: number;
+                    reacted: boolean;
+                }>;
+            }) => {
+                if (data.message_id && data.reaction_summary) {
+                    callbacksRef.current.onReactionUpdated?.(
+                        data.message_id,
+                        data.reaction_summary,
+                    );
+                }
+            },
+        );
 
-        channel.listen('.MessageRead', (data: { user_id: number; message_id?: number }) => {
-            if (data.user_id) {
-                callbacksRef.current.onMarkRead?.(data.user_id, data.message_id);
-            }
-        });
+        channel.listen(
+            '.MessageRead',
+            (data: { user_id: number; message_id?: number }) => {
+                if (data.user_id) {
+                    callbacksRef.current.onMarkRead?.(
+                        data.user_id,
+                        data.message_id,
+                    );
+                }
+            },
+        );
 
         // Error handling
         const errorHandler = (error: unknown) => {

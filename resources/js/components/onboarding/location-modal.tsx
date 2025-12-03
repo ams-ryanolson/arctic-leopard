@@ -1,6 +1,11 @@
 import { useForm } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
+import InputError from '@/components/input-error';
+import {
+    LocationAutocomplete,
+    type LocationSuggestion,
+} from '@/components/location-autocomplete';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -10,12 +15,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import InputError from '@/components/input-error';
 import { Label } from '@/components/ui/label';
-import {
-    LocationAutocomplete,
-    type LocationSuggestion,
-} from '@/components/location-autocomplete';
 import profileRoutes from '@/routes/profile';
 
 interface LocationModalProps {
@@ -103,9 +103,7 @@ export function LocationModal({
                 setLocationError(null);
             },
             onError: () => {
-                setLocationError(
-                    'Failed to save location. Please try again.',
-                );
+                setLocationError('Failed to save location. Please try again.');
             },
         });
     };
@@ -182,4 +180,3 @@ export function LocationModal({
         </Dialog>
     );
 }
-

@@ -160,9 +160,18 @@ export default function Dashboard() {
     const [amplifyPostId, setAmplifyPostId] = useState<number | null>(null);
     const [isAmplifyModalOpen, setIsAmplifyModalOpen] = useState(false);
 
-    const { timeline, composer, pulse, trending, sidebarAds, stories, audiences, viewer, features } =
-        usePage<DashboardProps>().props;
-    
+    const {
+        timeline,
+        composer,
+        pulse,
+        trending,
+        sidebarAds,
+        stories,
+        audiences,
+        viewer,
+        features,
+    } = usePage<DashboardProps>().props;
+
     const adsEnabled = features?.ads ?? false;
 
     const transformTimelinePayload = useCallback(
@@ -322,7 +331,9 @@ export default function Dashboard() {
                         <StoriesSection
                             stories={stories}
                             audiences={audiences}
-                            onStoryClick={(storyId) => setSelectedStoryId(storyId)}
+                            onStoryClick={(storyId) =>
+                                setSelectedStoryId(storyId)
+                            }
                         />
                     )}
 
@@ -454,7 +465,9 @@ export default function Dashboard() {
                                                     onBookmark={toggleBookmark}
                                                     onComment={openComments}
                                                     onPurchase={togglePurchase}
-                                                    onAmplify={handleAmplifyClick}
+                                                    onAmplify={
+                                                        handleAmplifyClick
+                                                    }
                                                     disabled={
                                                         isPostPending ||
                                                         isRefreshing
@@ -717,9 +730,9 @@ export default function Dashboard() {
                 }
                 hasAmplified={
                     amplifyPostId !== null
-                        ? entries.find(
+                        ? (entries.find(
                               (entry) => entry.post?.id === amplifyPostId,
-                          )?.post?.has_amplified ?? false
+                          )?.post?.has_amplified ?? false)
                         : false
                 }
             />

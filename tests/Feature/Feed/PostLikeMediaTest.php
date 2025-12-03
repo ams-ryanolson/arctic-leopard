@@ -33,7 +33,7 @@ it('returns media attachments when liking and unliking a post', function (): voi
 
     Sanctum::actingAs($viewer);
 
-    $likeResponse = $this->postJson("/api/posts/{$post->getKey()}/like");
+    $likeResponse = $this->postJson(route('api.posts.like.store', $post));
 
     $likeResponse->assertOk();
 
@@ -45,7 +45,7 @@ it('returns media attachments when liking and unliking a post', function (): voi
         ->and($likedPayload['media'][0])->toHaveKeys(['url', 'path', 'type', 'optimized_path', 'optimized_url', 'blur_path', 'blur_url'])
         ->and($likedPayload['has_liked'])->toBeTrue();
 
-    $unlikeResponse = $this->deleteJson("/api/posts/{$post->getKey()}/like");
+    $unlikeResponse = $this->deleteJson(route('api.posts.like.destroy', $post));
 
     $unlikeResponse->assertOk();
 

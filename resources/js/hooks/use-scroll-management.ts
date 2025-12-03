@@ -61,17 +61,21 @@ export function useScrollManagement(
         return container.scrollHeight - container.scrollTop;
     }, []);
 
-    const restoreScrollPosition = useCallback((previousOffsetFromBottom: number) => {
-        requestAnimationFrame(() => {
-            const target = scrollContainerRef.current;
+    const restoreScrollPosition = useCallback(
+        (previousOffsetFromBottom: number) => {
+            requestAnimationFrame(() => {
+                const target = scrollContainerRef.current;
 
-            if (!target) {
-                return;
-            }
+                if (!target) {
+                    return;
+                }
 
-            target.scrollTop = target.scrollHeight - previousOffsetFromBottom;
-        });
-    }, []);
+                target.scrollTop =
+                    target.scrollHeight - previousOffsetFromBottom;
+            });
+        },
+        [],
+    );
 
     return {
         scrollContainerRef,
@@ -83,6 +87,3 @@ export function useScrollManagement(
         restoreScrollPosition,
     };
 }
-
-
-

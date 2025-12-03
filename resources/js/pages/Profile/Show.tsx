@@ -2,9 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import CoverGradient from '@/components/cover-gradient';
 import CommentThreadSheet from '@/components/feed/comment-thread-sheet';
-import { useLightbox } from '@/components/feed/lightbox-context';
 import FeedLoadingPlaceholder from '@/components/feed/feed-loading-placeholder';
+import { useLightbox } from '@/components/feed/lightbox-context';
 import TimelineEntryCard from '@/components/feed/timeline-entry-card';
+import { GiftMembershipDialog } from '@/components/memberships/GiftMembershipDialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -43,7 +44,6 @@ import AppLayout from '@/layouts/app-layout';
 import { getCsrfToken } from '@/lib/csrf';
 import { fetchProfileFeedPage } from '@/lib/feed-client';
 import { SubscribeDialog, TipDialog } from '@/pages/Profile/dialogs';
-import { GiftMembershipDialog } from '@/components/memberships/GiftMembershipDialog';
 import type {
     SubscriptionTier,
     TipOption,
@@ -301,15 +301,15 @@ export default function ProfileShow() {
             'stories',
             'tips_sent',
         ];
-        
+
         // Filter out stats for disabled features
         const signalsEnabled = features.feature_signals_enabled ?? false;
         const wishlistEnabled = features.feature_wishlist_enabled ?? false;
-        
+
         if (!signalsEnabled || !wishlistEnabled) {
             excludedKeys.push('wishlist_items');
         }
-        
+
         const iconMap: Record<string, typeof FileText> = {
             posts: FileText,
             comments: MessageCircle,
@@ -327,7 +327,12 @@ export default function ProfileShow() {
                     : String(value),
                 icon: iconMap[key] ?? FileText,
             }));
-    }, [stats, followersCount, features.feature_signals_enabled, features.feature_wishlist_enabled]);
+    }, [
+        stats,
+        followersCount,
+        features.feature_signals_enabled,
+        features.feature_wishlist_enabled,
+    ]);
 
     // Extract social stats for header display
     const socialStats = useMemo(() => {
@@ -573,7 +578,7 @@ export default function ProfileShow() {
 
                 <div className="space-y-8">
                     <section className="relative rounded-2xl border border-white/15 bg-black/30 sm:rounded-3xl">
-                        <div className="relative h-40 w-full overflow-hidden rounded-t-2xl sm:h-48 md:h-56 sm:rounded-t-3xl">
+                        <div className="relative h-40 w-full overflow-hidden rounded-t-2xl sm:h-48 sm:rounded-t-3xl md:h-56">
                             {user.cover_url ? (
                                 <div
                                     className="h-full w-full bg-cover bg-center"
@@ -586,7 +591,7 @@ export default function ProfileShow() {
                             )}
                             <div className="pointer-events-none absolute inset-0 bg-black/20" />
                             {/* Darken gradient at bottom for better text readability */}
-                            <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/80 via-black/40 to-transparent sm:h-32" />
+                            <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-24 bg-gradient-to-t from-black/80 via-black/40 to-transparent sm:h-32" />
                         </div>
                         <div className="relative z-10 p-4 sm:p-6 md:p-8">
                             <div className="-mt-10 flex flex-col gap-4 sm:-mt-14 sm:gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -609,7 +614,7 @@ export default function ProfileShow() {
                                         )}
                                     </div>
                                     <div className="min-w-0 flex-1 space-y-1.5 text-white sm:space-y-2">
-                                        <h1 className="break-words text-2xl leading-tight font-semibold sm:truncate sm:text-3xl md:text-4xl">
+                                        <h1 className="text-2xl leading-tight font-semibold break-words sm:truncate sm:text-3xl md:text-4xl">
                                             {user.display_name ??
                                                 user.username ??
                                                 'Creator'}
@@ -676,7 +681,9 @@ export default function ProfileShow() {
                                 <div className="flex flex-col gap-1.5 text-xs text-white/70 sm:gap-2 sm:text-sm lg:mb-5 lg:items-end lg:self-end">
                                     <div className="flex flex-wrap items-center gap-1.5 text-[0.65rem] tracking-[0.3em] text-white/55 uppercase sm:gap-2 sm:text-xs sm:tracking-[0.35em]">
                                         {locationLabel && (
-                                            <span className="truncate">{locationLabel}</span>
+                                            <span className="truncate">
+                                                {locationLabel}
+                                            </span>
                                         )}
                                         {locationLabel && user.pronouns && (
                                             <span className="text-white/45">
@@ -684,7 +691,9 @@ export default function ProfileShow() {
                                             </span>
                                         )}
                                         {user.pronouns && (
-                                            <span className="truncate">{user.pronouns}</span>
+                                            <span className="truncate">
+                                                {user.pronouns}
+                                            </span>
                                         )}
                                     </div>
                                     {topInterests.length > 0 && (
@@ -704,7 +713,7 @@ export default function ProfileShow() {
                             <Separator className="my-4 border-white/10 sm:my-6" />
                             <div className="space-y-3 text-xs text-white/70 sm:space-y-4 sm:text-sm">
                                 <div
-                                    className="[&_br]:block [&_p:not(:first-child)]:mt-2 [&_s]:line-through [&_strong]:font-semibold [&_u]:underline sm:[&_p:not(:first-child)]:mt-3"
+                                    className="[&_br]:block [&_p:not(:first-child)]:mt-2 sm:[&_p:not(:first-child)]:mt-3 [&_s]:line-through [&_strong]:font-semibold [&_u]:underline"
                                     dangerouslySetInnerHTML={{
                                         __html: user.bio ?? '',
                                     }}
@@ -782,7 +791,7 @@ export default function ProfileShow() {
                                         }
                                         plans={giftMembershipPlans}
                                         trigger={
-                                            <Button className="rounded-full border border-amber-400/40 bg-amber-400/10 px-3 text-xs font-semibold text-amber-300 shadow-[0_18px_40px_-12px_rgba(249,115,22,0.25)] hover:border-amber-400/60 hover:bg-amber-400/20 hover:scale-[1.02] sm:px-4 sm:text-sm">
+                                            <Button className="rounded-full border border-amber-400/40 bg-amber-400/10 px-3 text-xs font-semibold text-amber-300 shadow-[0_18px_40px_-12px_rgba(249,115,22,0.25)] hover:scale-[1.02] hover:border-amber-400/60 hover:bg-amber-400/20 sm:px-4 sm:text-sm">
                                                 <Gift className="mr-1.5 size-3 sm:size-3.5" />
                                                 Gift Membership
                                             </Button>
@@ -804,14 +813,18 @@ export default function ProfileShow() {
                                                             size="icon"
                                                             className="size-9 rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:border-white/25 hover:bg-white/10 hover:text-white sm:size-10"
                                                         >
-                                                            <Link href={messageHref}>
+                                                            <Link
+                                                                href={
+                                                                    messageHref
+                                                                }
+                                                            >
                                                                 <MessageCircle className="size-3.5 sm:size-4" />
                                                             </Link>
                                                         </Button>
                                                     </TooltipTrigger>
                                                     <TooltipContent
                                                         side="bottom"
-                                                        className="border-white/10 bg-black/95 backdrop-blur-xl text-white shadow-[0_28px_85px_-58px_rgba(249,115,22,0.5)] ring-1 ring-amber-400/20"
+                                                        className="border-white/10 bg-black/95 text-white shadow-[0_28px_85px_-58px_rgba(249,115,22,0.5)] ring-1 ring-amber-400/20 backdrop-blur-xl"
                                                     >
                                                         Message
                                                     </TooltipContent>
@@ -837,7 +850,7 @@ export default function ProfileShow() {
                                                     </TooltipTrigger>
                                                     <TooltipContent
                                                         side="bottom"
-                                                        className="border-white/10 bg-black/95 backdrop-blur-xl text-white shadow-[0_28px_85px_-58px_rgba(249,115,22,0.5)] ring-1 ring-amber-400/20"
+                                                        className="border-white/10 bg-black/95 text-white shadow-[0_28px_85px_-58px_rgba(249,115,22,0.5)] ring-1 ring-amber-400/20 backdrop-blur-xl"
                                                     >
                                                         Wishlist
                                                     </TooltipContent>
@@ -863,7 +876,7 @@ export default function ProfileShow() {
                                                     </TooltipTrigger>
                                                     <TooltipContent
                                                         side="bottom"
-                                                        className="border-white/10 bg-black/95 backdrop-blur-xl text-white shadow-[0_28px_85px_-58px_rgba(249,115,22,0.5)] ring-1 ring-amber-400/20"
+                                                        className="border-white/10 bg-black/95 text-white shadow-[0_28px_85px_-58px_rgba(249,115,22,0.5)] ring-1 ring-amber-400/20 backdrop-blur-xl"
                                                     >
                                                         Send tip
                                                     </TooltipContent>
@@ -872,7 +885,9 @@ export default function ProfileShow() {
                                         {canBlockProfile &&
                                             features.blocking && (
                                                 <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
+                                                    <DropdownMenuTrigger
+                                                        asChild
+                                                    >
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
@@ -882,30 +897,36 @@ export default function ProfileShow() {
                                                             <MoreVertical className="size-3.5 sm:size-4" />
                                                         </Button>
                                                     </DropdownMenuTrigger>
-                                                <DropdownMenuContent
-                                                    align="end"
-                                                    className="w-48 border border-amber-400/30 bg-black/95 backdrop-blur-xl shadow-[0_28px_85px_-58px_rgba(249,115,22,0.5)] ring-1 ring-amber-400/20"
-                                                >
-                                                    <DropdownMenuItem
-                                                        className="cursor-pointer text-rose-100 focus:bg-rose-500/20 focus:text-rose-50"
-                                                        onClick={() => {
-                                                            if (isBlockProcessing) {
-                                                                return;
-                                                            }
-
-                                                            setBlockError(null);
-                                                            setIsBlockDialogOpen(
-                                                                true,
-                                                            );
-                                                        }}
-                                                        disabled={isBlockProcessing}
+                                                    <DropdownMenuContent
+                                                        align="end"
+                                                        className="w-48 border border-amber-400/30 bg-black/95 shadow-[0_28px_85px_-58px_rgba(249,115,22,0.5)] ring-1 ring-amber-400/20 backdrop-blur-xl"
                                                     >
-                                                        <Ban className="mr-2 size-4" />
-                                                        Block profile
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        )}
+                                                        <DropdownMenuItem
+                                                            className="cursor-pointer text-rose-100 focus:bg-rose-500/20 focus:text-rose-50"
+                                                            onClick={() => {
+                                                                if (
+                                                                    isBlockProcessing
+                                                                ) {
+                                                                    return;
+                                                                }
+
+                                                                setBlockError(
+                                                                    null,
+                                                                );
+                                                                setIsBlockDialogOpen(
+                                                                    true,
+                                                                );
+                                                            }}
+                                                            disabled={
+                                                                isBlockProcessing
+                                                            }
+                                                        >
+                                                            <Ban className="mr-2 size-4" />
+                                                            Block profile
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            )}
                                     </div>
                                 </TooltipProvider>
                             </div>
@@ -1090,7 +1111,9 @@ export default function ProfileShow() {
                                         </div>
                                         {recentMedia.length > 0 && (
                                             <Link
-                                                href={profileRoutes.media.url(user.username ?? '')}
+                                                href={profileRoutes.media.url(
+                                                    user.username ?? '',
+                                                )}
                                                 className="text-sm font-medium text-white/70 transition hover:text-white"
                                             >
                                                 View All
@@ -1105,85 +1128,133 @@ export default function ProfileShow() {
                                         </div>
                                     ) : (
                                         <div className="grid grid-cols-3 gap-2">
-                                            {recentMedia.slice(0, 9).map((media, index) => {
-                                                const handleClick = () => {
-                                                    // Find the post for this media item
-                                                    const post = media.post;
+                                            {recentMedia
+                                                .slice(0, 9)
+                                                .map((media, index) => {
+                                                    const handleClick = () => {
+                                                        // Find the post for this media item
+                                                        const post = media.post;
 
-                                                    // If we have a post, use its media array; otherwise build from recentMedia
-                                                    let feedMedia: FeedMedia[];
-                                                    if (post?.media && Array.isArray(post.media) && post.media.length > 0) {
-                                                        // Use the post's media array
-                                                        feedMedia = post.media;
-                                                        // Find the index of the clicked media within the post's media
-                                                        const mediaIndex = feedMedia.findIndex((m) => m.id === media.id);
-                                                        if (mediaIndex >= 0) {
-                                                            openLightbox(feedMedia, {
-                                                                startIndex: mediaIndex,
-                                                                post: post,
-                                                            });
+                                                        // If we have a post, use its media array; otherwise build from recentMedia
+                                                        let feedMedia: FeedMedia[];
+                                                        if (
+                                                            post?.media &&
+                                                            Array.isArray(
+                                                                post.media,
+                                                            ) &&
+                                                            post.media.length >
+                                                                0
+                                                        ) {
+                                                            // Use the post's media array
+                                                            feedMedia =
+                                                                post.media;
+                                                            // Find the index of the clicked media within the post's media
+                                                            const mediaIndex =
+                                                                feedMedia.findIndex(
+                                                                    (m) =>
+                                                                        m.id ===
+                                                                        media.id,
+                                                                );
+                                                            if (
+                                                                mediaIndex >= 0
+                                                            ) {
+                                                                openLightbox(
+                                                                    feedMedia,
+                                                                    {
+                                                                        startIndex:
+                                                                            mediaIndex,
+                                                                        post: post,
+                                                                    },
+                                                                );
+                                                            } else {
+                                                                // Fallback: use clicked media as start
+                                                                openLightbox(
+                                                                    feedMedia,
+                                                                    {
+                                                                        startIndex: 0,
+                                                                        post: post,
+                                                                    },
+                                                                );
+                                                            }
                                                         } else {
-                                                            // Fallback: use clicked media as start
-                                                            openLightbox(feedMedia, {
-                                                                startIndex: 0,
-                                                                post: post,
-                                                            });
+                                                            // Fallback: convert MediaItem[] to FeedMedia[] format
+                                                            feedMedia =
+                                                                recentMedia.map(
+                                                                    (m) => ({
+                                                                        id: m.id,
+                                                                        url: m.url,
+                                                                        type:
+                                                                            m.mime_type ??
+                                                                            (m.is_video
+                                                                                ? 'video/mp4'
+                                                                                : 'image/jpeg'),
+                                                                        alt: null,
+                                                                        thumbnail_url:
+                                                                            m.thumbnail_url ??
+                                                                            null,
+                                                                        optimized_url:
+                                                                            null,
+                                                                        blur_url:
+                                                                            null,
+                                                                    }),
+                                                                );
+
+                                                            openLightbox(
+                                                                feedMedia,
+                                                                {
+                                                                    startIndex:
+                                                                        index,
+                                                                    post:
+                                                                        post ??
+                                                                        null,
+                                                                },
+                                                            );
                                                         }
-                                                    } else {
-                                                        // Fallback: convert MediaItem[] to FeedMedia[] format
-                                                        feedMedia = recentMedia.map((m) => ({
-                                                            id: m.id,
-                                                            url: m.url,
-                                                            type: m.mime_type ?? (m.is_video ? 'video/mp4' : 'image/jpeg'),
-                                                            alt: null,
-                                                            thumbnail_url: m.thumbnail_url ?? null,
-                                                            optimized_url: null,
-                                                            blur_url: null,
-                                                        }));
+                                                    };
 
-                                                        openLightbox(feedMedia, {
-                                                            startIndex: index,
-                                                            post: post ?? null,
-                                                        });
-                                                    }
-                                                };
-
-                                                return (
-                                                    <button
-                                                        key={media.id}
-                                                        type="button"
-                                                        onClick={handleClick}
-                                                        className="group relative aspect-square overflow-hidden rounded-lg border border-white/10 bg-black/40 transition hover:border-white/20 cursor-pointer"
-                                                    >
-                                                        {media.is_video ? (
-                                                            <>
-                                                                {media.thumbnail_url ? (
-                                                                    <img
-                                                                        src={media.thumbnail_url}
-                                                                        alt="Video thumbnail"
-                                                                        className="size-full object-cover"
-                                                                    />
-                                                                ) : (
-                                                                    <div className="flex size-full items-center justify-center bg-gradient-to-br from-black/50 to-black/30">
-                                                                        <Plane className="size-6 text-white/40" />
+                                                    return (
+                                                        <button
+                                                            key={media.id}
+                                                            type="button"
+                                                            onClick={
+                                                                handleClick
+                                                            }
+                                                            className="group relative aspect-square cursor-pointer overflow-hidden rounded-lg border border-white/10 bg-black/40 transition hover:border-white/20"
+                                                        >
+                                                            {media.is_video ? (
+                                                                <>
+                                                                    {media.thumbnail_url ? (
+                                                                        <img
+                                                                            src={
+                                                                                media.thumbnail_url
+                                                                            }
+                                                                            alt="Video thumbnail"
+                                                                            className="size-full object-cover"
+                                                                        />
+                                                                    ) : (
+                                                                        <div className="flex size-full items-center justify-center bg-gradient-to-br from-black/50 to-black/30">
+                                                                            <Plane className="size-6 text-white/40" />
+                                                                        </div>
+                                                                    )}
+                                                                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity group-hover:opacity-100">
+                                                                        <div className="rounded-full bg-black/60 p-2">
+                                                                            <Plane className="size-4 text-white" />
+                                                                        </div>
                                                                     </div>
-                                                                )}
-                                                                <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity group-hover:opacity-100">
-                                                                    <div className="rounded-full bg-black/60 p-2">
-                                                                        <Plane className="size-4 text-white" />
-                                                                    </div>
-                                                                </div>
-                                                            </>
-                                                        ) : (
-                                                            <img
-                                                                src={media.thumbnail_url ?? media.url}
-                                                                alt="Media"
-                                                                className="size-full object-cover transition group-hover:scale-105"
-                                                            />
-                                                        )}
-                                                    </button>
-                                                );
-                                            })}
+                                                                </>
+                                                            ) : (
+                                                                <img
+                                                                    src={
+                                                                        media.thumbnail_url ??
+                                                                        media.url
+                                                                    }
+                                                                    alt="Media"
+                                                                    className="size-full object-cover transition group-hover:scale-105"
+                                                                />
+                                                            )}
+                                                        </button>
+                                                    );
+                                                })}
                                         </div>
                                     )}
                                 </CardContent>
@@ -1200,43 +1271,61 @@ export default function ProfileShow() {
                                                         Membership tiers
                                                     </CardTitle>
                                                     <CardDescription className="text-white/60">
-                                                        Choose your level of access and
-                                                        perks.
+                                                        Choose your level of
+                                                        access and perks.
                                                     </CardDescription>
                                                 </CardHeader>
                                                 <CardContent className="space-y-4">
-                                                    {subscriptionTiers.map((tier) => (
-                                                        <div
-                                                            key={tier.name}
-                                                            className="space-y-3 rounded-2xl border border-white/10 bg-black/35 p-4"
-                                                        >
-                                                            <div className="flex items-center justify-between gap-2">
-                                                                <h3 className="text-sm font-semibold text-white">
-                                                                    {tier.name}
-                                                                </h3>
-                                                                <Badge className="rounded-full border-white/15 bg-white/10 text-xs text-white/70">
-                                                                    {tier.price}
-                                                                </Badge>
+                                                    {subscriptionTiers.map(
+                                                        (tier) => (
+                                                            <div
+                                                                key={tier.name}
+                                                                className="space-y-3 rounded-2xl border border-white/10 bg-black/35 p-4"
+                                                            >
+                                                                <div className="flex items-center justify-between gap-2">
+                                                                    <h3 className="text-sm font-semibold text-white">
+                                                                        {
+                                                                            tier.name
+                                                                        }
+                                                                    </h3>
+                                                                    <Badge className="rounded-full border-white/15 bg-white/10 text-xs text-white/70">
+                                                                        {
+                                                                            tier.price
+                                                                        }
+                                                                    </Badge>
+                                                                </div>
+                                                                <p className="text-xs text-white/65">
+                                                                    {
+                                                                        tier.description
+                                                                    }
+                                                                </p>
+                                                                <ul className="space-y-2 text-xs text-white/60">
+                                                                    {tier.perks.map(
+                                                                        (
+                                                                            perk,
+                                                                        ) => (
+                                                                            <li
+                                                                                key={
+                                                                                    perk
+                                                                                }
+                                                                                className="flex items-start gap-2"
+                                                                            >
+                                                                                <span className="mt-1 size-1.5 rounded-full bg-amber-400" />
+                                                                                <span>
+                                                                                    {
+                                                                                        perk
+                                                                                    }
+                                                                                </span>
+                                                                            </li>
+                                                                        ),
+                                                                    )}
+                                                                </ul>
+                                                                <Button className="w-full rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 text-xs font-semibold">
+                                                                    Join tier
+                                                                </Button>
                                                             </div>
-                                                            <p className="text-xs text-white/65">
-                                                                {tier.description}
-                                                            </p>
-                                                            <ul className="space-y-2 text-xs text-white/60">
-                                                                {tier.perks.map((perk) => (
-                                                                    <li
-                                                                        key={perk}
-                                                                        className="flex items-start gap-2"
-                                                                    >
-                                                                        <span className="mt-1 size-1.5 rounded-full bg-amber-400" />
-                                                                        <span>{perk}</span>
-                                                                    </li>
-                                                                ))}
-                                                            </ul>
-                                                            <Button className="w-full rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 text-xs font-semibold">
-                                                                Join tier
-                                                            </Button>
-                                                        </div>
-                                                    ))}
+                                                        ),
+                                                    )}
                                                 </CardContent>
                                             </Card>
                                         )}
@@ -1249,8 +1338,9 @@ export default function ProfileShow() {
                                                         Tip jar
                                                     </CardTitle>
                                                     <CardDescription className="text-white/60">
-                                                        Boost the next scene or unlock
-                                                        bonuses instantly.
+                                                        Boost the next scene or
+                                                        unlock bonuses
+                                                        instantly.
                                                     </CardDescription>
                                                 </CardHeader>
                                                 <CardContent className="flex flex-wrap gap-2">
@@ -1291,8 +1381,9 @@ export default function ProfileShow() {
                                                         Wishlist
                                                     </CardTitle>
                                                     <CardDescription className="text-white/60">
-                                                        Help unlock new gear, travel, and
-                                                        production upgrades.
+                                                        Help unlock new gear,
+                                                        travel, and production
+                                                        upgrades.
                                                     </CardDescription>
                                                 </CardHeader>
                                                 <CardContent className="space-y-3">
@@ -1313,8 +1404,9 @@ export default function ProfileShow() {
                                                                 {user.display_name ??
                                                                     user.username ??
                                                                     'This creator'}{' '}
-                                                                will shout you out on the
-                                                                next drop.
+                                                                will shout you
+                                                                out on the next
+                                                                drop.
                                                             </p>
                                                             <Button
                                                                 variant="ghost"
@@ -1333,58 +1425,82 @@ export default function ProfileShow() {
                             {/* Regular user sidebar content */}
                             {!user.is_creator && (
                                 <>
-                                    {user.circles && user.circles.length > 0 && (
-                                        <Card className="border-white/10 bg-white/5 text-white">
-                                            <CardHeader>
-                                                <CardTitle className="text-lg font-semibold">
-                                                    Circles
-                                                </CardTitle>
-                                                <CardDescription className="text-white/60">
-                                                    Communities {user.display_name ?? user.username ?? 'they'} belong to.
-                                                </CardDescription>
-                                            </CardHeader>
-                                            <CardContent>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {user.circles.map((circle) => (
-                                                        <Link
-                                                            key={circle.id}
-                                                            href={`/circles/${circle.slug}`}
-                                                        >
-                                                            <Badge className="rounded-full border-white/15 bg-white/10 px-3 py-1 text-xs text-white/70 transition hover:border-white/30 hover:bg-white/15">
-                                                                {circle.name}
-                                                            </Badge>
-                                                        </Link>
-                                                    ))}
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    )}
-                                    {user.hashtags && user.hashtags.length > 0 && (
-                                        <Card className="border-white/10 bg-white/5 text-white">
-                                            <CardHeader>
-                                                <CardTitle className="text-lg font-semibold">
-                                                    Hashtags
-                                                </CardTitle>
-                                                <CardDescription className="text-white/60">
-                                                    Tags {user.display_name ?? user.username ?? 'they'} use.
-                                                </CardDescription>
-                                            </CardHeader>
-                                            <CardContent>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {user.hashtags.map((hashtag) => (
-                                                        <Link
-                                                            key={hashtag}
-                                                            href={`/hashtags/${hashtag.replace('#', '')}`}
-                                                        >
-                                                            <Badge className="rounded-full border-white/15 bg-white/10 px-3 py-1 text-xs text-white/70 transition hover:border-white/30 hover:bg-white/15">
-                                                                #{hashtag.replace('#', '')}
-                                                            </Badge>
-                                                        </Link>
-                                                    ))}
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    )}
+                                    {user.circles &&
+                                        user.circles.length > 0 && (
+                                            <Card className="border-white/10 bg-white/5 text-white">
+                                                <CardHeader>
+                                                    <CardTitle className="text-lg font-semibold">
+                                                        Circles
+                                                    </CardTitle>
+                                                    <CardDescription className="text-white/60">
+                                                        Communities{' '}
+                                                        {user.display_name ??
+                                                            user.username ??
+                                                            'they'}{' '}
+                                                        belong to.
+                                                    </CardDescription>
+                                                </CardHeader>
+                                                <CardContent>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {user.circles.map(
+                                                            (circle) => (
+                                                                <Link
+                                                                    key={
+                                                                        circle.id
+                                                                    }
+                                                                    href={`/circles/${circle.slug}`}
+                                                                >
+                                                                    <Badge className="rounded-full border-white/15 bg-white/10 px-3 py-1 text-xs text-white/70 transition hover:border-white/30 hover:bg-white/15">
+                                                                        {
+                                                                            circle.name
+                                                                        }
+                                                                    </Badge>
+                                                                </Link>
+                                                            ),
+                                                        )}
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        )}
+                                    {user.hashtags &&
+                                        user.hashtags.length > 0 && (
+                                            <Card className="border-white/10 bg-white/5 text-white">
+                                                <CardHeader>
+                                                    <CardTitle className="text-lg font-semibold">
+                                                        Hashtags
+                                                    </CardTitle>
+                                                    <CardDescription className="text-white/60">
+                                                        Tags{' '}
+                                                        {user.display_name ??
+                                                            user.username ??
+                                                            'they'}{' '}
+                                                        use.
+                                                    </CardDescription>
+                                                </CardHeader>
+                                                <CardContent>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {user.hashtags.map(
+                                                            (hashtag) => (
+                                                                <Link
+                                                                    key={
+                                                                        hashtag
+                                                                    }
+                                                                    href={`/hashtags/${hashtag.replace('#', '')}`}
+                                                                >
+                                                                    <Badge className="rounded-full border-white/15 bg-white/10 px-3 py-1 text-xs text-white/70 transition hover:border-white/30 hover:bg-white/15">
+                                                                        #
+                                                                        {hashtag.replace(
+                                                                            '#',
+                                                                            '',
+                                                                        )}
+                                                                    </Badge>
+                                                                </Link>
+                                                            ),
+                                                        )}
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        )}
                                 </>
                             )}
                         </aside>

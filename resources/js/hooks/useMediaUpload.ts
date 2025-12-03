@@ -1,5 +1,5 @@
+import { uploadFile, type UploadError } from '@/lib/media-upload-client';
 import { useCallback, useState } from 'react';
-import { uploadFile, type UploadError, type UploadResponse } from '@/lib/media-upload-client';
 
 export type UploadState = {
     uploading: boolean;
@@ -57,8 +57,7 @@ export function useMediaUpload(): UseMediaUploadReturn {
         } catch (error) {
             const uploadError = error as UploadError;
             const errorMessage =
-                uploadError.message ||
-                'Upload failed. Please try again.';
+                uploadError.message || 'Upload failed. Please try again.';
 
             setState({
                 uploading: false,
@@ -98,4 +97,3 @@ export function useMediaUpload(): UseMediaUploadReturn {
         reset,
     };
 }
-

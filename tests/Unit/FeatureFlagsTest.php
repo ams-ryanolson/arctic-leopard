@@ -2,30 +2,30 @@
 
 use App\Http\Middleware\FeatureEnabled;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Models\AdminSetting;
 use Illuminate\Http\Request;
-use Laravel\Pennant\Feature;
 
 it('redirects to dashboard when feature is disabled', function () {
-    // Disable via Pennant
-    Feature::for(null)->deactivate('radar');
+    // Disable the feature via AdminSetting
+    AdminSetting::set('feature_radar_enabled', false);
 
     $request = Request::create('/radar', 'GET');
-    $middleware = new FeatureEnabled;
+    $middleware = app(FeatureEnabled::class);
     $next = static fn () => response('ok');
 
-    $response = $middleware->handle($request, $next, 'radar');
+    $response = $middleware->handle($request, $next, 'feature_radar_enabled');
 
     expect($response->isRedirect())->toBeTrue()
         ->and($response->headers->get('Location'))->toBe(route('dashboard'));
 });
 
 it('shares feature flags via inertia', function () {
-    // Disable via Pennant
-    Feature::for(null)->deactivate('events');
+    // Disable the feature via AdminSetting
+    AdminSetting::set('feature_events_enabled', false);
 
     $request = Request::create('/', 'GET');
     $shared = app(HandleInertiaRequests::class)->share($request);
 
-    expect($shared['features']['events'])->toBeFalse()
-        ->and($shared['features']['signals'])->toBeBool();
+    expect($shared['features']['feature_events_enabled'])->toBeFalse()
+        ->and($shared['features']['feature_signals_enabled'])->toBeBool();
 });

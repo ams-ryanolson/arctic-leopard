@@ -134,6 +134,14 @@ class ProfilePolicy
     }
 
     /**
+     * Determine if the user can unban other users (admin operation).
+     */
+    public function unban(User $user, User $model): bool
+    {
+        return $this->ban($user, $model);
+    }
+
+    /**
      * Determine if the user can impersonate other users (admin operation).
      */
     public function impersonate(User $user, User $model): bool
@@ -187,7 +195,8 @@ class ProfilePolicy
                 return false;
             }
 
-            return $user->can('suspend users');
+            // Uses 'ban users' permission which covers both ban and suspend
+            return $user->can('ban users');
         }
 
         return false;

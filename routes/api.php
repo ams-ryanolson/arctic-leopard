@@ -49,15 +49,15 @@ Route::post('webhooks/sumsub', [SumsubWebhookController::class, 'handle'])
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('webhooks.sumsub');
 
-Route::apiResource('posts', PostController::class)->only(['index', 'show']);
-Route::apiResource('posts.comments', CommentController::class)->only(['index']);
-Route::post('posts/{post}/views', [PostViewController::class, 'store'])->name('posts.views.store');
+Route::apiResource('posts', PostController::class)->only(['index', 'show'])->names('api.posts');
+Route::apiResource('posts.comments', CommentController::class)->only(['index'])->names('api.posts.comments');
+Route::post('posts/{post}/views', [PostViewController::class, 'store'])->name('api.posts.views.store');
 
 Route::get('feed/users/{user}', [UserFeedController::class, 'index'])->name('feed.user');
 
 // Search endpoints
-Route::get('search/autocomplete', [SearchController::class, 'autocomplete'])->name('search.autocomplete');
-Route::get('search', [SearchController::class, 'index'])->name('search.index');
+Route::get('search/autocomplete', [SearchController::class, 'autocomplete'])->name('api.search.autocomplete');
+Route::get('search', [SearchController::class, 'index'])->name('api.search.index');
 
 // Hashtag endpoints
 Route::get('hashtags/{hashtag:slug}/posts', [HashtagController::class, 'posts'])->name('hashtags.posts');
@@ -80,20 +80,20 @@ Route::middleware('auth:sanctum')->group(function (): void {
 
     Route::post('payments/capture', [\App\Http\Controllers\Payments\PaymentController::class, 'capture'])->name('payments.capture');
 
-    Route::apiResource('posts', PostController::class)->only(['store', 'update', 'destroy']);
+    Route::apiResource('posts', PostController::class)->only(['store', 'update', 'destroy'])->names('api.posts');
 
-    Route::get('feed/following', [FollowingFeedController::class, 'index'])->name('feed.following');
-    Route::get('feed/circles/{circle:slug}', [CircleFeedController::class, 'show'])->name('feed.circle');
+    Route::get('feed/following', [FollowingFeedController::class, 'index'])->name('api.feed.following');
+    Route::get('feed/circles/{circle:slug}', [CircleFeedController::class, 'show'])->name('api.feed.circle');
 
-    Route::apiResource('posts.comments', CommentController::class)->only(['store', 'destroy']);
-    Route::post('posts/{post}/comments/{comment}/like', [CommentLikeController::class, 'store'])->name('posts.comments.like.store');
-    Route::delete('posts/{post}/comments/{comment}/like', [CommentLikeController::class, 'destroy'])->name('posts.comments.like.destroy');
+    Route::apiResource('posts.comments', CommentController::class)->only(['store', 'destroy'])->names('api.posts.comments');
+    Route::post('posts/{post}/comments/{comment}/like', [CommentLikeController::class, 'store'])->name('api.posts.comments.like.store');
+    Route::delete('posts/{post}/comments/{comment}/like', [CommentLikeController::class, 'destroy'])->name('api.posts.comments.like.destroy');
 
-    Route::post('posts/{post}/purchase', [PurchaseController::class, 'store'])->name('posts.purchase.store');
-    Route::post('posts/{post}/like', [PostLikeController::class, 'store'])->name('posts.like.store');
-    Route::delete('posts/{post}/like', [PostLikeController::class, 'destroy'])->name('posts.like.destroy');
-    Route::post('posts/{post}/amplify', [PostRepostController::class, 'store'])->name('posts.amplify.store');
-    Route::delete('posts/{post}/amplify', [PostRepostController::class, 'destroy'])->name('posts.amplify.destroy');
+    Route::post('posts/{post}/purchase', [PurchaseController::class, 'store'])->name('api.posts.purchase.store');
+    Route::post('posts/{post}/like', [PostLikeController::class, 'store'])->name('api.posts.like.store');
+    Route::delete('posts/{post}/like', [PostLikeController::class, 'destroy'])->name('api.posts.like.destroy');
+    Route::post('posts/{post}/amplify', [PostRepostController::class, 'store'])->name('api.posts.amplify.store');
+    Route::delete('posts/{post}/amplify', [PostRepostController::class, 'destroy'])->name('api.posts.amplify.destroy');
 
     Route::post('playbook-articles/{article}/like', [PlaybookArticleLikeController::class, 'store'])->name('playbook-articles.like.store');
     Route::delete('playbook-articles/{article}/like', [PlaybookArticleLikeController::class, 'destroy'])->name('playbook-articles.like.destroy');

@@ -30,5 +30,3 @@ export function PreferenceToggle({
         </Button>
     );
 }
-
-

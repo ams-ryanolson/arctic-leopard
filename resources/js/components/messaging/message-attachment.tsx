@@ -1,8 +1,8 @@
-import { cn } from '@/lib/utils';
-import { Loader2, Play, Pause } from 'lucide-react';
-import { useRef, useState, useEffect } from 'react';
-import type { Attachment } from './types';
 import VideoPlayer from '@/components/video-player';
+import { cn } from '@/lib/utils';
+import { Loader2, Pause, Play } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import type { Attachment } from './types';
 
 type MessageAttachmentProps = {
     attachment: Attachment;
@@ -57,7 +57,6 @@ function getMimeType(
     return mimeTypes[extension] || 'audio/mpeg';
 }
 
-
 export default function MessageAttachment({
     attachment,
     onImageClick,
@@ -66,7 +65,7 @@ export default function MessageAttachment({
         return (
             <figure
                 className={cn(
-                    'overflow-hidden rounded-xl transition-all duration-200 cursor-pointer hover:opacity-90 max-h-80',
+                    'max-h-80 cursor-pointer overflow-hidden rounded-xl transition-all duration-200 hover:opacity-90',
                 )}
                 onClick={onImageClick}
             >
@@ -127,7 +126,11 @@ type MessageVideoPlayerProps = {
     mimeType?: string | null;
 };
 
-function MessageVideoPlayer({ url, filename, mimeType }: MessageVideoPlayerProps) {
+function MessageVideoPlayer({
+    url,
+    filename,
+    mimeType,
+}: MessageVideoPlayerProps) {
     return (
         <figure>
             <VideoPlayer
@@ -211,27 +214,49 @@ function AudioPlayer({
     useEffect(() => {
         const audio = audioRef.current;
         if (!audio || !isInView) {
-            console.log('[AudioPlayer] Not loading - audio:', !!audio, 'isInView:', isInView);
+            console.log(
+                '[AudioPlayer] Not loading - audio:',
+                !!audio,
+                'isInView:',
+                isInView,
+            );
             return;
         }
 
-        console.log('[AudioPlayer] Starting load - URL:', url, 'attachmentDuration:', attachmentDuration);
+        console.log(
+            '[AudioPlayer] Starting load - URL:',
+            url,
+            'attachmentDuration:',
+            attachmentDuration,
+        );
         setIsLoading(true);
         setError(null);
-        
+
         let blobCleanup: (() => void) | undefined;
 
         const updateTime = () => {
             const time = audio.currentTime;
-            if (time !== null && time !== undefined && isFinite(time) && !isNaN(time)) {
+            if (
+                time !== null &&
+                time !== undefined &&
+                isFinite(time) &&
+                !isNaN(time)
+            ) {
                 setCurrentTime(time);
             }
         };
 
         const updateDuration = () => {
             const audioDuration = audio.duration;
-            console.log('[AudioPlayer] updateDuration - audio.duration:', audioDuration, 'readyState:', audio.readyState, 'networkState:', audio.networkState);
-            
+            console.log(
+                '[AudioPlayer] updateDuration - audio.duration:',
+                audioDuration,
+                'readyState:',
+                audio.readyState,
+                'networkState:',
+                audio.networkState,
+            );
+
             // Check if duration is valid (not NaN, not Infinity, > 0)
             if (
                 audioDuration &&
@@ -244,18 +269,26 @@ function AudioPlayer({
                 setIsLoading(false);
                 setIsReady(true);
                 setError(null);
-            } else if (audioDuration === Infinity || audioDuration === Number.POSITIVE_INFINITY) {
+            } else if (
+                audioDuration === Infinity ||
+                audioDuration === Number.POSITIVE_INFINITY
+            ) {
                 // For WebM files, duration might not be available until playback starts
                 // Use backend duration if available, otherwise allow play and update during playback
                 if (attachmentDuration && attachmentDuration > 0) {
-                    console.log('[AudioPlayer] Using backend duration:', attachmentDuration);
+                    console.log(
+                        '[AudioPlayer] Using backend duration:',
+                        attachmentDuration,
+                    );
                     setDuration(attachmentDuration);
                     setIsLoading(false);
                     setIsReady(true);
                     setError(null);
                 } else {
                     // No duration available yet - allow play, duration will update during playback
-                    console.log('[AudioPlayer] Duration is Infinity, no backend duration - allowing play, will update during playback');
+                    console.log(
+                        '[AudioPlayer] Duration is Infinity, no backend duration - allowing play, will update during playback',
+                    );
                     setDuration(null); // Keep as null to show --:--
                     setIsLoading(false);
                     setIsReady(true); // Allow play even without duration
@@ -271,11 +304,21 @@ function AudioPlayer({
             setCurrentTime(0);
         };
         const handleLoadedMetadata = () => {
-            console.log('[AudioPlayer] loadedmetadata event - duration:', audio.duration);
+            console.log(
+                '[AudioPlayer] loadedmetadata event - duration:',
+                audio.duration,
+            );
             updateDuration();
             // If duration is still not available, try seeking to trigger more metadata loading
-            if ((!audio.duration || !isFinite(audio.duration) || audio.duration <= 0) && audio.readyState >= 2) {
-                console.log('[AudioPlayer] Duration not available after loadedmetadata, trying seek trick');
+            if (
+                (!audio.duration ||
+                    !isFinite(audio.duration) ||
+                    audio.duration <= 0) &&
+                audio.readyState >= 2
+            ) {
+                console.log(
+                    '[AudioPlayer] Duration not available after loadedmetadata, trying seek trick',
+                );
                 const savedTime = audio.currentTime;
                 audio.currentTime = 0.01;
                 setTimeout(() => {
@@ -285,27 +328,49 @@ function AudioPlayer({
             }
         };
         const handleCanPlay = () => {
-            console.log('[AudioPlayer] canplay event - duration:', audio.duration);
+            console.log(
+                '[AudioPlayer] canplay event - duration:',
+                audio.duration,
+            );
             updateDuration();
         };
         const handleDurationChange = () => {
-            console.log('[AudioPlayer] durationchange event - duration:', audio.duration);
+            console.log(
+                '[AudioPlayer] durationchange event - duration:',
+                audio.duration,
+            );
             updateDuration();
         };
         const handleLoadedData = () => {
-            console.log('[AudioPlayer] loadeddata event - duration:', audio.duration);
+            console.log(
+                '[AudioPlayer] loadeddata event - duration:',
+                audio.duration,
+            );
             updateDuration();
         };
         const handleProgress = () => {
             // Sometimes duration becomes available during progress
-            if (audio.duration && isFinite(audio.duration) && audio.duration > 0) {
+            if (
+                audio.duration &&
+                isFinite(audio.duration) &&
+                audio.duration > 0
+            ) {
                 updateDuration();
             }
         };
         const handleError = () => {
             const audioError = audio.error;
-            console.error('[AudioPlayer] Error - code:', audioError?.code, 'message:', audioError?.message, 'networkState:', audio.networkState, 'readyState:', audio.readyState);
-            
+            console.error(
+                '[AudioPlayer] Error - code:',
+                audioError?.code,
+                'message:',
+                audioError?.message,
+                'networkState:',
+                audio.networkState,
+                'readyState:',
+                audio.readyState,
+            );
+
             let errorMessage = 'Failed to load audio';
             if (audioError) {
                 switch (audioError.code) {
@@ -328,7 +393,10 @@ function AudioPlayer({
 
             // Fallback to attachment duration if available
             if (attachmentDuration && attachmentDuration > 0) {
-                console.log('[AudioPlayer] Using attachment duration fallback:', attachmentDuration);
+                console.log(
+                    '[AudioPlayer] Using attachment duration fallback:',
+                    attachmentDuration,
+                );
                 setDuration(attachmentDuration);
                 setIsReady(true);
             }
@@ -348,43 +416,51 @@ function AudioPlayer({
 
         // Now set up the audio source
         const detectedMimeType = getMimeType(url, filename, mimeType);
-        
+
         // Clear existing sources
         while (audio.firstChild) {
             audio.removeChild(audio.firstChild);
         }
-        
+
         // Create source element
         const source = document.createElement('source');
         source.src = url;
         source.type = detectedMimeType;
         audio.appendChild(source);
-        
+
         // Set src directly
         audio.src = url;
         // Use 'auto' to ensure metadata loads
         audio.preload = 'auto';
-        
+
         // Force actual loading by fetching the file as a blob
         // This ensures the browser actually downloads the file to get duration
         const forcePreload = async () => {
             try {
                 console.log('[AudioPlayer] Force preloading file as blob...');
                 const response = await fetch(url);
-                
+
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}`);
                 }
-                
+
                 // Fetch the entire file as a blob
                 // For WebM files, duration is at the end, so we need the full file
                 const blob = await response.blob();
-                console.log('[AudioPlayer] File loaded as blob, size:', blob.size, 'type:', blob.type);
-                
+                console.log(
+                    '[AudioPlayer] File loaded as blob, size:',
+                    blob.size,
+                    'type:',
+                    blob.type,
+                );
+
                 // Try to extract duration from WebM file
                 // WebM stores duration in the EBML structure, often at the end
-                let extractedDuration: number | null = null;
-                if (blob.type.includes('webm') || filename.toLowerCase().endsWith('.webm')) {
+                const extractedDuration: number | null = null;
+                if (
+                    blob.type.includes('webm') ||
+                    filename.toLowerCase().endsWith('.webm')
+                ) {
                     try {
                         // Read the last 64KB of the file where duration metadata often is
                         const endBytes = Math.min(65536, blob.size);
@@ -392,18 +468,20 @@ function AudioPlayer({
                         const endSlice = blob.slice(startByte);
                         const arrayBuffer = await endSlice.arrayBuffer();
                         const uint8Array = new Uint8Array(arrayBuffer);
-                        
+
                         // Look for duration in WebM (simplified - WebM uses EBML which is complex)
                         // For now, we'll try to get it from the audio element after seeking
-                        console.log('[AudioPlayer] WebM file detected, will try to extract duration via seeking');
+                        console.log(
+                            '[AudioPlayer] WebM file detected, will try to extract duration via seeking',
+                        );
                     } catch (err) {
                         console.error('[AudioPlayer] Error parsing WebM:', err);
                     }
                 }
-                
+
                 // Create object URL from blob
                 const blobUrl = URL.createObjectURL(blob);
-                
+
                 // Update audio source to use blob URL
                 while (audio.firstChild) {
                     audio.removeChild(audio.firstChild);
@@ -414,15 +492,18 @@ function AudioPlayer({
                 audio.appendChild(source);
                 audio.src = blobUrl;
                 audio.preload = 'auto';
-                
+
                 // Load the audio
                 audio.load();
-                console.log('[AudioPlayer] Loaded from blob - readyState:', audio.readyState);
-                
+                console.log(
+                    '[AudioPlayer] Loaded from blob - readyState:',
+                    audio.readyState,
+                );
+
                 // For WebM files, duration is often at the end of the file
                 // The browser will determine it during playback
                 // We use backend duration if available, otherwise update during playback
-                
+
                 // Clean up blob URL on unmount
                 return () => {
                     URL.revokeObjectURL(blobUrl);
@@ -434,12 +515,17 @@ function AudioPlayer({
                 return undefined;
             }
         };
-        
+
         // Start force preload and store cleanup function
         forcePreload().then((cleanup) => {
             blobCleanup = cleanup;
         });
-        console.log('[AudioPlayer] After load() - readyState:', audio.readyState, 'networkState:', audio.networkState);
+        console.log(
+            '[AudioPlayer] After load() - readyState:',
+            audio.readyState,
+            'networkState:',
+            audio.networkState,
+        );
 
         // Poll for duration - some formats (like WebM) store duration at the end of file
         // So we need to wait for the browser to read enough of the file
@@ -448,12 +534,28 @@ function AudioPlayer({
         const pollInterval = setInterval(() => {
             pollCount++;
             const currentDuration = audio.duration;
-            const hasValidDuration = currentDuration && isFinite(currentDuration) && currentDuration > 0 && currentDuration !== Infinity;
-            
-            console.log('[AudioPlayer] Poll', pollCount, '- duration:', currentDuration, 'hasValidDuration:', hasValidDuration, 'readyState:', audio.readyState);
-            
+            const hasValidDuration =
+                currentDuration &&
+                isFinite(currentDuration) &&
+                currentDuration > 0 &&
+                currentDuration !== Infinity;
+
+            console.log(
+                '[AudioPlayer] Poll',
+                pollCount,
+                '- duration:',
+                currentDuration,
+                'hasValidDuration:',
+                hasValidDuration,
+                'readyState:',
+                audio.readyState,
+            );
+
             if (hasValidDuration) {
-                console.log('[AudioPlayer] Got valid duration from polling:', currentDuration);
+                console.log(
+                    '[AudioPlayer] Got valid duration from polling:',
+                    currentDuration,
+                );
                 setDuration(currentDuration);
                 setIsLoading(false);
                 setIsReady(true);
@@ -463,13 +565,18 @@ function AudioPlayer({
                 console.log('[AudioPlayer] Poll timeout - using fallback');
                 clearInterval(pollInterval);
                 if (attachmentDuration && attachmentDuration > 0) {
-                    console.log('[AudioPlayer] Using attachment duration fallback:', attachmentDuration);
+                    console.log(
+                        '[AudioPlayer] Using attachment duration fallback:',
+                        attachmentDuration,
+                    );
                     setDuration(attachmentDuration);
                     setIsLoading(false);
                     setIsReady(true);
                 } else {
                     // Allow play even without duration (for live streams or files without metadata)
-                    console.log('[AudioPlayer] No duration available, allowing play anyway');
+                    console.log(
+                        '[AudioPlayer] No duration available, allowing play anyway',
+                    );
                     setIsLoading(false);
                     setIsReady(true);
                 }
@@ -496,8 +603,19 @@ function AudioPlayer({
 
     const handlePlayPause = async () => {
         const audio = audioRef.current;
-        console.log('[AudioPlayer] handlePlayPause - audio:', !!audio, 'duration:', duration, 'isPlaying:', isPlaying, 'readyState:', audio?.readyState, 'isReady:', isReady);
-        
+        console.log(
+            '[AudioPlayer] handlePlayPause - audio:',
+            !!audio,
+            'duration:',
+            duration,
+            'isPlaying:',
+            isPlaying,
+            'readyState:',
+            audio?.readyState,
+            'isReady:',
+            isReady,
+        );
+
         if (!audio) {
             console.log('[AudioPlayer] No audio element');
             return;
@@ -505,8 +623,15 @@ function AudioPlayer({
 
         // Allow play if audio is ready (has loaded, even if duration is unknown)
         // Duration can be null for live streams or files without metadata
-        const canPlay = isReady || (audio.readyState >= 2); // readyState 2 = HAVE_CURRENT_DATA
-        console.log('[AudioPlayer] canPlay:', canPlay, 'isReady:', isReady, 'readyState:', audio.readyState);
+        const canPlay = isReady || audio.readyState >= 2; // readyState 2 = HAVE_CURRENT_DATA
+        console.log(
+            '[AudioPlayer] canPlay:',
+            canPlay,
+            'isReady:',
+            isReady,
+            'readyState:',
+            audio.readyState,
+        );
         if (!canPlay) {
             console.log('[AudioPlayer] Cannot play - audio not ready');
             return;
@@ -517,21 +642,37 @@ function AudioPlayer({
             audio.pause();
         } else {
             try {
-                console.log('[AudioPlayer] Attempting to play - readyState:', audio.readyState, 'src:', audio.src);
+                console.log(
+                    '[AudioPlayer] Attempting to play - readyState:',
+                    audio.readyState,
+                    'src:',
+                    audio.src,
+                );
                 // Ensure full file is loaded before playing
                 if (audio.readyState < 4) {
-                    console.log('[AudioPlayer] Loading full file - readyState:', audio.readyState);
+                    console.log(
+                        '[AudioPlayer] Loading full file - readyState:',
+                        audio.readyState,
+                    );
                     setIsLoading(true);
                     audio.preload = 'auto';
                     await audio.load();
-                    console.log('[AudioPlayer] After load - readyState:', audio.readyState);
+                    console.log(
+                        '[AudioPlayer] After load - readyState:',
+                        audio.readyState,
+                    );
                     setIsLoading(false);
                 }
                 console.log('[AudioPlayer] Calling audio.play()');
                 await audio.play();
                 console.log('[AudioPlayer] Play successful');
             } catch (error) {
-                console.error('[AudioPlayer] Play error:', error, 'audio.error:', audio.error);
+                console.error(
+                    '[AudioPlayer] Play error:',
+                    error,
+                    'audio.error:',
+                    audio.error,
+                );
                 setError('Failed to play audio');
                 setIsLoading(false);
             }
@@ -560,7 +701,11 @@ function AudioPlayer({
                             <div className="h-1.5 w-full animate-pulse rounded-full bg-white/20" />
                             <div className="flex items-center justify-between text-xs text-white/40">
                                 <span>Loading...</span>
-                                <span>{attachmentDuration ? formatDuration(attachmentDuration) : '--:--'}</span>
+                                <span>
+                                    {attachmentDuration
+                                        ? formatDuration(attachmentDuration)
+                                        : '--:--'}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -580,7 +725,7 @@ function AudioPlayer({
                             type="button"
                             onClick={handlePlayPause}
                             disabled={isLoading || !isReady}
-                            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-white/80 transition hover:bg-white/20 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-white/80 transition hover:bg-white/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                             aria-label={isPlaying ? 'Pause' : 'Play'}
                         >
                             {isLoading ? (
@@ -598,7 +743,11 @@ function AudioPlayer({
                                 <input
                                     type="range"
                                     min="0"
-                                    max={duration && isFinite(duration) ? duration : 100}
+                                    max={
+                                        duration && isFinite(duration)
+                                            ? duration
+                                            : 100
+                                    }
                                     step="0.1"
                                     value={currentTime}
                                     onChange={handleSeek}
@@ -610,11 +759,15 @@ function AudioPlayer({
                                     className="h-1.5 flex-1 cursor-pointer appearance-none rounded-full bg-white/20 accent-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
                                     style={{
                                         background:
-                                            duration && isFinite(duration) && duration > 0
+                                            duration &&
+                                            isFinite(duration) &&
+                                            duration > 0
                                                 ? `linear-gradient(to right, rgb(251 191 36 / 0.6) 0%, rgb(251 191 36 / 0.6) ${
-                                                      (currentTime / duration) * 100
+                                                      (currentTime / duration) *
+                                                      100
                                                   }%, rgba(255, 255, 255, 0.2) ${
-                                                      (currentTime / duration) * 100
+                                                      (currentTime / duration) *
+                                                      100
                                                   }%, rgba(255, 255, 255, 0.2) 100%)`
                                                 : 'rgba(255, 255, 255, 0.2)',
                                     }}
@@ -625,7 +778,9 @@ function AudioPlayer({
                                     {formatDuration(currentTime)}
                                 </span>
                                 <span className="tabular-nums">
-                                    {duration && isFinite(duration) && duration > 0
+                                    {duration &&
+                                    isFinite(duration) &&
+                                    duration > 0
                                         ? formatDuration(duration)
                                         : isLoading
                                           ? 'Loading...'

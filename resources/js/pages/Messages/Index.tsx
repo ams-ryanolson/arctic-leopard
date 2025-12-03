@@ -2,11 +2,11 @@ import { Head, router, usePage } from '@inertiajs/react';
 import { useCallback, useEffect, useMemo } from 'react';
 
 import DesktopMessagingView from '@/components/messaging/desktop-messaging-view';
-import MobileMessagingView from '@/components/messaging/mobile-messaging-view';
 import {
     normalizeMessage,
     normalizeNumeric,
 } from '@/components/messaging/message-utils';
+import MobileMessagingView from '@/components/messaging/mobile-messaging-view';
 import type {
     ActiveConversation,
     Message,
@@ -16,8 +16,8 @@ import type {
 import { useConversationChannel } from '@/hooks/use-conversation-channel';
 import { useHistoryNavigation } from '@/hooks/use-history-navigation';
 import { useMessagingState } from '@/hooks/use-messaging-state';
-import { useScrollManagement } from '@/hooks/use-scroll-management';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useScrollManagement } from '@/hooks/use-scroll-management';
 import AppLayout from '@/layouts/app-layout';
 import http from '@/lib/http';
 import messagesRoutes from '@/routes/messages';
@@ -107,11 +107,7 @@ export default function MessagesIndex() {
             // On mobile, NEVER auto-show conversation view - user must click to open
             // On desktop, it doesn't matter since both views are shown side-by-side
         }
-    }, [
-        activeProp?.id,
-        selectedConversationId,
-        setSelectedConversationId,
-    ]);
+    }, [activeProp?.id, selectedConversationId, setSelectedConversationId]);
 
     const markConversationRead = useCallback(
         async (messageId?: number) => {
@@ -317,16 +313,13 @@ export default function MessagesIndex() {
     );
 
     // Handle read receipts
-    const handleMarkRead = useCallback(
-        (userId: number, messageId?: number) => {
-            // Update UI to show read status if needed
-            // For now, we'll just log it - you can add read receipt UI later
-            if (import.meta.env.DEV) {
-                console.debug('[messaging] Message read', { userId, messageId });
-            }
-        },
-        [],
-    );
+    const handleMarkRead = useCallback((userId: number, messageId?: number) => {
+        // Update UI to show read status if needed
+        // For now, we'll just log it - you can add read receipt UI later
+        if (import.meta.env.DEV) {
+            console.debug('[messaging] Message read', { userId, messageId });
+        }
+    }, []);
 
     // Debug: Log the conversation ULID being passed
     useEffect(() => {
@@ -479,7 +472,8 @@ export default function MessagesIndex() {
 
                     updateThreads((previous) =>
                         previous.map((thread) =>
-                            Number(thread.id) === Number(updated.conversation_id)
+                            Number(thread.id) ===
+                            Number(updated.conversation_id)
                                 ? {
                                       ...thread,
                                       last_message:
@@ -506,7 +500,13 @@ export default function MessagesIndex() {
                 setTipRequestActionMessageId(null);
             }
         },
-        [handleMessageSent, updateThreads, viewer?.id, setMessages, setTipRequestActionMessageId],
+        [
+            handleMessageSent,
+            updateThreads,
+            viewer?.id,
+            setMessages,
+            setTipRequestActionMessageId,
+        ],
     );
 
     const handleTipRequestAccept = useCallback(
@@ -545,12 +545,18 @@ export default function MessagesIndex() {
                             presenceMembers={presenceMembers}
                             typingUsers={typingUsers}
                             replyTo={replyTo}
-                            expandedReactionsMessageId={expandedReactionsMessageId}
-                            tipRequestActionMessageId={tipRequestActionMessageId}
+                            expandedReactionsMessageId={
+                                expandedReactionsMessageId
+                            }
+                            tipRequestActionMessageId={
+                                tipRequestActionMessageId
+                            }
                             hasMoreMessages={hasMoreMessages}
                             isLoadingOlder={isLoadingOlder}
                             keyboardHeight={keyboardHeight}
-                            scrollContainerRef={scrollContainerRef as React.RefObject<HTMLDivElement | null>}
+                            scrollContainerRef={
+                                scrollContainerRef as React.RefObject<HTMLDivElement | null>
+                            }
                             showSettings={showSettings}
                             viewer={viewer}
                             onSelectConversation={handleOpenConversation}
@@ -558,9 +564,8 @@ export default function MessagesIndex() {
                             onBack={handleBackToList}
                             onLoadOlder={handleLoadOlder}
                             onToggleReactions={(messageId) =>
-                                setExpandedReactionsMessageId(
-                                    (current) =>
-                                        current === messageId ? null : messageId,
+                                setExpandedReactionsMessageId((current) =>
+                                    current === messageId ? null : messageId,
                                 )
                             }
                             onReply={setReplyTo}
@@ -581,21 +586,26 @@ export default function MessagesIndex() {
                             presenceMembers={presenceMembers}
                             typingUsers={typingUsers}
                             replyTo={replyTo}
-                            expandedReactionsMessageId={expandedReactionsMessageId}
-                            tipRequestActionMessageId={tipRequestActionMessageId}
+                            expandedReactionsMessageId={
+                                expandedReactionsMessageId
+                            }
+                            tipRequestActionMessageId={
+                                tipRequestActionMessageId
+                            }
                             hasMoreMessages={hasMoreMessages}
                             isLoadingOlder={isLoadingOlder}
                             keyboardHeight={keyboardHeight}
-                            scrollContainerRef={scrollContainerRef as React.RefObject<HTMLDivElement | null>}
+                            scrollContainerRef={
+                                scrollContainerRef as React.RefObject<HTMLDivElement | null>
+                            }
                             showSettings={showSettings}
                             viewer={viewer}
                             onSelectConversation={handleOpenConversation}
                             onRefresh={handleRefreshConversations}
                             onLoadOlder={handleLoadOlder}
                             onToggleReactions={(messageId) =>
-                                setExpandedReactionsMessageId(
-                                    (current) =>
-                                        current === messageId ? null : messageId,
+                                setExpandedReactionsMessageId((current) =>
+                                    current === messageId ? null : messageId,
                                 )
                             }
                             onReply={setReplyTo}

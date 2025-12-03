@@ -44,11 +44,11 @@ import {
     CheckCircle2,
     ChevronDown,
     Clock,
+    Gift,
     Loader2,
     Search,
     ShieldCheck,
     ShieldOff,
-    Gift,
 } from 'lucide-react';
 import {
     type FormEvent,
@@ -160,7 +160,9 @@ export default function AdminUsersIndex({
     const [processingReverification, setProcessingReverification] = useState<
         number | null
     >(null);
-    const [suspendDialogOpen, setSuspendDialogOpen] = useState<number | null>(null);
+    const [suspendDialogOpen, setSuspendDialogOpen] = useState<number | null>(
+        null,
+    );
     const [suspendReason, setSuspendReason] = useState<string>('');
     const [suspendUntil, setSuspendUntil] = useState<string>('');
     const [banDialogOpen, setBanDialogOpen] = useState<number | null>(null);
@@ -168,11 +170,15 @@ export default function AdminUsersIndex({
     const [warnDialogOpen, setWarnDialogOpen] = useState<number | null>(null);
     const [warnReason, setWarnReason] = useState<string>('');
     const [warnNotes, setWarnNotes] = useState<string>('');
-    const [membershipDialogOpen, setMembershipDialogOpen] = useState<number | null>(null);
+    const [membershipDialogOpen, setMembershipDialogOpen] = useState<
+        number | null
+    >(null);
     const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
     const [membershipExpiresAt, setMembershipExpiresAt] = useState<string>('');
     const [membershipReason, setMembershipReason] = useState<string>('');
-    const [processingAction, setProcessingAction] = useState<string | null>(null);
+    const [processingAction, setProcessingAction] = useState<string | null>(
+        null,
+    );
 
     useEffect(() => {
         setAssignments(
@@ -479,7 +485,11 @@ export default function AdminUsersIndex({
 
     const handleGrantFreeMembership = useCallback(
         (userId: number) => {
-            if (processingAction === `membership-${userId}` || !selectedPlanId || !membershipExpiresAt) {
+            if (
+                processingAction === `membership-${userId}` ||
+                !selectedPlanId ||
+                !membershipExpiresAt
+            ) {
                 return;
             }
 
@@ -504,7 +514,12 @@ export default function AdminUsersIndex({
                 },
             );
         },
-        [processingAction, selectedPlanId, membershipExpiresAt, membershipReason],
+        [
+            processingAction,
+            selectedPlanId,
+            membershipExpiresAt,
+            membershipReason,
+        ],
     );
 
     const getVerificationBadge = (
@@ -767,7 +782,7 @@ export default function AdminUsersIndex({
                                                         </AvatarFallback>
                                                     </Avatar>
                                                     <div className="space-y-1">
-                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                        <div className="flex flex-wrap items-center gap-2">
                                                             <p className="font-semibold text-white">
                                                                 {user.display_name ??
                                                                     user.name}
@@ -784,12 +799,13 @@ export default function AdminUsersIndex({
                                                                     Banned
                                                                 </Badge>
                                                             )}
-                                                            {user.is_suspended && !user.is_banned && (
-                                                                <Badge className="rounded-full border-amber-400/30 bg-amber-400/10 text-xs text-amber-300">
-                                                                    <ShieldOff className="mr-1 size-3" />
-                                                                    Suspended
-                                                                </Badge>
-                                                            )}
+                                                            {user.is_suspended &&
+                                                                !user.is_banned && (
+                                                                    <Badge className="rounded-full border-amber-400/30 bg-amber-400/10 text-xs text-amber-300">
+                                                                        <ShieldOff className="mr-1 size-3" />
+                                                                        Suspended
+                                                                    </Badge>
+                                                                )}
                                                         </div>
                                                         <div className="text-xs text-white/55">
                                                             @
@@ -937,56 +953,109 @@ export default function AdminUsersIndex({
                                                         </DropdownMenuLabel>
                                                         {user.is_suspended ? (
                                                             <DropdownMenuItem
-                                                                onSelect={() => handleUnsuspend(user.id)}
-                                                                disabled={processingAction === `unsuspend-${user.id}`}
+                                                                onSelect={() =>
+                                                                    handleUnsuspend(
+                                                                        user.id,
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    processingAction ===
+                                                                    `unsuspend-${user.id}`
+                                                                }
                                                                 className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-white/85 focus:bg-white/10 focus:text-white"
                                                             >
                                                                 <CheckCircle2 className="size-4 text-green-400" />
-                                                                <span>Unsuspend User</span>
+                                                                <span>
+                                                                    Unsuspend
+                                                                    User
+                                                                </span>
                                                             </DropdownMenuItem>
                                                         ) : (
                                                             <DropdownMenuItem
-                                                                onSelect={() => setSuspendDialogOpen(user.id)}
-                                                                disabled={currentUserId === user.id}
+                                                                onSelect={() =>
+                                                                    setSuspendDialogOpen(
+                                                                        user.id,
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    currentUserId ===
+                                                                    user.id
+                                                                }
                                                                 className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-white/85 focus:bg-white/10 focus:text-white"
                                                             >
                                                                 <AlertCircle className="size-4 text-amber-400" />
-                                                                <span>Suspend User</span>
+                                                                <span>
+                                                                    Suspend User
+                                                                </span>
                                                             </DropdownMenuItem>
                                                         )}
                                                         {user.is_banned ? (
                                                             <DropdownMenuItem
-                                                                onSelect={() => handleUnban(user.id)}
-                                                                disabled={processingAction === `unban-${user.id}`}
+                                                                onSelect={() =>
+                                                                    handleUnban(
+                                                                        user.id,
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    processingAction ===
+                                                                    `unban-${user.id}`
+                                                                }
                                                                 className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-white/85 focus:bg-white/10 focus:text-white"
                                                             >
                                                                 <CheckCircle2 className="size-4 text-green-400" />
-                                                                <span>Unban User</span>
+                                                                <span>
+                                                                    Unban User
+                                                                </span>
                                                             </DropdownMenuItem>
                                                         ) : (
                                                             <DropdownMenuItem
-                                                                onSelect={() => setBanDialogOpen(user.id)}
-                                                                disabled={currentUserId === user.id}
+                                                                onSelect={() =>
+                                                                    setBanDialogOpen(
+                                                                        user.id,
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    currentUserId ===
+                                                                    user.id
+                                                                }
                                                                 className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-red-400 focus:bg-white/10 focus:text-white"
                                                             >
                                                                 <AlertCircle className="size-4 text-red-400" />
-                                                                <span>Ban User</span>
+                                                                <span>
+                                                                    Ban User
+                                                                </span>
                                                             </DropdownMenuItem>
                                                         )}
                                                         <DropdownMenuItem
-                                                            onSelect={() => setWarnDialogOpen(user.id)}
-                                                            disabled={currentUserId === user.id}
+                                                            onSelect={() =>
+                                                                setWarnDialogOpen(
+                                                                    user.id,
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                currentUserId ===
+                                                                user.id
+                                                            }
                                                             className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-white/85 focus:bg-white/10 focus:text-white"
                                                         >
                                                             <AlertCircle className="size-4 text-amber-400" />
-                                                            <span>Warn User</span>
+                                                            <span>
+                                                                Warn User
+                                                            </span>
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem
-                                                            onSelect={() => setMembershipDialogOpen(user.id)}
+                                                            onSelect={() =>
+                                                                setMembershipDialogOpen(
+                                                                    user.id,
+                                                                )
+                                                            }
                                                             className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-white/85 focus:bg-white/10 focus:text-white"
                                                         >
                                                             <CheckCircle2 className="size-4 text-violet-400" />
-                                                            <span>Grant Free Membership</span>
+                                                            <span>
+                                                                Grant Free
+                                                                Membership
+                                                            </span>
                                                         </DropdownMenuItem>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
@@ -1096,7 +1165,10 @@ export default function AdminUsersIndex({
                 <Dialog
                     open={suspendDialogOpen !== null}
                     onOpenChange={(open) => {
-                        if (!open && !processingAction?.startsWith('suspend-')) {
+                        if (
+                            !open &&
+                            !processingAction?.startsWith('suspend-')
+                        ) {
                             setSuspendDialogOpen(null);
                             setSuspendReason('');
                             setSuspendUntil('');
@@ -1109,36 +1181,49 @@ export default function AdminUsersIndex({
                                 Suspend User
                             </DialogTitle>
                             <DialogDescription className="text-white/60">
-                                Temporarily restrict user access. You can set an expiry date for automatic restoration.
+                                Temporarily restrict user access. You can set an
+                                expiry date for automatic restoration.
                             </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="suspend-reason" className="text-white">
-                                    Reason <span className="text-red-400">*</span>
+                                <Label
+                                    htmlFor="suspend-reason"
+                                    className="text-white"
+                                >
+                                    Reason{' '}
+                                    <span className="text-red-400">*</span>
                                 </Label>
                                 <Textarea
                                     id="suspend-reason"
                                     value={suspendReason}
-                                    onChange={(e) => setSuspendReason(e.target.value)}
+                                    onChange={(e) =>
+                                        setSuspendReason(e.target.value)
+                                    }
                                     placeholder="Explain why this user is being suspended..."
                                     className="min-h-[100px] border-white/10 bg-white/5 text-white placeholder:text-white/40"
                                     required
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="suspend-until" className="text-white">
+                                <Label
+                                    htmlFor="suspend-until"
+                                    className="text-white"
+                                >
                                     Suspend Until (Optional)
                                 </Label>
                                 <Input
                                     id="suspend-until"
                                     type="datetime-local"
                                     value={suspendUntil}
-                                    onChange={(e) => setSuspendUntil(e.target.value)}
+                                    onChange={(e) =>
+                                        setSuspendUntil(e.target.value)
+                                    }
                                     className="border-white/10 bg-white/5 text-white"
                                 />
                                 <p className="text-xs text-white/50">
-                                    Leave empty for indefinite suspension. User will be automatically restored on this date.
+                                    Leave empty for indefinite suspension. User
+                                    will be automatically restored on this date.
                                 </p>
                             </div>
                         </div>
@@ -1147,24 +1232,36 @@ export default function AdminUsersIndex({
                                 type="button"
                                 variant="ghost"
                                 onClick={() => {
-                                    if (!processingAction?.startsWith('suspend-')) {
+                                    if (
+                                        !processingAction?.startsWith(
+                                            'suspend-',
+                                        )
+                                    ) {
                                         setSuspendDialogOpen(null);
                                         setSuspendReason('');
                                         setSuspendUntil('');
                                     }
                                 }}
-                                disabled={processingAction?.startsWith('suspend-')}
+                                disabled={processingAction?.startsWith(
+                                    'suspend-',
+                                )}
                             >
                                 Cancel
                             </Button>
                             <Button
                                 type="button"
                                 onClick={() => {
-                                    if (suspendDialogOpen !== null && suspendReason.trim()) {
+                                    if (
+                                        suspendDialogOpen !== null &&
+                                        suspendReason.trim()
+                                    ) {
                                         handleSuspend(suspendDialogOpen);
                                     }
                                 }}
-                                disabled={!suspendReason.trim() || processingAction?.startsWith('suspend-')}
+                                disabled={
+                                    !suspendReason.trim() ||
+                                    processingAction?.startsWith('suspend-')
+                                }
                                 className="bg-amber-600 hover:bg-amber-700"
                             >
                                 {processingAction?.startsWith('suspend-') ? (
@@ -1199,18 +1296,25 @@ export default function AdminUsersIndex({
                                 Ban User
                             </DialogTitle>
                             <DialogDescription className="text-white/60">
-                                Permanently restrict user access. This action can be reversed if needed.
+                                Permanently restrict user access. This action
+                                can be reversed if needed.
                             </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="ban-reason" className="text-white">
-                                    Reason <span className="text-red-400">*</span>
+                                <Label
+                                    htmlFor="ban-reason"
+                                    className="text-white"
+                                >
+                                    Reason{' '}
+                                    <span className="text-red-400">*</span>
                                 </Label>
                                 <Textarea
                                     id="ban-reason"
                                     value={banReason}
-                                    onChange={(e) => setBanReason(e.target.value)}
+                                    onChange={(e) =>
+                                        setBanReason(e.target.value)
+                                    }
                                     placeholder="Explain why this user is being banned..."
                                     className="min-h-[100px] border-white/10 bg-white/5 text-white placeholder:text-white/40"
                                     required
@@ -1234,11 +1338,17 @@ export default function AdminUsersIndex({
                             <Button
                                 type="button"
                                 onClick={() => {
-                                    if (banDialogOpen !== null && banReason.trim()) {
+                                    if (
+                                        banDialogOpen !== null &&
+                                        banReason.trim()
+                                    ) {
                                         handleBan(banDialogOpen);
                                     }
                                 }}
-                                disabled={!banReason.trim() || processingAction?.startsWith('ban-')}
+                                disabled={
+                                    !banReason.trim() ||
+                                    processingAction?.startsWith('ban-')
+                                }
                                 variant="destructive"
                             >
                                 {processingAction?.startsWith('ban-') ? (
@@ -1274,31 +1384,43 @@ export default function AdminUsersIndex({
                                 Warn User
                             </DialogTitle>
                             <DialogDescription className="text-white/60">
-                                Issue a warning to the user. Warnings expire after 90 days.
+                                Issue a warning to the user. Warnings expire
+                                after 90 days.
                             </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="warn-reason" className="text-white">
-                                    Reason <span className="text-red-400">*</span>
+                                <Label
+                                    htmlFor="warn-reason"
+                                    className="text-white"
+                                >
+                                    Reason{' '}
+                                    <span className="text-red-400">*</span>
                                 </Label>
                                 <Textarea
                                     id="warn-reason"
                                     value={warnReason}
-                                    onChange={(e) => setWarnReason(e.target.value)}
+                                    onChange={(e) =>
+                                        setWarnReason(e.target.value)
+                                    }
                                     placeholder="Reason for warning (visible to user)..."
                                     className="min-h-[100px] border-white/10 bg-white/5 text-white placeholder:text-white/40"
                                     required
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="warn-notes" className="text-white">
+                                <Label
+                                    htmlFor="warn-notes"
+                                    className="text-white"
+                                >
                                     Internal Notes (Optional)
                                 </Label>
                                 <Textarea
                                     id="warn-notes"
                                     value={warnNotes}
-                                    onChange={(e) => setWarnNotes(e.target.value)}
+                                    onChange={(e) =>
+                                        setWarnNotes(e.target.value)
+                                    }
                                     placeholder="Internal notes (not visible to user)..."
                                     className="min-h-[80px] border-white/10 bg-white/5 text-white placeholder:text-white/40"
                                 />
@@ -1309,7 +1431,9 @@ export default function AdminUsersIndex({
                                 type="button"
                                 variant="ghost"
                                 onClick={() => {
-                                    if (!processingAction?.startsWith('warn-')) {
+                                    if (
+                                        !processingAction?.startsWith('warn-')
+                                    ) {
                                         setWarnDialogOpen(null);
                                         setWarnReason('');
                                         setWarnNotes('');
@@ -1322,11 +1446,17 @@ export default function AdminUsersIndex({
                             <Button
                                 type="button"
                                 onClick={() => {
-                                    if (warnDialogOpen !== null && warnReason.trim()) {
+                                    if (
+                                        warnDialogOpen !== null &&
+                                        warnReason.trim()
+                                    ) {
                                         handleWarn(warnDialogOpen);
                                     }
                                 }}
-                                disabled={!warnReason.trim() || processingAction?.startsWith('warn-')}
+                                disabled={
+                                    !warnReason.trim() ||
+                                    processingAction?.startsWith('warn-')
+                                }
                                 className="bg-amber-600 hover:bg-amber-700"
                             >
                                 {processingAction?.startsWith('warn-') ? (
@@ -1349,7 +1479,10 @@ export default function AdminUsersIndex({
                 <Dialog
                     open={membershipDialogOpen !== null}
                     onOpenChange={(open) => {
-                        if (!open && !processingAction?.startsWith('membership-')) {
+                        if (
+                            !open &&
+                            !processingAction?.startsWith('membership-')
+                        ) {
                             setMembershipDialogOpen(null);
                             setSelectedPlanId(null);
                             setMembershipExpiresAt('');
@@ -1363,21 +1496,34 @@ export default function AdminUsersIndex({
                                 Grant Free Membership
                             </DialogTitle>
                             <DialogDescription className="text-white/60">
-                                Award a free membership to the user with an expiry date.
+                                Award a free membership to the user with an
+                                expiry date.
                             </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="membership-plan" className="text-white">
-                                    Membership Plan <span className="text-red-400">*</span>
+                                <Label
+                                    htmlFor="membership-plan"
+                                    className="text-white"
+                                >
+                                    Membership Plan{' '}
+                                    <span className="text-red-400">*</span>
                                 </Label>
-                                <Select value={selectedPlanId?.toString() ?? ''} onValueChange={(value) => setSelectedPlanId(parseInt(value, 10))}>
+                                <Select
+                                    value={selectedPlanId?.toString() ?? ''}
+                                    onValueChange={(value) =>
+                                        setSelectedPlanId(parseInt(value, 10))
+                                    }
+                                >
                                     <SelectTrigger className="border-white/10 bg-white/5 text-white">
                                         <SelectValue placeholder="Select a membership plan" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {membershipPlans.map((plan) => (
-                                            <SelectItem key={plan.id} value={plan.id.toString()}>
+                                            <SelectItem
+                                                key={plan.id}
+                                                value={plan.id.toString()}
+                                            >
                                                 {plan.name}
                                             </SelectItem>
                                         ))}
@@ -1385,26 +1531,37 @@ export default function AdminUsersIndex({
                                 </Select>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="membership-expires" className="text-white">
-                                    Expires At <span className="text-red-400">*</span>
+                                <Label
+                                    htmlFor="membership-expires"
+                                    className="text-white"
+                                >
+                                    Expires At{' '}
+                                    <span className="text-red-400">*</span>
                                 </Label>
                                 <Input
                                     id="membership-expires"
                                     type="datetime-local"
                                     value={membershipExpiresAt}
-                                    onChange={(e) => setMembershipExpiresAt(e.target.value)}
+                                    onChange={(e) =>
+                                        setMembershipExpiresAt(e.target.value)
+                                    }
                                     className="border-white/10 bg-white/5 text-white"
                                     required
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="membership-reason" className="text-white">
+                                <Label
+                                    htmlFor="membership-reason"
+                                    className="text-white"
+                                >
                                     Reason (Optional)
                                 </Label>
                                 <Textarea
                                     id="membership-reason"
                                     value={membershipReason}
-                                    onChange={(e) => setMembershipReason(e.target.value)}
+                                    onChange={(e) =>
+                                        setMembershipReason(e.target.value)
+                                    }
                                     placeholder="Reason for granting free membership..."
                                     className="min-h-[80px] border-white/10 bg-white/5 text-white placeholder:text-white/40"
                                 />
@@ -1415,25 +1572,41 @@ export default function AdminUsersIndex({
                                 type="button"
                                 variant="ghost"
                                 onClick={() => {
-                                    if (!processingAction?.startsWith('membership-')) {
+                                    if (
+                                        !processingAction?.startsWith(
+                                            'membership-',
+                                        )
+                                    ) {
                                         setMembershipDialogOpen(null);
                                         setSelectedPlanId(null);
                                         setMembershipExpiresAt('');
                                         setMembershipReason('');
                                     }
                                 }}
-                                disabled={processingAction?.startsWith('membership-')}
+                                disabled={processingAction?.startsWith(
+                                    'membership-',
+                                )}
                             >
                                 Cancel
                             </Button>
                             <Button
                                 type="button"
                                 onClick={() => {
-                                    if (membershipDialogOpen !== null && selectedPlanId && membershipExpiresAt) {
-                                        handleGrantFreeMembership(membershipDialogOpen);
+                                    if (
+                                        membershipDialogOpen !== null &&
+                                        selectedPlanId &&
+                                        membershipExpiresAt
+                                    ) {
+                                        handleGrantFreeMembership(
+                                            membershipDialogOpen,
+                                        );
                                     }
                                 }}
-                                disabled={!selectedPlanId || !membershipExpiresAt || processingAction?.startsWith('membership-')}
+                                disabled={
+                                    !selectedPlanId ||
+                                    !membershipExpiresAt ||
+                                    processingAction?.startsWith('membership-')
+                                }
                                 className="bg-violet-600 hover:bg-violet-700"
                             >
                                 {processingAction?.startsWith('membership-') ? (

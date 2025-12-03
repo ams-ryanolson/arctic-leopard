@@ -1,6 +1,13 @@
 import LegalLayout from '@/layouts/legal-layout';
 import { Link } from '@inertiajs/react';
-import { ArrowRight, FileText, Shield, Cookie, Scale, Gavel } from 'lucide-react';
+import {
+    ArrowRight,
+    Cookie,
+    FileText,
+    Gavel,
+    Scale,
+    Shield,
+} from 'lucide-react';
 
 interface LegalPage {
     slug: string;
@@ -70,6 +77,3 @@ export default function LegalIndex({ legalPages }: LegalIndexProps) {
         </LegalLayout>
     );
 }
-
-
-

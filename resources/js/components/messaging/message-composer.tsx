@@ -1,19 +1,18 @@
 import http from '@/lib/http';
+import { usePage } from '@inertiajs/react';
 import { Coins, Film, Image, Loader2, Mic, Plus, Video, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { usePage } from '@inertiajs/react';
 
 import MediaUploader from '@/components/media/MediaUploader';
 import AudioRecorder from '@/components/media/audio-recorder';
 import VideoRecorder from '@/components/media/video-recorder';
 import AttachmentPreview from '@/components/messaging/attachment-preview';
 import TipDialog from '@/components/messaging/tip-dialog';
-import { Button } from '@/components/ui/button';
 import CompactTextarea from '@/components/ui/compact-textarea';
-import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
-import { Smile } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { SharedData } from '@/types';
+import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
+import { Smile } from 'lucide-react';
 
 type UploadPayload = {
     id: string;
@@ -477,47 +476,59 @@ export default function MessageComposer({
         [viewer, conversationId, onMessageSent],
     );
 
-    const handleEmojiClick = useCallback((emojiData: EmojiClickData) => {
-        const textarea = document.querySelector<HTMLTextAreaElement>('[data-message-textarea]');
-        const emoji = emojiData.emoji;
+    const handleEmojiClick = useCallback(
+        (emojiData: EmojiClickData) => {
+            const textarea = document.querySelector<HTMLTextAreaElement>(
+                '[data-message-textarea]',
+            );
+            const emoji = emojiData.emoji;
 
-        if (textarea) {
-            const start = textarea.selectionStart;
-            const end = textarea.selectionEnd;
-            const textBefore = body.substring(0, start);
-            const textAfter = body.substring(end);
-            const newBody = textBefore + emoji + textAfter;
-            
-            setBody(newBody);
-            triggerTyping();
-            
-            setTimeout(() => {
-                textarea.focus();
-                const newPosition = start + emoji.length;
-                textarea.setSelectionRange(newPosition, newPosition);
-            }, 0);
-        } else {
-            setBody((prev) => prev + emoji);
-            triggerTyping();
-        }
+            if (textarea) {
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const textBefore = body.substring(0, start);
+                const textAfter = body.substring(end);
+                const newBody = textBefore + emoji + textAfter;
 
-        setShowEmojiPicker(false);
-    }, [body, triggerTyping]);
+                setBody(newBody);
+                triggerTyping();
+
+                setTimeout(() => {
+                    textarea.focus();
+                    const newPosition = start + emoji.length;
+                    textarea.setSelectionRange(newPosition, newPosition);
+                }, 0);
+            } else {
+                setBody((prev) => prev + emoji);
+                triggerTyping();
+            }
+
+            setShowEmojiPicker(false);
+        },
+        [body, triggerTyping],
+    );
 
     // Close emoji picker when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+            if (
+                emojiPickerRef.current &&
+                !emojiPickerRef.current.contains(event.target as Node)
+            ) {
                 setShowEmojiPicker(false);
             }
-            if (mediaMenuRef.current && !mediaMenuRef.current.contains(event.target as Node)) {
+            if (
+                mediaMenuRef.current &&
+                !mediaMenuRef.current.contains(event.target as Node)
+            ) {
                 setShowMediaMenu(false);
             }
         };
 
         if (showEmojiPicker || showMediaMenu) {
             document.addEventListener('mousedown', handleClickOutside);
-            return () => document.removeEventListener('mousedown', handleClickOutside);
+            return () =>
+                document.removeEventListener('mousedown', handleClickOutside);
         }
     }, [showEmojiPicker, showMediaMenu]);
 
@@ -588,7 +599,8 @@ export default function MessageComposer({
         } catch (caught) {
             setFailedMessage(messageData);
 
-            let errorMessage = 'We could not send your message right now. Please try again.';
+            let errorMessage =
+                'We could not send your message right now. Please try again.';
 
             if (
                 typeof caught === 'object' &&
@@ -597,24 +609,36 @@ export default function MessageComposer({
                 typeof caught.response === 'object' &&
                 caught.response !== null
             ) {
-                const response = caught.response as { status?: number; data?: { message?: string } };
-                
+                const response = caught.response as {
+                    status?: number;
+                    data?: { message?: string };
+                };
+
                 if (response.status === 403) {
-                    errorMessage = 'You do not have permission to send messages in this conversation.';
+                    errorMessage =
+                        'You do not have permission to send messages in this conversation.';
                 } else if (response.status === 404) {
                     errorMessage = 'This conversation no longer exists.';
                 } else if (response.status === 422) {
-                    errorMessage = response.data?.message ?? 'Your message could not be sent. Please check your input and try again.';
+                    errorMessage =
+                        response.data?.message ??
+                        'Your message could not be sent. Please check your input and try again.';
                 } else if (response.status === 429) {
-                    errorMessage = 'You are sending messages too quickly. Please wait a moment and try again.';
+                    errorMessage =
+                        'You are sending messages too quickly. Please wait a moment and try again.';
                 } else if (response.status === 500) {
-                    errorMessage = 'A server error occurred. Please try again in a moment.';
+                    errorMessage =
+                        'A server error occurred. Please try again in a moment.';
                 } else if (response.data?.message) {
                     errorMessage = response.data.message;
                 }
             } else if (caught instanceof Error) {
-                if (caught.message.includes('Network') || caught.message.includes('fetch')) {
-                    errorMessage = 'Network error. Please check your connection and try again.';
+                if (
+                    caught.message.includes('Network') ||
+                    caught.message.includes('fetch')
+                ) {
+                    errorMessage =
+                        'Network error. Please check your connection and try again.';
                 } else {
                     errorMessage = caught.message;
                 }
@@ -668,18 +692,27 @@ export default function MessageComposer({
         <>
             <form
                 onSubmit={handleSubmit}
-                className={cn('border-t border-white/5 bg-neutral-950', className)}
+                className={cn(
+                    'border-t border-white/5 bg-neutral-950',
+                    className,
+                )}
             >
                 {/* Reply preview - outside main input */}
                 {replyTo && (
                     <div className="border-b border-white/5 px-3 py-1.5 sm:px-4 sm:py-2">
                         <div className="flex items-start justify-between gap-2 rounded-lg border border-amber-400/20 bg-amber-500/5 px-2 py-1 text-xs sm:py-1.5">
                             <div className="min-w-0 flex-1">
-                                <p className="text-[0.6rem] font-medium text-amber-300/80 uppercase tracking-wide">
-                                    Replying to {replyTo.author?.display_name ?? replyTo.author?.username ?? 'a message'}
+                                <p className="text-[0.6rem] font-medium tracking-wide text-amber-300/80 uppercase">
+                                    Replying to{' '}
+                                    {replyTo.author?.display_name ??
+                                        replyTo.author?.username ??
+                                        'a message'}
                                 </p>
                                 <p className="mt-0.5 truncate text-xs text-white/70">
-                                    {(replyTo.body ?? '').slice(0, 80)}{(replyTo.body ?? '').length > 80 ? '…' : ''}
+                                    {(replyTo.body ?? '').slice(0, 80)}
+                                    {(replyTo.body ?? '').length > 80
+                                        ? '…'
+                                        : ''}
                                 </p>
                             </div>
                             <button
@@ -765,20 +798,22 @@ export default function MessageComposer({
                                     setShowMediaMenu(!showMediaMenu);
                                 }}
                                 className={cn(
-                                    "rounded-full p-2 transition",
+                                    'rounded-full p-2 transition',
                                     showMediaMenu
-                                        ? "bg-white/20 text-white"
-                                        : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
+                                        ? 'bg-white/20 text-white'
+                                        : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white',
                                 )}
                                 aria-label="Add media"
                                 aria-expanded={showMediaMenu}
                             >
-                                <Plus className={cn(
-                                    "h-5 w-5 transition-transform",
-                                    showMediaMenu && "rotate-45"
-                                )} />
+                                <Plus
+                                    className={cn(
+                                        'h-5 w-5 transition-transform',
+                                        showMediaMenu && 'rotate-45',
+                                    )}
+                                />
                             </button>
-                            
+
                             {/* Animated media menu - circles above */}
                             {showMediaMenu && (
                                 <div
@@ -792,7 +827,7 @@ export default function MessageComposer({
                                             triggerPhotoUpload();
                                             setShowMediaMenu(false);
                                         }}
-                                        className="flex size-10 items-center justify-center rounded-full bg-white/10 text-white/80 shadow-lg transition-all hover:bg-white/20 hover:text-white hover:scale-110"
+                                        className="flex size-10 items-center justify-center rounded-full bg-white/10 text-white/80 shadow-lg transition-all hover:scale-110 hover:bg-white/20 hover:text-white"
                                         aria-label="Upload photo"
                                     >
                                         <Image className="h-5 w-5" />
@@ -804,7 +839,7 @@ export default function MessageComposer({
                                             triggerVideoUpload();
                                             setShowMediaMenu(false);
                                         }}
-                                        className="flex size-10 items-center justify-center rounded-full bg-white/10 text-white/80 shadow-lg transition-all hover:bg-white/20 hover:text-white hover:scale-110"
+                                        className="flex size-10 items-center justify-center rounded-full bg-white/10 text-white/80 shadow-lg transition-all hover:scale-110 hover:bg-white/20 hover:text-white"
                                         aria-label="Upload video file"
                                     >
                                         <Film className="h-5 w-5" />
@@ -816,7 +851,7 @@ export default function MessageComposer({
                                             handleAudioButtonClick();
                                             setShowMediaMenu(false);
                                         }}
-                                        className="flex size-10 items-center justify-center rounded-full bg-white/10 text-white/80 shadow-lg transition-all hover:bg-white/20 hover:text-white hover:scale-110"
+                                        className="flex size-10 items-center justify-center rounded-full bg-white/10 text-white/80 shadow-lg transition-all hover:scale-110 hover:bg-white/20 hover:text-white"
                                         aria-label="Create audio clip"
                                     >
                                         <Mic className="h-5 w-5" />
@@ -828,7 +863,7 @@ export default function MessageComposer({
                                             handleVideoButtonClick();
                                             setShowMediaMenu(false);
                                         }}
-                                        className="flex size-10 items-center justify-center rounded-full bg-white/10 text-white/80 shadow-lg transition-all hover:bg-white/20 hover:text-white hover:scale-110"
+                                        className="flex size-10 items-center justify-center rounded-full bg-white/10 text-white/80 shadow-lg transition-all hover:scale-110 hover:bg-white/20 hover:text-white"
                                         aria-label="Create video clip"
                                     >
                                         <Video className="h-5 w-5" />
@@ -851,20 +886,27 @@ export default function MessageComposer({
                             <div className="relative shrink-0">
                                 <button
                                     type="button"
-                                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                    onClick={() =>
+                                        setShowEmojiPicker(!showEmojiPicker)
+                                    }
                                     className="rounded p-1 text-white/50 transition hover:bg-white/10 hover:text-white/80"
                                     aria-label="Add emoji"
                                 >
                                     <Smile className="h-4 w-4" />
                                 </button>
                                 {showEmojiPicker && (
-                                    <div ref={emojiPickerRef} className="absolute bottom-full right-0 z-50 mb-2">
+                                    <div
+                                        ref={emojiPickerRef}
+                                        className="absolute right-0 bottom-full z-50 mb-2"
+                                    >
                                         <EmojiPicker
                                             onEmojiClick={handleEmojiClick}
                                             theme={Theme.DARK}
                                             width={300}
                                             height={350}
-                                            previewConfig={{ showPreview: false }}
+                                            previewConfig={{
+                                                showPreview: false,
+                                            }}
                                             skinTonesDisabled
                                         />
                                     </div>
@@ -887,10 +929,17 @@ export default function MessageComposer({
                         {/* Send button - FAR RIGHT */}
                         <button
                             type="submit"
-                            disabled={isSending || isUploadingAudio || isUploadingVideo || (body.trim() === '' && uploads.length === 0)}
+                            disabled={
+                                isSending ||
+                                isUploadingAudio ||
+                                isUploadingVideo ||
+                                (body.trim() === '' && uploads.length === 0)
+                            }
                             className="shrink-0 rounded-full bg-amber-400 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-400/90 disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                            {isSending || isUploadingAudio || isUploadingVideo ? (
+                            {isSending ||
+                            isUploadingAudio ||
+                            isUploadingVideo ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
                                 'Send'

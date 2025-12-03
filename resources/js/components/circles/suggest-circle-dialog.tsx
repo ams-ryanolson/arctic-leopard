@@ -149,5 +149,3 @@ export function SuggestCircleDialog({
         </Dialog>
     );
 }
-
-

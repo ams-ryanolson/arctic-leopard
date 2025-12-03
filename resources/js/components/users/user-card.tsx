@@ -174,13 +174,19 @@ export function UserCard({
                                 <h3 className="text-base font-semibold text-white">
                                     {displayName}
                                 </h3>
-                                <p className="text-xs text-white/60">@{user.username}</p>
+                                <p className="text-xs text-white/60">
+                                    @{user.username}
+                                </p>
                                 {user.pronouns && (
-                                    <p className="text-xs text-white/50">{user.pronouns}</p>
+                                    <p className="text-xs text-white/50">
+                                        {user.pronouns}
+                                    </p>
                                 )}
                             </div>
                             {user.bio && (
-                                <p className="mt-1 line-clamp-2 text-xs text-white/70">{user.bio}</p>
+                                <p className="mt-1 line-clamp-2 text-xs text-white/70">
+                                    {user.bio}
+                                </p>
                             )}
                         </div>
                     </Link>
@@ -202,4 +208,3 @@ export function UserCard({
         </div>
     );
 }
-

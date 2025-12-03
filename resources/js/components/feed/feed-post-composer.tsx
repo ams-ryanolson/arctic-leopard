@@ -15,11 +15,11 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import { cn } from '@/lib/utils';
 import type { SharedData } from '@/types';
 import type { FeedComposerConfig } from '@/types/feed';
 import { useForm, usePage } from '@inertiajs/react';
+import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import type { LucideIcon } from 'lucide-react';
 import {
     BarChart3,
@@ -182,7 +182,9 @@ function IconToggle({
             <Icon
                 className={cn(
                     'size-4 transition',
-                    active ? 'text-emerald-100 group-hover:text-emerald-100' : baseTone,
+                    active
+                        ? 'text-emerald-100 group-hover:text-emerald-100'
+                        : baseTone,
                     !active && 'group-hover:text-white',
                 )}
             />
@@ -235,7 +237,7 @@ function ComposerIconButton({
             </TooltipTrigger>
             <TooltipContent
                 side="top"
-                className="bg-black/90 text-white border-white/20"
+                className="border-white/20 bg-black/90 text-white"
             >
                 {label}
             </TooltipContent>
@@ -350,7 +352,7 @@ export default function FeedPostComposer({
     const { features } = usePage<SharedData>().props;
     const circlesEnabled = features?.feature_circles_enabled ?? false;
     const signalsEnabled = features?.feature_signals_enabled ?? false;
-    
+
     const defaultTypeValue = useMemo(
         () => config.post_types[0]?.value ?? 'text',
         [config.post_types],
@@ -451,7 +453,11 @@ export default function FeedPostComposer({
             config.audiences
                 .filter((option) => {
                     // Hide subscribers and pay_to_view options when Signals is disabled
-                    if (!signalsEnabled && (option.value === 'subscribers' || option.value === 'pay_to_view')) {
+                    if (
+                        !signalsEnabled &&
+                        (option.value === 'subscribers' ||
+                            option.value === 'pay_to_view')
+                    ) {
                         return false;
                     }
                     return true;
@@ -1109,7 +1115,7 @@ export default function FeedPostComposer({
 
         form.post(PostComposerController.url(), {
             preserveScroll: true,
-                onSuccess: () => {
+            onSuccess: () => {
                 resetUploader();
                 setPollDraft(createDefaultPoll());
                 setMediaTrayOpen(false);
@@ -1246,20 +1252,17 @@ export default function FeedPostComposer({
 
         const handleClickOutside = (event: MouseEvent) => {
             const target = event.target as Node;
-            
+
             // Don't collapse if clicking on a tooltip or other overlay
             if (
                 target instanceof Element &&
                 (target.closest('[data-radix-popper-content-wrapper]') ||
-                 target.closest('[role="tooltip"]'))
+                    target.closest('[role="tooltip"]'))
             ) {
                 return;
             }
 
-            if (
-                cardRef.current &&
-                !cardRef.current.contains(target)
-            ) {
+            if (cardRef.current && !cardRef.current.contains(target)) {
                 // Only collapse if there's no actual content or active sections
                 if (
                     !hasTyped &&
@@ -1295,816 +1298,873 @@ export default function FeedPostComposer({
 
     return (
         <div ref={cardRef} data-composer>
-        <Card className="border border-white/10 bg-white/5 text-sm text-white/80 !py-2">
-            <form
-                action={PostComposerController.url()}
-                method="post"
-                noValidate
-                onSubmit={handleSubmit}
-            >
-                <CardContent
-                    className={cn(
-                        'px-3 pt-3 sm:px-6 sm:pt-2',
-                        isExpanded || shouldStayExpanded
-                            ? 'pb-3 space-y-3 sm:pb-2 sm:space-y-6'
-                            : 'pb-0 space-y-0 sm:pb-0 sm:space-y-6',
-                    )}
+            <Card className="border border-white/10 bg-white/5 !py-2 text-sm text-white/80">
+                <form
+                    action={PostComposerController.url()}
+                    method="post"
+                    noValidate
+                    onSubmit={handleSubmit}
                 >
-                    {!config.can_post && (
-                        <Alert
-                            variant="destructive"
-                            className="border-rose-500/40 bg-rose-500/10 text-sm text-rose-100"
-                        >
-                            <Shield className="size-4" />
-                            <AlertDescription>
-                                Finish onboarding to unlock posting. Head to
-                                profile basics to complete your setup.
-                            </AlertDescription>
-                        </Alert>
-                    )}
+                    <CardContent
+                        className={cn(
+                            'px-3 pt-3 sm:px-6 sm:pt-2',
+                            isExpanded || shouldStayExpanded
+                                ? 'space-y-3 pb-3 sm:space-y-6 sm:pb-2'
+                                : 'space-y-0 pb-0 sm:space-y-6 sm:pb-0',
+                        )}
+                    >
+                        {!config.can_post && (
+                            <Alert
+                                variant="destructive"
+                                className="border-rose-500/40 bg-rose-500/10 text-sm text-rose-100"
+                            >
+                                <Shield className="size-4" />
+                                <AlertDescription>
+                                    Finish onboarding to unlock posting. Head to
+                                    profile basics to complete your setup.
+                                </AlertDescription>
+                            </Alert>
+                        )}
 
-                    {submitError && (
-                        <Alert variant="destructive">
-                            <AlertDescription>{submitError}</AlertDescription>
-                        </Alert>
-                    )}
+                        {submitError && (
+                            <Alert variant="destructive">
+                                <AlertDescription>
+                                    {submitError}
+                                </AlertDescription>
+                            </Alert>
+                        )}
 
-                    <div className="flex gap-2.5 sm:gap-4 sm:items-start">
-                        <ComposerAvatar />
-                        <div
-                            className={cn(
-                                'flex-1 min-w-0',
-                                isExpanded || shouldStayExpanded
-                                    ? 'space-y-3'
-                                    : 'space-y-0',
-                            )}
-                        >
-                            <div className="space-y-2 sm:space-y-3">
-                                <div className="relative">
-                                    <div className="absolute inset-0 rounded-2xl border border-white/10 bg-black/30 transition-all duration-300 sm:rounded-3xl" />
-                                    <div
-                                        ref={overlayRef}
-                                        className={cn(
-                                            'pointer-events-none absolute inset-0 overflow-y-auto rounded-2xl px-3 py-2.5 text-sm leading-relaxed text-white transition-all duration-300 sm:rounded-3xl sm:px-5 sm:py-4 sm:text-base',
-                                        )}
-                                    >
-                                        <span
-                                            dangerouslySetInnerHTML={{
-                                                __html: overlayContent,
-                                            }}
-                                        />
-                                    </div>
-                                    <textarea
-                                        ref={textareaRef}
-                                        value={formData.body}
-                                        onChange={(event) => {
-                                            handleBodyChange(event.target.value);
-                                            handleCursorPositionChange();
-                                        }}
-                                        onSelect={handleCursorPositionChange}
-                                        onKeyUp={handleCursorPositionChange}
-                                        onClick={handleCursorPositionChange}
-                                        onFocus={handleTextareaFocus}
-                                        onBlur={handleTextareaBlur}
-                                        onScroll={syncOverlayScroll}
-                                        placeholder=""
-                                        className={cn(
-                                            'relative z-10 w-full resize-none rounded-2xl border border-transparent bg-transparent px-3 py-2.5 text-sm text-transparent caret-white transition-all duration-300 focus:ring-2 focus:ring-rose-500/30 focus:outline-none disabled:opacity-60 sm:rounded-3xl sm:px-5 sm:py-4 sm:text-base',
-                                            isExpanded
-                                                ? 'min-h-[100px] sm:min-h-[170px]'
-                                                : 'min-h-[60px] sm:min-h-[80px]',
-                                        )}
-                                        maxLength={BODY_CHARACTER_LIMIT}
-                                        disabled={
-                                            !config.can_post || form.processing
-                                        }
-                                    />
-                                    <MentionHashtagAutocomplete
-                                        value={formData.body}
-                                        selectionStart={selectionStart}
-                                        selectionEnd={selectionEnd}
-                                        onInsert={handleAutocompleteInsert}
-                                        textareaRef={textareaRef}
-                                        overlayRef={overlayRef}
-                                        disabled={
-                                            !config.can_post || form.processing
-                                        }
-                                    />
-                                    <div
-                                        className={cn(
-                                            'pointer-events-none absolute right-2.5 bottom-2.5 text-[0.6rem] sm:right-5 sm:bottom-4 sm:text-[0.65rem]',
-                                            bodyCounterClass,
-                                        )}
-                                        aria-live="polite"
-                                    >
-                                        {bodyCharacterCount.toLocaleString()}/
-                                        {BODY_CHARACTER_LIMIT.toLocaleString()}
-                                    </div>
-                                </div>
-
-                                {form.errors.body && (
-                                    <p className="text-xs text-rose-300">
-                                        {form.errors.body}
-                                    </p>
-                                )}
-                            </div>
-
+                        <div className="flex gap-2.5 sm:items-start sm:gap-4">
+                            <ComposerAvatar />
                             <div
                                 className={cn(
-                                    'mb-2 flex flex-col gap-2.5 overflow-hidden transition-all duration-300 sm:mb-3 sm:gap-3',
-                                    isExpanded
-                                        ? 'max-h-[500px] opacity-100'
-                                        : 'max-h-0 opacity-0',
+                                    'min-w-0 flex-1',
+                                    isExpanded || shouldStayExpanded
+                                        ? 'space-y-3'
+                                        : 'space-y-0',
                                 )}
                             >
-                                <TooltipProvider delayDuration={300}>
-                                <div className="flex flex-wrap items-center gap-1.5 sm:justify-between sm:gap-2">
-                                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                                        <ComposerIconButton
-                                            icon={ImageIcon}
-                                            label="Add media"
-                                            onClick={handleMediaButton}
-                                            active={mediaSectionVisible}
-                                            disabled={toolbarDisabled}
-                                        />
-                                        <ComposerIconButton
-                                            icon={BarChart3}
-                                            label="Add poll"
-                                            onClick={handlePollButton}
-                                            active={pollSectionVisible}
-                                            disabled={toolbarDisabled}
-                                        />
-                                        <ComposerIconButton
-                                            icon={Clock3}
-                                            label="Schedule publish"
-                                            onClick={handleScheduleToggle}
-                                            active={scheduleOpen}
-                                            disabled={toolbarDisabled}
-                                        />
-                                        {signalsEnabled && (
-                                            <ComposerIconButton
-                                                icon={Lock}
-                                                label="Toggle paywall"
-                                                onClick={handlePaywallToggle}
-                                                active={paywallActive}
-                                                disabled={
-                                                    toolbarDisabled ||
-                                                    !payToViewAvailable
-                                                }
-                                            />
-                                        )}
-                                        {signalsEnabled && (
-                                            <ComposerIconButton
-                                                icon={Target}
-                                                label="Tip goal"
-                                                onClick={handleTipGoalToggle}
-                                                active={tipGoalOpen}
-                                                disabled={toolbarDisabled}
-                                            />
-                                        )}
-                                        <ComposerIconButton
-                                            icon={Thumbtack}
-                                            label="Pin post"
-                                            onClick={handlePinToggle}
-                                            active={formData.is_pinned}
-                                            disabled={toolbarDisabled}
-                                        />
-                                        {circlesEnabled && (
-                                            <IconToggle
-                                                icon={Users}
-                                                label="Post to circles"
-                                                onClick={togglePostToCircles}
-                                                active={formData.post_to_circles}
-                                                disabled={toolbarDisabled}
-                                                collapseLabel={false}
-                                            />
-                                        )}
-                                    </div>
-                                    <select
-                                        value={formData.audience}
-                                        onChange={(event) =>
-                                            handleAudienceSelect(
-                                                event.target.value,
-                                            )
-                                        }
-                                        disabled={toolbarDisabled}
-                                        aria-label="Select audience"
-                                        className="h-9 w-full min-w-0 flex-1 rounded-full border border-white/10 bg-black/40 px-3 py-1.5 text-xs text-white/80 focus:border-white/40 focus:ring-2 focus:ring-rose-500/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60 sm:h-10 sm:w-auto sm:min-w-[180px] sm:flex-none sm:px-4 sm:py-2 sm:text-sm"
-                                    >
-                                        {audienceOptions.map(
-                                            ({ value, label }) => (
-                                                <option
-                                                    key={value}
-                                                    value={value}
-                                                >
-                                                    {label}
-                                                </option>
-                                            ),
-                                        )}
-                                    </select>
-                                </div>
-                                </TooltipProvider>
-                            </div>
-
-                            {scheduleOpen && (
-                                <div className="space-y-2 rounded-xl border border-white/10 bg-white/5 p-4 sm:rounded-2xl sm:p-5">
-                                    <Label className="text-xs tracking-[0.3em] text-white/45 uppercase">
-                                        Schedule publish
-                                    </Label>
-                                    <Input
-                                        type="datetime-local"
-                                        value={formData.scheduled_at ?? ''}
-                                        onChange={(event) =>
-                                            setFormData(
-                                                'scheduled_at',
-                                                event.target.value
-                                                    ? event.target.value
-                                                    : null,
-                                            )
-                                        }
-                                        disabled={
-                                            !config.can_post || form.processing
-                                        }
-                                        className="h-11 border-white/10 bg-white/5 text-sm text-white/90 sm:h-10"
-                                    />
-                                    <span className="text-[0.65rem] leading-relaxed text-white/55">
-                                        Leave blank to share immediately. Times
-                                        use your local timezone.
-                                    </span>
-                                </div>
-                            )}
-
-                            {signalsEnabled && paywallActive && (
-                                <div className="space-y-4 rounded-xl border border-amber-400/40 bg-gradient-to-br from-amber-400/15 via-rose-500/10 to-violet-500/10 p-4 sm:rounded-2xl sm:p-5">
-                                    <p className="text-[0.65rem] tracking-[0.3em] text-amber-100/80 uppercase">
-                                        Paywall
-                                    </p>
-                                    <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
-                                        <div className="space-y-2">
-                                            <Label className="text-xs tracking-[0.25em] text-white/50 uppercase">
-                                                Price
-                                            </Label>
-                                            <Input
-                                                type="text"
-                                                inputMode="decimal"
-                                                placeholder="19.99"
-                                                value={paywallPriceInput}
-                                                onChange={(event) =>
-                                                    handlePaywallPriceChange(
-                                                        event.target.value,
-                                                    )
-                                                }
-                                                disabled={
-                                                    !config.can_post ||
-                                                    form.processing
-                                                }
-                                                className="h-11 border-white/20 bg-black/30 text-sm text-white/90 sm:h-10"
-                                            />
-                                            <span className="text-[0.65rem] leading-relaxed text-white/60">
-                                                Minimum $1.00. Unlocks grant
-                                                access instantly.
-                                            </span>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label className="text-xs tracking-[0.25em] text-white/50 uppercase">
-                                                Currency
-                                            </Label>
-                                            <div className="flex flex-wrap gap-2">
-                                                {supportedCurrencies.map(
-                                                    (currency) => (
-                                                        <button
-                                                            key={currency}
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setFormData(
-                                                                    'paywall_currency',
-                                                                    currency,
-                                                                );
-
-                                                                if (
-                                                                    paywallActive
-                                                                ) {
-                                                                    applyPaywallValidation(
-                                                                        paywallPriceInput,
-                                                                    );
-                                                                }
-                                                            }}
-                                                            disabled={
-                                                                !config.can_post ||
-                                                                form.processing
-                                                            }
-                                                            className={cn(
-                                                                'min-h-[44px] rounded-full border px-4 py-2 text-xs transition active:scale-95 disabled:cursor-not-allowed sm:min-h-0 sm:px-3 sm:py-1',
-                                                                FOCUS_RING,
-                                                                formData.paywall_currency ===
-                                                                    currency
-                                                                    ? 'border-white/40 bg-white/20 text-white'
-                                                                    : 'border-white/15 bg-black/20 text-white/65 hover:border-white/30 hover:bg-white/10 hover:text-white',
-                                                                (!config.can_post ||
-                                                                    form.processing) &&
-                                                                    'opacity-60',
-                                                            )}
-                                                        >
-                                                            {currency}
-                                                        </button>
-                                                    ),
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {form.errors.paywall_price && (
-                                        <p className="text-xs text-rose-300">
-                                            {form.errors.paywall_price}
-                                        </p>
-                                    )}
-                                    {form.errors.paywall_currency && (
-                                        <p className="text-xs text-rose-300">
-                                            {form.errors.paywall_currency}
-                                        </p>
-                                    )}
-                                    {paywallError && (
-                                        <p className="text-xs text-rose-300">
-                                            {paywallError}
-                                        </p>
-                                    )}
-                                </div>
-                            )}
-
-                            {signalsEnabled && tipGoalOpen && (
-                                <div className="space-y-4 rounded-xl border border-emerald-400/30 bg-emerald-500/10 p-4 sm:rounded-2xl sm:p-5">
-                                    <div className="grid gap-4 sm:grid-cols-2">
-                                        <div className="space-y-2">
-                                            <Label className="text-xs tracking-[0.25em] text-white/55 uppercase">
-                                                Goal amount
-                                            </Label>
-                                            <Input
-                                                type="text"
-                                                inputMode="decimal"
-                                                placeholder="250"
-                                                value={tipGoalAmountInput}
-                                                onChange={(event) =>
-                                                    handleTipGoalAmountChange(
-                                                        event.target.value,
-                                                    )
-                                                }
-                                                disabled={
-                                                    !config.can_post ||
-                                                    form.processing
-                                                }
-                                                className="h-11 border-white/20 bg-black/30 text-sm text-white/90 sm:h-10"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label className="text-xs tracking-[0.25em] text-white/55 uppercase">
-                                                Currency
-                                            </Label>
-                                            <div className="flex flex-wrap gap-2">
-                                                {supportedCurrencies.map(
-                                                    (currency) => (
-                                                        <button
-                                                            key={currency}
-                                                            type="button"
-                                                            onClick={() =>
-                                                                handleTipGoalCurrencyChange(
-                                                                    currency,
-                                                                )
-                                                            }
-                                                            disabled={
-                                                                !config.can_post ||
-                                                                form.processing
-                                                            }
-                                                            className={cn(
-                                                                'min-h-[44px] rounded-full border px-4 py-2 text-xs transition active:scale-95 disabled:cursor-not-allowed sm:min-h-0 sm:px-3 sm:py-1',
-                                                                FOCUS_RING,
-                                                                tipGoalCurrency ===
-                                                                    currency
-                                                                    ? 'border-white/40 bg-white/20 text-white'
-                                                                    : 'border-white/15 bg-black/20 text-white/65 hover:border-white/30 hover:bg-white/10 hover:text-white',
-                                                                (!config.can_post ||
-                                                                    form.processing) &&
-                                                                    'opacity-60',
-                                                            )}
-                                                        >
-                                                            {currency}
-                                                        </button>
-                                                    ),
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="grid gap-4 sm:grid-cols-2">
-                                        <div className="space-y-2">
-                                            <Label className="text-xs tracking-[0.25em] text-white/55 uppercase">
-                                                Goal headline
-                                            </Label>
-                                            <Input
-                                                type="text"
-                                                placeholder="Unlock the wax cascade ritual"
-                                                value={tipGoalLabel}
-                                                onChange={(event) =>
-                                                    handleTipGoalLabelChange(
-                                                        event.target.value,
-                                                    )
-                                                }
-                                                disabled={
-                                                    !config.can_post ||
-                                                    form.processing
-                                                }
-                                                className="h-11 border-white/20 bg-black/30 text-sm text-white/90 sm:h-10"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label className="text-xs tracking-[0.25em] text-white/55 uppercase">
-                                                Deadline (optional)
-                                            </Label>
-                                            <Input
-                                                type="datetime-local"
-                                                value={tipGoalDeadline}
-                                                onChange={(event) =>
-                                                    handleTipGoalDeadlineChange(
-                                                        event.target.value,
-                                                    )
-                                                }
-                                                disabled={
-                                                    !config.can_post ||
-                                                    form.processing
-                                                }
-                                                className="h-11 border-white/20 bg-black/30 text-sm text-white/90 sm:h-10"
-                                            />
-                                        </div>
-                                    </div>
-                                    {tipGoalError && (
-                                        <p className="text-xs text-rose-300">
-                                            {tipGoalError}
-                                        </p>
-                                    )}
-                                </div>
-                            )}
-
-                            {mediaSectionVisible && (
-                                <div className="rounded-xl border border-dashed border-white/15 bg-white/5 p-3 sm:rounded-2xl sm:p-4">
-                                    <div className="flex items-center justify-between gap-3 text-xs tracking-[0.3em] text-white/45 uppercase">
-                                        <span>Media & teasers</span>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-white/30">
-                                                {uploaderItems.length}/
-                                                {MAX_MEDIA_FILES}
-                                            </span>
-                                            <button
-                                                type="button"
-                                                onClick={handleMediaTrayClose}
-                                                className={cn(
-                                                    'flex size-10 items-center justify-center rounded-full bg-black/40 text-white/70 transition active:scale-95 hover:bg-black/70 sm:size-8 sm:p-1',
-                                                    FOCUS_RING,
-                                                )}
-                                                aria-label="Remove media"
-                                                disabled={toolbarDisabled}
-                                            >
-                                                <X className="size-4" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div className="mt-3">
-                                        <FeedMediaUploader
-                                            key={uploaderKey}
-                                            maxFiles={MAX_MEDIA_FILES}
-                                            acceptedMimeTypes={
-                                                config.media.accepted_mime_types
-                                            }
-                                            disabled={toolbarDisabled}
-                                            onChange={setUploadedMedia}
-                                            onItemsChange={setUploaderItems}
-                                        />
-                                        {mediaHasErrors && !toolbarDisabled && (
-                                            <p className="mt-2 text-xs text-rose-300">
-                                                Resolve upload errors before
-                                                publishing.
-                                            </p>
-                                        )}
-                                        {form.errors.media && (
-                                            <p className="text-xs text-rose-300">
-                                                {form.errors.media}
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-
-                            {pollSectionVisible && (
-                                <div className="space-y-4 rounded-xl border border-white/10 bg-white/5 p-4 sm:rounded-2xl sm:p-5">
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between gap-2">
-                                            <Label className="text-xs tracking-[0.3em] text-white/50 uppercase">
-                                                Poll question
-                                            </Label>
-                                            <button
-                                                type="button"
-                                                onClick={handlePollTrayClose}
-                                                className={cn(
-                                                    'min-h-[44px] rounded-full bg-black/30 px-4 py-2 text-xs text-white/70 transition active:scale-95 hover:bg-black/50 sm:min-h-0 sm:px-3 sm:py-1',
-                                                    FOCUS_RING,
-                                                )}
-                                                aria-label="Remove poll"
-                                                disabled={toolbarDisabled}
-                                            >
-                                                Remove
-                                            </button>
-                                        </div>
-                                        <Input
-                                            value={pollDraft.question}
-                                            placeholder="What are you asking your audience?"
-                                            onChange={(event) =>
-                                                setPollDraft((previous) => ({
-                                                    ...previous,
-                                                    question:
-                                                        event.target.value,
-                                                }))
-                                            }
-                                            disabled={
-                                                !config.can_post ||
-                                                form.processing
-                                            }
-                                            className="h-11 text-sm sm:h-10"
-                                        />
-                                    </div>
-
-                                    <div className="space-y-3">
-                                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                            <Label className="text-xs tracking-[0.25em] text-white/50 uppercase">
-                                                Options
-                                            </Label>
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    setPollDraft((previous) => {
-                                                        const nextOptions = [
-                                                            ...previous.options,
-                                                            {
-                                                                id: generateOptionId(),
-                                                                value: '',
-                                                            },
-                                                        ];
-
-                                                        return {
-                                                            ...previous,
-                                                            options:
-                                                                nextOptions,
-                                                            max_choices:
-                                                                previous.allow_multiple
-                                                                    ? Math.min(
-                                                                          previous.max_choices ??
-                                                                              nextOptions.length,
-                                                                          nextOptions.length,
-                                                                      )
-                                                                    : null,
-                                                        };
-                                                    })
-                                                }
-                                                disabled={
-                                                    pollDraft.options.length >=
-                                                        MAX_POLL_OPTIONS ||
-                                                    !config.can_post ||
-                                                    form.processing
-                                                }
-                                                className={cn(
-                                                    'flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-xs tracking-[0.3em] text-white/70 uppercase transition active:scale-95 hover:border-white/30 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-0 sm:px-3 sm:py-1.5',
-                                                    FOCUS_RING,
-                                                )}
-                                            >
-                                                <Plus className="size-3.5" />{' '}
-                                                Add option
-                                            </button>
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            {pollDraft.options.map(
-                                                (option, index) => (
-                                                    <div
-                                                        key={option.id}
-                                                        className="flex items-center gap-2"
-                                                    >
-                                                        <Input
-                                                            value={option.value}
-                                                            placeholder={`Option ${index + 1}`}
-                                                            onChange={(event) =>
-                                                                setPollDraft(
-                                                                    (
-                                                                        previous,
-                                                                    ) => ({
-                                                                        ...previous,
-                                                                        options:
-                                                                            previous.options.map(
-                                                                                (
-                                                                                    existing,
-                                                                                ) =>
-                                                                                    existing.id ===
-                                                                                    option.id
-                                                                                        ? {
-                                                                                              ...existing,
-                                                                                              value: event
-                                                                                                  .target
-                                                                                                  .value,
-                                                                                          }
-                                                                                        : existing,
-                                                                            ),
-                                                                    }),
-                                                                )
-                                                            }
-                                                            disabled={
-                                                                !config.can_post ||
-                                                                form.processing
-                                                            }
-                                                            className="h-11 flex-1 text-sm sm:h-10"
-                                                        />
-                                                        <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                                setPollDraft(
-                                                                    (
-                                                                        previous,
-                                                                    ) => {
-                                                                        const nextOptions =
-                                                                            previous.options.filter(
-                                                                                (
-                                                                                    existing,
-                                                                                ) =>
-                                                                                    existing.id !==
-                                                                                    option.id,
-                                                                            );
-
-                                                                        return {
-                                                                            ...previous,
-                                                                            options:
-                                                                                nextOptions,
-                                                                            max_choices:
-                                                                                previous.allow_multiple
-                                                                                    ? Math.min(
-                                                                                          previous.max_choices ??
-                                                                                              nextOptions.length,
-                                                                                          nextOptions.length,
-                                                                                      )
-                                                                                    : null,
-                                                                        };
-                                                                    },
-                                                                )
-                                                            }
-                                                            disabled={
-                                                                pollDraft
-                                                                    .options
-                                                                    .length <=
-                                                                    MIN_POLL_OPTIONS ||
-                                                                !config.can_post ||
-                                                                form.processing
-                                                            }
-                                                            className={cn(
-                                                                'flex size-10 shrink-0 items-center justify-center rounded-full border border-white/15 bg-black/40 text-white/70 transition active:scale-95 hover:border-white/30 hover:bg-black/60 hover:text-white disabled:cursor-not-allowed disabled:opacity-60 sm:size-8 sm:p-1',
-                                                                FOCUS_RING,
-                                                            )}
-                                                            aria-label={`Remove option ${index + 1}`}
-                                                        >
-                                                            <X className="size-3.5" />
-                                                        </button>
-                                                    </div>
-                                                ),
+                                <div className="space-y-2 sm:space-y-3">
+                                    <div className="relative">
+                                        <div className="absolute inset-0 rounded-2xl border border-white/10 bg-black/30 transition-all duration-300 sm:rounded-3xl" />
+                                        <div
+                                            ref={overlayRef}
+                                            className={cn(
+                                                'pointer-events-none absolute inset-0 overflow-y-auto rounded-2xl px-3 py-2.5 text-sm leading-relaxed text-white transition-all duration-300 sm:rounded-3xl sm:px-5 sm:py-4 sm:text-base',
                                             )}
+                                        >
+                                            <span
+                                                dangerouslySetInnerHTML={{
+                                                    __html: overlayContent,
+                                                }}
+                                            />
                                         </div>
-                                    </div>
-
-                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                        <IconToggle
-                                            icon={Check}
-                                            label="Multiple choice"
-                                            active={pollDraft.allow_multiple}
-                                            onClick={() =>
-                                                setPollDraft((previous) => ({
-                                                    ...previous,
-                                                    allow_multiple:
-                                                        !previous.allow_multiple,
-                                                    max_choices:
-                                                        !previous.allow_multiple
-                                                            ? Math.min(
-                                                                  previous.max_choices ??
-                                                                      Math.min(
-                                                                          previous
-                                                                              .options
-                                                                              .length,
-                                                                          2,
-                                                                      ),
-                                                                  previous
-                                                                      .options
-                                                                      .length,
-                                                              )
-                                                            : null,
-                                                }))
+                                        <textarea
+                                            ref={textareaRef}
+                                            value={formData.body}
+                                            onChange={(event) => {
+                                                handleBodyChange(
+                                                    event.target.value,
+                                                );
+                                                handleCursorPositionChange();
+                                            }}
+                                            onSelect={
+                                                handleCursorPositionChange
                                             }
+                                            onKeyUp={handleCursorPositionChange}
+                                            onClick={handleCursorPositionChange}
+                                            onFocus={handleTextareaFocus}
+                                            onBlur={handleTextareaBlur}
+                                            onScroll={syncOverlayScroll}
+                                            placeholder=""
+                                            className={cn(
+                                                'relative z-10 w-full resize-none rounded-2xl border border-transparent bg-transparent px-3 py-2.5 text-sm text-transparent caret-white transition-all duration-300 focus:ring-2 focus:ring-rose-500/30 focus:outline-none disabled:opacity-60 sm:rounded-3xl sm:px-5 sm:py-4 sm:text-base',
+                                                isExpanded
+                                                    ? 'min-h-[100px] sm:min-h-[170px]'
+                                                    : 'min-h-[60px] sm:min-h-[80px]',
+                                            )}
+                                            maxLength={BODY_CHARACTER_LIMIT}
                                             disabled={
                                                 !config.can_post ||
                                                 form.processing
                                             }
-                                            collapseLabel={false}
                                         />
-
-                                        {pollDraft.allow_multiple && (
-                                            <Input
-                                                type="number"
-                                                min={2}
-                                                max={pollDraft.options.length}
-                                                value={
-                                                    pollDraft.max_choices ?? ''
-                                                }
-                                                onChange={(event) => {
-                                                    const value =
-                                                        event.target.value.trim() ===
-                                                        ''
-                                                            ? null
-                                                            : Number(
-                                                                  event.target
-                                                                      .value,
-                                                              );
-                                                    setPollDraft(
-                                                        (previous) => ({
-                                                            ...previous,
-                                                            max_choices: value,
-                                                        }),
-                                                    );
-                                                }}
-                                                disabled={
-                                                    !config.can_post ||
-                                                    form.processing
-                                                }
-                                                className="h-11 w-full text-sm sm:h-10 sm:w-32"
-                                                placeholder="Max choices"
-                                            />
-                                        )}
+                                        <MentionHashtagAutocomplete
+                                            value={formData.body}
+                                            selectionStart={selectionStart}
+                                            selectionEnd={selectionEnd}
+                                            onInsert={handleAutocompleteInsert}
+                                            textareaRef={textareaRef}
+                                            overlayRef={overlayRef}
+                                            disabled={
+                                                !config.can_post ||
+                                                form.processing
+                                            }
+                                        />
+                                        <div
+                                            className={cn(
+                                                'pointer-events-none absolute right-2.5 bottom-2.5 text-[0.6rem] sm:right-5 sm:bottom-4 sm:text-[0.65rem]',
+                                                bodyCounterClass,
+                                            )}
+                                            aria-live="polite"
+                                        >
+                                            {bodyCharacterCount.toLocaleString()}
+                                            /
+                                            {BODY_CHARACTER_LIMIT.toLocaleString()}
+                                        </div>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <Label className="text-xs tracking-[0.25em] text-white/50 uppercase">
-                                            Closes at (optional)
+                                    {form.errors.body && (
+                                        <p className="text-xs text-rose-300">
+                                            {form.errors.body}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div
+                                    className={cn(
+                                        'mb-2 flex flex-col gap-2.5 overflow-hidden transition-all duration-300 sm:mb-3 sm:gap-3',
+                                        isExpanded
+                                            ? 'max-h-[500px] opacity-100'
+                                            : 'max-h-0 opacity-0',
+                                    )}
+                                >
+                                    <TooltipProvider delayDuration={300}>
+                                        <div className="flex flex-wrap items-center gap-1.5 sm:justify-between sm:gap-2">
+                                            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                                                <ComposerIconButton
+                                                    icon={ImageIcon}
+                                                    label="Add media"
+                                                    onClick={handleMediaButton}
+                                                    active={mediaSectionVisible}
+                                                    disabled={toolbarDisabled}
+                                                />
+                                                <ComposerIconButton
+                                                    icon={BarChart3}
+                                                    label="Add poll"
+                                                    onClick={handlePollButton}
+                                                    active={pollSectionVisible}
+                                                    disabled={toolbarDisabled}
+                                                />
+                                                <ComposerIconButton
+                                                    icon={Clock3}
+                                                    label="Schedule publish"
+                                                    onClick={
+                                                        handleScheduleToggle
+                                                    }
+                                                    active={scheduleOpen}
+                                                    disabled={toolbarDisabled}
+                                                />
+                                                {signalsEnabled && (
+                                                    <ComposerIconButton
+                                                        icon={Lock}
+                                                        label="Toggle paywall"
+                                                        onClick={
+                                                            handlePaywallToggle
+                                                        }
+                                                        active={paywallActive}
+                                                        disabled={
+                                                            toolbarDisabled ||
+                                                            !payToViewAvailable
+                                                        }
+                                                    />
+                                                )}
+                                                {signalsEnabled && (
+                                                    <ComposerIconButton
+                                                        icon={Target}
+                                                        label="Tip goal"
+                                                        onClick={
+                                                            handleTipGoalToggle
+                                                        }
+                                                        active={tipGoalOpen}
+                                                        disabled={
+                                                            toolbarDisabled
+                                                        }
+                                                    />
+                                                )}
+                                                <ComposerIconButton
+                                                    icon={Thumbtack}
+                                                    label="Pin post"
+                                                    onClick={handlePinToggle}
+                                                    active={formData.is_pinned}
+                                                    disabled={toolbarDisabled}
+                                                />
+                                                {circlesEnabled && (
+                                                    <IconToggle
+                                                        icon={Users}
+                                                        label="Post to circles"
+                                                        onClick={
+                                                            togglePostToCircles
+                                                        }
+                                                        active={
+                                                            formData.post_to_circles
+                                                        }
+                                                        disabled={
+                                                            toolbarDisabled
+                                                        }
+                                                        collapseLabel={false}
+                                                    />
+                                                )}
+                                            </div>
+                                            <select
+                                                value={formData.audience}
+                                                onChange={(event) =>
+                                                    handleAudienceSelect(
+                                                        event.target.value,
+                                                    )
+                                                }
+                                                disabled={toolbarDisabled}
+                                                aria-label="Select audience"
+                                                className="h-9 w-full min-w-0 flex-1 rounded-full border border-white/10 bg-black/40 px-3 py-1.5 text-xs text-white/80 focus:border-white/40 focus:ring-2 focus:ring-rose-500/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60 sm:h-10 sm:w-auto sm:min-w-[180px] sm:flex-none sm:px-4 sm:py-2 sm:text-sm"
+                                            >
+                                                {audienceOptions.map(
+                                                    ({ value, label }) => (
+                                                        <option
+                                                            key={value}
+                                                            value={value}
+                                                        >
+                                                            {label}
+                                                        </option>
+                                                    ),
+                                                )}
+                                            </select>
+                                        </div>
+                                    </TooltipProvider>
+                                </div>
+
+                                {scheduleOpen && (
+                                    <div className="space-y-2 rounded-xl border border-white/10 bg-white/5 p-4 sm:rounded-2xl sm:p-5">
+                                        <Label className="text-xs tracking-[0.3em] text-white/45 uppercase">
+                                            Schedule publish
                                         </Label>
                                         <Input
                                             type="datetime-local"
-                                            value={pollDraft.closes_at}
+                                            value={formData.scheduled_at ?? ''}
                                             onChange={(event) =>
-                                                setPollDraft((previous) => ({
-                                                    ...previous,
-                                                    closes_at:
-                                                        event.target.value,
-                                                }))
+                                                setFormData(
+                                                    'scheduled_at',
+                                                    event.target.value
+                                                        ? event.target.value
+                                                        : null,
+                                                )
                                             }
                                             disabled={
                                                 !config.can_post ||
                                                 form.processing
                                             }
-                                            className="h-11 w-full text-sm sm:h-10 sm:w-64"
+                                            className="h-11 border-white/10 bg-white/5 text-sm text-white/90 sm:h-10"
                                         />
+                                        <span className="text-[0.65rem] leading-relaxed text-white/55">
+                                            Leave blank to share immediately.
+                                            Times use your local timezone.
+                                        </span>
                                     </div>
+                                )}
 
-                                    {pollErrors.length > 0 && (
-                                        <div className="space-y-1 text-xs text-rose-300">
-                                            {pollErrors.map((message) => (
-                                                <p key={message}>{message}</p>
-                                            ))}
+                                {signalsEnabled && paywallActive && (
+                                    <div className="space-y-4 rounded-xl border border-amber-400/40 bg-gradient-to-br from-amber-400/15 via-rose-500/10 to-violet-500/10 p-4 sm:rounded-2xl sm:p-5">
+                                        <p className="text-[0.65rem] tracking-[0.3em] text-amber-100/80 uppercase">
+                                            Paywall
+                                        </p>
+                                        <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
+                                            <div className="space-y-2">
+                                                <Label className="text-xs tracking-[0.25em] text-white/50 uppercase">
+                                                    Price
+                                                </Label>
+                                                <Input
+                                                    type="text"
+                                                    inputMode="decimal"
+                                                    placeholder="19.99"
+                                                    value={paywallPriceInput}
+                                                    onChange={(event) =>
+                                                        handlePaywallPriceChange(
+                                                            event.target.value,
+                                                        )
+                                                    }
+                                                    disabled={
+                                                        !config.can_post ||
+                                                        form.processing
+                                                    }
+                                                    className="h-11 border-white/20 bg-black/30 text-sm text-white/90 sm:h-10"
+                                                />
+                                                <span className="text-[0.65rem] leading-relaxed text-white/60">
+                                                    Minimum $1.00. Unlocks grant
+                                                    access instantly.
+                                                </span>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs tracking-[0.25em] text-white/50 uppercase">
+                                                    Currency
+                                                </Label>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {supportedCurrencies.map(
+                                                        (currency) => (
+                                                            <button
+                                                                key={currency}
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setFormData(
+                                                                        'paywall_currency',
+                                                                        currency,
+                                                                    );
+
+                                                                    if (
+                                                                        paywallActive
+                                                                    ) {
+                                                                        applyPaywallValidation(
+                                                                            paywallPriceInput,
+                                                                        );
+                                                                    }
+                                                                }}
+                                                                disabled={
+                                                                    !config.can_post ||
+                                                                    form.processing
+                                                                }
+                                                                className={cn(
+                                                                    'min-h-[44px] rounded-full border px-4 py-2 text-xs transition active:scale-95 disabled:cursor-not-allowed sm:min-h-0 sm:px-3 sm:py-1',
+                                                                    FOCUS_RING,
+                                                                    formData.paywall_currency ===
+                                                                        currency
+                                                                        ? 'border-white/40 bg-white/20 text-white'
+                                                                        : 'border-white/15 bg-black/20 text-white/65 hover:border-white/30 hover:bg-white/10 hover:text-white',
+                                                                    (!config.can_post ||
+                                                                        form.processing) &&
+                                                                        'opacity-60',
+                                                                )}
+                                                            >
+                                                                {currency}
+                                                            </button>
+                                                        ),
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
-                                    )}
-                                </div>
-                            )}
+                                        {form.errors.paywall_price && (
+                                            <p className="text-xs text-rose-300">
+                                                {form.errors.paywall_price}
+                                            </p>
+                                        )}
+                                        {form.errors.paywall_currency && (
+                                            <p className="text-xs text-rose-300">
+                                                {form.errors.paywall_currency}
+                                            </p>
+                                        )}
+                                        {paywallError && (
+                                            <p className="text-xs text-rose-300">
+                                                {paywallError}
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
 
-                            {Object.entries(form.errors)
-                                .filter(
-                                    ([field]) =>
-                                        field !== 'media' &&
-                                        field !== 'hashtags' &&
-                                        field !== 'body' &&
-                                        field !== 'paywall_price' &&
-                                        field !== 'paywall_currency' &&
-                                        !field.startsWith('poll.'),
-                                )
-                                .map(([field, message]) => (
-                                    <p
-                                        key={field}
-                                        className="text-xs text-rose-300"
-                                    >
-                                        {message}
-                                    </p>
-                                ))}
+                                {signalsEnabled && tipGoalOpen && (
+                                    <div className="space-y-4 rounded-xl border border-emerald-400/30 bg-emerald-500/10 p-4 sm:rounded-2xl sm:p-5">
+                                        <div className="grid gap-4 sm:grid-cols-2">
+                                            <div className="space-y-2">
+                                                <Label className="text-xs tracking-[0.25em] text-white/55 uppercase">
+                                                    Goal amount
+                                                </Label>
+                                                <Input
+                                                    type="text"
+                                                    inputMode="decimal"
+                                                    placeholder="250"
+                                                    value={tipGoalAmountInput}
+                                                    onChange={(event) =>
+                                                        handleTipGoalAmountChange(
+                                                            event.target.value,
+                                                        )
+                                                    }
+                                                    disabled={
+                                                        !config.can_post ||
+                                                        form.processing
+                                                    }
+                                                    className="h-11 border-white/20 bg-black/30 text-sm text-white/90 sm:h-10"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs tracking-[0.25em] text-white/55 uppercase">
+                                                    Currency
+                                                </Label>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {supportedCurrencies.map(
+                                                        (currency) => (
+                                                            <button
+                                                                key={currency}
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    handleTipGoalCurrencyChange(
+                                                                        currency,
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    !config.can_post ||
+                                                                    form.processing
+                                                                }
+                                                                className={cn(
+                                                                    'min-h-[44px] rounded-full border px-4 py-2 text-xs transition active:scale-95 disabled:cursor-not-allowed sm:min-h-0 sm:px-3 sm:py-1',
+                                                                    FOCUS_RING,
+                                                                    tipGoalCurrency ===
+                                                                        currency
+                                                                        ? 'border-white/40 bg-white/20 text-white'
+                                                                        : 'border-white/15 bg-black/20 text-white/65 hover:border-white/30 hover:bg-white/10 hover:text-white',
+                                                                    (!config.can_post ||
+                                                                        form.processing) &&
+                                                                        'opacity-60',
+                                                                )}
+                                                            >
+                                                                {currency}
+                                                            </button>
+                                                        ),
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="grid gap-4 sm:grid-cols-2">
+                                            <div className="space-y-2">
+                                                <Label className="text-xs tracking-[0.25em] text-white/55 uppercase">
+                                                    Goal headline
+                                                </Label>
+                                                <Input
+                                                    type="text"
+                                                    placeholder="Unlock the wax cascade ritual"
+                                                    value={tipGoalLabel}
+                                                    onChange={(event) =>
+                                                        handleTipGoalLabelChange(
+                                                            event.target.value,
+                                                        )
+                                                    }
+                                                    disabled={
+                                                        !config.can_post ||
+                                                        form.processing
+                                                    }
+                                                    className="h-11 border-white/20 bg-black/30 text-sm text-white/90 sm:h-10"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs tracking-[0.25em] text-white/55 uppercase">
+                                                    Deadline (optional)
+                                                </Label>
+                                                <Input
+                                                    type="datetime-local"
+                                                    value={tipGoalDeadline}
+                                                    onChange={(event) =>
+                                                        handleTipGoalDeadlineChange(
+                                                            event.target.value,
+                                                        )
+                                                    }
+                                                    disabled={
+                                                        !config.can_post ||
+                                                        form.processing
+                                                    }
+                                                    className="h-11 border-white/20 bg-black/30 text-sm text-white/90 sm:h-10"
+                                                />
+                                            </div>
+                                        </div>
+                                        {tipGoalError && (
+                                            <p className="text-xs text-rose-300">
+                                                {tipGoalError}
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+
+                                {mediaSectionVisible && (
+                                    <div className="rounded-xl border border-dashed border-white/15 bg-white/5 p-3 sm:rounded-2xl sm:p-4">
+                                        <div className="flex items-center justify-between gap-3 text-xs tracking-[0.3em] text-white/45 uppercase">
+                                            <span>Media & teasers</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-white/30">
+                                                    {uploaderItems.length}/
+                                                    {MAX_MEDIA_FILES}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={
+                                                        handleMediaTrayClose
+                                                    }
+                                                    className={cn(
+                                                        'flex size-10 items-center justify-center rounded-full bg-black/40 text-white/70 transition hover:bg-black/70 active:scale-95 sm:size-8 sm:p-1',
+                                                        FOCUS_RING,
+                                                    )}
+                                                    aria-label="Remove media"
+                                                    disabled={toolbarDisabled}
+                                                >
+                                                    <X className="size-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="mt-3">
+                                            <FeedMediaUploader
+                                                key={uploaderKey}
+                                                maxFiles={MAX_MEDIA_FILES}
+                                                acceptedMimeTypes={
+                                                    config.media
+                                                        .accepted_mime_types
+                                                }
+                                                disabled={toolbarDisabled}
+                                                onChange={setUploadedMedia}
+                                                onItemsChange={setUploaderItems}
+                                            />
+                                            {mediaHasErrors &&
+                                                !toolbarDisabled && (
+                                                    <p className="mt-2 text-xs text-rose-300">
+                                                        Resolve upload errors
+                                                        before publishing.
+                                                    </p>
+                                                )}
+                                            {form.errors.media && (
+                                                <p className="text-xs text-rose-300">
+                                                    {form.errors.media}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {pollSectionVisible && (
+                                    <div className="space-y-4 rounded-xl border border-white/10 bg-white/5 p-4 sm:rounded-2xl sm:p-5">
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <Label className="text-xs tracking-[0.3em] text-white/50 uppercase">
+                                                    Poll question
+                                                </Label>
+                                                <button
+                                                    type="button"
+                                                    onClick={
+                                                        handlePollTrayClose
+                                                    }
+                                                    className={cn(
+                                                        'min-h-[44px] rounded-full bg-black/30 px-4 py-2 text-xs text-white/70 transition hover:bg-black/50 active:scale-95 sm:min-h-0 sm:px-3 sm:py-1',
+                                                        FOCUS_RING,
+                                                    )}
+                                                    aria-label="Remove poll"
+                                                    disabled={toolbarDisabled}
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
+                                            <Input
+                                                value={pollDraft.question}
+                                                placeholder="What are you asking your audience?"
+                                                onChange={(event) =>
+                                                    setPollDraft(
+                                                        (previous) => ({
+                                                            ...previous,
+                                                            question:
+                                                                event.target
+                                                                    .value,
+                                                        }),
+                                                    )
+                                                }
+                                                disabled={
+                                                    !config.can_post ||
+                                                    form.processing
+                                                }
+                                                className="h-11 text-sm sm:h-10"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                                <Label className="text-xs tracking-[0.25em] text-white/50 uppercase">
+                                                    Options
+                                                </Label>
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setPollDraft(
+                                                            (previous) => {
+                                                                const nextOptions =
+                                                                    [
+                                                                        ...previous.options,
+                                                                        {
+                                                                            id: generateOptionId(),
+                                                                            value: '',
+                                                                        },
+                                                                    ];
+
+                                                                return {
+                                                                    ...previous,
+                                                                    options:
+                                                                        nextOptions,
+                                                                    max_choices:
+                                                                        previous.allow_multiple
+                                                                            ? Math.min(
+                                                                                  previous.max_choices ??
+                                                                                      nextOptions.length,
+                                                                                  nextOptions.length,
+                                                                              )
+                                                                            : null,
+                                                                };
+                                                            },
+                                                        )
+                                                    }
+                                                    disabled={
+                                                        pollDraft.options
+                                                            .length >=
+                                                            MAX_POLL_OPTIONS ||
+                                                        !config.can_post ||
+                                                        form.processing
+                                                    }
+                                                    className={cn(
+                                                        'flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-xs tracking-[0.3em] text-white/70 uppercase transition hover:border-white/30 hover:bg-white/10 hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-0 sm:px-3 sm:py-1.5',
+                                                        FOCUS_RING,
+                                                    )}
+                                                >
+                                                    <Plus className="size-3.5" />{' '}
+                                                    Add option
+                                                </button>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                {pollDraft.options.map(
+                                                    (option, index) => (
+                                                        <div
+                                                            key={option.id}
+                                                            className="flex items-center gap-2"
+                                                        >
+                                                            <Input
+                                                                value={
+                                                                    option.value
+                                                                }
+                                                                placeholder={`Option ${index + 1}`}
+                                                                onChange={(
+                                                                    event,
+                                                                ) =>
+                                                                    setPollDraft(
+                                                                        (
+                                                                            previous,
+                                                                        ) => ({
+                                                                            ...previous,
+                                                                            options:
+                                                                                previous.options.map(
+                                                                                    (
+                                                                                        existing,
+                                                                                    ) =>
+                                                                                        existing.id ===
+                                                                                        option.id
+                                                                                            ? {
+                                                                                                  ...existing,
+                                                                                                  value: event
+                                                                                                      .target
+                                                                                                      .value,
+                                                                                              }
+                                                                                            : existing,
+                                                                                ),
+                                                                        }),
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    !config.can_post ||
+                                                                    form.processing
+                                                                }
+                                                                className="h-11 flex-1 text-sm sm:h-10"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    setPollDraft(
+                                                                        (
+                                                                            previous,
+                                                                        ) => {
+                                                                            const nextOptions =
+                                                                                previous.options.filter(
+                                                                                    (
+                                                                                        existing,
+                                                                                    ) =>
+                                                                                        existing.id !==
+                                                                                        option.id,
+                                                                                );
+
+                                                                            return {
+                                                                                ...previous,
+                                                                                options:
+                                                                                    nextOptions,
+                                                                                max_choices:
+                                                                                    previous.allow_multiple
+                                                                                        ? Math.min(
+                                                                                              previous.max_choices ??
+                                                                                                  nextOptions.length,
+                                                                                              nextOptions.length,
+                                                                                          )
+                                                                                        : null,
+                                                                            };
+                                                                        },
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    pollDraft
+                                                                        .options
+                                                                        .length <=
+                                                                        MIN_POLL_OPTIONS ||
+                                                                    !config.can_post ||
+                                                                    form.processing
+                                                                }
+                                                                className={cn(
+                                                                    'flex size-10 shrink-0 items-center justify-center rounded-full border border-white/15 bg-black/40 text-white/70 transition hover:border-white/30 hover:bg-black/60 hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 sm:size-8 sm:p-1',
+                                                                    FOCUS_RING,
+                                                                )}
+                                                                aria-label={`Remove option ${index + 1}`}
+                                                            >
+                                                                <X className="size-3.5" />
+                                                            </button>
+                                                        </div>
+                                                    ),
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                            <IconToggle
+                                                icon={Check}
+                                                label="Multiple choice"
+                                                active={
+                                                    pollDraft.allow_multiple
+                                                }
+                                                onClick={() =>
+                                                    setPollDraft(
+                                                        (previous) => ({
+                                                            ...previous,
+                                                            allow_multiple:
+                                                                !previous.allow_multiple,
+                                                            max_choices:
+                                                                !previous.allow_multiple
+                                                                    ? Math.min(
+                                                                          previous.max_choices ??
+                                                                              Math.min(
+                                                                                  previous
+                                                                                      .options
+                                                                                      .length,
+                                                                                  2,
+                                                                              ),
+                                                                          previous
+                                                                              .options
+                                                                              .length,
+                                                                      )
+                                                                    : null,
+                                                        }),
+                                                    )
+                                                }
+                                                disabled={
+                                                    !config.can_post ||
+                                                    form.processing
+                                                }
+                                                collapseLabel={false}
+                                            />
+
+                                            {pollDraft.allow_multiple && (
+                                                <Input
+                                                    type="number"
+                                                    min={2}
+                                                    max={
+                                                        pollDraft.options.length
+                                                    }
+                                                    value={
+                                                        pollDraft.max_choices ??
+                                                        ''
+                                                    }
+                                                    onChange={(event) => {
+                                                        const value =
+                                                            event.target.value.trim() ===
+                                                            ''
+                                                                ? null
+                                                                : Number(
+                                                                      event
+                                                                          .target
+                                                                          .value,
+                                                                  );
+                                                        setPollDraft(
+                                                            (previous) => ({
+                                                                ...previous,
+                                                                max_choices:
+                                                                    value,
+                                                            }),
+                                                        );
+                                                    }}
+                                                    disabled={
+                                                        !config.can_post ||
+                                                        form.processing
+                                                    }
+                                                    className="h-11 w-full text-sm sm:h-10 sm:w-32"
+                                                    placeholder="Max choices"
+                                                />
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label className="text-xs tracking-[0.25em] text-white/50 uppercase">
+                                                Closes at (optional)
+                                            </Label>
+                                            <Input
+                                                type="datetime-local"
+                                                value={pollDraft.closes_at}
+                                                onChange={(event) =>
+                                                    setPollDraft(
+                                                        (previous) => ({
+                                                            ...previous,
+                                                            closes_at:
+                                                                event.target
+                                                                    .value,
+                                                        }),
+                                                    )
+                                                }
+                                                disabled={
+                                                    !config.can_post ||
+                                                    form.processing
+                                                }
+                                                className="h-11 w-full text-sm sm:h-10 sm:w-64"
+                                            />
+                                        </div>
+
+                                        {pollErrors.length > 0 && (
+                                            <div className="space-y-1 text-xs text-rose-300">
+                                                {pollErrors.map((message) => (
+                                                    <p key={message}>
+                                                        {message}
+                                                    </p>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {Object.entries(form.errors)
+                                    .filter(
+                                        ([field]) =>
+                                            field !== 'media' &&
+                                            field !== 'hashtags' &&
+                                            field !== 'body' &&
+                                            field !== 'paywall_price' &&
+                                            field !== 'paywall_currency' &&
+                                            !field.startsWith('poll.'),
+                                    )
+                                    .map(([field, message]) => (
+                                        <p
+                                            key={field}
+                                            className="text-xs text-rose-300"
+                                        >
+                                            {message}
+                                        </p>
+                                    ))}
+                            </div>
                         </div>
-                    </div>
-                </CardContent>
+                    </CardContent>
 
-                {(isExpanded || shouldStayExpanded) && (
-                <CardFooter className="flex justify-end border-t border-white/10 p-3 pt-3 transition-all duration-300 sm:p-6">
-                    <Button
-                        type="submit"
-                        disabled={!canSubmit}
-                        className="h-10 w-full rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-5 text-sm font-semibold text-white shadow-[0_18px_40px_-12px_rgba(249,115,22,0.45)] transition active:scale-95 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60 sm:h-auto sm:w-auto sm:px-6"
-                    >
-                        {form.processing ? 'Publishing…' : 'Share update'}
-                    </Button>
-                </CardFooter>
-                )}
-            </form>
-        </Card>
+                    {(isExpanded || shouldStayExpanded) && (
+                        <CardFooter className="flex justify-end border-t border-white/10 p-3 pt-3 transition-all duration-300 sm:p-6">
+                            <Button
+                                type="submit"
+                                disabled={!canSubmit}
+                                className="h-10 w-full rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-5 text-sm font-semibold text-white shadow-[0_18px_40px_-12px_rgba(249,115,22,0.45)] transition hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 sm:h-auto sm:w-auto sm:px-6"
+                            >
+                                {form.processing
+                                    ? 'Publishing…'
+                                    : 'Share update'}
+                            </Button>
+                        </CardFooter>
+                    )}
+                </form>
+            </Card>
         </div>
     );
 }

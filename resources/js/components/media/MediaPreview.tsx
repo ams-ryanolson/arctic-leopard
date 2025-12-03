@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Loader2, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useEffect, useRef } from 'react';
 
 export type MediaPreviewProps = {
     file: File;
@@ -78,7 +78,7 @@ export default function MediaPreview({
                     type="button"
                     variant="destructive"
                     size="icon"
-                    className="absolute right-2 top-2"
+                    className="absolute top-2 right-2"
                     onClick={onRemove}
                 >
                     <X className="size-4" />
@@ -87,4 +87,3 @@ export default function MediaPreview({
         </div>
     );
 }
-

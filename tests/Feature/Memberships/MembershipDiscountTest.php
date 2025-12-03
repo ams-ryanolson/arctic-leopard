@@ -121,12 +121,12 @@ it('validates plan-specific discount codes', function (): void {
     $plan1 = MembershipPlan::factory()->create([
         'name' => 'Plan One',
         'slug' => 'plan-one',
-        'role_to_assign' => 'Premium',
+        'role_to_assign' => 'Gold',
     ]);
     $plan2 = MembershipPlan::factory()->create([
         'name' => 'Plan Two',
         'slug' => 'plan-two',
-        'role_to_assign' => 'Premium',
+        'role_to_assign' => 'Gold',
     ]);
 
     $discount = MembershipDiscount::factory()->forPlan($plan1)->create([
@@ -163,7 +163,7 @@ it('records discount usage when membership is purchased', function (): void {
         'monthly_price' => 1000,
         'name' => 'Premium Plan',
         'slug' => 'premium-plan',
-        'role_to_assign' => 'Premium',
+        'role_to_assign' => 'Gold',
     ]);
 
     $discount = MembershipDiscount::factory()->create([

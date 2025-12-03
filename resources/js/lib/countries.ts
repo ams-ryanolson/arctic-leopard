@@ -237,7 +237,10 @@ export const COUNTRIES = [
     { code: 'UG', name: 'Uganda' },
     { code: 'UA', name: 'Ukraine' },
     { code: 'AE', name: 'United Arab Emirates' },
-    { code: 'GB', name: 'United Kingdom of Great Britain and Northern Ireland' },
+    {
+        code: 'GB',
+        name: 'United Kingdom of Great Britain and Northern Ireland',
+    },
     { code: 'UM', name: 'United States Minor Outlying Islands' },
     { code: 'US', name: 'United States of America' },
     { code: 'UY', name: 'Uruguay' },
@@ -256,6 +259,6 @@ export const COUNTRIES = [
 
 export function getCountryName(code: string | null | undefined): string {
     if (!code) return '';
-    const country = COUNTRIES.find(c => c.code === code.toUpperCase());
+    const country = COUNTRIES.find((c) => c.code === code.toUpperCase());
     return country?.name || code;
 }

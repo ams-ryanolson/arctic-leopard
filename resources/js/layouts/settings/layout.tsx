@@ -2,7 +2,16 @@ import { Separator } from '@/components/ui/separator';
 import { cn, isSameUrl, resolveUrl } from '@/lib/utils';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { Bell, CreditCard, Crown, Database, Lock, Share2, Shield, User } from 'lucide-react';
+import {
+    Bell,
+    CreditCard,
+    Crown,
+    Database,
+    Lock,
+    Share2,
+    Shield,
+    User,
+} from 'lucide-react';
 import { type PropsWithChildren, useMemo } from 'react';
 
 const sidebarNavItems: NavItem[] = [

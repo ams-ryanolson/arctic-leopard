@@ -1,15 +1,8 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import axios from 'axios';
-import type { JSX } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import {
-    useCallback,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-} from 'react';
 
 type Mention = {
     type: 'user';
@@ -72,10 +65,7 @@ export default function MentionHashtagAutocomplete({
     } | null>(null);
     const abortControllerRef = useRef<AbortController | null>(null);
     const cacheRef = useRef<
-        Map<
-            string,
-            { data: Suggestion[]; timestamp: number }
-        >
+        Map<string, { data: Suggestion[]; timestamp: number }>
     >(new Map());
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
     const dropdownRef = useRef<HTMLDivElement | null>(null);
@@ -245,7 +235,8 @@ export default function MentionHashtagAutocomplete({
         const paddingTop = parseFloat(style.paddingTop) || 0;
 
         // Calculate vertical position (below cursor)
-        const cursorTop = rect.top + paddingTop + currentLine * lineHeight + lineHeight;
+        const cursorTop =
+            rect.top + paddingTop + currentLine * lineHeight + lineHeight;
 
         // Dropdown dimensions
         const dropdownWidth = 320; // Fixed width for centering
@@ -301,7 +292,14 @@ export default function MentionHashtagAutocomplete({
             setTriggerInfo(null);
             setSuggestions([]);
         }
-    }, [value, selectionStart, detectTrigger, fetchSuggestions, disabled, textareaRef]);
+    }, [
+        value,
+        selectionStart,
+        detectTrigger,
+        fetchSuggestions,
+        disabled,
+        textareaRef,
+    ]);
 
     // Update dropdown position when trigger changes
     useEffect(() => {
@@ -441,7 +439,7 @@ export default function MentionHashtagAutocomplete({
     const dropdown = (
         <div
             ref={dropdownRef}
-            className="fixed z-50 w-[320px] max-h-[320px] overflow-y-auto rounded-xl border border-white/10 bg-black/95 shadow-2xl backdrop-blur-xl"
+            className="fixed z-50 max-h-[320px] w-[320px] overflow-y-auto rounded-xl border border-white/10 bg-black/95 shadow-2xl backdrop-blur-xl"
             style={{
                 top: `${dropdownPosition.top}px`,
                 left: `${dropdownPosition.left}px`,
@@ -452,24 +450,30 @@ export default function MentionHashtagAutocomplete({
                     <div className="size-4 animate-spin rounded-full border-2 border-white/20 border-t-rose-400" />
                     <span className="text-sm text-white/60">Loading...</span>
                 </div>
-            ) : suggestions.length === 0 && triggerInfo?.query && triggerInfo.type === 'hashtag' ? (
+            ) : suggestions.length === 0 &&
+              triggerInfo?.query &&
+              triggerInfo.type === 'hashtag' ? (
                 // Show "Add" option for hashtags when not found
                 <ul className="py-1" role="listbox">
                     <li
                         role="option"
                         aria-selected={true}
-                        className="cursor-pointer px-4 py-3 transition-all duration-150 bg-white/10 border-l-2 border-rose-400"
+                        className="cursor-pointer border-l-2 border-rose-400 bg-white/10 px-4 py-3 transition-all duration-150"
                         onClick={() => {
                             if (triggerInfo) {
                                 const insertText = `#${triggerInfo.query}`;
-                                onInsert(insertText, triggerInfo.start, selectionStart);
+                                onInsert(
+                                    insertText,
+                                    triggerInfo.start,
+                                    selectionStart,
+                                );
                                 setIsOpen(false);
                                 setTriggerInfo(null);
                             }
                         }}
                     >
                         <div className="flex items-center gap-3">
-                            <div className="flex-shrink-0 flex items-center justify-center size-10 rounded-lg bg-rose-500/10 border border-rose-500/20">
+                            <div className="flex size-10 flex-shrink-0 items-center justify-center rounded-lg border border-rose-500/20 bg-rose-500/10">
                                 <svg
                                     className="size-5 text-rose-400"
                                     fill="none"
@@ -490,7 +494,7 @@ export default function MentionHashtagAutocomplete({
                                         Add #{triggerInfo.query}
                                     </span>
                                 </div>
-                                <span className="text-xs text-white/50 font-medium">
+                                <span className="text-xs font-medium text-white/50">
                                     Create new hashtag
                                 </span>
                             </div>
@@ -512,7 +516,9 @@ export default function MentionHashtagAutocomplete({
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                         />
                     </svg>
-                    <span className="text-sm text-white/60">No results found</span>
+                    <span className="text-sm text-white/60">
+                        No results found
+                    </span>
                 </div>
             ) : (
                 <ul className="py-1" role="listbox">
@@ -528,20 +534,16 @@ export default function MentionHashtagAutocomplete({
                             className={cn(
                                 'cursor-pointer px-4 py-3 transition-all duration-150',
                                 index === selectedIndex
-                                    ? 'bg-white/10 border-l-2 border-rose-400'
-                                    : 'hover:bg-white/5 border-l-2 border-transparent',
+                                    ? 'border-l-2 border-rose-400 bg-white/10'
+                                    : 'border-l-2 border-transparent hover:bg-white/5',
                             )}
                             onClick={() => handleSelect(suggestion)}
                             onMouseEnter={() => setSelectedIndex(index)}
                         >
                             {suggestion.type === 'user' ? (
-                                <MentionItem
-                                    mention={suggestion as Mention}
-                                />
+                                <MentionItem mention={suggestion as Mention} />
                             ) : (
-                                <HashtagItem
-                                    hashtag={suggestion as Hashtag}
-                                />
+                                <HashtagItem hashtag={suggestion as Hashtag} />
                             )}
                         </li>
                     ))}
@@ -573,7 +575,7 @@ function MentionItem({ mention }: { mention: Mention }) {
                         {mention.display_name ?? mention.username}
                     </span>
                     {mention.verification_status && (
-                        <div className="flex-shrink-0 flex items-center justify-center size-4 rounded-full bg-blue-500/20 border border-blue-400/40">
+                        <div className="flex size-4 flex-shrink-0 items-center justify-center rounded-full border border-blue-400/40 bg-blue-500/20">
                             <svg
                                 className="size-2.5 text-blue-300"
                                 fill="currentColor"
@@ -588,7 +590,7 @@ function MentionItem({ mention }: { mention: Mention }) {
                         </div>
                     )}
                 </div>
-                <span className="truncate text-xs text-white/50 font-medium">
+                <span className="truncate text-xs font-medium text-white/50">
                     @{mention.username}
                 </span>
             </div>
@@ -599,7 +601,7 @@ function MentionItem({ mention }: { mention: Mention }) {
 function HashtagItem({ hashtag }: { hashtag: Hashtag }) {
     return (
         <div className="flex items-center gap-3">
-            <div className="flex-shrink-0 flex items-center justify-center size-10 rounded-lg bg-rose-500/10 border border-rose-500/20">
+            <div className="flex size-10 flex-shrink-0 items-center justify-center rounded-lg border border-rose-500/20 bg-rose-500/10">
                 <svg
                     className="size-5 text-rose-400"
                     fill="none"
@@ -621,14 +623,14 @@ function HashtagItem({ hashtag }: { hashtag: Hashtag }) {
                     </span>
                     {hashtag.usage_count !== undefined &&
                         hashtag.usage_count > 0 && (
-                            <span className="flex-shrink-0 px-1.5 py-0.5 text-xs font-medium text-white/50 bg-white/5 rounded-md">
+                            <span className="flex-shrink-0 rounded-md bg-white/5 px-1.5 py-0.5 text-xs font-medium text-white/50">
                                 {hashtag.usage_count.toLocaleString()}
                             </span>
                         )}
                 </div>
                 {hashtag.recent_usage_count !== undefined &&
                     hashtag.recent_usage_count > 0 && (
-                        <span className="text-xs text-rose-400/70 font-medium">
+                        <span className="text-xs font-medium text-rose-400/70">
                             Trending
                         </span>
                     )}
@@ -636,4 +638,3 @@ function HashtagItem({ hashtag }: { hashtag: Hashtag }) {
         </div>
     );
 }
-

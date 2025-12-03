@@ -1,19 +1,19 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Spinner } from '@/components/ui/spinner';
+import { useInitials } from '@/hooks/use-initials';
+import { cn } from '@/lib/utils';
 import { router } from '@inertiajs/react';
 import {
-    Hash,
-    Search,
-    Users,
+    ArrowRight,
     Calendar,
     Circle,
-    ArrowRight,
+    Hash,
+    Search,
     TrendingUp,
+    Users,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Spinner } from '@/components/ui/spinner';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useInitials } from '@/hooks/use-initials';
 // Using direct URL since wayfinder routes may not be generated yet
 
 export interface SearchResult {
@@ -117,16 +117,24 @@ export function SearchDropdown({
     const allResults = useMemo(() => {
         const flat: Array<SearchResult & { section: string }> = [];
         if (results.users.length > 0) {
-            flat.push(...results.users.map((r) => ({ ...r, section: 'users' })));
+            flat.push(
+                ...results.users.map((r) => ({ ...r, section: 'users' })),
+            );
         }
         if (results.events.length > 0) {
-            flat.push(...results.events.map((r) => ({ ...r, section: 'events' })));
+            flat.push(
+                ...results.events.map((r) => ({ ...r, section: 'events' })),
+            );
         }
         if (results.circles.length > 0) {
-            flat.push(...results.circles.map((r) => ({ ...r, section: 'circles' })));
+            flat.push(
+                ...results.circles.map((r) => ({ ...r, section: 'circles' })),
+            );
         }
         if (results.hashtags.length > 0) {
-            flat.push(...results.hashtags.map((r) => ({ ...r, section: 'hashtags' })));
+            flat.push(
+                ...results.hashtags.map((r) => ({ ...r, section: 'hashtags' })),
+            );
         }
         return flat;
     }, [results]);
@@ -186,7 +194,8 @@ export function SearchDropdown({
         results.circles.length > 0 ||
         results.hashtags.length > 0;
 
-    const showDropdown = isOpen && (hasResults || isLoading || query.length >= 2);
+    const showDropdown =
+        isOpen && (hasResults || isLoading || query.length >= 2);
 
     if (!showDropdown) {
         return null;
@@ -224,7 +233,7 @@ export function SearchDropdown({
 
     return (
         <div
-            className="absolute z-50 mt-2 w-full overflow-hidden rounded-xl border border-amber-400/30 bg-black/95 backdrop-blur-xl shadow-[0_28px_85px_-58px_rgba(249,115,22,0.5)] ring-1 ring-amber-400/20"
+            className="absolute z-50 mt-2 w-full overflow-hidden rounded-xl border border-amber-400/30 bg-black/95 shadow-[0_28px_85px_-58px_rgba(249,115,22,0.5)] ring-1 ring-amber-400/20 backdrop-blur-xl"
             onKeyDown={handleKeyDown}
         >
             {isLoading && (
@@ -238,15 +247,19 @@ export function SearchDropdown({
                 <div className="max-h-[28rem] overflow-y-auto">
                     {results.users.length > 0 && (
                         <div>
-                            <div className="sticky top-0 border-b border-white/5 bg-black/50 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white/50 backdrop-blur-sm">
+                            <div className="sticky top-0 border-b border-white/5 bg-black/50 px-4 py-2.5 text-xs font-semibold tracking-wider text-white/50 uppercase backdrop-blur-sm">
                                 Users
                             </div>
                             {results.users.map((result) => {
                                 const globalIdx = allResults.findIndex(
-                                    (r) => r.id === result.id && r.type === result.type,
+                                    (r) =>
+                                        r.id === result.id &&
+                                        r.type === result.type,
                                 );
                                 const displayName =
-                                    result.display_name || result.username || 'User';
+                                    result.display_name ||
+                                    result.username ||
+                                    'User';
                                 const initials = getInitials(displayName);
 
                                 return (
@@ -261,7 +274,9 @@ export function SearchDropdown({
                                         )}
                                         onMouseDown={(e) => e.preventDefault()}
                                         onClick={() => handleSelect(result)}
-                                        onMouseEnter={() => setSelectedIndex(globalIdx)}
+                                        onMouseEnter={() =>
+                                            setSelectedIndex(globalIdx)
+                                        }
                                     >
                                         <Avatar className="size-10 shrink-0 border border-white/10">
                                             {result.avatar_url ? (
@@ -293,12 +308,14 @@ export function SearchDropdown({
 
                     {results.events.length > 0 && (
                         <div>
-                            <div className="sticky top-0 border-b border-white/5 bg-black/50 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white/50 backdrop-blur-sm">
+                            <div className="sticky top-0 border-b border-white/5 bg-black/50 px-4 py-2.5 text-xs font-semibold tracking-wider text-white/50 uppercase backdrop-blur-sm">
                                 Events
                             </div>
                             {results.events.map((result) => {
                                 const globalIdx = allResults.findIndex(
-                                    (r) => r.id === result.id && r.type === result.type,
+                                    (r) =>
+                                        r.id === result.id &&
+                                        r.type === result.type,
                                 );
                                 const Icon = getIcon(result.type);
 
@@ -314,7 +331,9 @@ export function SearchDropdown({
                                         )}
                                         onMouseDown={(e) => e.preventDefault()}
                                         onClick={() => handleSelect(result)}
-                                        onMouseEnter={() => setSelectedIndex(globalIdx)}
+                                        onMouseEnter={() =>
+                                            setSelectedIndex(globalIdx)
+                                        }
                                     >
                                         <div
                                             className={cn(
@@ -329,7 +348,7 @@ export function SearchDropdown({
                                                 {result.title}
                                             </div>
                                             {result.description && (
-                                                <div className="line-clamp-1 mt-0.5 text-xs text-white/60">
+                                                <div className="mt-0.5 line-clamp-1 text-xs text-white/60">
                                                     {result.description}
                                                 </div>
                                             )}
@@ -343,12 +362,14 @@ export function SearchDropdown({
 
                     {results.circles.length > 0 && (
                         <div>
-                            <div className="sticky top-0 border-b border-white/5 bg-black/50 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white/50 backdrop-blur-sm">
+                            <div className="sticky top-0 border-b border-white/5 bg-black/50 px-4 py-2.5 text-xs font-semibold tracking-wider text-white/50 uppercase backdrop-blur-sm">
                                 Circles
                             </div>
                             {results.circles.map((result) => {
                                 const globalIdx = allResults.findIndex(
-                                    (r) => r.id === result.id && r.type === result.type,
+                                    (r) =>
+                                        r.id === result.id &&
+                                        r.type === result.type,
                                 );
                                 const Icon = getIcon(result.type);
 
@@ -364,7 +385,9 @@ export function SearchDropdown({
                                         )}
                                         onMouseDown={(e) => e.preventDefault()}
                                         onClick={() => handleSelect(result)}
-                                        onMouseEnter={() => setSelectedIndex(globalIdx)}
+                                        onMouseEnter={() =>
+                                            setSelectedIndex(globalIdx)
+                                        }
                                     >
                                         <div
                                             className={cn(
@@ -379,7 +402,7 @@ export function SearchDropdown({
                                                 {result.name}
                                             </div>
                                             {result.tagline && (
-                                                <div className="line-clamp-1 mt-0.5 text-xs text-white/60">
+                                                <div className="mt-0.5 line-clamp-1 text-xs text-white/60">
                                                     {result.tagline}
                                                 </div>
                                             )}
@@ -393,12 +416,14 @@ export function SearchDropdown({
 
                     {results.hashtags.length > 0 && (
                         <div>
-                            <div className="sticky top-0 border-b border-white/5 bg-black/50 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white/50 backdrop-blur-sm">
+                            <div className="sticky top-0 border-b border-white/5 bg-black/50 px-4 py-2.5 text-xs font-semibold tracking-wider text-white/50 uppercase backdrop-blur-sm">
                                 Hashtags
                             </div>
                             {results.hashtags.map((result) => {
                                 const globalIdx = allResults.findIndex(
-                                    (r) => r.id === result.id && r.type === result.type,
+                                    (r) =>
+                                        r.id === result.id &&
+                                        r.type === result.type,
                                 );
                                 const Icon = getIcon(result.type);
 
@@ -414,7 +439,9 @@ export function SearchDropdown({
                                         )}
                                         onMouseDown={(e) => e.preventDefault()}
                                         onClick={() => handleSelect(result)}
-                                        onMouseEnter={() => setSelectedIndex(globalIdx)}
+                                        onMouseEnter={() =>
+                                            setSelectedIndex(globalIdx)
+                                        }
                                     >
                                         <div
                                             className={cn(
@@ -428,13 +455,17 @@ export function SearchDropdown({
                                             <div className="font-semibold text-white">
                                                 #{result.name}
                                             </div>
-                                            {result.recent_usage_count !== undefined &&
-                                                result.recent_usage_count > 0 && (
+                                            {result.recent_usage_count !==
+                                                undefined &&
+                                                result.recent_usage_count >
+                                                    0 && (
                                                     <div className="mt-0.5 flex items-center gap-1.5 text-xs text-white/60">
                                                         <TrendingUp className="size-3" />
                                                         <span>
-                                                            {result.recent_usage_count} posts
-                                                            in last 24h
+                                                            {
+                                                                result.recent_usage_count
+                                                            }{' '}
+                                                            posts in last 24h
                                                         </span>
                                                     </div>
                                                 )}

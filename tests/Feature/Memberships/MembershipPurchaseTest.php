@@ -31,7 +31,7 @@ it('creates a membership when payment is captured for a membership plan', functi
     $plan = MembershipPlan::factory()->create([
         'name' => 'Premium Plan',
         'slug' => 'premium-plan',
-        'role_to_assign' => 'Premium',
+        'role_to_assign' => 'Gold',
         'monthly_price' => 1000,
         'yearly_price' => 10000,
         'allows_recurring' => true,
@@ -94,7 +94,7 @@ it('creates a one-time membership with correct duration', function (): void {
     $plan = MembershipPlan::factory()->create([
         'name' => 'Premium Plan',
         'slug' => 'premium-plan',
-        'role_to_assign' => 'Premium',
+        'role_to_assign' => 'Gold',
         'monthly_price' => 1000,
         'allows_one_time' => true,
         'one_time_duration_days' => 30,
@@ -181,7 +181,7 @@ it('cancels existing membership when purchasing a new one', function (): void {
     $newPlan = MembershipPlan::factory()->create([
         'name' => 'Premium Plan',
         'slug' => 'premium-plan',
-        'role_to_assign' => 'Premium',
+        'role_to_assign' => 'Gold',
     ]);
 
     $oldMembership = UserMembership::factory()->create([

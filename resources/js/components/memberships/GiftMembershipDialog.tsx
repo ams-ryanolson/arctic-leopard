@@ -1,5 +1,3 @@
-import { useState, useMemo } from 'react';
-import { router } from '@inertiajs/react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,8 +10,10 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Gift } from 'lucide-react';
 import { getCsrfToken } from '@/lib/csrf';
+import { router } from '@inertiajs/react';
+import { Gift, Loader2 } from 'lucide-react';
+import { useState } from 'react';
 
 type MembershipPlan = {
     id: number;
@@ -139,9 +139,7 @@ export function GiftMembershipDialog({
             <DialogContent className="border-white/10 bg-neutral-950 text-white sm:max-w-2xl">
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-semibold">
-                        {step === 'plan'
-                            ? 'Gift a Membership'
-                            : 'Confirm Gift'}
+                        {step === 'plan' ? 'Gift a Membership' : 'Confirm Gift'}
                     </DialogTitle>
                     <DialogDescription className="text-white/65">
                         {step === 'plan'
@@ -160,8 +158,7 @@ export function GiftMembershipDialog({
                                     const durationText =
                                         plan.one_time_duration_days === 30
                                             ? '1 month'
-                                            : plan.one_time_duration_days ===
-                                              90
+                                            : plan.one_time_duration_days === 90
                                               ? '3 months'
                                               : plan.one_time_duration_days ===
                                                   365
@@ -210,9 +207,7 @@ export function GiftMembershipDialog({
                                 <Textarea
                                     placeholder={`Add a personal message for ${recipientName}...`}
                                     value={message}
-                                    onChange={(e) =>
-                                        setMessage(e.target.value)
-                                    }
+                                    onChange={(e) => setMessage(e.target.value)}
                                     maxLength={500}
                                     className="min-h-[100px] rounded-xl border-white/15 bg-black/40 text-sm text-white placeholder:text-white/40"
                                 />
@@ -324,4 +319,3 @@ export function GiftMembershipDialog({
         </Dialog>
     );
 }
-

@@ -45,10 +45,18 @@ export default function ConversationHeader({
                     <Avatar className="size-9 border border-white/10">
                         <AvatarImage
                             src={firstParticipant.avatar_url ?? undefined}
-                            alt={firstParticipant.display_name ?? firstParticipant.username ?? 'User'}
+                            alt={
+                                firstParticipant.display_name ??
+                                firstParticipant.username ??
+                                'User'
+                            }
                         />
                         <AvatarFallback className="bg-gradient-to-br from-amber-500/20 to-amber-600/30 text-xs font-semibold text-amber-200">
-                            {(firstParticipant.display_name ?? firstParticipant.username ?? '??')
+                            {(
+                                firstParticipant.display_name ??
+                                firstParticipant.username ??
+                                '??'
+                            )
                                 .slice(0, 2)
                                 .toUpperCase()}
                         </AvatarFallback>
@@ -84,8 +92,15 @@ export default function ConversationHeader({
                                 <div key={member.id} className="relative">
                                     <Avatar className="border-2 border-white/20 ring-2 ring-black/40">
                                         <AvatarImage
-                                            src={(member.avatar_url || member.avatar) ?? undefined}
-                                            alt={member.name ?? 'Active participant'}
+                                            src={
+                                                (member.avatar_url ||
+                                                    member.avatar) ??
+                                                undefined
+                                            }
+                                            alt={
+                                                member.name ??
+                                                'Active participant'
+                                            }
                                         />
                                         <AvatarFallback className="bg-gradient-to-br from-amber-500/20 to-amber-600/30 text-xs font-semibold text-amber-200">
                                             {initials}

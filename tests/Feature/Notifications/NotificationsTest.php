@@ -28,7 +28,7 @@ it('creates a notification when a post is liked by another user', function (): v
 
     actingAs($actor);
 
-    $this->postJson(route('posts.like.store', $post))->assertOk();
+    $this->postJson(route('api.posts.like.store', $post))->assertOk();
 
     $notification = $author->notifications()->first();
 
@@ -93,7 +93,7 @@ it('does not notify an author when they like their own post', function (): void 
 
     actingAs($author);
 
-    $this->postJson(route('posts.like.store', $post))->assertOk();
+    $this->postJson(route('api.posts.like.store', $post))->assertOk();
 
     expect($author->notifications()->count())->toBe(0);
 });

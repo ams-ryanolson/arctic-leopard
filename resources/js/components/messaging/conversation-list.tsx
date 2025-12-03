@@ -2,12 +2,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { Settings, MessageCircle, Search, Users } from 'lucide-react';
+import messagesRoutes from '@/routes/messages';
+import { Link } from '@inertiajs/react';
+import { MessageCircle, Search, Settings, Users } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { router, Link } from '@inertiajs/react';
 import { formatRelativeTime } from './message-utils';
 import type { Thread, TipMessageMetadata } from './types';
-import messagesRoutes from '@/routes/messages';
 
 type ConversationListProps = {
     threads: Thread[];
@@ -43,35 +43,32 @@ export default function ConversationList({
         startYRef.current = e.touches[0].clientY;
     }, []);
 
-    const handleTouchMove = useCallback(
-        (e: React.TouchEvent) => {
-            if (
-                startYRef.current === null ||
-                !scrollContainerRef.current ||
-                isRefreshingRef.current
-            ) {
-                return;
-            }
+    const handleTouchMove = useCallback((e: React.TouchEvent) => {
+        if (
+            startYRef.current === null ||
+            !scrollContainerRef.current ||
+            isRefreshingRef.current
+        ) {
+            return;
+        }
 
-            const container = scrollContainerRef.current;
-            if (container.scrollTop > 0) {
-                startYRef.current = null;
-                setIsPulling(false);
-                setPullDistance(0);
-                return;
-            }
+        const container = scrollContainerRef.current;
+        if (container.scrollTop > 0) {
+            startYRef.current = null;
+            setIsPulling(false);
+            setPullDistance(0);
+            return;
+        }
 
-            const currentY = e.touches[0].clientY;
-            const distance = Math.max(0, currentY - startYRef.current);
-            const maxPull = 80;
+        const currentY = e.touches[0].clientY;
+        const distance = Math.max(0, currentY - startYRef.current);
+        const maxPull = 80;
 
-            if (distance > 0) {
-                setIsPulling(true);
-                setPullDistance(Math.min(distance, maxPull));
-            }
-        },
-        [],
-    );
+        if (distance > 0) {
+            setIsPulling(true);
+            setPullDistance(Math.min(distance, maxPull));
+        }
+    }, []);
 
     const handleTouchEnd = useCallback(() => {
         if (startYRef.current === null || isRefreshingRef.current) {
@@ -127,11 +124,11 @@ export default function ConversationList({
             {/* Search input */}
             <div className="border-b border-white/5 px-3 py-3 sm:px-4">
                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
+                    <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-white/50" />
                     <Input
                         type="text"
                         placeholder="Search"
-                        className="w-full bg-white/5 pl-10 pr-3 text-sm text-white placeholder:text-white/50 border-white/10 focus-visible:ring-amber-400/40"
+                        className="w-full border-white/10 bg-white/5 pr-3 pl-10 text-sm text-white placeholder:text-white/50 focus-visible:ring-amber-400/40"
                     />
                 </div>
             </div>
@@ -223,7 +220,7 @@ export default function ConversationList({
                                       : thread.last_message.body
                                         ? thread.last_message.body
                                         : thread.last_message.attachments
-                                              ?.length
+                                                ?.length
                                           ? 'Shared media'
                                           : 'Message';
                             const counterparts = thread.participants.filter(
@@ -256,7 +253,10 @@ export default function ConversationList({
                                 .toUpperCase();
 
                             return (
-                                <li key={thread.id} className="w-full min-w-0 border-b border-white/5 last:border-b-0">
+                                <li
+                                    key={thread.id}
+                                    className="w-full min-w-0 border-b border-white/5 last:border-b-0"
+                                >
                                     <button
                                         type="button"
                                         onClick={() =>

@@ -52,7 +52,10 @@ function formatCardBrand(brand: string): string {
         jcb: 'JCB',
         unknown: 'Card',
     };
-    return brandMap[brand.toLowerCase()] || brand.charAt(0).toUpperCase() + brand.slice(1);
+    return (
+        brandMap[brand.toLowerCase()] ||
+        brand.charAt(0).toUpperCase() + brand.slice(1)
+    );
 }
 
 function formatExpiry(expMonth: string, expYear: string): string {
@@ -407,7 +410,9 @@ export default function PaymentMethods({
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            onClick={() => setShowAddForm(false)}
+                                            onClick={() =>
+                                                setShowAddForm(false)
+                                            }
                                             className="rounded-full text-white/60 hover:bg-white/10 hover:text-white"
                                         >
                                             <X className="h-4 w-4" />

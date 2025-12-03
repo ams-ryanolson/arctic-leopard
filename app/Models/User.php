@@ -1046,12 +1046,14 @@ class User extends Authenticatable
             'suspended_reason' => $reason,
             'suspended_by_id' => $admin?->getKey(),
         ]);
+
+        event(new \App\Events\Users\UserSuspended($this, $until, $reason, $admin));
     }
 
     /**
      * Unsuspend the user.
      */
-    public function unsuspend(): void
+    public function unsuspend(?User $admin = null): void
     {
         $this->update([
             'suspended_at' => null,
@@ -1059,6 +1061,8 @@ class User extends Authenticatable
             'suspended_reason' => null,
             'suspended_by_id' => null,
         ]);
+
+        event(new \App\Events\Users\UserUnsuspended($this, $admin));
     }
 
     /**
@@ -1071,18 +1075,22 @@ class User extends Authenticatable
             'banned_reason' => $reason,
             'banned_by_id' => $admin?->getKey(),
         ]);
+
+        event(new \App\Events\Users\UserBanned($this, $reason, $admin));
     }
 
     /**
      * Unban the user.
      */
-    public function unban(): void
+    public function unban(?User $admin = null): void
     {
         $this->update([
             'banned_at' => null,
             'banned_reason' => null,
             'banned_by_id' => null,
         ]);
+
+        event(new \App\Events\Users\UserUnbanned($this, $admin));
     }
 
     /**
@@ -1105,6 +1113,8 @@ class User extends Authenticatable
             'warning_count' => $this->activeWarnings()->count(),
             'last_warned_at' => now(),
         ]);
+
+        event(new \App\Events\Users\UserWarned($this, $warning, $admin));
 
         return $warning;
     }

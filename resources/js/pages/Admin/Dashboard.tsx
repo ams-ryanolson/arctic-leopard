@@ -1,18 +1,3 @@
-import { useMemo } from 'react';
-import {
-    Area,
-    AreaChart,
-    Cell,
-    Legend,
-    Line,
-    LineChart,
-    Pie,
-    PieChart,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis,
-} from 'recharts';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -21,20 +6,33 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { motion } from 'framer-motion';
-import {
-    ArrowUpRight,
-    ArrowDownRight,
-    TrendingUp,
-    DollarSign,
-    Users,
-    FileText,
-    MessageSquare,
-    Image,
-} from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import admin from '@/routes/admin';
 import { Head, Link } from '@inertiajs/react';
+import { motion } from 'framer-motion';
+import {
+    ArrowDownRight,
+    ArrowUpRight,
+    DollarSign,
+    FileText,
+    Image,
+    MessageSquare,
+    TrendingUp,
+    Users,
+} from 'lucide-react';
+import { useMemo } from 'react';
+import {
+    Area,
+    AreaChart,
+    Cell,
+    Legend,
+    Pie,
+    PieChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
+} from 'recharts';
 
 interface WelcomeMessage {
     name?: string | null;
@@ -215,7 +213,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
                         className="text-xs"
                         style={{ color: entry.color }}
                     >
-                        {entry.name}: {entry.value?.toLocaleString('en-US', {
+                        {entry.name}:{' '}
+                        {entry.value?.toLocaleString('en-US', {
                             style: 'currency',
                             currency: entry.payload?.currency || 'USD',
                         })}
@@ -494,11 +493,16 @@ export default function AdminDashboard({
                                             Memberships Sold (Month)
                                         </CardDescription>
                                         <CardTitle className="text-2xl font-semibold text-white">
-                                            {financial.this_month.memberships_sold}
+                                            {
+                                                financial.this_month
+                                                    .memberships_sold
+                                            }
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="flex-grow">
-                                        {formatTrend(financial.this_month.trend)}
+                                        {formatTrend(
+                                            financial.this_month.trend,
+                                        )}
                                     </CardContent>
                                 </Card>
                             </motion.div>
@@ -515,7 +519,10 @@ export default function AdminDashboard({
                                             Active Subscriptions
                                         </CardDescription>
                                         <CardTitle className="text-2xl font-semibold text-white">
-                                            {financial.subscriptions.active_count}
+                                            {
+                                                financial.subscriptions
+                                                    .active_count
+                                            }
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="flex-grow">
@@ -552,7 +559,9 @@ export default function AdminDashboard({
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="flex-grow">
-                                        {formatTrend(financial.this_month.trend)}
+                                        {formatTrend(
+                                            financial.this_month.trend,
+                                        )}
                                     </CardContent>
                                 </Card>
                             </motion.div>
@@ -586,7 +595,9 @@ export default function AdminDashboard({
                                             width="100%"
                                             height={300}
                                         >
-                                            <AreaChart data={monthlyRevenueData}>
+                                            <AreaChart
+                                                data={monthlyRevenueData}
+                                            >
                                                 <defs>
                                                     <linearGradient
                                                         id="colorGross"
@@ -651,7 +662,9 @@ export default function AdminDashboard({
                                                         ).toFixed(0)}k`
                                                     }
                                                 />
-                                                <Tooltip content={<CustomTooltip />} />
+                                                <Tooltip
+                                                    content={<CustomTooltip />}
+                                                />
                                                 <Legend
                                                     wrapperStyle={{
                                                         color: 'rgba(255,255,255,0.8)',
@@ -660,7 +673,9 @@ export default function AdminDashboard({
                                                 <Area
                                                     type="monotone"
                                                     dataKey="gross"
-                                                    stroke={CHART_COLORS.primary}
+                                                    stroke={
+                                                        CHART_COLORS.primary
+                                                    }
                                                     strokeWidth={2}
                                                     fill="url(#colorGross)"
                                                     name="Gross Revenue"
@@ -668,7 +683,9 @@ export default function AdminDashboard({
                                                 <Area
                                                     type="monotone"
                                                     dataKey="net"
-                                                    stroke={CHART_COLORS.secondary}
+                                                    stroke={
+                                                        CHART_COLORS.secondary
+                                                    }
                                                     strokeWidth={2}
                                                     fill="url(#colorNet)"
                                                     name="Net Revenue"
@@ -684,7 +701,8 @@ export default function AdminDashboard({
                                                 No revenue data available
                                             </p>
                                             <p className="mt-1 text-xs text-white/40">
-                                                Revenue data will appear here once payments are processed
+                                                Revenue data will appear here
+                                                once payments are processed
                                             </p>
                                         </div>
                                     )}
@@ -790,42 +808,39 @@ export default function AdminDashboard({
                 )}
 
                 {/* Content Moderation Section */}
-                <motion.section
-                    variants={cardVariants}
-                    className="space-y-4"
-                >
+                <motion.section variants={cardVariants} className="space-y-4">
                     <h2 className="text-xl font-semibold text-white">
                         Content Moderation
                     </h2>
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    {overview.map((stat, index) => (
-                        <motion.div
-                            key={stat.label}
-                            variants={cardVariants}
-                            custom={index}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            className="flex"
-                        >
-                            <Card className="flex w-full flex-col border-white/10 bg-white/5 text-white shadow-[0_24px_65px_-45px_rgba(14,116,144,0.35)] transition-all hover:border-amber-400/40 hover:shadow-[0_24px_65px_-45px_rgba(249,115,22,0.5)]">
-                                <CardHeader className="flex-shrink-0">
-                                    <CardDescription className="line-clamp-2 text-xs tracking-[0.35em] text-white/55 uppercase">
-                                        {stat.label}
-                                    </CardDescription>
-                                    <CardTitle className="text-2xl font-semibold text-white">
-                                        {stat.value}
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="flex-grow">
-                                    {formatTrend(stat.trend) || (
-                                        <p className="text-xs text-white/60">
-                                            {stat.trend}
-                                        </p>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        </motion.div>
-                    ))}
+                        {overview.map((stat, index) => (
+                            <motion.div
+                                key={stat.label}
+                                variants={cardVariants}
+                                custom={index}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                className="flex"
+                            >
+                                <Card className="flex w-full flex-col border-white/10 bg-white/5 text-white shadow-[0_24px_65px_-45px_rgba(14,116,144,0.35)] transition-all hover:border-amber-400/40 hover:shadow-[0_24px_65px_-45px_rgba(249,115,22,0.5)]">
+                                    <CardHeader className="flex-shrink-0">
+                                        <CardDescription className="line-clamp-2 text-xs tracking-[0.35em] text-white/55 uppercase">
+                                            {stat.label}
+                                        </CardDescription>
+                                        <CardTitle className="text-2xl font-semibold text-white">
+                                            {stat.value}
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="flex-grow">
+                                        {formatTrend(stat.trend) || (
+                                            <p className="text-xs text-white/60">
+                                                {stat.trend}
+                                            </p>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            </motion.div>
+                        ))}
                     </div>
                 </motion.section>
 
@@ -897,7 +912,7 @@ export default function AdminDashboard({
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="grid gap-3 grid-cols-3">
+                            <div className="grid grid-cols-3 gap-3">
                                 {quickLinks.map((link, index) => (
                                     <motion.div
                                         key={link.label}
@@ -921,11 +936,11 @@ export default function AdminDashboard({
                                                 {link.description}
                                             </p>
                                             {link.disabled ? (
-                                                <span className="mt-auto pt-3 inline-flex rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[0.65rem] tracking-[0.3em] text-white/40 uppercase">
+                                                <span className="mt-auto inline-flex rounded-full border border-white/15 bg-white/5 px-3 py-1 pt-3 text-[0.65rem] tracking-[0.3em] text-white/40 uppercase">
                                                     Coming soon
                                                 </span>
                                             ) : (
-                                                <span className="mt-auto pt-3 inline-flex items-center gap-2 text-xs text-amber-200 transition-transform group-hover:translate-x-1">
+                                                <span className="mt-auto inline-flex items-center gap-2 pt-3 text-xs text-amber-200 transition-transform group-hover:translate-x-1">
                                                     Go to section
                                                     <span aria-hidden>→</span>
                                                 </span>
@@ -941,4 +956,3 @@ export default function AdminDashboard({
         </AppLayout>
     );
 }
-

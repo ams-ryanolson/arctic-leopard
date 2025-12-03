@@ -1,3 +1,4 @@
+import AlertError from '@/components/alert-error';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -17,7 +18,6 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import AlertError from '@/components/alert-error';
 import AppLayout from '@/layouts/app-layout';
 import adminRoutes from '@/routes/admin';
 import { Head, router, useForm } from '@inertiajs/react';
@@ -86,7 +86,10 @@ export default function AdminMembershipsPlansCreate({
     };
 
     // Helper to generate feature key from description
-    const generateFeatureKey = (description: string, maxLength = 50): string => {
+    const generateFeatureKey = (
+        description: string,
+        maxLength = 50,
+    ): string => {
         if (!description.trim()) {
             return '';
         }
@@ -115,7 +118,10 @@ export default function AdminMembershipsPlansCreate({
     const handleFeatureValueChange = (value: string) => {
         setFeatureValue(value);
         // Only auto-generate if key is empty or matches a previously generated key
-        if (!featureKey.trim() || featureKey === generateFeatureKey(featureValue, 50)) {
+        if (
+            !featureKey.trim() ||
+            featureKey === generateFeatureKey(featureValue, 50)
+        ) {
             setFeatureKey(generateFeatureKey(value, 50));
         }
     };
@@ -123,8 +129,9 @@ export default function AdminMembershipsPlansCreate({
     const addFeature = () => {
         if (featureValue.trim()) {
             // Use generated key if key is empty, otherwise use provided key
-            const key = featureKey.trim() || generateFeatureKey(featureValue, 50);
-            
+            const key =
+                featureKey.trim() || generateFeatureKey(featureValue, 50);
+
             if (key) {
                 setData('features', {
                     ...data.features,
@@ -169,9 +176,10 @@ export default function AdminMembershipsPlansCreate({
             ...current,
             monthly_price: dollarsToCents(String(current.monthly_price)),
             yearly_price: dollarsToCents(String(current.yearly_price)),
-            features: current.features && typeof current.features === 'object' 
-                ? current.features 
-                : {},
+            features:
+                current.features && typeof current.features === 'object'
+                    ? current.features
+                    : {},
         }));
 
         console.log('Submitting form with data:', {
@@ -244,7 +252,8 @@ export default function AdminMembershipsPlansCreate({
                 {Object.keys(errors).length > 0 && (
                     <AlertError
                         errors={Object.values(errors).filter(
-                            (error): error is string => typeof error === 'string',
+                            (error): error is string =>
+                                typeof error === 'string',
                         )}
                         title="Please fix the following errors:"
                     />
@@ -395,7 +404,7 @@ export default function AdminMembershipsPlansCreate({
                                         Monthly Price *
                                     </Label>
                                     <div className="relative">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/60">
+                                        <span className="absolute top-1/2 left-3 -translate-y-1/2 text-white/60">
                                             $
                                         </span>
                                         <Input
@@ -403,10 +412,14 @@ export default function AdminMembershipsPlansCreate({
                                             type="text"
                                             value={data.monthly_price}
                                             onChange={(e) => {
-                                                const formatted = formatDollarInput(
-                                                    e.target.value,
+                                                const formatted =
+                                                    formatDollarInput(
+                                                        e.target.value,
+                                                    );
+                                                setData(
+                                                    'monthly_price',
+                                                    formatted,
                                                 );
-                                                setData('monthly_price', formatted);
                                             }}
                                             className="border-white/10 bg-white/5 pl-8 text-white"
                                             placeholder="10.00"
@@ -432,7 +445,7 @@ export default function AdminMembershipsPlansCreate({
                                         Yearly Price *
                                     </Label>
                                     <div className="relative">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/60">
+                                        <span className="absolute top-1/2 left-3 -translate-y-1/2 text-white/60">
                                             $
                                         </span>
                                         <Input
@@ -440,10 +453,14 @@ export default function AdminMembershipsPlansCreate({
                                             type="text"
                                             value={data.yearly_price}
                                             onChange={(e) => {
-                                                const formatted = formatDollarInput(
-                                                    e.target.value,
+                                                const formatted =
+                                                    formatDollarInput(
+                                                        e.target.value,
+                                                    );
+                                                setData(
+                                                    'yearly_price',
+                                                    formatted,
                                                 );
-                                                setData('yearly_price', formatted);
                                             }}
                                             className="border-white/10 bg-white/5 pl-8 text-white"
                                             placeholder="100.00"
@@ -540,7 +557,9 @@ export default function AdminMembershipsPlansCreate({
                                         id="feature_value"
                                         value={featureValue}
                                         onChange={(e) =>
-                                            handleFeatureValueChange(e.target.value)
+                                            handleFeatureValueChange(
+                                                e.target.value,
+                                            )
                                         }
                                         className="border-white/10 bg-white/5 text-white"
                                         placeholder="3 premium content drops every week"
@@ -557,14 +576,18 @@ export default function AdminMembershipsPlansCreate({
                                         htmlFor="feature_key"
                                         className="text-white"
                                     >
-                                        Feature Key (auto-generated, max 50 chars)
+                                        Feature Key (auto-generated, max 50
+                                        chars)
                                     </Label>
                                     <Input
                                         id="feature_key"
                                         value={featureKey}
                                         onChange={(e) => {
                                             // Limit to 50 characters
-                                            const value = e.target.value.slice(0, 50);
+                                            const value = e.target.value.slice(
+                                                0,
+                                                50,
+                                            );
                                             setFeatureKey(value);
                                         }}
                                         className="border-white/10 bg-white/5 text-white"

@@ -151,7 +151,9 @@ export function UserListItem({
                             @{user.username}
                         </p>
                         {user.pronouns && (
-                            <p className="text-xs text-white/50">{user.pronouns}</p>
+                            <p className="text-xs text-white/50">
+                                {user.pronouns}
+                            </p>
                         )}
                         {user.bio && (
                             <p className="mt-1 line-clamp-2 text-xs text-white/70">
@@ -176,5 +178,3 @@ export function UserListItem({
         </div>
     );
 }
-
-

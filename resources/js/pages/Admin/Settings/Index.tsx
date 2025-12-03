@@ -26,8 +26,6 @@ import adminRoutes from '@/routes/admin';
 import { Head, router } from '@inertiajs/react';
 import {
     AlertCircle,
-    Bookmark,
-    CalendarRange,
     CheckCircle2,
     Cookie as CookieIcon,
     ExternalLink,
@@ -35,18 +33,12 @@ import {
     Loader2,
     Mail,
     Megaphone,
-    MessageCircle,
-    Radar,
     Save,
     ScrollText,
     Search,
     Settings as SettingsIcon,
     ShieldCheck,
-    Sparkles,
-    ToggleLeft,
     Upload,
-    Users,
-    Video,
     X,
 } from 'lucide-react';
 import { FormEvent, Suspense, useEffect, useMemo, useState } from 'react';
@@ -675,7 +667,9 @@ export default function AdminSettingsIndex({
                                                                 <MediaUploader
                                                                     accept="image/png,image/svg+xml,image/webp"
                                                                     maxFiles={1}
-                                                                    multiple={false}
+                                                                    multiple={
+                                                                        false
+                                                                    }
                                                                     onUploadComplete={(
                                                                         identifiers,
                                                                     ) =>
@@ -689,7 +683,8 @@ export default function AdminSettingsIndex({
                                                                     ) => {
                                                                         setStatus(
                                                                             {
-                                                                                section: null,
+                                                                                section:
+                                                                                    null,
                                                                                 type: 'error',
                                                                                 message: `Failed to upload ${type}: ${error}`,
                                                                             },
@@ -841,7 +836,9 @@ export default function AdminSettingsIndex({
                                                                               : 'image/jpeg,image/png,image/webp'
                                                                     }
                                                                     maxFiles={1}
-                                                                    multiple={false}
+                                                                    multiple={
+                                                                        false
+                                                                    }
                                                                     onUploadComplete={(
                                                                         identifiers,
                                                                     ) =>
@@ -855,7 +852,8 @@ export default function AdminSettingsIndex({
                                                                     ) => {
                                                                         setStatus(
                                                                             {
-                                                                                section: null,
+                                                                                section:
+                                                                                    null,
                                                                                 type: 'error',
                                                                                 message: `Failed to upload ${type}: ${error}`,
                                                                             },

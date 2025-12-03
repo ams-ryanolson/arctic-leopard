@@ -55,7 +55,7 @@ export function AppSidebar() {
     const { state } = useSidebar();
     const isCollapsed = state === 'collapsed';
     const features = (sharedFeatures ?? {}) as Record<string, boolean>;
-    
+
     const user = auth?.user;
     const membership = auth?.membership;
     const userRoles = user?.roles?.map((role) => role.name) ?? [];
@@ -384,20 +384,25 @@ export function AppSidebar() {
 
     return (
         <Sidebar collapsible="icon" variant="inset">
-            <SidebarHeader className={cn("px-2 pt-3", isCollapsed && "px-0 pt-2")}>
+            <SidebarHeader
+                className={cn('px-2 pt-3', isCollapsed && 'px-0 pt-2')}
+            >
                 <SidebarMenu>
                     <SidebarMenuButton
                         size="lg"
                         asChild
                         className={cn(
-                            "group flex h-auto flex-row items-center gap-3 overflow-hidden rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-white shadow-[0_26px_70px_-45px_rgba(249,115,22,0.55)] transition hover:border-amber-400/35 hover:bg-white/10",
-                            isCollapsed && "px-0 py-2 justify-center"
+                            'group flex h-auto flex-row items-center gap-3 overflow-hidden rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-white shadow-[0_26px_70px_-45px_rgba(249,115,22,0.55)] transition hover:border-amber-400/35 hover:bg-white/10',
+                            isCollapsed && 'justify-center px-0 py-2',
                         )}
                     >
                         <Link
                             href={dashboard()}
                             prefetch
-                            className={cn("flex w-full items-center", isCollapsed ? "justify-center" : "gap-3")}
+                            className={cn(
+                                'flex w-full items-center',
+                                isCollapsed ? 'justify-center' : 'gap-3',
+                            )}
                         >
                             <AppLogo />
                             {!isCollapsed && (
@@ -415,10 +420,12 @@ export function AppSidebar() {
                 </SidebarMenu>
             </SidebarHeader>
 
-            <SidebarContent className={cn("px-2 pb-3", isCollapsed && "px-1 pb-2")}>
-                <div className={cn("space-y-2", isCollapsed && "space-y-1")}>
-                    {!isCollapsed && (
-                        membership ? (
+            <SidebarContent
+                className={cn('px-2 pb-3', isCollapsed && 'px-1 pb-2')}
+            >
+                <div className={cn('space-y-2', isCollapsed && 'space-y-1')}>
+                    {!isCollapsed &&
+                        (membership ? (
                             <Link
                                 href="/settings/membership"
                                 className="group relative block overflow-hidden rounded-2xl border border-emerald-400/35 bg-gradient-to-br from-emerald-500/20 via-teal-500/25 to-cyan-500/15 p-[1px] shadow-[0_32px_76px_-52px_rgba(16,185,129,0.55)] transition"
@@ -435,33 +442,45 @@ export function AppSidebar() {
                                         </p>
                                     </div>
                                     {membership.ends_at && (
-                                        <p className={cn(
-                                            "mt-2 text-sm",
-                                            membership.is_expiring_soon 
-                                                ? "text-amber-300" 
-                                                : "text-white/70"
-                                        )}>
+                                        <p
+                                            className={cn(
+                                                'mt-2 text-sm',
+                                                membership.is_expiring_soon
+                                                    ? 'text-amber-300'
+                                                    : 'text-white/70',
+                                            )}
+                                        >
                                             {membership.is_expiring_soon ? (
                                                 <>
                                                     <span className="font-medium text-amber-300">
-                                                        {membership.days_remaining} days left
+                                                        {
+                                                            membership.days_remaining
+                                                        }{' '}
+                                                        days left
                                                     </span>
-                                                    <span className="block text-xs text-amber-300/70 mt-0.5">
-                                                        Expires {new Date(membership.ends_at).toLocaleDateString()}
+                                                    <span className="mt-0.5 block text-xs text-amber-300/70">
+                                                        Expires{' '}
+                                                        {new Date(
+                                                            membership.ends_at,
+                                                        ).toLocaleDateString()}
                                                     </span>
                                                 </>
                                             ) : (
                                                 <>
-                                                    Valid until {new Date(membership.ends_at).toLocaleDateString()}
+                                                    Valid until{' '}
+                                                    {new Date(
+                                                        membership.ends_at,
+                                                    ).toLocaleDateString()}
                                                 </>
                                             )}
                                         </p>
                                     )}
-                                    {membership.billing_type === 'recurring' && !membership.ends_at && (
-                                        <p className="mt-2 text-sm text-white/70">
-                                            Auto-renewing subscription
-                                        </p>
-                                    )}
+                                    {membership.billing_type === 'recurring' &&
+                                        !membership.ends_at && (
+                                            <p className="mt-2 text-sm text-white/70">
+                                                Auto-renewing subscription
+                                            </p>
+                                        )}
                                     <div className="mt-3 flex items-center text-sm font-medium text-emerald-100">
                                         Manage membership
                                         <ArrowRight className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
@@ -482,8 +501,8 @@ export function AppSidebar() {
                                         Upgrade now
                                     </p>
                                     <p className="mt-3 text-base font-semibold text-white">
-                                        Unlock Premium, Elite, or Unlimited access and
-                                        level up your feed.
+                                        Unlock Premium, Elite, or Unlimited
+                                        access and level up your feed.
                                     </p>
                                     <div className="mt-4 flex items-center text-sm font-medium text-amber-100">
                                         Explore plans
@@ -491,19 +510,22 @@ export function AppSidebar() {
                                     </div>
                                 </div>
                             </Link>
-                        )
-                    )}
+                        ))}
 
-                    <div className={cn(
-                        "rounded-2xl border border-white/10 bg-black/25 p-2 shadow-[0_28px_72px_-55px_rgba(249,115,22,0.45)]",
-                        isCollapsed && "p-1 rounded-lg"
-                    )}>
+                    <div
+                        className={cn(
+                            'rounded-2xl border border-white/10 bg-black/25 p-2 shadow-[0_28px_72px_-55px_rgba(249,115,22,0.45)]',
+                            isCollapsed && 'rounded-lg p-1',
+                        )}
+                    >
                         <NavMain items={mainNavItems} label="Navigation" />
                     </div>
                 </div>
             </SidebarContent>
 
-            <SidebarFooter className={cn("px-2 pb-3", isCollapsed && "px-1 pb-2")}>
+            <SidebarFooter
+                className={cn('px-2 pb-3', isCollapsed && 'px-1 pb-2')}
+            >
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

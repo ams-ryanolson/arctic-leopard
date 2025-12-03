@@ -17,7 +17,7 @@ import { getCsrfToken } from '@/lib/csrf';
 import {
     store as likeStore,
     destroy as unlikeRoute,
-} from '@/routes/posts/like';
+} from '@/routes/api/posts/like';
 import type {
     FeedPost,
     PostCollectionPayload,
@@ -250,9 +250,12 @@ export async function fetchHashtagPostsPage(
         pageName,
     );
 
-    const url = hashtagPosts.url({ hashtag }, {
-        query: resolvedQuery,
-    });
+    const url = hashtagPosts.url(
+        { hashtag },
+        {
+            query: resolvedQuery,
+        },
+    );
 
     const response = await fetch(url, {
         method: 'get',

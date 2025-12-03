@@ -1,11 +1,16 @@
-import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { usePage, Link } from '@inertiajs/react';
-import { Copy, Check, Settings, Radio } from 'lucide-react';
-import { type SharedData } from '@/types';
+import AppLayout from '@/layouts/app-layout';
+import { Link } from '@inertiajs/react';
+import { Check, Copy, Radio, Settings } from 'lucide-react';
 import { useState } from 'react';
 
 interface OBSSettingsProps {
@@ -20,7 +25,8 @@ export default function OBSSettings({ stream }: OBSSettingsProps) {
     const [copiedRtmpUrl, setCopiedRtmpUrl] = useState(false);
 
     const streamKey = stream?.stream_key || 'mock-stream-key-placeholder';
-    const rtmpUrl = stream?.rtmp_url || 'rtmp://mock-server.example.com/stream/mock-key';
+    const rtmpUrl =
+        stream?.rtmp_url || 'rtmp://mock-server.example.com/stream/mock-key';
 
     const copyToClipboard = (text: string, type: 'key' | 'url') => {
         navigator.clipboard.writeText(text).then(() => {
@@ -36,9 +42,9 @@ export default function OBSSettings({ stream }: OBSSettingsProps) {
 
     return (
         <AppLayout>
-            <div className="container mx-auto px-4 py-8 max-w-4xl">
+            <div className="container mx-auto max-w-4xl px-4 py-8">
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-2">
+                    <h1 className="mb-2 flex items-center gap-2 text-3xl font-bold text-white">
                         <Settings className="size-8" />
                         OBS Settings
                     </h1>
@@ -48,23 +54,29 @@ export default function OBSSettings({ stream }: OBSSettingsProps) {
                 </div>
 
                 {/* Connection Status */}
-                <Card className="bg-white/5 border-white/10 mb-6">
+                <Card className="mb-6 border-white/10 bg-white/5">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-white font-semibold mb-1">Connection Status</p>
-                                <p className="text-white/60 text-sm">Mock Mode - Ready to Stream</p>
+                                <p className="mb-1 font-semibold text-white">
+                                    Connection Status
+                                </p>
+                                <p className="text-sm text-white/60">
+                                    Mock Mode - Ready to Stream
+                                </p>
                             </div>
                             <div className="flex items-center gap-2 text-green-400">
-                                <div className="size-3 rounded-full bg-green-400 animate-pulse"></div>
-                                <span className="text-sm font-medium">Ready</span>
+                                <div className="size-3 animate-pulse rounded-full bg-green-400"></div>
+                                <span className="text-sm font-medium">
+                                    Ready
+                                </span>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
 
                 {/* Stream Key */}
-                <Card className="bg-white/5 border-white/10 mb-6">
+                <Card className="mb-6 border-white/10 bg-white/5">
                     <CardHeader>
                         <CardTitle className="text-white">Stream Key</CardTitle>
                         <CardDescription className="text-white/60">
@@ -76,17 +88,19 @@ export default function OBSSettings({ stream }: OBSSettingsProps) {
                             <Label htmlFor="streamKey" className="text-white">
                                 Stream Key
                             </Label>
-                            <div className="flex gap-2 mt-1">
+                            <div className="mt-1 flex gap-2">
                                 <Input
                                     id="streamKey"
                                     value={streamKey}
                                     readOnly
-                                    className="bg-white/10 border-white/20 text-white font-mono text-sm"
+                                    className="border-white/20 bg-white/10 font-mono text-sm text-white"
                                 />
                                 <Button
                                     type="button"
                                     variant="secondary"
-                                    onClick={() => copyToClipboard(streamKey, 'key')}
+                                    onClick={() =>
+                                        copyToClipboard(streamKey, 'key')
+                                    }
                                     className="gap-2"
                                 >
                                     {copiedStreamKey ? (
@@ -107,9 +121,11 @@ export default function OBSSettings({ stream }: OBSSettingsProps) {
                 </Card>
 
                 {/* RTMP URL */}
-                <Card className="bg-white/5 border-white/10 mb-6">
+                <Card className="mb-6 border-white/10 bg-white/5">
                     <CardHeader>
-                        <CardTitle className="text-white">RTMP Server URL</CardTitle>
+                        <CardTitle className="text-white">
+                            RTMP Server URL
+                        </CardTitle>
                         <CardDescription className="text-white/60">
                             The server URL for OBS to connect to
                         </CardDescription>
@@ -119,17 +135,19 @@ export default function OBSSettings({ stream }: OBSSettingsProps) {
                             <Label htmlFor="rtmpUrl" className="text-white">
                                 RTMP URL
                             </Label>
-                            <div className="flex gap-2 mt-1">
+                            <div className="mt-1 flex gap-2">
                                 <Input
                                     id="rtmpUrl"
                                     value={rtmpUrl}
                                     readOnly
-                                    className="bg-white/10 border-white/20 text-white font-mono text-sm"
+                                    className="border-white/20 bg-white/10 font-mono text-sm text-white"
                                 />
                                 <Button
                                     type="button"
                                     variant="secondary"
-                                    onClick={() => copyToClipboard(rtmpUrl, 'url')}
+                                    onClick={() =>
+                                        copyToClipboard(rtmpUrl, 'url')
+                                    }
                                     className="gap-2"
                                 >
                                     {copiedRtmpUrl ? (
@@ -150,23 +168,29 @@ export default function OBSSettings({ stream }: OBSSettingsProps) {
                 </Card>
 
                 {/* Setup Instructions */}
-                <Card className="bg-white/5 border-white/10 mb-6">
+                <Card className="mb-6 border-white/10 bg-white/5">
                     <CardHeader>
-                        <CardTitle className="text-white">OBS Setup Instructions</CardTitle>
+                        <CardTitle className="text-white">
+                            OBS Setup Instructions
+                        </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4 text-white/80">
-                        <ol className="list-decimal list-inside space-y-2 ml-2">
+                        <ol className="ml-2 list-inside list-decimal space-y-2">
                             <li>Open OBS Studio</li>
                             <li>Go to Settings → Stream</li>
                             <li>Set Service to &quot;Custom&quot;</li>
                             <li>Paste the RTMP URL into the Server field</li>
-                            <li>Paste the Stream Key into the Stream Key field</li>
+                            <li>
+                                Paste the Stream Key into the Stream Key field
+                            </li>
                             <li>Click OK to save settings</li>
                             <li>Click &quot;Start Streaming&quot; in OBS</li>
                         </ol>
-                        <div className="mt-4 p-4 bg-amber-500/20 border border-amber-500/30 rounded-lg">
-                            <p className="text-amber-400 text-sm font-medium">
-                                Note: This is a mock implementation. In production, these credentials will connect to a real streaming service.
+                        <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/20 p-4">
+                            <p className="text-sm font-medium text-amber-400">
+                                Note: This is a mock implementation. In
+                                production, these credentials will connect to a
+                                real streaming service.
                             </p>
                         </div>
                     </CardContent>
@@ -180,7 +204,11 @@ export default function OBSSettings({ stream }: OBSSettingsProps) {
                         </Button>
                     </Link>
                     <Link href="/live">
-                        <Button type="button" variant="secondary" className="gap-2">
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            className="gap-2"
+                        >
                             <Radio className="size-4" />
                             View Live Streams
                         </Button>
@@ -190,4 +218,3 @@ export default function OBSSettings({ stream }: OBSSettingsProps) {
         </AppLayout>
     );
 }
-

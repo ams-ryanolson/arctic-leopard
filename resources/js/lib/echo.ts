@@ -12,8 +12,10 @@ declare global {
 }
 
 let echoInstance: Echo | null = null;
-let connectionState: 'connected' | 'disconnected' | 'connecting' = 'disconnected';
-let connectionStateListeners: Set<(state: typeof connectionState) => void> = new Set();
+let connectionState: 'connected' | 'disconnected' | 'connecting' =
+    'disconnected';
+const connectionStateListeners: Set<(state: typeof connectionState) => void> =
+    new Set();
 
 type EchoChannel = Channel & {
     notification?(callback: (notification: unknown) => void): EchoChannel;
@@ -110,12 +112,19 @@ export function ensureEcho(): Echo {
                 )
                     .then((response) => callback(false, response.data))
                     .catch((error: unknown) => {
-                        if (import.meta.env.DEV && typeof document !== 'undefined') {
+                        if (
+                            import.meta.env.DEV &&
+                            typeof document !== 'undefined'
+                        ) {
                             console.error(
                                 '[broadcasting] Authorization failed',
                                 error,
                             );
-                            if (error && typeof error === 'object' && 'response' in error) {
+                            if (
+                                error &&
+                                typeof error === 'object' &&
+                                'response' in error
+                            ) {
                                 const axiosError = error as {
                                     response?: {
                                         status?: number;
@@ -166,21 +175,33 @@ export function ensureEcho(): Echo {
             notifyConnectionStateListeners();
 
             setTimeout(() => {
-                if (pusher.connection.state === 'disconnected' || pusher.connection.state === 'failed') {
+                if (
+                    pusher.connection.state === 'disconnected' ||
+                    pusher.connection.state === 'failed'
+                ) {
                     pusher.connect();
                 }
             }, 3000);
         });
 
-        pusher.connection.bind('state_change', (states: { previous: string; current: string }) => {
-            if (states.current === 'disconnected' || states.current === 'failed') {
-                setTimeout(() => {
-                    if (pusher.connection.state === 'disconnected' || pusher.connection.state === 'failed') {
-                        pusher.connect();
-                    }
-                }, 3000);
-            }
-        });
+        pusher.connection.bind(
+            'state_change',
+            (states: { previous: string; current: string }) => {
+                if (
+                    states.current === 'disconnected' ||
+                    states.current === 'failed'
+                ) {
+                    setTimeout(() => {
+                        if (
+                            pusher.connection.state === 'disconnected' ||
+                            pusher.connection.state === 'failed'
+                        ) {
+                            pusher.connect();
+                        }
+                    }, 3000);
+                }
+            },
+        );
     }
 
     return echoInstance;
@@ -222,7 +243,10 @@ function notifyConnectionStateListeners(): void {
         try {
             listener(connectionState);
         } catch (error) {
-            console.error('[broadcasting] Error in connection state listener', error);
+            console.error(
+                '[broadcasting] Error in connection state listener',
+                error,
+            );
         }
     });
 }

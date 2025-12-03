@@ -72,7 +72,9 @@ export default function PostAnalyticsPage(props: PageProps) {
                     : []),
                 {
                     title: 'Post analytics',
-                    href: postAnalyticsRoutes.show.url({ post: post.ulid ?? post.id }),
+                    href: postAnalyticsRoutes.show.url({
+                        post: post.ulid ?? post.id,
+                    }),
                 },
             ]}
         >

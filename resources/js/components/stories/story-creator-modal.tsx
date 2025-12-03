@@ -73,7 +73,9 @@ export default function StoryCreatorModal({
     const [uploadState, setUploadState] = useState<UploadState>('idle');
     const [uploadProgress, setUploadProgress] = useState(0);
     const [uploadError, setUploadError] = useState<string | null>(null);
-    const [uploadedMedia, setUploadedMedia] = useState<UploadedMedia | null>(null);
+    const [uploadedMedia, setUploadedMedia] = useState<UploadedMedia | null>(
+        null,
+    );
 
     // Form state
     const [audience, setAudience] = useState(audiences[0]?.value ?? 'public');
@@ -91,7 +93,8 @@ export default function StoryCreatorModal({
         return file?.type.startsWith('video/') ?? false;
     }, [file]);
 
-    const canSubmit = uploadState === 'uploaded' && uploadedMedia && !isSubmitting;
+    const canSubmit =
+        uploadState === 'uploaded' && uploadedMedia && !isSubmitting;
 
     // Reset state when modal closes
     useEffect(() => {
@@ -180,7 +183,9 @@ export default function StoryCreatorModal({
 
         xhr.upload.onprogress = (event) => {
             if (event.lengthComputable) {
-                setUploadProgress(Math.round((event.loaded / event.total) * 100));
+                setUploadProgress(
+                    Math.round((event.loaded / event.total) * 100),
+                );
             }
         };
 
@@ -204,7 +209,8 @@ export default function StoryCreatorModal({
                     setUploadState('error');
                 }
             } else {
-                const errorMsg = xhr.response?.message || 'Upload failed. Please try again.';
+                const errorMsg =
+                    xhr.response?.message || 'Upload failed. Please try again.';
                 setUploadError(errorMsg);
                 setUploadState('error');
             }
@@ -287,7 +293,9 @@ export default function StoryCreatorModal({
             ],
             audience,
             is_subscriber_only: isSubscriberOnly,
-            scheduled_at: scheduledAt ? new Date(scheduledAt).toISOString() : null,
+            scheduled_at: scheduledAt
+                ? new Date(scheduledAt).toISOString()
+                : null,
         };
 
         router.post(storiesStore().url, payload, {
@@ -298,13 +306,18 @@ export default function StoryCreatorModal({
             onError: (errors) => {
                 setIsSubmitting(false);
                 const firstError = Object.values(errors)[0];
-                setSubmitError(typeof firstError === 'string' ? firstError : 'Failed to create story.');
+                setSubmitError(
+                    typeof firstError === 'string'
+                        ? firstError
+                        : 'Failed to create story.',
+                );
             },
         });
     }, [uploadedMedia, audience, isSubscriberOnly, scheduledAt, onClose]);
 
     const AudienceIcon = AUDIENCE_ICONS[audience] ?? Users;
-    const selectedAudienceLabel = audiences.find((a) => a.value === audience)?.label ?? 'Everyone';
+    const selectedAudienceLabel =
+        audiences.find((a) => a.value === audience)?.label ?? 'Everyone';
 
     if (!open) return null;
 
@@ -338,7 +351,7 @@ export default function StoryCreatorModal({
                             'flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold transition',
                             canSubmit
                                 ? 'bg-amber-500 text-black hover:bg-amber-400'
-                                : 'bg-white/10 text-white/40 cursor-not-allowed',
+                                : 'cursor-not-allowed bg-white/10 text-white/40',
                         )}
                     >
                         {isSubmitting ? (
@@ -365,7 +378,9 @@ export default function StoryCreatorModal({
                                 onClick={() => inputRef.current?.click()}
                                 className={cn(
                                     'flex h-full min-h-[400px] cursor-pointer flex-col items-center justify-center gap-6 p-8 transition sm:min-h-[500px]',
-                                    isDragging ? 'bg-amber-500/10' : 'bg-black/40',
+                                    isDragging
+                                        ? 'bg-amber-500/10'
+                                        : 'bg-black/40',
                                 )}
                             >
                                 <input
@@ -387,14 +402,18 @@ export default function StoryCreatorModal({
                                     <Upload
                                         className={cn(
                                             'size-10 transition',
-                                            isDragging ? 'text-amber-400' : 'text-white/50',
+                                            isDragging
+                                                ? 'text-amber-400'
+                                                : 'text-white/50',
                                         )}
                                     />
                                 </div>
 
                                 <div className="text-center">
                                     <p className="text-lg font-medium text-white">
-                                        {isDragging ? 'Drop to upload' : 'Add to your story'}
+                                        {isDragging
+                                            ? 'Drop to upload'
+                                            : 'Add to your story'}
                                     </p>
                                     <p className="mt-1 text-sm text-white/50">
                                         Drag and drop or tap to select
@@ -427,7 +446,9 @@ export default function StoryCreatorModal({
                                 </div>
 
                                 {uploadError && (
-                                    <p className="text-sm text-red-400">{uploadError}</p>
+                                    <p className="text-sm text-red-400">
+                                        {uploadError}
+                                    </p>
                                 )}
                             </div>
                         ) : (
@@ -460,7 +481,9 @@ export default function StoryCreatorModal({
                                         <div className="mt-2 h-1 w-48 overflow-hidden rounded-full bg-white/20">
                                             <div
                                                 className="h-full bg-amber-400 transition-all duration-300"
-                                                style={{ width: `${uploadProgress}%` }}
+                                                style={{
+                                                    width: `${uploadProgress}%`,
+                                                }}
                                             />
                                         </div>
                                     </div>
@@ -469,7 +492,9 @@ export default function StoryCreatorModal({
                                 {/* Error Overlay */}
                                 {uploadState === 'error' && (
                                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70">
-                                        <p className="text-sm text-red-400">{uploadError}</p>
+                                        <p className="text-sm text-red-400">
+                                            {uploadError}
+                                        </p>
                                         <button
                                             type="button"
                                             onClick={handleRemoveMedia}
@@ -506,19 +531,25 @@ export default function StoryCreatorModal({
                     {uploadState === 'uploaded' && (
                         <div className="shrink-0 space-y-3 border-t border-white/10 p-4">
                             {submitError && (
-                                <p className="text-sm text-red-400">{submitError}</p>
+                                <p className="text-sm text-red-400">
+                                    {submitError}
+                                </p>
                             )}
 
                             {/* Audience Selector */}
                             <div className="relative">
                                 <button
                                     type="button"
-                                    onClick={() => setShowAudienceMenu(!showAudienceMenu)}
+                                    onClick={() =>
+                                        setShowAudienceMenu(!showAudienceMenu)
+                                    }
                                     className="flex w-full items-center justify-between rounded-xl bg-white/5 px-4 py-3 text-left transition hover:bg-white/10"
                                 >
                                     <div className="flex items-center gap-3">
                                         <AudienceIcon className="size-5 text-white/60" />
-                                        <span className="text-sm text-white">{selectedAudienceLabel}</span>
+                                        <span className="text-sm text-white">
+                                            {selectedAudienceLabel}
+                                        </span>
                                     </div>
                                     <ChevronDown
                                         className={cn(
@@ -529,17 +560,24 @@ export default function StoryCreatorModal({
                                 </button>
 
                                 {showAudienceMenu && (
-                                    <div className="absolute bottom-full left-0 right-0 mb-2 overflow-hidden rounded-xl border border-white/10 bg-neutral-900 shadow-xl">
+                                    <div className="absolute right-0 bottom-full left-0 mb-2 overflow-hidden rounded-xl border border-white/10 bg-neutral-900 shadow-xl">
                                         {audiences.map((option) => {
-                                            const Icon = AUDIENCE_ICONS[option.value] ?? Users;
-                                            const isSelected = audience === option.value;
+                                            const Icon =
+                                                AUDIENCE_ICONS[option.value] ??
+                                                Users;
+                                            const isSelected =
+                                                audience === option.value;
                                             return (
                                                 <button
                                                     key={option.value}
                                                     type="button"
                                                     onClick={() => {
-                                                        setAudience(option.value);
-                                                        setShowAudienceMenu(false);
+                                                        setAudience(
+                                                            option.value,
+                                                        );
+                                                        setShowAudienceMenu(
+                                                            false,
+                                                        );
                                                     }}
                                                     className={cn(
                                                         'flex w-full items-center gap-3 px-4 py-3 text-left transition',
@@ -549,8 +587,12 @@ export default function StoryCreatorModal({
                                                     )}
                                                 >
                                                     <Icon className="size-5" />
-                                                    <span className="text-sm">{option.label}</span>
-                                                    {isSelected && <Check className="ml-auto size-4" />}
+                                                    <span className="text-sm">
+                                                        {option.label}
+                                                    </span>
+                                                    {isSelected && (
+                                                        <Check className="ml-auto size-4" />
+                                                    )}
                                                 </button>
                                             );
                                         })}
@@ -562,15 +604,33 @@ export default function StoryCreatorModal({
                             {audience === 'subscribers' && (
                                 <button
                                     type="button"
-                                    onClick={() => setIsSubscriberOnly(!isSubscriberOnly)}
+                                    onClick={() =>
+                                        setIsSubscriberOnly(!isSubscriberOnly)
+                                    }
                                     className={cn(
                                         'flex w-full items-center justify-between rounded-xl px-4 py-3 transition',
-                                        isSubscriberOnly ? 'bg-amber-500/20' : 'bg-white/5 hover:bg-white/10',
+                                        isSubscriberOnly
+                                            ? 'bg-amber-500/20'
+                                            : 'bg-white/5 hover:bg-white/10',
                                     )}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <Lock className={cn('size-5', isSubscriberOnly ? 'text-amber-400' : 'text-white/60')} />
-                                        <span className={cn('text-sm', isSubscriberOnly ? 'text-amber-400' : 'text-white')}>
+                                        <Lock
+                                            className={cn(
+                                                'size-5',
+                                                isSubscriberOnly
+                                                    ? 'text-amber-400'
+                                                    : 'text-white/60',
+                                            )}
+                                        />
+                                        <span
+                                            className={cn(
+                                                'text-sm',
+                                                isSubscriberOnly
+                                                    ? 'text-amber-400'
+                                                    : 'text-white',
+                                            )}
+                                        >
                                             Exclusive content
                                         </span>
                                     </div>
@@ -582,7 +642,9 @@ export default function StoryCreatorModal({
                                                 : 'border-white/30',
                                         )}
                                     >
-                                        {isSubscriberOnly && <Check className="size-3 text-black" />}
+                                        {isSubscriberOnly && (
+                                            <Check className="size-3 text-black" />
+                                        )}
                                     </div>
                                 </button>
                             )}
@@ -593,19 +655,39 @@ export default function StoryCreatorModal({
                                 onClick={() => setShowSchedule(!showSchedule)}
                                 className={cn(
                                     'flex w-full items-center justify-between rounded-xl px-4 py-3 transition',
-                                    scheduledAt ? 'bg-amber-500/20' : 'bg-white/5 hover:bg-white/10',
+                                    scheduledAt
+                                        ? 'bg-amber-500/20'
+                                        : 'bg-white/5 hover:bg-white/10',
                                 )}
                             >
                                 <div className="flex items-center gap-3">
-                                    <Clock3 className={cn('size-5', scheduledAt ? 'text-amber-400' : 'text-white/60')} />
-                                    <span className={cn('text-sm', scheduledAt ? 'text-amber-400' : 'text-white')}>
-                                        {scheduledAt ? 'Scheduled' : 'Schedule for later'}
+                                    <Clock3
+                                        className={cn(
+                                            'size-5',
+                                            scheduledAt
+                                                ? 'text-amber-400'
+                                                : 'text-white/60',
+                                        )}
+                                    />
+                                    <span
+                                        className={cn(
+                                            'text-sm',
+                                            scheduledAt
+                                                ? 'text-amber-400'
+                                                : 'text-white',
+                                        )}
+                                    >
+                                        {scheduledAt
+                                            ? 'Scheduled'
+                                            : 'Schedule for later'}
                                     </span>
                                 </div>
                                 <ChevronDown
                                     className={cn(
                                         'size-4 transition',
-                                        scheduledAt ? 'text-amber-400' : 'text-white/40',
+                                        scheduledAt
+                                            ? 'text-amber-400'
+                                            : 'text-white/40',
                                         showSchedule && 'rotate-180',
                                     )}
                                 />
@@ -616,8 +698,12 @@ export default function StoryCreatorModal({
                                     <input
                                         type="datetime-local"
                                         value={scheduledAt}
-                                        onChange={(e) => setScheduledAt(e.target.value)}
-                                        min={new Date().toISOString().slice(0, 16)}
+                                        onChange={(e) =>
+                                            setScheduledAt(e.target.value)
+                                        }
+                                        min={new Date()
+                                            .toISOString()
+                                            .slice(0, 16)}
                                         className="w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white focus:border-amber-400 focus:ring-1 focus:ring-amber-400 focus:outline-none"
                                     />
                                     {scheduledAt && (
@@ -638,5 +724,3 @@ export default function StoryCreatorModal({
         </div>
     );
 }
-
-

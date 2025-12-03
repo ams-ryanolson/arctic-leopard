@@ -8,7 +8,10 @@ test('guests cannot view the admin dashboard', function () {
 });
 
 test('users without admin permissions cannot view the admin dashboard', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
 
     $this->actingAs($user)
         ->get(route('admin.dashboard'))
@@ -16,7 +19,10 @@ test('users without admin permissions cannot view the admin dashboard', function
 });
 
 test('admin role can view the admin dashboard', function () {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
 
     $this->actingAs($admin)
@@ -33,7 +39,10 @@ test('admin role can view the admin dashboard', function () {
 });
 
 test('super admin role can view the admin dashboard', function () {
-    $superAdmin = User::factory()->create();
+    $superAdmin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $superAdmin->assignRole('Super Admin');
 
     $this->actingAs($superAdmin)
@@ -50,7 +59,10 @@ test('super admin role can view the admin dashboard', function () {
 });
 
 test('admin dashboard displays financial metrics', function () {
-    $admin = User::factory()->create();
+    $admin = User::factory()->create([
+        'email_verified_at' => now(),
+        'profile_completed_at' => now(),
+    ]);
     $admin->assignRole('Admin');
 
     $this->actingAs($admin)

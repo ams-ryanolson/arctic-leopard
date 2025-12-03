@@ -33,7 +33,7 @@ it('calculates prorated upgrade price correctly', function (): void {
     $premiumPlan = MembershipPlan::factory()->create([
         'name' => 'Premium Plan',
         'slug' => 'premium-plan',
-        'role_to_assign' => 'Premium',
+        'role_to_assign' => 'Gold',
         'monthly_price' => 1000, // $10
     ]);
 
@@ -74,7 +74,7 @@ it('upgrades membership and swaps roles', function (): void {
     $premiumPlan = MembershipPlan::factory()->create([
         'name' => 'Premium Plan',
         'slug' => 'premium-plan',
-        'role_to_assign' => 'Premium',
+        'role_to_assign' => 'Gold',
         'monthly_price' => 1000,
     ]);
 
@@ -95,7 +95,7 @@ it('upgrades membership and swaps roles', function (): void {
         'billing_type' => 'recurring',
     ]);
 
-    $user->assignRole('Premium');
+    $user->assignRole('Gold');
     expect($user->hasRole('Premium'))->toBeTrue();
 
     $this->actingAs($user);
@@ -159,7 +159,7 @@ it('keeps same expiry date when upgrading', function (): void {
         'name' => 'Premium Plan Test',
         'slug' => 'premium-plan-test',
         'monthly_price' => 1000,
-        'role_to_assign' => 'Premium',
+        'role_to_assign' => 'Gold',
     ]);
     $elitePlan = MembershipPlan::factory()->create([
         'name' => 'Elite Plan Test',

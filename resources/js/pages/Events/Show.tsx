@@ -160,9 +160,9 @@ export default function EventShow({ event }: EventShowProps) {
                                         // Use optimized_url for images when available, fall back to url or path
                                         const imageUrl =
                                             media.media_type === 'image'
-                                                ? media.optimized_url ??
+                                                ? (media.optimized_url ??
                                                   media.url ??
-                                                  media.path
+                                                  media.path)
                                                 : null;
 
                                         return (
@@ -174,18 +174,20 @@ export default function EventShow({ event }: EventShowProps) {
                                                         ? `url(${imageUrl})`
                                                         : undefined,
                                                     backgroundSize: 'cover',
-                                                    backgroundPosition: 'center',
+                                                    backgroundPosition:
+                                                        'center',
                                                 }}
                                             >
-                                            {media.media_type === 'video' && (
-                                                <div className="flex h-full items-center justify-center text-sm text-white/70">
-                                                    Video •{' '}
-                                                    {media.meta
-                                                        ?.duration_seconds ??
-                                                        '—'}
-                                                    s
-                                                </div>
-                                            )}
+                                                {media.media_type ===
+                                                    'video' && (
+                                                    <div className="flex h-full items-center justify-center text-sm text-white/70">
+                                                        Video •{' '}
+                                                        {media.meta
+                                                            ?.duration_seconds ??
+                                                            '—'}
+                                                        s
+                                                    </div>
+                                                )}
                                             </div>
                                         );
                                     })}

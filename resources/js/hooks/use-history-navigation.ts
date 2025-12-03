@@ -1,23 +1,17 @@
-import { useCallback } from 'react';
 import { router } from '@inertiajs/react';
+import { useCallback } from 'react';
 
 import messagesRoutes from '@/routes/messages';
 
 export function useHistoryNavigation() {
-    const openConversation = useCallback(
-        (ulid: string) => {
-            // Navigate to conversation using ULID path parameter
-            router.visit(
-                messagesRoutes.show({ conversation: ulid }),
-                {
-                    preserveScroll: true,
-                    preserveState: true,
-                    only: ['threads', 'activeConversation', 'messages', 'messagesMeta'],
-                },
-            );
-        },
-        [],
-    );
+    const openConversation = useCallback((ulid: string) => {
+        // Navigate to conversation using ULID path parameter
+        router.visit(messagesRoutes.show({ conversation: ulid }), {
+            preserveScroll: true,
+            preserveState: true,
+            only: ['threads', 'activeConversation', 'messages', 'messagesMeta'],
+        });
+    }, []);
 
     const backToList = useCallback(() => {
         // Use browser's native back navigation for instant, smooth transition
@@ -27,14 +21,11 @@ export function useHistoryNavigation() {
             window.history.back();
         } else {
             // Fallback: if no history, navigate to list
-            router.visit(
-                messagesRoutes.index.url(),
-                {
-                    preserveScroll: true,
-                    preserveState: true,
-                    only: ['threads'],
-                },
-            );
+            router.visit(messagesRoutes.index.url(), {
+                preserveScroll: true,
+                preserveState: true,
+                only: ['threads'],
+            });
         }
     }, []);
 

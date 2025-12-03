@@ -73,20 +73,27 @@ class AdminReportingService
         return Cache::tags(['dashboard', 'financial'])->remember(
             $this->cacheKey('monthlyRevenue', $start, null, ['months' => $months]),
             now()->addMinutes(15),
-            fn () => Payment::query()
-                ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as period')
-                ->selectRaw('SUM(amount) as gross')
-                ->selectRaw('SUM(net_amount) as net')
-                ->selectRaw('MAX(currency) as currency')
-                ->where('created_at', '>=', $start)
-                ->whereIn('status', [
-                    PaymentStatus::Captured,
-                    PaymentStatus::Settled,
-                    PaymentStatus::Refunded,
-                ])
-                ->groupBy('period')
-                ->orderBy('period')
-                ->get()
+            function () use ($start) {
+                $driver = Payment::query()->getConnection()->getDriverName();
+                $periodExpression = $driver === 'sqlite'
+                    ? "strftime('%Y-%m', created_at) as period"
+                    : 'DATE_FORMAT(created_at, "%Y-%m") as period';
+
+                return Payment::query()
+                    ->selectRaw($periodExpression)
+                    ->selectRaw('SUM(amount) as gross')
+                    ->selectRaw('SUM(net_amount) as net')
+                    ->selectRaw('MAX(currency) as currency')
+                    ->where('created_at', '>=', $start)
+                    ->whereIn('status', [
+                        PaymentStatus::Captured,
+                        PaymentStatus::Settled,
+                        PaymentStatus::Refunded,
+                    ])
+                    ->groupBy('period')
+                    ->orderBy('period')
+                    ->get();
+            }
         );
     }
 

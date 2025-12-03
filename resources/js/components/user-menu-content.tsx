@@ -1,10 +1,10 @@
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useInitials } from '@/hooks/use-initials';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { logout } from '@/routes';
@@ -19,7 +19,7 @@ interface UserMenuContentProps {
 export function UserMenuContent({ user }: UserMenuContentProps) {
     const cleanup = useMobileNavigation();
     const getInitials = useInitials();
-    
+
     const displayName =
         user.display_name ?? user.name ?? user.username ?? 'Member';
     const avatar = user.avatar_url || user.avatar;

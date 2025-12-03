@@ -2,13 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useLightbox } from '@/components/feed/lightbox-context';
 import LightboxViewer from '@/components/feed/lightbox-viewer';
+import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import profileRoutes from '@/routes/profile';
 import type { FeedMedia, FeedPost } from '@/types/feed';
 import { Head, router, usePage } from '@inertiajs/react';
 import { ArrowLeft, CheckCircle2, Loader2, Plane } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 
 type MediaItem = {
     id: number;
@@ -57,13 +56,16 @@ export default function ProfileMedia({
     mediaPerPage,
 }: MediaPageProps) {
     const { openLightbox } = useLightbox();
-    const { props } = usePage<{ user: ProfileUser; media: typeof initialMedia }>();
+    const { props } = usePage<{
+        user: ProfileUser;
+        media: typeof initialMedia;
+    }>();
     const currentMedia = (props as any)?.media ?? initialMedia;
     const currentUser = (props as any)?.user ?? initialUser;
-    
-    const [pages, setPages] = useState<Array<{ data: MediaItem[]; meta: any }>>([
-        currentMedia,
-    ]);
+
+    const [pages, setPages] = useState<Array<{ data: MediaItem[]; meta: any }>>(
+        [currentMedia],
+    );
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [lightboxMedia, setLightboxMedia] = useState<FeedMedia[]>([]);
@@ -71,8 +73,13 @@ export default function ProfileMedia({
     const [lightboxPost, setLightboxPost] = useState<FeedPost | null>(null);
     const sentinelRef = useRef<HTMLDivElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
-    const [visibleRange, setVisibleRange] = useState({ start: 0, end: ITEMS_PER_PAGE });
-    const [imageDimensions, setImageDimensions] = useState<Map<number, { width: number; height: number }>>(new Map());
+    const [visibleRange, setVisibleRange] = useState({
+        start: 0,
+        end: ITEMS_PER_PAGE,
+    });
+    const [imageDimensions, setImageDimensions] = useState<
+        Map<number, { width: number; height: number }>
+    >(new Map());
     const gridRef = useRef<HTMLDivElement>(null);
     const [containerWidth, setContainerWidth] = useState(1024);
 
@@ -82,13 +89,16 @@ export default function ProfileMedia({
             setPages((prev) => {
                 // Check if this page already exists
                 const exists = prev.some(
-                    (p) => p.meta.current_page === currentMedia.meta.current_page,
+                    (p) =>
+                        p.meta.current_page === currentMedia.meta.current_page,
                 );
                 if (!exists) {
                     const updated = [...prev, currentMedia];
                     // Cleanup: remove oldest pages if we have too many
                     if (updated.length * ITEMS_PER_PAGE > CLEANUP_THRESHOLD) {
-                        return updated.slice(-Math.ceil(BUFFER_SIZE / ITEMS_PER_PAGE));
+                        return updated.slice(
+                            -Math.ceil(BUFFER_SIZE / ITEMS_PER_PAGE),
+                        );
                     }
                     return updated;
                 }
@@ -123,7 +133,8 @@ export default function ProfileMedia({
         return {
             id: item.id,
             url: item.url,
-            type: item.mime_type ?? (item.is_video ? 'video/mp4' : 'image/jpeg'),
+            type:
+                item.mime_type ?? (item.is_video ? 'video/mp4' : 'image/jpeg'),
             alt: null,
             thumbnail_url: item.thumbnail_url ?? null,
             optimized_url: item.optimized_url ?? null,
@@ -156,8 +167,15 @@ export default function ProfileMedia({
                             setPages((prev) => {
                                 const updated = [...prev, newPage];
                                 // Cleanup: remove oldest pages if we have too many
-                                if (updated.length * ITEMS_PER_PAGE > CLEANUP_THRESHOLD) {
-                                    return updated.slice(-Math.ceil(BUFFER_SIZE / ITEMS_PER_PAGE));
+                                if (
+                                    updated.length * ITEMS_PER_PAGE >
+                                    CLEANUP_THRESHOLD
+                                ) {
+                                    return updated.slice(
+                                        -Math.ceil(
+                                            BUFFER_SIZE / ITEMS_PER_PAGE,
+                                        ),
+                                    );
                                 }
                                 return updated;
                             });
@@ -262,7 +280,8 @@ export default function ProfileMedia({
                 const paddingLeft = parseFloat(styles.paddingLeft) || 0;
                 const paddingRight = parseFloat(styles.paddingRight) || 0;
                 // offsetWidth includes padding, so we get the content width
-                const contentWidth = parent.offsetWidth - paddingLeft - paddingRight;
+                const contentWidth =
+                    parent.offsetWidth - paddingLeft - paddingRight;
                 setContainerWidth(Math.max(contentWidth, 0));
             } else {
                 // Fallback: use grid's own width
@@ -291,21 +310,32 @@ export default function ProfileMedia({
     // Calculate masonry layout positions
     const masonryLayout = useMemo(() => {
         if (allMedia.length === 0) {
-            return new Map<number, { top: number; left: number; height: number; width: number }>();
+            return new Map<
+                number,
+                { top: number; left: number; height: number; width: number }
+            >();
         }
 
         const gap = 16; // gap-4 = 16px
-        const columns = containerWidth >= 1024 ? 3 : containerWidth >= 640 ? 2 : 1;
+        const columns =
+            containerWidth >= 1024 ? 3 : containerWidth >= 640 ? 2 : 1;
         // Ensure we don't exceed container width
         const availableWidth = Math.max(containerWidth, 0);
-        const columnWidth = Math.floor((availableWidth - gap * (columns - 1)) / columns);
+        const columnWidth = Math.floor(
+            (availableWidth - gap * (columns - 1)) / columns,
+        );
 
         const columnHeights = new Array(columns).fill(0);
-        const positions = new Map<number, { top: number; left: number; height: number; width: number }>();
+        const positions = new Map<
+            number,
+            { top: number; left: number; height: number; width: number }
+        >();
 
         allMedia.forEach((item) => {
             // Find the shortest column
-            const shortestColumnIndex = columnHeights.indexOf(Math.min(...columnHeights));
+            const shortestColumnIndex = columnHeights.indexOf(
+                Math.min(...columnHeights),
+            );
 
             // Calculate height based on actual dimensions or aspect ratio
             const dimensions = imageDimensions.get(item.id);
@@ -361,7 +391,9 @@ export default function ProfileMedia({
                     itemBottom >= viewportTop - buffer &&
                     itemTop <= viewportBottom + buffer
                 ) {
-                    const index = allMedia.findIndex((item) => item.id === itemId);
+                    const index = allMedia.findIndex(
+                        (item) => item.id === itemId,
+                    );
                     if (index >= 0) {
                         visibleItems.push(index);
                     }
@@ -370,7 +402,10 @@ export default function ProfileMedia({
 
             if (visibleItems.length > 0) {
                 const start = Math.max(0, Math.min(...visibleItems) - 10);
-                const end = Math.min(allMedia.length, Math.max(...visibleItems) + 10);
+                const end = Math.min(
+                    allMedia.length,
+                    Math.max(...visibleItems) + 10,
+                );
                 setVisibleRange({ start, end });
             }
         };
@@ -392,7 +427,9 @@ export default function ProfileMedia({
 
     return (
         <AppLayout>
-            <Head title={`${currentUser.display_name ?? currentUser.username} - Media`} />
+            <Head
+                title={`${currentUser.display_name ?? currentUser.username} - Media`}
+            />
 
             <div className="flex min-h-screen flex-col">
                 {/* Header */}
@@ -402,7 +439,11 @@ export default function ProfileMedia({
                             variant="ghost"
                             size="sm"
                             onClick={() => {
-                                router.visit(profileRoutes.show.url(currentUser.username));
+                                router.visit(
+                                    profileRoutes.show.url(
+                                        currentUser.username,
+                                    ),
+                                );
                             }}
                             className="text-white/70 hover:text-white"
                         >
@@ -411,9 +452,12 @@ export default function ProfileMedia({
                         </Button>
                         <div className="flex-1">
                             <h1 className="text-lg font-semibold text-white">
-                                {currentUser.display_name ?? currentUser.username}
+                                {currentUser.display_name ??
+                                    currentUser.username}
                             </h1>
-                            <p className="text-sm text-white/60">Media Gallery</p>
+                            <p className="text-sm text-white/60">
+                                Media Gallery
+                            </p>
                         </div>
                     </div>
                 </header>
@@ -421,30 +465,36 @@ export default function ProfileMedia({
                 {/* Media Grid */}
                 <div
                     ref={containerRef}
-                    className="flex-1 overflow-y-auto overflow-x-hidden"
+                    className="flex-1 overflow-x-hidden overflow-y-auto"
                     style={{ height: 'calc(100vh - 80px)' }}
                 >
                     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                         {allMedia.length === 0 ? (
                             <div className="py-16 text-center">
-                                <p className="text-white/60">No media available</p>
+                                <p className="text-white/60">
+                                    No media available
+                                </p>
                             </div>
                         ) : (
                             <div
                                 ref={gridRef}
                                 className="relative w-full overflow-hidden"
                                 style={{
-                                    minHeight: Math.max(
-                                        ...Array.from(masonryLayout.values()).map(
-                                            (pos) => pos.top + pos.height,
-                                        ),
-                                        0,
-                                    ) || 'auto',
+                                    minHeight:
+                                        Math.max(
+                                            ...Array.from(
+                                                masonryLayout.values(),
+                                            ).map(
+                                                (pos) => pos.top + pos.height,
+                                            ),
+                                            0,
+                                        ) || 'auto',
                                     maxWidth: '100%',
                                 }}
                             >
                                 {visibleMedia.map((item, relativeIndex) => {
-                                    const absoluteIndex = visibleRange.start + relativeIndex;
+                                    const absoluteIndex =
+                                        visibleRange.start + relativeIndex;
                                     const isVideo = item.is_video;
                                     const position = masonryLayout.get(item.id);
 
@@ -471,12 +521,17 @@ export default function ProfileMedia({
                                                 <>
                                                     {item.thumbnail_url ? (
                                                         <img
-                                                            src={item.thumbnail_url}
+                                                            src={
+                                                                item.thumbnail_url
+                                                            }
                                                             alt="Video thumbnail"
                                                             className="size-full object-cover"
                                                             loading="lazy"
                                                             onLoad={(e) => {
-                                                                handleImageLoad(item, e);
+                                                                handleImageLoad(
+                                                                    item,
+                                                                    e,
+                                                                );
                                                             }}
                                                         />
                                                     ) : (
@@ -501,7 +556,10 @@ export default function ProfileMedia({
                                                     className="size-full object-cover transition group-hover:scale-105"
                                                     loading="lazy"
                                                     onLoad={(e) => {
-                                                        handleImageLoad(item, e);
+                                                        handleImageLoad(
+                                                            item,
+                                                            e,
+                                                        );
                                                     }}
                                                 />
                                             )}
@@ -533,7 +591,9 @@ export default function ProfileMedia({
                                     </p>
                                 </div>
                                 <p className="mt-3 text-sm text-white/50">
-                                    {allMedia.length} {allMedia.length === 1 ? 'item' : 'items'} total
+                                    {allMedia.length}{' '}
+                                    {allMedia.length === 1 ? 'item' : 'items'}{' '}
+                                    total
                                 </p>
                             </div>
                         )}
@@ -552,4 +612,3 @@ export default function ProfileMedia({
         </AppLayout>
     );
 }
-

@@ -14,11 +14,18 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import adminRoutes from '@/routes/admin';
 import adminUsersRoutes from '@/routes/admin/users';
-import { type Paginated } from '@/types/feed';
 import { type SharedData } from '@/types';
+import { type Paginated } from '@/types/feed';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { formatDistanceToNow, format } from 'date-fns';
-import { AlertCircle, Ban, Search, ShieldOff, Clock, UserX } from 'lucide-react';
+import { format, formatDistanceToNow } from 'date-fns';
+import {
+    AlertCircle,
+    Ban,
+    Clock,
+    Search,
+    ShieldOff,
+    UserX,
+} from 'lucide-react';
 import { type FormEvent, useCallback, useMemo, useState } from 'react';
 
 type SuspendedBy = {
@@ -77,7 +84,9 @@ export default function AdminSuspensions() {
     const props = usePage<AdminSuspensionsProps>().props;
 
     const normalizedUsers = useMemo(() => {
-        const raw = props.users as unknown as Partial<Paginated<SuspendedUser>> &
+        const raw = props.users as unknown as Partial<
+            Paginated<SuspendedUser>
+        > &
             LegacyPaginator<SuspendedUser>;
         const data = Array.isArray(raw.data) ? raw.data : [];
         const metaSource = raw.meta ?? {
@@ -99,7 +108,9 @@ export default function AdminSuspensions() {
     }, [props.users]);
 
     const [search, setSearch] = useState(props.filters.search ?? '');
-    const [statusFilter, setStatusFilter] = useState(props.filters.status ?? 'all');
+    const [statusFilter, setStatusFilter] = useState(
+        props.filters.status ?? 'all',
+    );
 
     const handleFilter = useCallback(
         (e?: FormEvent) => {
@@ -169,11 +180,13 @@ export default function AdminSuspensions() {
                         >
                             <div className="flex-1">
                                 <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/40" />
+                                    <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-white/40" />
                                     <Input
                                         placeholder="Search by name, username, or email..."
                                         value={search}
-                                        onChange={(e) => setSearch(e.target.value)}
+                                        onChange={(e) =>
+                                            setSearch(e.target.value)
+                                        }
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter') {
                                                 handleFilter(e);
@@ -192,9 +205,15 @@ export default function AdminSuspensions() {
                                         <SelectValue placeholder="Filter by status" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="all">All Statuses</SelectItem>
-                                        <SelectItem value="suspended">Suspended</SelectItem>
-                                        <SelectItem value="banned">Banned</SelectItem>
+                                        <SelectItem value="all">
+                                            All Statuses
+                                        </SelectItem>
+                                        <SelectItem value="suspended">
+                                            Suspended
+                                        </SelectItem>
+                                        <SelectItem value="banned">
+                                            Banned
+                                        </SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -231,7 +250,10 @@ export default function AdminSuspensions() {
                                             <div className="flex items-center gap-3">
                                                 <Avatar className="size-12">
                                                     <AvatarImage
-                                                        src={user.avatar_url ?? undefined}
+                                                        src={
+                                                            user.avatar_url ??
+                                                            undefined
+                                                        }
                                                     />
                                                     <AvatarFallback>
                                                         {user.name
@@ -257,12 +279,16 @@ export default function AdminSuspensions() {
                                                     </div>
                                                     <div className="mt-1 flex items-center gap-2 text-sm text-white/60">
                                                         {user.username && (
-                                                            <span>@{user.username}</span>
+                                                            <span>
+                                                                @{user.username}
+                                                            </span>
                                                         )}
                                                         {user.email && (
                                                             <>
                                                                 <span>·</span>
-                                                                <span>{user.email}</span>
+                                                                <span>
+                                                                    {user.email}
+                                                                </span>
                                                             </>
                                                         )}
                                                     </div>
@@ -274,7 +300,7 @@ export default function AdminSuspensions() {
                                                     <div className="space-y-1">
                                                         <div className="flex items-center gap-2">
                                                             <Ban className="size-4 text-red-400" />
-                                                            <span className="text-xs font-semibold uppercase tracking-wider text-white/50">
+                                                            <span className="text-xs font-semibold tracking-wider text-white/50 uppercase">
                                                                 Banned
                                                             </span>
                                                         </div>
@@ -292,13 +318,19 @@ export default function AdminSuspensions() {
                                                         </p>
                                                         {user.banned_reason && (
                                                             <p className="text-xs text-white/60">
-                                                                {user.banned_reason}
+                                                                {
+                                                                    user.banned_reason
+                                                                }
                                                             </p>
                                                         )}
                                                         {user.banned_by && (
                                                             <p className="text-xs text-white/50">
                                                                 by{' '}
-                                                                {user.banned_by.name}
+                                                                {
+                                                                    user
+                                                                        .banned_by
+                                                                        .name
+                                                                }
                                                                 {user.banned_by
                                                                     .username &&
                                                                     ` (@${user.banned_by.username})`}
@@ -311,7 +343,7 @@ export default function AdminSuspensions() {
                                                     <div className="space-y-1">
                                                         <div className="flex items-center gap-2">
                                                             <ShieldOff className="size-4 text-amber-400" />
-                                                            <span className="text-xs font-semibold uppercase tracking-wider text-white/50">
+                                                            <span className="text-xs font-semibold tracking-wider text-white/50 uppercase">
                                                                 Suspended
                                                             </span>
                                                         </div>
@@ -343,14 +375,21 @@ export default function AdminSuspensions() {
                                                         )}
                                                         {user.suspended_reason && (
                                                             <p className="text-xs text-white/60">
-                                                                {user.suspended_reason}
+                                                                {
+                                                                    user.suspended_reason
+                                                                }
                                                             </p>
                                                         )}
                                                         {user.suspended_by && (
                                                             <p className="text-xs text-white/50">
                                                                 by{' '}
-                                                                {user.suspended_by.name}
-                                                                {user.suspended_by
+                                                                {
+                                                                    user
+                                                                        .suspended_by
+                                                                        .name
+                                                                }
+                                                                {user
+                                                                    .suspended_by
                                                                     .username &&
                                                                     ` (@${user.suspended_by.username})`}
                                                             </p>
@@ -358,17 +397,20 @@ export default function AdminSuspensions() {
                                                     </div>
                                                 )}
 
-                                                {user.warning_count !== undefined &&
+                                                {user.warning_count !==
+                                                    undefined &&
                                                     user.warning_count > 0 && (
                                                         <div className="space-y-1">
                                                             <div className="flex items-center gap-2">
                                                                 <AlertCircle className="size-4 text-amber-400" />
-                                                                <span className="text-xs font-semibold uppercase tracking-wider text-white/50">
+                                                                <span className="text-xs font-semibold tracking-wider text-white/50 uppercase">
                                                                     Warnings
                                                                 </span>
                                                             </div>
                                                             <p className="text-sm text-white/80">
-                                                                {user.warning_count}{' '}
+                                                                {
+                                                                    user.warning_count
+                                                                }{' '}
                                                                 active warning
                                                                 {user.warning_count !==
                                                                     1 && 's'}
@@ -381,8 +423,7 @@ export default function AdminSuspensions() {
                                                                             user.last_warned_at,
                                                                         ),
                                                                         {
-                                                                            addSuffix:
-                                                                                true,
+                                                                            addSuffix: true,
                                                                         },
                                                                     )}
                                                                 </p>
@@ -393,7 +434,9 @@ export default function AdminSuspensions() {
                                         </div>
                                         <div className="flex flex-col gap-2">
                                             <Link
-                                                href={adminUsersRoutes.index().url}
+                                                href={
+                                                    adminUsersRoutes.index().url
+                                                }
                                                 className="rounded-full border border-white/15 bg-white/5 px-4 py-2 text-xs font-semibold tracking-[0.35em] text-white/75 uppercase transition-all hover:border-white/30 hover:bg-white/10 hover:text-white"
                                             >
                                                 View Profile
@@ -416,9 +459,7 @@ export default function AdminSuspensions() {
                             );
                             params.set('page', String(page));
                             router.visit(
-                                adminUsersRoutes
-                                    .suspensions()
-                                    .url +
+                                adminUsersRoutes.suspensions().url +
                                     `?${params.toString()}`,
                                 {
                                     preserveState: true,
@@ -432,7 +473,3 @@ export default function AdminSuspensions() {
         </AppLayout>
     );
 }
-
-
-
-

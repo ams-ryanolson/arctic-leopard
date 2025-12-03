@@ -95,7 +95,8 @@ export default function FeedMediaGallery({
     const visibleCount = visibleMedia.length;
     const mobileVisibleCount = Math.min(visibleCount, mobileMaxItems);
     const overflowCount = media.length - visibleCount;
-    const mobileOverflowCount = media.length > mobileMaxItems ? media.length - mobileMaxItems : 0;
+    const mobileOverflowCount =
+        media.length > mobileMaxItems ? media.length - mobileMaxItems : 0;
 
     if (!visibleCount) {
         return null;
@@ -113,7 +114,7 @@ export default function FeedMediaGallery({
     return (
         <div
             className={cn(
-                'mt-3 grid gap-2 sm:mt-4 sm:gap-3 sm:grid-flow-dense',
+                'mt-3 grid gap-2 sm:mt-4 sm:grid-flow-dense sm:gap-3',
                 containerLayout,
                 className,
             )}
@@ -127,29 +128,30 @@ export default function FeedMediaGallery({
                 const label =
                     item.alt ??
                     `View ${post?.author?.display_name ?? 'media'} ${itemIsVideo ? 'clip' : 'image'} ${index + 1} of ${media.length}`;
-                
+
                 // Show overflow notice on desktop (last visible item)
                 const showOverflowNotice =
                     overflowCount > 0 && index === visibleMedia.length - 1;
-                
+
                 // Show mobile overflow notice on 3rd image if there are more than 3 images
                 const showMobileOverflowNotice =
                     mobileOverflowCount > 0 && index === mobileMaxItems - 1;
-                
+
                 // Hide items beyond 3 on mobile
                 const isMobileHidden = index >= mobileMaxItems;
                 // Use mobileVisibleCount for layout (which caps at 3 for mobile)
                 const layoutCount = mobileVisibleCount;
                 // On mobile, if this is the 3rd image (index 2) and there are more images, make it full width
-                const isLastMobileImage = index === mobileMaxItems - 1 && mobileOverflowCount > 0;
+                const isLastMobileImage =
+                    index === mobileMaxItems - 1 && mobileOverflowCount > 0;
 
                 return (
                     <figure
                         key={item.id ?? item.url}
                         className={cn(
-                            'group relative aspect-[16/9] max-h-[230px] overflow-hidden rounded-xl border border-white/10 bg-black/30 sm:aspect-auto sm:max-h-none sm:h-full sm:rounded-2xl',
+                            'group relative aspect-[16/9] max-h-[230px] overflow-hidden rounded-xl border border-white/10 bg-black/30 sm:aspect-auto sm:h-full sm:max-h-none sm:rounded-2xl',
                             clickable &&
-                                'cursor-zoom-in transition active:scale-[0.98] hover:border-white/30 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:outline-hidden',
+                                'cursor-zoom-in transition hover:border-white/30 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:outline-hidden active:scale-[0.98]',
                             figureLayout(index, layoutCount),
                             isLastMobileImage && 'col-span-2 sm:col-span-2',
                             isMobileHidden && 'hidden sm:block',
@@ -214,7 +216,7 @@ export default function FeedMediaGallery({
                             </div>
                         )}
                         {showOverflowNotice && (
-                            <div className="hidden absolute inset-0 items-center justify-center bg-black/70 text-white/90 sm:flex">
+                            <div className="absolute inset-0 hidden items-center justify-center bg-black/70 text-white/90 sm:flex">
                                 <span className="rounded-full border border-white/30 bg-black/60 px-4 py-2 text-sm font-semibold">
                                     +{overflowCount}
                                 </span>

@@ -253,7 +253,7 @@ export default function MembershipSettings({
                                                 <p className="text-xs text-white/50">
                                                     Billing Type
                                                 </p>
-                                                <p className="text-sm font-medium capitalize text-white">
+                                                <p className="text-sm font-medium text-white capitalize">
                                                     {activeMembership.billing_type.replace(
                                                         '_',
                                                         ' ',
@@ -269,7 +269,9 @@ export default function MembershipSettings({
                                             <div className="flex items-center gap-2 rounded-xl border border-amber-400/30 bg-amber-400/10 p-3">
                                                 <Clock className="h-4 w-4 text-amber-400" />
                                                 <p className="text-sm text-amber-300">
-                                                    {activeMembership.days_remaining}{' '}
+                                                    {
+                                                        activeMembership.days_remaining
+                                                    }{' '}
                                                     days remaining
                                                     {activeMembership.billing_type ===
                                                         'one_time' &&
@@ -523,4 +525,3 @@ export default function MembershipSettings({
         </AppLayout>
     );
 }
-

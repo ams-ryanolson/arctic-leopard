@@ -22,7 +22,7 @@ it('expires membership and removes role when no other active memberships exist',
     $role = Role::firstOrCreate(['name' => 'Premium', 'guard_name' => 'web']);
 
     $plan = MembershipPlan::factory()->create([
-        'role_to_assign' => 'Premium',
+        'role_to_assign' => 'Gold',
     ]);
 
     $membership = UserMembership::factory()->create([
@@ -32,7 +32,7 @@ it('expires membership and removes role when no other active memberships exist',
         'ends_at' => now()->subDay(), // expired
     ]);
 
-    $user->assignRole('Premium');
+    $user->assignRole('Gold');
     expect($user->hasRole('Premium'))->toBeTrue();
 
     $service = app(MembershipService::class);
@@ -51,7 +51,7 @@ it('does not remove role if user has another active membership with same role', 
     $role = Role::firstOrCreate(['name' => 'Premium', 'guard_name' => 'web']);
 
     $plan = MembershipPlan::factory()->create([
-        'role_to_assign' => 'Premium',
+        'role_to_assign' => 'Gold',
     ]);
 
     $expiredMembership = UserMembership::factory()->create([
@@ -68,7 +68,7 @@ it('does not remove role if user has another active membership with same role', 
         'ends_at' => now()->addMonth(),
     ]);
 
-    $user->assignRole('Premium');
+    $user->assignRole('Gold');
 
     $service = app(MembershipService::class);
     $service->expire($expiredMembership);

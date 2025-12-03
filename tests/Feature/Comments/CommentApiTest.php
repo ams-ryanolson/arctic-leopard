@@ -51,7 +51,7 @@ it('creates a comment on a post', function (): void {
 
     Sanctum::actingAs($user);
 
-    $response = $this->postJson("/api/posts/{$post->getKey()}/comments", [
+    $response = $this->postJson(route('api.posts.comments.store', $post), [
         'body' => 'Great post!',
     ]);
 
@@ -77,7 +77,7 @@ it('increments comment count when replying via the api', function (): void {
 
     Sanctum::actingAs($user);
 
-    $this->postJson("/api/posts/{$post->getKey()}/comments", [
+    $this->postJson(route('api.posts.comments.store', $post), [
         'body' => 'Root comment',
     ])->assertCreated();
 
@@ -88,7 +88,7 @@ it('increments comment count when replying via the api', function (): void {
     $post->refresh();
     expect($post->comments_count)->toBe(1);
 
-    $this->postJson("/api/posts/{$post->getKey()}/comments", [
+    $this->postJson(route('api.posts.comments.store', $post), [
         'body' => 'Replying to the thread',
         'parent_id' => $root->getKey(),
     ])->assertCreated()
@@ -108,7 +108,7 @@ it('prevents replies beyond allowed depth', function (Closure $state): void {
 
     Sanctum::actingAs($user);
 
-    $this->postJson("/api/posts/{$post->getKey()}/comments", [
+    $this->postJson(route('api.posts.comments.store', $post), [
         'body' => 'Too deep',
         'parent_id' => $parent->getKey(),
     ])->assertStatus(422);
@@ -142,7 +142,7 @@ it('returns nested comments including deleted placeholders', function (): void {
 
     Sanctum::actingAs($viewer);
 
-    $response = $this->getJson("/api/posts/{$post->getKey()}/comments")->assertOk();
+    $response = $this->getJson(route('api.posts.comments.index', $post))->assertOk();
 
     $payload = $response->json('data');
 
@@ -174,7 +174,7 @@ it('soft deletes a comment without affecting counts', function (): void {
 
     Sanctum::actingAs($user);
 
-    $response = $this->deleteJson("/api/posts/{$post->getKey()}/comments/{$comment->getKey()}")->assertOk();
+    $response = $this->deleteJson(route('api.posts.comments.destroy', [$post, $comment]))->assertOk();
 
     $comment->refresh();
     $post->refresh();
@@ -207,7 +207,7 @@ it('likes and unlikes a comment', function (): void {
 
     Sanctum::actingAs($user);
 
-    $this->postJson("/api/posts/{$post->getKey()}/comments/{$comment->getKey()}/like")
+    $this->postJson(route('api.posts.comments.like.store', [$post, $comment]))
         ->assertOk()
         ->assertJsonFragment([
             'id' => $comment->getKey(),
@@ -218,7 +218,7 @@ it('likes and unlikes a comment', function (): void {
     $comment->refresh();
     expect($comment->likes_count)->toBe(1);
 
-    $this->deleteJson("/api/posts/{$post->getKey()}/comments/{$comment->getKey()}/like")
+    $this->deleteJson(route('api.posts.comments.like.destroy', [$post, $comment]))
         ->assertOk()
         ->assertJsonFragment([
             'id' => $comment->getKey(),
@@ -248,7 +248,7 @@ it('hides comments authored by blocked users while preserving the thread', funct
 
     Sanctum::actingAs($author);
 
-    $response = $this->getJson("/api/posts/{$post->getKey()}/comments")
+    $response = $this->getJson(route('api.posts.comments.index', $post))
         ->assertOk();
 
     $payload = $response->json('data');

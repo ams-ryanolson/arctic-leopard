@@ -157,7 +157,7 @@ class AdminUserController extends Controller
     {
         Gate::authorize('unsuspend', $user);
 
-        $user->unsuspend();
+        $user->unsuspend($request->user());
 
         return redirect()
             ->back()
@@ -189,7 +189,7 @@ class AdminUserController extends Controller
     {
         Gate::authorize('unban', $user);
 
-        $user->unban();
+        $user->unban($request->user());
 
         return redirect()
             ->back()

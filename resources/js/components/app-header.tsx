@@ -245,7 +245,10 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                     </Avatar>
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-64 rounded-xl border border-white/10 bg-black/95 backdrop-blur-xl p-2 shadow-[0_24px_60px_-35px_rgba(249,115,22,0.45)]" align="end">
+                            <DropdownMenuContent
+                                className="w-64 rounded-xl border border-white/10 bg-black/95 p-2 shadow-[0_24px_60px_-35px_rgba(249,115,22,0.45)] backdrop-blur-xl"
+                                align="end"
+                            >
                                 <UserMenuContent user={auth.user} />
                             </DropdownMenuContent>
                         </DropdownMenu>

@@ -13,14 +13,14 @@ import { useFeed } from '@/hooks/use-feed';
 import AppLayout from '@/layouts/app-layout';
 import { fetchHashtagPostsPage } from '@/lib/feed-client';
 import { show as hashtagShow } from '@/routes/hashtags';
-import { Head, Link } from '@inertiajs/react';
-import { Hash, TrendingUp } from 'lucide-react';
-import { useCallback } from 'react';
 import type {
     PostCollectionPayload,
     TimelineEntry,
     TimelinePayload,
 } from '@/types/feed';
+import { Head, Link } from '@inertiajs/react';
+import { Hash, TrendingUp } from 'lucide-react';
+import { useCallback } from 'react';
 
 type Hashtag = {
     id: number;
@@ -120,7 +120,8 @@ export default function HashtagsShow({
                 mergeQuery: true,
             }),
         transformPayload: transformHashtagPayload,
-        errorMessage: 'We could not load posts for this hashtag. Please try again.',
+        errorMessage:
+            'We could not load posts for this hashtag. Please try again.',
     });
 
     return (
@@ -128,7 +129,10 @@ export default function HashtagsShow({
             breadcrumbs={[
                 { title: 'Home', href: '/dashboard' },
                 { title: 'Hashtags', href: '/hashtags' },
-                { title: `#${hashtag.name}`, href: `/hashtags/${hashtag.slug}` },
+                {
+                    title: `#${hashtag.name}`,
+                    href: `/hashtags/${hashtag.slug}`,
+                },
             ]}
         >
             <Head title={`#${hashtag.name} · Hashtags`} />
@@ -149,7 +153,7 @@ export default function HashtagsShow({
                                     <Hash className="size-8 text-white/80" />
                                 </div>
                                 <div className="flex-1">
-                                    <h1 className="text-4xl font-semibold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+                                    <h1 className="text-4xl leading-tight font-semibold tracking-tight sm:text-5xl lg:text-6xl">
                                         #{hashtag.name}
                                     </h1>
                                     {hashtag.recent_usage_count > 0 && (
@@ -225,10 +229,10 @@ export default function HashtagsShow({
                                     Be the first to use #{hashtag.name}
                                 </p>
                                 <p className="mt-4 text-sm text-white/50">
-                                    Note: Only posts visible to you are shown. The
-                                    total count includes all posts with this hashtag,
-                                    including private posts from users you don't
-                                    follow.
+                                    Note: Only posts visible to you are shown.
+                                    The total count includes all posts with this
+                                    hashtag, including private posts from users
+                                    you don't follow.
                                 </p>
                             </div>
                         )}
@@ -298,9 +302,9 @@ export default function HashtagsShow({
                                     {trendingHashtags.map((tag) => (
                                         <Link
                                             key={tag.id}
-                                            href={hashtagShow.url(
-                                                { hashtag: tag.slug },
-                                            )}
+                                            href={hashtagShow.url({
+                                                hashtag: tag.slug,
+                                            })}
                                             className="block rounded-2xl border border-white/10 bg-black/40 px-4 py-3 transition-all hover:border-white/20 hover:bg-black/50"
                                         >
                                             <div className="flex items-center justify-between gap-2">
@@ -331,4 +335,3 @@ export default function HashtagsShow({
         </AppLayout>
     );
 }
-

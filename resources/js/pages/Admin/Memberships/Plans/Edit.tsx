@@ -66,9 +66,12 @@ export default function AdminMembershipsPlansEdit({
         currency: plan.currency,
         role_to_assign: plan.role_to_assign,
         permissions_to_grant: plan.permissions_to_grant || [],
-        features: plan.features && typeof plan.features === 'object' && !Array.isArray(plan.features)
-            ? plan.features
-            : {},
+        features:
+            plan.features &&
+            typeof plan.features === 'object' &&
+            !Array.isArray(plan.features)
+                ? plan.features
+                : {},
         is_active: plan.is_active,
         is_public: plan.is_public,
         display_order: plan.display_order,
@@ -103,7 +106,10 @@ export default function AdminMembershipsPlansEdit({
     };
 
     // Helper to generate feature key from description
-    const generateFeatureKey = (description: string, maxLength = 50): string => {
+    const generateFeatureKey = (
+        description: string,
+        maxLength = 50,
+    ): string => {
         if (!description.trim()) {
             return '';
         }
@@ -132,7 +138,10 @@ export default function AdminMembershipsPlansEdit({
     const handleFeatureValueChange = (value: string) => {
         setFeatureValue(value);
         // Only auto-generate if key is empty or matches a previously generated key
-        if (!featureKey.trim() || featureKey === generateFeatureKey(featureValue, 50)) {
+        if (
+            !featureKey.trim() ||
+            featureKey === generateFeatureKey(featureValue, 50)
+        ) {
             setFeatureKey(generateFeatureKey(value, 50));
         }
     };
@@ -140,8 +149,9 @@ export default function AdminMembershipsPlansEdit({
     const addFeature = () => {
         if (featureValue.trim()) {
             // Use generated key if key is empty, otherwise use provided key
-            const key = featureKey.trim() || generateFeatureKey(featureValue, 50);
-            
+            const key =
+                featureKey.trim() || generateFeatureKey(featureValue, 50);
+
             if (key) {
                 setData('features', {
                     ...data.features,
@@ -163,15 +173,18 @@ export default function AdminMembershipsPlansEdit({
         e.preventDefault();
 
         // Ensure features is properly formatted as an object
-        const featuresToSend = data.features && typeof data.features === 'object' && !Array.isArray(data.features)
-            ? data.features
-            : {};
+        const featuresToSend =
+            data.features &&
+            typeof data.features === 'object' &&
+            !Array.isArray(data.features)
+                ? data.features
+                : {};
 
         console.log('Submitting edit form - BEFORE transform:', {
             'data.features': data.features,
-            'featuresToSend': featuresToSend,
-            'featuresType': typeof featuresToSend,
-            'featuresKeys': Object.keys(featuresToSend),
+            featuresToSend: featuresToSend,
+            featuresType: typeof featuresToSend,
+            featuresKeys: Object.keys(featuresToSend),
         });
 
         // Transform data before submission - convert dollars to cents
@@ -185,8 +198,8 @@ export default function AdminMembershipsPlansEdit({
             };
             console.log('Transformed data for submission:', {
                 ...transformed,
-                'featuresKeys': Object.keys(transformed.features),
-                'featuresCount': Object.keys(transformed.features).length,
+                featuresKeys: Object.keys(transformed.features),
+                featuresCount: Object.keys(transformed.features).length,
             });
             return transformed;
         });
@@ -388,7 +401,7 @@ export default function AdminMembershipsPlansEdit({
                                         Monthly Price *
                                     </Label>
                                     <div className="relative">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/60">
+                                        <span className="absolute top-1/2 left-3 -translate-y-1/2 text-white/60">
                                             $
                                         </span>
                                         <Input
@@ -396,10 +409,14 @@ export default function AdminMembershipsPlansEdit({
                                             type="text"
                                             value={data.monthly_price}
                                             onChange={(e) => {
-                                                const formatted = formatDollarInput(
-                                                    e.target.value,
+                                                const formatted =
+                                                    formatDollarInput(
+                                                        e.target.value,
+                                                    );
+                                                setData(
+                                                    'monthly_price',
+                                                    formatted,
                                                 );
-                                                setData('monthly_price', formatted);
                                             }}
                                             className="border-white/10 bg-white/5 pl-8 text-white"
                                             placeholder="10.00"
@@ -425,7 +442,7 @@ export default function AdminMembershipsPlansEdit({
                                         Yearly Price *
                                     </Label>
                                     <div className="relative">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/60">
+                                        <span className="absolute top-1/2 left-3 -translate-y-1/2 text-white/60">
                                             $
                                         </span>
                                         <Input
@@ -433,10 +450,14 @@ export default function AdminMembershipsPlansEdit({
                                             type="text"
                                             value={data.yearly_price}
                                             onChange={(e) => {
-                                                const formatted = formatDollarInput(
-                                                    e.target.value,
+                                                const formatted =
+                                                    formatDollarInput(
+                                                        e.target.value,
+                                                    );
+                                                setData(
+                                                    'yearly_price',
+                                                    formatted,
                                                 );
-                                                setData('yearly_price', formatted);
                                             }}
                                             className="border-white/10 bg-white/5 pl-8 text-white"
                                             placeholder="100.00"
@@ -533,7 +554,9 @@ export default function AdminMembershipsPlansEdit({
                                         id="feature_value"
                                         value={featureValue}
                                         onChange={(e) =>
-                                            handleFeatureValueChange(e.target.value)
+                                            handleFeatureValueChange(
+                                                e.target.value,
+                                            )
                                         }
                                         className="border-white/10 bg-white/5 text-white"
                                         placeholder="3 premium content drops every week"
@@ -550,14 +573,18 @@ export default function AdminMembershipsPlansEdit({
                                         htmlFor="feature_key"
                                         className="text-white"
                                     >
-                                        Feature Key (auto-generated, max 50 chars)
+                                        Feature Key (auto-generated, max 50
+                                        chars)
                                     </Label>
                                     <Input
                                         id="feature_key"
                                         value={featureKey}
                                         onChange={(e) => {
                                             // Limit to 50 characters
-                                            const value = e.target.value.slice(0, 50);
+                                            const value = e.target.value.slice(
+                                                0,
+                                                50,
+                                            );
                                             setFeatureKey(value);
                                         }}
                                         className="border-white/10 bg-white/5 text-white"

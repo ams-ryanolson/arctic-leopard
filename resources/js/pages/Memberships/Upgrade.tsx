@@ -125,17 +125,18 @@ export default function Upgrade({
                 <section className="grid gap-8 md:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
                     <div className="space-y-6">
                         <div className="inline-flex items-center gap-3 rounded-full border border-amber-400/40 bg-gradient-to-r from-amber-500/20 to-rose-500/20 px-4 py-2 text-sm font-semibold text-amber-100 backdrop-blur-sm">
-                            <Flame className="size-4 text-amber-300 animate-pulse" />
+                            <Flame className="size-4 animate-pulse text-amber-300" />
                             Unlock deeper access to the scene
                         </div>
 
-                        <h1 className="text-4xl leading-tight font-semibold bg-gradient-to-r from-white via-amber-100 to-white bg-clip-text text-transparent md:text-5xl">
+                        <h1 className="bg-gradient-to-r from-white via-amber-100 to-white bg-clip-text text-4xl leading-tight font-semibold text-transparent md:text-5xl">
                             Unlock exclusive content and community access.
                         </h1>
 
-                        <p className="text-lg text-white/70 md:text-xl leading-relaxed">
+                        <p className="text-lg leading-relaxed text-white/70 md:text-xl">
                             Upgrade your membership to unlock premium features
-                            {signalsEnabled && ', support creators in the community'}
+                            {signalsEnabled &&
+                                ', support creators in the community'}
                             , and get priority access to exclusive content,
                             circles, and IRL gatherings. Switch or cancel
                             anytime.
@@ -173,9 +174,10 @@ export default function Upgrade({
                                         <Sparkles className="size-4 text-amber-300" />
                                     </div>
                                     <span className="leading-relaxed">
-                                        Exclusive paywalled content from creators
-                                        you follow, plus access to premium archives
-                                        and behind-the-scenes content.
+                                        Exclusive paywalled content from
+                                        creators you follow, plus access to
+                                        premium archives and behind-the-scenes
+                                        content.
                                     </span>
                                 </li>
                                 <li className="flex items-start gap-4 transition-transform hover:translate-x-1">
@@ -185,7 +187,8 @@ export default function Upgrade({
                                     <span className="leading-relaxed">
                                         Priority access to events, circles, and
                                         real-world meetups. Get first dibs on
-                                        tickets and exclusive circle memberships.
+                                        tickets and exclusive circle
+                                        memberships.
                                     </span>
                                 </li>
                                 <li className="flex items-start gap-4 transition-transform hover:translate-x-1">
@@ -193,9 +196,9 @@ export default function Upgrade({
                                         <Sparkles className="size-4 text-indigo-300" />
                                     </div>
                                     <span className="leading-relaxed">
-                                        Enhanced discovery features, advanced Radar
-                                        filters, and the ability to hide ads for a
-                                        cleaner experience.
+                                        Enhanced discovery features, advanced
+                                        Radar filters, and the ability to hide
+                                        ads for a cleaner experience.
                                     </span>
                                 </li>
                                 {signalsEnabled && (
@@ -204,9 +207,10 @@ export default function Upgrade({
                                             <Sparkles className="size-4 text-sky-300" />
                                         </div>
                                         <span className="leading-relaxed">
-                                            Directly support the creators building this
-                                            community—your membership helps fund new
-                                            content and features.
+                                            Directly support the creators
+                                            building this community—your
+                                            membership helps fund new content
+                                            and features.
                                         </span>
                                     </li>
                                 )}
@@ -247,7 +251,7 @@ export default function Upgrade({
                             <h2 className="text-3xl font-semibold md:text-4xl">
                                 Choose your membership
                             </h2>
-                            <p className="text-white/70 text-lg">
+                            <p className="text-lg text-white/70">
                                 All plans include{' '}
                                 {signalsEnabled && 'creator tipping, '}
                                 event RSVPs, and traveller mode access.
@@ -287,7 +291,7 @@ export default function Upgrade({
                                 Yearly
                                 <Badge
                                     variant="secondary"
-                                    className="ml-2 bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                                    className="ml-2 border-emerald-500/30 bg-emerald-500/20 text-emerald-400"
                                 >
                                     Save 2 months
                                 </Badge>
@@ -302,7 +306,9 @@ export default function Upgrade({
                                     ? plan.yearly_price
                                     : plan.monthly_price;
                             const isCurrent = isCurrentPlan(plan);
-                            const isMostPopular = plans.length >= 3 && index === Math.floor(plans.length / 2);
+                            const isMostPopular =
+                                plans.length >= 3 &&
+                                index === Math.floor(plans.length / 2);
 
                             return (
                                 <Card
@@ -311,7 +317,7 @@ export default function Upgrade({
                                         isCurrent
                                             ? 'border-amber-400/50 bg-gradient-to-br from-amber-500/15 to-amber-500/5 shadow-amber-500/20'
                                             : isMostPopular
-                                              ? 'border-rose-400/50 bg-gradient-to-br from-rose-500/15 to-rose-500/5 scale-105 shadow-rose-500/20 shadow-xl'
+                                              ? 'scale-105 border-rose-400/50 bg-gradient-to-br from-rose-500/15 to-rose-500/5 shadow-xl shadow-rose-500/20'
                                               : 'hover:border-amber-400/40 hover:bg-gradient-to-br hover:from-white/10 hover:to-white/5'
                                     }`}
                                 >
@@ -336,7 +342,7 @@ export default function Upgrade({
                                             )}
                                         </div>
                                         {plan.description && (
-                                            <CardDescription className="text-white/70 text-base leading-relaxed">
+                                            <CardDescription className="text-base leading-relaxed text-white/70">
                                                 {plan.description}
                                             </CardDescription>
                                         )}
@@ -379,21 +385,25 @@ export default function Upgrade({
                                             Object.keys(plan.features).length >
                                                 0 && (
                                                 <div className="space-y-1">
-                                                    <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-white/50">
+                                                    <h3 className="mb-3 text-sm font-semibold tracking-wider text-white/50 uppercase">
                                                         Features
                                                     </h3>
                                                     <ul className="space-y-2.5 text-sm text-white/85">
                                                         {Object.entries(
                                                             plan.features,
-                                                        ).map(([key, value]) => (
-                                                            <li
-                                                                key={key}
-                                                                className="flex items-start gap-3 transition-colors hover:text-white"
-                                                            >
-                                                                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-400" />
-                                                                <span className="leading-relaxed">{value}</span>
-                                                            </li>
-                                                        ))}
+                                                        ).map(
+                                                            ([key, value]) => (
+                                                                <li
+                                                                    key={key}
+                                                                    className="flex items-start gap-3 transition-colors hover:text-white"
+                                                                >
+                                                                    <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-400" />
+                                                                    <span className="leading-relaxed">
+                                                                        {value}
+                                                                    </span>
+                                                                </li>
+                                                            ),
+                                                        )}
                                                     </ul>
                                                 </div>
                                             )}
@@ -419,8 +429,8 @@ export default function Upgrade({
                                                 }
                                                 className={`w-full rounded-full font-semibold transition-all duration-300 ${
                                                     isMostPopular
-                                                        ? 'bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 text-white shadow-lg shadow-rose-500/30 hover:from-rose-400 hover:via-pink-400 hover:to-rose-500 hover:shadow-xl hover:shadow-rose-500/40 hover:scale-105'
-                                                        : 'bg-gradient-to-r from-amber-400 via-rose-500 to-indigo-500 text-white hover:from-amber-300 hover:via-rose-400 hover:to-indigo-400 hover:shadow-lg hover:scale-105'
+                                                        ? 'bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 text-white shadow-lg shadow-rose-500/30 hover:scale-105 hover:from-rose-400 hover:via-pink-400 hover:to-rose-500 hover:shadow-xl hover:shadow-rose-500/40'
+                                                        : 'bg-gradient-to-r from-amber-400 via-rose-500 to-indigo-500 text-white hover:scale-105 hover:from-amber-300 hover:via-rose-400 hover:to-indigo-400 hover:shadow-lg'
                                                 }`}
                                             >
                                                 {currentMembership

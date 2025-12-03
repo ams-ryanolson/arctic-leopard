@@ -1,13 +1,16 @@
 import {
+    CCBillCardForm,
+    type CardDetails,
+} from '@/components/payments/CCBillCardForm';
+import { CheckoutSummary } from '@/components/payments/CheckoutSummary';
+import { PaymentMethodSelector } from '@/components/payments/PaymentMethodSelector';
+import {
     Card,
     CardContent,
     CardDescription,
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { CCBillCardForm, type CardDetails } from '@/components/payments/CCBillCardForm';
-import { CheckoutSummary } from '@/components/payments/CheckoutSummary';
-import { PaymentMethodSelector } from '@/components/payments/PaymentMethodSelector';
 import { usePaymentMethods } from '@/hooks/use-payment-methods';
 import { useVaultPaymentMethod } from '@/hooks/use-vault-payment-method';
 import { useState } from 'react';
@@ -52,7 +55,9 @@ export function CheckoutForm({
     allowNewCards = true,
     className,
 }: CheckoutFormProps) {
-    const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<number | null>(null);
+    const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<
+        number | null
+    >(null);
     const [showNewCardForm, setShowNewCardForm] = useState(false);
     const { paymentMethods } = usePaymentMethods();
     const { vault } = useVaultPaymentMethod();
@@ -69,7 +74,11 @@ export function CheckoutForm({
         onPaymentMethodSelected(null);
     };
 
-    const handleTokenCreated = async (tokenId: string, is3DS: boolean, cardDetails: CardDetails) => {
+    const handleTokenCreated = async (
+        tokenId: string,
+        is3DS: boolean,
+        cardDetails: CardDetails,
+    ) => {
         try {
             const paymentMethod = await vault({
                 provider_token_id: tokenId,
@@ -154,6 +163,3 @@ export function CheckoutForm({
         </div>
     );
 }
-
-
-

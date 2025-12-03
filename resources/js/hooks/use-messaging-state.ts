@@ -7,7 +7,6 @@ import {
 import type {
     ActiveConversation,
     Message,
-    ReactionSummary,
     Thread,
 } from '@/components/messaging/types';
 
@@ -27,10 +26,7 @@ type PageProps = {
     };
 };
 
-export function useMessagingState(
-    initialProps: PageProps,
-    isMobile: boolean,
-) {
+export function useMessagingState(initialProps: PageProps, isMobile: boolean) {
     const {
         threads: threadsProp,
         activeConversation: activeProp,
@@ -62,8 +58,9 @@ export function useMessagingState(
     const [isLoadingOlder, setIsLoadingOlder] = useState(false);
     const [shouldStickToBottom, setShouldStickToBottom] = useState(true);
     const [typingUsers, setTypingUsers] = useState<string[]>([]);
-    const [tipRequestActionMessageId, setTipRequestActionMessageId] =
-        useState<number | null>(null);
+    const [tipRequestActionMessageId, setTipRequestActionMessageId] = useState<
+        number | null
+    >(null);
     const [keyboardHeight, setKeyboardHeight] = useState(0);
 
     // Refs
@@ -279,4 +276,3 @@ export function useMessagingState(
         updateThreads,
     };
 }
-

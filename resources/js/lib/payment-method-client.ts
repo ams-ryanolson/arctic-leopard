@@ -44,7 +44,9 @@ export class PaymentMethodClientError extends Error {
     }
 }
 
-function buildHeaders(additional: Record<string, string> = {}): Record<string, string> {
+function buildHeaders(
+    additional: Record<string, string> = {},
+): Record<string, string> {
     const headers: Record<string, string> = {
         Accept: 'application/json',
         'Content-Type': 'application/json',
@@ -136,12 +138,15 @@ export async function vaultPaymentMethod(
     payload: VaultPaymentMethodPayload,
     options: { signal?: AbortSignal } = {},
 ): Promise<PaymentMethod> {
-    console.log('📤 vaultPaymentMethod: Sending POST to /api/payment-methods', payload);
-    
+    console.log(
+        '📤 vaultPaymentMethod: Sending POST to /api/payment-methods',
+        payload,
+    );
+
     const headers = buildHeaders();
     console.log('📤 vaultPaymentMethod: Headers:', headers);
     console.log('📤 vaultPaymentMethod: Body:', JSON.stringify(payload));
-    
+
     try {
         const response = await fetch('/api/payment-methods', {
             method: 'POST',
@@ -151,8 +156,11 @@ export async function vaultPaymentMethod(
             signal: options.signal,
         });
 
-        console.log('📥 vaultPaymentMethod: Response received, status:', response.status);
-        
+        console.log(
+            '📥 vaultPaymentMethod: Response received, status:',
+            response.status,
+        );
+
         const result = await parseResponse<PaymentMethod>(response);
         console.log('✅ vaultPaymentMethod: Parsed result:', result);
         return result;
@@ -188,15 +196,15 @@ export async function setDefaultPaymentMethod(
     paymentMethodId: number,
     options: { signal?: AbortSignal } = {},
 ): Promise<PaymentMethod> {
-    const response = await fetch(`/api/payment-methods/${paymentMethodId}/set-default`, {
-        method: 'POST',
-        headers: buildHeaders(),
-        credentials: 'include',
-        signal: options.signal,
-    });
+    const response = await fetch(
+        `/api/payment-methods/${paymentMethodId}/set-default`,
+        {
+            method: 'POST',
+            headers: buildHeaders(),
+            credentials: 'include',
+            signal: options.signal,
+        },
+    );
 
     return parseResponse<PaymentMethod>(response);
 }
-
-
-

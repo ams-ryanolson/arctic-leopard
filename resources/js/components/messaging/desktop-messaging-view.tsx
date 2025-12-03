@@ -161,14 +161,19 @@ export default function DesktopMessagingView({
                 ) : (
                     <div className="flex flex-1 flex-col items-center justify-center gap-5 px-6 text-center">
                         <div className="rounded-full bg-white/5 p-8">
-                            <MessageSquare className="h-16 w-16 text-white/30" strokeWidth={1.5} />
+                            <MessageSquare
+                                className="h-16 w-16 text-white/30"
+                                strokeWidth={1.5}
+                            />
                         </div>
-                        <div className="space-y-2 max-w-sm">
+                        <div className="max-w-sm space-y-2">
                             <h3 className="text-lg font-semibold text-white/80">
                                 Select a conversation
                             </h3>
                             <p className="text-sm leading-relaxed text-white/50">
-                                Choose a thread from the left to start messaging, or create a new conversation to connect with someone.
+                                Choose a thread from the left to start
+                                messaging, or create a new conversation to
+                                connect with someone.
                             </p>
                         </div>
                     </div>
@@ -177,4 +182,3 @@ export default function DesktopMessagingView({
         </>
     );
 }
-

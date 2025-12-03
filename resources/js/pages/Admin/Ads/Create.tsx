@@ -162,30 +162,39 @@ export default function AdminAdsCreate() {
             campaign_id: data.campaign_id
                 ? Number.parseInt(data.campaign_id, 10)
                 : null,
-            budget_amount: data.budget_amount && data.budget_amount.trim() !== ''
-                ? Number.parseInt(data.budget_amount, 10)
-                : null,
-            budget_currency: data.budget_amount && data.budget_amount.trim() !== ''
-                ? data.budget_currency
-                : null,
-            pricing_model: data.pricing_model && data.pricing_model.trim() !== ''
-                ? data.pricing_model
-                : null,
-            pricing_rate: data.pricing_rate && data.pricing_rate.trim() !== ''
-                ? Number.parseInt(data.pricing_rate, 10)
-                : null,
-            max_impressions: data.max_impressions && data.max_impressions.trim() !== ''
-                ? Number.parseInt(data.max_impressions, 10)
-                : null,
-            max_clicks: data.max_clicks && data.max_clicks.trim() !== ''
-                ? Number.parseInt(data.max_clicks, 10)
-                : null,
-            daily_impression_cap: data.daily_impression_cap && data.daily_impression_cap.trim() !== ''
-                ? Number.parseInt(data.daily_impression_cap, 10)
-                : null,
-            daily_click_cap: data.daily_click_cap && data.daily_click_cap.trim() !== ''
-                ? Number.parseInt(data.daily_click_cap, 10)
-                : null,
+            budget_amount:
+                data.budget_amount && data.budget_amount.trim() !== ''
+                    ? Number.parseInt(data.budget_amount, 10)
+                    : null,
+            budget_currency:
+                data.budget_amount && data.budget_amount.trim() !== ''
+                    ? data.budget_currency
+                    : null,
+            pricing_model:
+                data.pricing_model && data.pricing_model.trim() !== ''
+                    ? data.pricing_model
+                    : null,
+            pricing_rate:
+                data.pricing_rate && data.pricing_rate.trim() !== ''
+                    ? Number.parseInt(data.pricing_rate, 10)
+                    : null,
+            max_impressions:
+                data.max_impressions && data.max_impressions.trim() !== ''
+                    ? Number.parseInt(data.max_impressions, 10)
+                    : null,
+            max_clicks:
+                data.max_clicks && data.max_clicks.trim() !== ''
+                    ? Number.parseInt(data.max_clicks, 10)
+                    : null,
+            daily_impression_cap:
+                data.daily_impression_cap &&
+                data.daily_impression_cap.trim() !== ''
+                    ? Number.parseInt(data.daily_impression_cap, 10)
+                    : null,
+            daily_click_cap:
+                data.daily_click_cap && data.daily_click_cap.trim() !== ''
+                    ? Number.parseInt(data.daily_click_cap, 10)
+                    : null,
             creatives: data.creatives.map((creative) => ({
                 ...creative,
                 display_order: creative.display_order,
@@ -354,7 +363,9 @@ export default function AdminAdsCreate() {
                         <CardHeader>
                             <CardTitle>Budget & Pricing</CardTitle>
                             <CardDescription className="text-white/60">
-                                Set your budget and pricing model. Leave empty for admin/promotional ads with unlimited impressions.
+                                Set your budget and pricing model. Leave empty
+                                for admin/promotional ads with unlimited
+                                impressions.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -373,9 +384,10 @@ export default function AdminAdsCreate() {
                                 />
                                 <Label
                                     htmlFor="is_admin_ad"
-                                    className="text-sm font-normal cursor-pointer"
+                                    className="cursor-pointer text-sm font-normal"
                                 >
-                                    Admin/Promotional Ad (no budget, unlimited impressions)
+                                    Admin/Promotional Ad (no budget, unlimited
+                                    impressions)
                                 </Label>
                             </div>
 

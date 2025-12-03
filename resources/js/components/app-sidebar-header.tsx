@@ -7,8 +7,8 @@ import { Input } from '@/components/ui/input';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useInitials } from '@/hooks/use-initials';
 import { cn } from '@/lib/utils';
-import { index as notificationsIndex } from '@/routes/notifications';
 import messagesRoutes from '@/routes/messages';
+import { index as notificationsIndex } from '@/routes/notifications';
 import {
     type BreadcrumbItem as BreadcrumbItemType,
     type HeaderAction,
@@ -24,11 +24,10 @@ import {
     ChevronDown,
     MessageCircle,
     Plus,
-    Radio,
     Search,
     Sparkles,
 } from 'lucide-react';
-import { type ReactNode, useState, useCallback } from 'react';
+import { type ReactNode, useCallback, useState } from 'react';
 
 const getDefaultActions = (liveStreamingEnabled: boolean): HeaderAction[] => {
     // Return empty array - we'll use notifications, messages, and create post instead
@@ -106,7 +105,12 @@ export function AppSidebarHeader({
     supportLinks,
     toolbar,
 }: AppSidebarHeaderProps) {
-    const { auth, features: sharedFeatures, notifications, messaging } = usePage<SharedData>().props;
+    const {
+        auth,
+        features: sharedFeatures,
+        notifications,
+        messaging,
+    } = usePage<SharedData>().props;
     const features = (sharedFeatures ?? {}) as Record<string, boolean>;
     const user = auth?.user;
     const liveStreamingEnabled = features?.live_streaming ?? false;
@@ -121,14 +125,14 @@ export function AppSidebarHeader({
         (typeof notifications === 'object' &&
         notifications !== null &&
         'unread_count' in notifications
-            ? (notifications as { unread_count?: number }).unread_count ?? 0
+            ? ((notifications as { unread_count?: number }).unread_count ?? 0)
             : 0) ?? 0;
 
     const unreadMessages =
         (typeof messaging === 'object' &&
         messaging !== null &&
         'unread_count' in messaging
-            ? (messaging as { unread_count?: number }).unread_count ?? 0
+            ? ((messaging as { unread_count?: number }).unread_count ?? 0)
             : 0) ?? 0;
 
     const handleCreatePost = useCallback(() => {
@@ -149,11 +153,16 @@ export function AppSidebarHeader({
             router.visit('/dashboard', {
                 onSuccess: () => {
                     setTimeout(() => {
-                        const composer = document.querySelector('[data-composer]');
+                        const composer =
+                            document.querySelector('[data-composer]');
                         if (composer) {
-                            composer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            composer.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start',
+                            });
                             setTimeout(() => {
-                                const textarea = composer.querySelector('textarea');
+                                const textarea =
+                                    composer.querySelector('textarea');
                                 textarea?.focus();
                             }, 300);
                         }
@@ -182,7 +191,9 @@ export function AppSidebarHeader({
     const handleSearchKeyDown = useCallback(
         (event: React.KeyboardEvent<HTMLInputElement>) => {
             if (event.key === 'Enter' && searchQuery.trim()) {
-                router.visit(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+                router.visit(
+                    `/search?q=${encodeURIComponent(searchQuery.trim())}`,
+                );
                 setIsDropdownOpen(false);
             }
         },
@@ -229,8 +240,10 @@ export function AppSidebarHeader({
                         >
                             <Bell className="size-4" />
                             {unreadNotifications > 0 && (
-                                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-400 px-1 text-[0.625rem] font-semibold text-black">
-                                    {unreadNotifications > 99 ? '99+' : unreadNotifications}
+                                <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-400 px-1 text-[0.625rem] font-semibold text-black">
+                                    {unreadNotifications > 99
+                                        ? '99+'
+                                        : unreadNotifications}
                                 </span>
                             )}
                         </Link>
@@ -244,8 +257,10 @@ export function AppSidebarHeader({
                             >
                                 <MessageCircle className="size-4" />
                                 {unreadMessages > 0 && (
-                                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-400 px-1 text-[0.625rem] font-semibold text-black">
-                                        {unreadMessages > 99 ? '99+' : unreadMessages}
+                                    <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-400 px-1 text-[0.625rem] font-semibold text-black">
+                                        {unreadMessages > 99
+                                            ? '99+'
+                                            : unreadMessages}
                                     </span>
                                 )}
                             </Link>
@@ -258,7 +273,9 @@ export function AppSidebarHeader({
                             className="h-9 rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 px-3 text-xs font-semibold text-white shadow-[0_18px_40px_-12px_rgba(249,115,22,0.45)] transition hover:scale-[1.02]"
                         >
                             <Plus className="mr-1 size-3.5" />
-                            <span className="hidden min-[375px]:inline">Create</span>
+                            <span className="hidden min-[375px]:inline">
+                                Create
+                            </span>
                         </Button>
                     </div>
                 </div>
@@ -301,8 +318,10 @@ export function AppSidebarHeader({
                         >
                             <Bell className="size-5" />
                             {unreadNotifications > 0 && (
-                                <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-400 px-1.5 text-xs font-semibold text-black">
-                                    {unreadNotifications > 99 ? '99+' : unreadNotifications}
+                                <span className="absolute -top-0.5 -right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-400 px-1.5 text-xs font-semibold text-black">
+                                    {unreadNotifications > 99
+                                        ? '99+'
+                                        : unreadNotifications}
                                 </span>
                             )}
                         </Link>
@@ -316,8 +335,10 @@ export function AppSidebarHeader({
                             >
                                 <MessageCircle className="size-5" />
                                 {unreadMessages > 0 && (
-                                    <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-400 px-1.5 text-xs font-semibold text-black">
-                                        {unreadMessages > 99 ? '99+' : unreadMessages}
+                                    <span className="absolute -top-0.5 -right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-400 px-1.5 text-xs font-semibold text-black">
+                                        {unreadMessages > 99
+                                            ? '99+'
+                                            : unreadMessages}
                                     </span>
                                 )}
                             </Link>
@@ -347,7 +368,9 @@ export function AppSidebarHeader({
                                 type="search"
                                 placeholder="Search..."
                                 value={searchQuery}
-                                onChange={(e) => handleSearchChange(e.target.value)}
+                                onChange={(e) =>
+                                    handleSearchChange(e.target.value)
+                                }
                                 onFocus={handleSearchFocus}
                                 onKeyDown={handleSearchKeyDown}
                                 className="h-9 rounded-full border-white/15 bg-white/10 pl-9 text-sm text-white placeholder:text-white/40 sm:h-11 sm:pl-11"

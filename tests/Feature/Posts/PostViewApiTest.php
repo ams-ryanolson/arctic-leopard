@@ -33,7 +33,7 @@ it('queues a record post view job for a visible post', function (): void {
 
     $sessionUuid = (string) Str::uuid();
 
-    $response = $this->postJson(route('posts.views.store', $post), [
+    $response = $this->postJson(route('api.posts.views.store', $post), [
         'session_uuid' => $sessionUuid,
         'context' => [
             'source' => 'feed',
@@ -78,7 +78,7 @@ it('falls back to the viewer profile location when geoip data is unavailable', f
 
     $this->actingAs($user, 'sanctum');
 
-    $response = $this->postJson(route('posts.views.store', $post));
+    $response = $this->postJson(route('api.posts.views.store', $post));
 
     $response
         ->assertOk()
@@ -101,7 +101,7 @@ it('prevents recording a view for a post the viewer cannot access', function ():
         ->audience(PostAudience::Subscribers)
         ->create();
 
-    $response = $this->postJson(route('posts.views.store', $post));
+    $response = $this->postJson(route('api.posts.views.store', $post));
 
     $response->assertForbidden();
 

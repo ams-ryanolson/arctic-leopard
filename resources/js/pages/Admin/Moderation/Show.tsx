@@ -1,17 +1,29 @@
+import InputError from '@/components/input-error';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import InputError from '@/components/input-error';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import adminRoutes from '@/routes/admin';
 import { type SharedData } from '@/types';
-import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { formatDistanceToNow, format } from 'date-fns';
-import { CheckCircle2, Clock, FileText, MessageSquare, XCircle } from 'lucide-react';
+import { Head, useForm, usePage } from '@inertiajs/react';
+import { format, formatDistanceToNow } from 'date-fns';
+import {
+    CheckCircle2,
+    Clock,
+    FileText,
+    MessageSquare,
+    XCircle,
+} from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 
 type ContentMedia = {
@@ -66,39 +78,59 @@ export default function AdminModerationShow() {
     const { auth } = usePage<SharedData>().props;
     const props = usePage<AdminModerationShowPageProps>().props;
 
-    const [action, setAction] = useState<'approve' | 'reject' | 'dismiss' | null>(null);
+    const [action, setAction] = useState<
+        'approve' | 'reject' | 'dismiss' | null
+    >(null);
     const approveForm = useForm({ notes: '' });
     const rejectForm = useForm({ rejection_reason: '', notes: '' });
     const dismissForm = useForm({ notes: '' });
 
     const handleApprove = (e: FormEvent) => {
         e.preventDefault();
-        approveForm.post(adminRoutes.moderation.approve({ type: props.content_type, id: props.content_id }).url, {
-            preserveScroll: true,
-            onSuccess: () => {
-                setAction(null);
+        approveForm.post(
+            adminRoutes.moderation.approve({
+                type: props.content_type,
+                id: props.content_id,
+            }).url,
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setAction(null);
+                },
             },
-        });
+        );
     };
 
     const handleReject = (e: FormEvent) => {
         e.preventDefault();
-        rejectForm.post(adminRoutes.moderation.reject({ type: props.content_type, id: props.content_id }).url, {
-            preserveScroll: true,
-            onSuccess: () => {
-                setAction(null);
+        rejectForm.post(
+            adminRoutes.moderation.reject({
+                type: props.content_type,
+                id: props.content_id,
+            }).url,
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setAction(null);
+                },
             },
-        });
+        );
     };
 
     const handleDismiss = (e: FormEvent) => {
         e.preventDefault();
-        dismissForm.post(adminRoutes.moderation.dismiss({ type: props.content_type, id: props.content_id }).url, {
-            preserveScroll: true,
-            onSuccess: () => {
-                setAction(null);
+        dismissForm.post(
+            adminRoutes.moderation.dismiss({
+                type: props.content_type,
+                id: props.content_id,
+            }).url,
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setAction(null);
+                },
             },
-        });
+        );
     };
 
     const getContentIcon = () => {
@@ -116,10 +148,26 @@ export default function AdminModerationShow() {
 
     const statusConfig = props.queue_entry
         ? {
-              pending: { icon: Clock, color: 'text-amber-400', label: 'Pending' },
-              approved: { icon: CheckCircle2, color: 'text-green-400', label: 'Approved' },
-              rejected: { icon: XCircle, color: 'text-red-400', label: 'Rejected' },
-              dismissed: { icon: XCircle, color: 'text-gray-400', label: 'Dismissed' },
+              pending: {
+                  icon: Clock,
+                  color: 'text-amber-400',
+                  label: 'Pending',
+              },
+              approved: {
+                  icon: CheckCircle2,
+                  color: 'text-green-400',
+                  label: 'Approved',
+              },
+              rejected: {
+                  icon: XCircle,
+                  color: 'text-red-400',
+                  label: 'Rejected',
+              },
+              dismissed: {
+                  icon: XCircle,
+                  color: 'text-gray-400',
+                  label: 'Dismissed',
+              },
           }[props.queue_entry.status as keyof typeof props.queue_entry] || {
               icon: Clock,
               color: 'text-amber-400',
@@ -134,11 +182,19 @@ export default function AdminModerationShow() {
         <AppLayout
             breadcrumbs={[
                 { title: 'Admin', href: adminRoutes.dashboard().url },
-                { title: 'Content Moderation', href: adminRoutes.moderation.index().url },
-                { title: `${props.content_type} #${props.content_id}`, href: '#' },
+                {
+                    title: 'Content Moderation',
+                    href: adminRoutes.moderation.index().url,
+                },
+                {
+                    title: `${props.content_type} #${props.content_id}`,
+                    href: '#',
+                },
             ]}
         >
-            <Head title={`Moderate ${props.content_type} #${props.content_id}`} />
+            <Head
+                title={`Moderate ${props.content_type} #${props.content_id}`}
+            />
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
                     <div>
@@ -154,12 +210,14 @@ export default function AdminModerationShow() {
                         variant="outline"
                         className="border-white/10 bg-white/5 text-white hover:bg-white/10"
                     >
-                        <a href={adminRoutes.moderation.index().url}>Back to Queue</a>
+                        <a href={adminRoutes.moderation.index().url}>
+                            Back to Queue
+                        </a>
                     </Button>
                 </div>
 
                 <div className="grid gap-6 lg:grid-cols-3">
-                    <div className="lg:col-span-2 space-y-6">
+                    <div className="space-y-6 lg:col-span-2">
                         <Card className="border-white/10 bg-white/5">
                             <CardHeader>
                                 <div className="flex items-center gap-3">
@@ -169,7 +227,13 @@ export default function AdminModerationShow() {
                                             {props.content.type}
                                         </CardTitle>
                                         <CardDescription className="text-white/60">
-                                            Created {formatDistanceToNow(new Date(props.content.created_at), { addSuffix: true })}
+                                            Created{' '}
+                                            {formatDistanceToNow(
+                                                new Date(
+                                                    props.content.created_at,
+                                                ),
+                                                { addSuffix: true },
+                                            )}
                                         </CardDescription>
                                     </div>
                                 </div>
@@ -180,90 +244,141 @@ export default function AdminModerationShow() {
                                         <Avatar className="size-10">
                                             <AvatarImage src={undefined} />
                                             <AvatarFallback>
-                                                {props.content.user.name.charAt(0).toUpperCase()}
+                                                {props.content.user.name
+                                                    .charAt(0)
+                                                    .toUpperCase()}
                                             </AvatarFallback>
                                         </Avatar>
                                         <div>
-                                            <p className="font-semibold text-white">{props.content.user.name}</p>
+                                            <p className="font-semibold text-white">
+                                                {props.content.user.name}
+                                            </p>
                                             {props.content.user.username && (
-                                                <p className="text-sm text-white/60">@{props.content.user.username}</p>
+                                                <p className="text-sm text-white/60">
+                                                    @
+                                                    {
+                                                        props.content.user
+                                                            .username
+                                                    }
+                                                </p>
                                             )}
                                         </div>
                                     </div>
                                 )}
 
                                 <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-                                    <p className="text-sm leading-relaxed text-white whitespace-pre-wrap">
-                                        {props.content.body || 'No content body'}
+                                    <p className="text-sm leading-relaxed whitespace-pre-wrap text-white">
+                                        {props.content.body ||
+                                            'No content body'}
                                     </p>
                                 </div>
 
-                                {props.content.media && props.content.media.length > 0 && (
-                                    <div className="grid grid-cols-2 gap-2">
-                                        {props.content.media.map((media) => (
-                                            <div key={media.id} className="rounded-lg border border-white/10 bg-white/5 overflow-hidden">
-                                                {media.type.startsWith('image/') ? (
-                                                    <img
-                                                        src={media.url}
-                                                        alt="Content media"
-                                                        className="w-full h-auto object-cover"
-                                                    />
-                                                ) : (
-                                                    <video
-                                                        src={media.url}
-                                                        controls
-                                                        className="w-full h-auto"
-                                                    />
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
+                                {props.content.media &&
+                                    props.content.media.length > 0 && (
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {props.content.media.map(
+                                                (media) => (
+                                                    <div
+                                                        key={media.id}
+                                                        className="overflow-hidden rounded-lg border border-white/10 bg-white/5"
+                                                    >
+                                                        {media.type.startsWith(
+                                                            'image/',
+                                                        ) ? (
+                                                            <img
+                                                                src={media.url}
+                                                                alt="Content media"
+                                                                className="h-auto w-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            <video
+                                                                src={media.url}
+                                                                controls
+                                                                className="h-auto w-full"
+                                                            />
+                                                        )}
+                                                    </div>
+                                                ),
+                                            )}
+                                        </div>
+                                    )}
 
-                                {props.content.type === 'comment' && props.content.post && (
-                                    <Alert className="border-blue-500/30 bg-blue-950/10">
-                                        <MessageSquare className="size-4 text-blue-400" />
-                                        <AlertTitle className="text-white">Comment on Post</AlertTitle>
-                                        <AlertDescription className="text-white/80">
-                                            <p className="line-clamp-2">{props.content.post.body}</p>
-                                        </AlertDescription>
-                                    </Alert>
-                                )}
+                                {props.content.type === 'comment' &&
+                                    props.content.post && (
+                                        <Alert className="border-blue-500/30 bg-blue-950/10">
+                                            <MessageSquare className="size-4 text-blue-400" />
+                                            <AlertTitle className="text-white">
+                                                Comment on Post
+                                            </AlertTitle>
+                                            <AlertDescription className="text-white/80">
+                                                <p className="line-clamp-2">
+                                                    {props.content.post.body}
+                                                </p>
+                                            </AlertDescription>
+                                        </Alert>
+                                    )}
                             </CardContent>
                         </Card>
 
                         {props.queue_entry && !isPending && (
                             <Card className="border-white/10 bg-white/5">
                                 <CardHeader>
-                                    <CardTitle className="text-white">Moderation History</CardTitle>
+                                    <CardTitle className="text-white">
+                                        Moderation History
+                                    </CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="flex items-center gap-2">
-                                        <StatusIcon className={`size-5 ${statusConfig?.color}`} />
-                                        <Badge className={`${statusConfig?.color.replace('text-', 'border-')}/30 ${statusConfig?.color.replace('text-', 'bg-')}/10 ${statusConfig?.color}`}>
+                                        <StatusIcon
+                                            className={`size-5 ${statusConfig?.color}`}
+                                        />
+                                        <Badge
+                                            className={`${statusConfig?.color.replace('text-', 'border-')}/30 ${statusConfig?.color.replace('text-', 'bg-')}/10 ${statusConfig?.color}`}
+                                        >
                                             {statusConfig?.label}
                                         </Badge>
                                     </div>
-                                    {props.queue_entry.moderated_by && props.queue_entry.moderated_at && (
-                                        <p className="text-sm text-white/60">
-                                            Moderated by {props.queue_entry.moderated_by.name} on{' '}
-                                            {format(new Date(props.queue_entry.moderated_at), 'MMMM d, yyyy \'at\' h:mm a')}
-                                        </p>
-                                    )}
+                                    {props.queue_entry.moderated_by &&
+                                        props.queue_entry.moderated_at && (
+                                            <p className="text-sm text-white/60">
+                                                Moderated by{' '}
+                                                {
+                                                    props.queue_entry
+                                                        .moderated_by.name
+                                                }{' '}
+                                                on{' '}
+                                                {format(
+                                                    new Date(
+                                                        props.queue_entry.moderated_at,
+                                                    ),
+                                                    "MMMM d, yyyy 'at' h:mm a",
+                                                )}
+                                            </p>
+                                        )}
                                     {props.queue_entry.moderation_notes && (
                                         <div className="rounded-lg border border-white/10 bg-white/5 p-3">
-                                            <p className="text-xs text-white/50 mb-1">Notes:</p>
-                                            <p className="text-sm text-white/80 whitespace-pre-wrap">
-                                                {props.queue_entry.moderation_notes}
+                                            <p className="mb-1 text-xs text-white/50">
+                                                Notes:
+                                            </p>
+                                            <p className="text-sm whitespace-pre-wrap text-white/80">
+                                                {
+                                                    props.queue_entry
+                                                        .moderation_notes
+                                                }
                                             </p>
                                         </div>
                                     )}
                                     {props.queue_entry.rejection_reason && (
                                         <Alert className="border-red-500/30 bg-red-950/10">
                                             <XCircle className="size-4 text-red-400" />
-                                            <AlertTitle className="text-white">Rejection Reason</AlertTitle>
+                                            <AlertTitle className="text-white">
+                                                Rejection Reason
+                                            </AlertTitle>
                                             <AlertDescription className="text-white/80">
-                                                {props.queue_entry.rejection_reason}
+                                                {
+                                                    props.queue_entry
+                                                        .rejection_reason
+                                                }
                                             </AlertDescription>
                                         </Alert>
                                     )}
@@ -276,20 +391,26 @@ export default function AdminModerationShow() {
                         {isPending && (
                             <Card className="border-white/10 bg-white/5">
                                 <CardHeader>
-                                    <CardTitle className="text-white">Moderation Actions</CardTitle>
+                                    <CardTitle className="text-white">
+                                        Moderation Actions
+                                    </CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     {action === null ? (
                                         <div className="space-y-3">
                                             <Button
-                                                onClick={() => setAction('approve')}
+                                                onClick={() =>
+                                                    setAction('approve')
+                                                }
                                                 className="w-full bg-green-600 hover:bg-green-700"
                                             >
                                                 <CheckCircle2 className="mr-2 size-4" />
                                                 Approve Content
                                             </Button>
                                             <Button
-                                                onClick={() => setAction('reject')}
+                                                onClick={() =>
+                                                    setAction('reject')
+                                                }
                                                 variant="destructive"
                                                 className="w-full"
                                             >
@@ -297,7 +418,9 @@ export default function AdminModerationShow() {
                                                 Reject Content
                                             </Button>
                                             <Button
-                                                onClick={() => setAction('dismiss')}
+                                                onClick={() =>
+                                                    setAction('dismiss')
+                                                }
                                                 variant="outline"
                                                 className="w-full"
                                             >
@@ -305,20 +428,37 @@ export default function AdminModerationShow() {
                                             </Button>
                                         </div>
                                     ) : action === 'approve' ? (
-                                        <form onSubmit={handleApprove} className="space-y-4">
+                                        <form
+                                            onSubmit={handleApprove}
+                                            className="space-y-4"
+                                        >
                                             <div className="space-y-2">
-                                                <Label htmlFor="approve-notes" className="text-white">
+                                                <Label
+                                                    htmlFor="approve-notes"
+                                                    className="text-white"
+                                                >
                                                     Notes (Optional)
                                                 </Label>
                                                 <Textarea
                                                     id="approve-notes"
-                                                    value={approveForm.data.notes}
-                                                    onChange={(e) => approveForm.setData('notes', e.target.value)}
+                                                    value={
+                                                        approveForm.data.notes
+                                                    }
+                                                    onChange={(e) =>
+                                                        approveForm.setData(
+                                                            'notes',
+                                                            e.target.value,
+                                                        )
+                                                    }
                                                     placeholder="Optional notes about approval..."
                                                     rows={3}
                                                     className="border-white/10 bg-white/5 text-white"
                                                 />
-                                                <InputError message={approveForm.errors.notes} />
+                                                <InputError
+                                                    message={
+                                                        approveForm.errors.notes
+                                                    }
+                                                />
                                             </div>
                                             <div className="flex gap-2">
                                                 <Button
@@ -334,43 +474,83 @@ export default function AdminModerationShow() {
                                                 </Button>
                                                 <Button
                                                     type="submit"
-                                                    disabled={approveForm.processing}
+                                                    disabled={
+                                                        approveForm.processing
+                                                    }
                                                     className="flex-1 bg-green-600 hover:bg-green-700"
                                                 >
-                                                    {approveForm.processing ? 'Processing...' : 'Confirm Approval'}
+                                                    {approveForm.processing
+                                                        ? 'Processing...'
+                                                        : 'Confirm Approval'}
                                                 </Button>
                                             </div>
                                         </form>
                                     ) : action === 'reject' ? (
-                                        <form onSubmit={handleReject} className="space-y-4">
+                                        <form
+                                            onSubmit={handleReject}
+                                            className="space-y-4"
+                                        >
                                             <div className="space-y-2">
-                                                <Label htmlFor="reject-reason" className="text-white">
-                                                    Rejection Reason <span className="text-red-400">*</span>
+                                                <Label
+                                                    htmlFor="reject-reason"
+                                                    className="text-white"
+                                                >
+                                                    Rejection Reason{' '}
+                                                    <span className="text-red-400">
+                                                        *
+                                                    </span>
                                                 </Label>
                                                 <Textarea
                                                     id="reject-reason"
-                                                    value={rejectForm.data.rejection_reason}
-                                                    onChange={(e) => rejectForm.setData('rejection_reason', e.target.value)}
+                                                    value={
+                                                        rejectForm.data
+                                                            .rejection_reason
+                                                    }
+                                                    onChange={(e) =>
+                                                        rejectForm.setData(
+                                                            'rejection_reason',
+                                                            e.target.value,
+                                                        )
+                                                    }
                                                     placeholder="Reason for rejection (visible to user)..."
                                                     rows={3}
                                                     required
                                                     className="border-white/10 bg-white/5 text-white"
                                                 />
-                                                <InputError message={rejectForm.errors.rejection_reason} />
+                                                <InputError
+                                                    message={
+                                                        rejectForm.errors
+                                                            .rejection_reason
+                                                    }
+                                                />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="reject-notes" className="text-white">
+                                                <Label
+                                                    htmlFor="reject-notes"
+                                                    className="text-white"
+                                                >
                                                     Internal Notes (Optional)
                                                 </Label>
                                                 <Textarea
                                                     id="reject-notes"
-                                                    value={rejectForm.data.notes}
-                                                    onChange={(e) => rejectForm.setData('notes', e.target.value)}
+                                                    value={
+                                                        rejectForm.data.notes
+                                                    }
+                                                    onChange={(e) =>
+                                                        rejectForm.setData(
+                                                            'notes',
+                                                            e.target.value,
+                                                        )
+                                                    }
                                                     placeholder="Optional internal notes..."
                                                     rows={2}
                                                     className="border-white/10 bg-white/5 text-white"
                                                 />
-                                                <InputError message={rejectForm.errors.notes} />
+                                                <InputError
+                                                    message={
+                                                        rejectForm.errors.notes
+                                                    }
+                                                />
                                             </div>
                                             <div className="flex gap-2">
                                                 <Button
@@ -386,29 +566,51 @@ export default function AdminModerationShow() {
                                                 </Button>
                                                 <Button
                                                     type="submit"
-                                                    disabled={rejectForm.processing || !rejectForm.data.rejection_reason.trim()}
+                                                    disabled={
+                                                        rejectForm.processing ||
+                                                        !rejectForm.data.rejection_reason.trim()
+                                                    }
                                                     variant="destructive"
                                                     className="flex-1"
                                                 >
-                                                    {rejectForm.processing ? 'Processing...' : 'Confirm Rejection'}
+                                                    {rejectForm.processing
+                                                        ? 'Processing...'
+                                                        : 'Confirm Rejection'}
                                                 </Button>
                                             </div>
                                         </form>
                                     ) : action === 'dismiss' ? (
-                                        <form onSubmit={handleDismiss} className="space-y-4">
+                                        <form
+                                            onSubmit={handleDismiss}
+                                            className="space-y-4"
+                                        >
                                             <div className="space-y-2">
-                                                <Label htmlFor="dismiss-notes" className="text-white">
+                                                <Label
+                                                    htmlFor="dismiss-notes"
+                                                    className="text-white"
+                                                >
                                                     Notes (Optional)
                                                 </Label>
                                                 <Textarea
                                                     id="dismiss-notes"
-                                                    value={dismissForm.data.notes}
-                                                    onChange={(e) => dismissForm.setData('notes', e.target.value)}
+                                                    value={
+                                                        dismissForm.data.notes
+                                                    }
+                                                    onChange={(e) =>
+                                                        dismissForm.setData(
+                                                            'notes',
+                                                            e.target.value,
+                                                        )
+                                                    }
                                                     placeholder="Optional notes about dismissal..."
                                                     rows={3}
                                                     className="border-white/10 bg-white/5 text-white"
                                                 />
-                                                <InputError message={dismissForm.errors.notes} />
+                                                <InputError
+                                                    message={
+                                                        dismissForm.errors.notes
+                                                    }
+                                                />
                                             </div>
                                             <div className="flex gap-2">
                                                 <Button
@@ -424,11 +626,15 @@ export default function AdminModerationShow() {
                                                 </Button>
                                                 <Button
                                                     type="submit"
-                                                    disabled={dismissForm.processing}
+                                                    disabled={
+                                                        dismissForm.processing
+                                                    }
                                                     variant="outline"
                                                     className="flex-1"
                                                 >
-                                                    {dismissForm.processing ? 'Processing...' : 'Confirm Dismissal'}
+                                                    {dismissForm.processing
+                                                        ? 'Processing...'
+                                                        : 'Confirm Dismissal'}
                                                 </Button>
                                             </div>
                                         </form>
@@ -442,4 +648,3 @@ export default function AdminModerationShow() {
         </AppLayout>
     );
 }
-

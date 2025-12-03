@@ -1,8 +1,8 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 
-import { UserCard } from '@/components/users/user-card';
 import { Button } from '@/components/ui/button';
+import { UserCard } from '@/components/users/user-card';
 import OnboardingLayout from '@/layouts/onboarding-layout';
 import onboardingRoutes from '@/routes/onboarding';
 import {
@@ -93,7 +93,10 @@ export default function FollowSuggestions({
                                     showFollowButton={true}
                                     initialFollowing={state.isFollowing}
                                     initialPending={state.isPending}
-                                    onFollowChange={(isFollowing, isPending) => {
+                                    onFollowChange={(
+                                        isFollowing,
+                                        isPending,
+                                    ) => {
                                         setFollowStates((prev) => ({
                                             ...prev,
                                             [user.id]: {

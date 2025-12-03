@@ -1,5 +1,6 @@
 <?php
 
+use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 
@@ -23,12 +24,15 @@ pest()->extend(Tests\TestCase::class)
 | Global Test Setup
 |--------------------------------------------------------------------------
 |
-| Fake broadcasting and HTTP requests globally to prevent hangs during tests.
+| Seed roles/permissions and fake broadcasting/HTTP globally.
 | Individual tests can override these if needed.
 |
 */
 
 beforeEach(function (): void {
+    // Seed roles and permissions globally for all tests that need them
+    $this->seed(RolesAndPermissionsSeeder::class);
+
     // Fake only the broadcasting events that implement ShouldBroadcast to prevent hangs
     // Note: We use Event::fake() with specific events to avoid interfering with test assertions
     Event::fake([

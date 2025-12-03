@@ -179,14 +179,17 @@ export function UserHoverCard({
     const initials = getInitials(finalDisplayName);
 
     return (
-        <HoverCard openDelay={300} onOpenChange={(open) => open && fetchProfile()}>
+        <HoverCard
+            openDelay={300}
+            onOpenChange={(open) => open && fetchProfile()}
+        >
             <HoverCardTrigger asChild>{children}</HoverCardTrigger>
             <HoverCardContent className="w-72 p-0" side="right" align="start">
                 {isLoading ? (
-                    <div className="p-4 space-y-3">
+                    <div className="space-y-3 p-4">
                         <div className="flex items-start gap-3">
-                            <Skeleton className="size-12 rounded-full shrink-0" />
-                            <div className="flex-1 space-y-2 min-w-0">
+                            <Skeleton className="size-12 shrink-0 rounded-full" />
+                            <div className="min-w-0 flex-1 space-y-2">
                                 <Skeleton className="h-4 w-32" />
                                 <Skeleton className="h-3 w-24" />
                             </div>
@@ -198,12 +201,12 @@ export function UserHoverCard({
                             <Skeleton className="h-3 w-16" />
                             <Skeleton className="h-3 w-16" />
                         </div>
-                        <Skeleton className="h-9 w-full mt-3" />
+                        <Skeleton className="mt-3 h-9 w-full" />
                     </div>
                 ) : profile ? (
                     <div className="p-4">
                         {/* Header: Avatar and Name */}
-                        <div className="flex items-start gap-3 mb-3">
+                        <div className="mb-3 flex items-start gap-3">
                             <Link
                                 href={`/p/${profile.username}`}
                                 prefetch
@@ -225,21 +228,21 @@ export function UserHoverCard({
                                     </div>
                                 )}
                             </Link>
-                            <div className="flex-1 min-w-0">
+                            <div className="min-w-0 flex-1">
                                 <Link
                                     href={`/p/${profile.username}`}
                                     prefetch
                                     className="block"
                                 >
-                                    <div className="flex items-center gap-1.5 mb-0.5">
-                                        <h3 className="text-sm font-semibold text-white truncate">
+                                    <div className="mb-0.5 flex items-center gap-1.5">
+                                        <h3 className="truncate text-sm font-semibold text-white">
                                             {finalDisplayName}
                                         </h3>
                                         {profile.is_verified && (
-                                            <CheckCircle2 className="size-3.5 text-amber-400 shrink-0" />
+                                            <CheckCircle2 className="size-3.5 shrink-0 text-amber-400" />
                                         )}
                                     </div>
-                                    <p className="text-xs text-white/60 truncate">
+                                    <p className="truncate text-xs text-white/60">
                                         @{profile.username}
                                     </p>
                                 </Link>
@@ -248,24 +251,32 @@ export function UserHoverCard({
 
                         {/* Bio */}
                         {profile.bio && (
-                            <p className="text-xs text-white/80 line-clamp-2 mb-3 leading-relaxed">
+                            <p className="mb-3 line-clamp-2 text-xs leading-relaxed text-white/80">
                                 {profile.bio}
                             </p>
                         )}
 
                         {/* Stats */}
-                        <div className="flex items-center gap-4 mb-3 text-xs">
+                        <div className="mb-3 flex items-center gap-4 text-xs">
                             <div className="text-white/70">
                                 <span className="font-semibold text-white">
                                     {profile.stats.posts.toLocaleString()}
                                 </span>{' '}
-                                <span>{profile.stats.posts === 1 ? 'Post' : 'Posts'}</span>
+                                <span>
+                                    {profile.stats.posts === 1
+                                        ? 'Post'
+                                        : 'Posts'}
+                                </span>
                             </div>
                             <div className="text-white/70">
                                 <span className="font-semibold text-white">
                                     {profile.stats.followers.toLocaleString()}
                                 </span>{' '}
-                                <span>{profile.stats.followers === 1 ? 'Follower' : 'Followers'}</span>
+                                <span>
+                                    {profile.stats.followers === 1
+                                        ? 'Follower'
+                                        : 'Followers'}
+                                </span>
                             </div>
                             <div className="text-white/70">
                                 <span className="font-semibold text-white">
@@ -286,7 +297,7 @@ export function UserHoverCard({
                                         : 'default'
                                 }
                                 size="sm"
-                                className="w-full rounded-full border border-white/20 bg-white/10 text-xs font-medium text-white transition hover:bg-white/15 hover:border-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full rounded-full border border-white/20 bg-white/10 text-xs font-medium text-white transition hover:border-white/30 hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 {isProcessing ? (
                                     <>

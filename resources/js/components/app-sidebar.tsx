@@ -406,11 +406,11 @@ export function AppSidebar() {
                             <AppLogo />
                             {!isCollapsed && (
                                 <div className="space-y-0.5">
-                                    <p className="text-[0.6rem] tracking-[0.35em] text-white/55 uppercase">
+                                    <p className="text-[0.85rem] tracking-[0.2em] text-white font-semibold uppercase">
                                         Real Kink Men
                                     </p>
-                                    <p className="text-sm font-semibold text-white">
-                                        Live Your Fetish Out Loud
+                                    <p className="text-[0.6rem] tracking-[0.15em] font-semibold text-white/60">
+                                        Unleash Your Kink
                                     </p>
                                 </div>
                             )}

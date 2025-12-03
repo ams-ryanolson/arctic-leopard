@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class AccountStatusController extends Controller
 {
-    public function banned(Request $request): Response
+    public function banned(Request $request): Response|RedirectResponse
     {
         $user = $request->user();
 
@@ -41,7 +42,7 @@ class AccountStatusController extends Controller
         ]);
     }
 
-    public function suspended(Request $request): Response
+    public function suspended(Request $request): Response|RedirectResponse
     {
         $user = $request->user();
 

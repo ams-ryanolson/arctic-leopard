@@ -52,6 +52,21 @@ COPY . .
 # Run composer scripts (now that we have the full codebase)
 RUN composer dump-autoload --optimize --no-dev
 
+# Build arguments for Vite (frontend) environment variables
+# These are baked into the JavaScript at build time
+ARG VITE_PUSHER_APP_KEY
+ARG VITE_PUSHER_APP_CLUSTER
+ARG VITE_PUSHER_HOST
+ARG VITE_PUSHER_PORT
+ARG VITE_PUSHER_SCHEME
+
+# Set them as environment variables for the build
+ENV VITE_PUSHER_APP_KEY=${VITE_PUSHER_APP_KEY}
+ENV VITE_PUSHER_APP_CLUSTER=${VITE_PUSHER_APP_CLUSTER}
+ENV VITE_PUSHER_HOST=${VITE_PUSHER_HOST}
+ENV VITE_PUSHER_PORT=${VITE_PUSHER_PORT}
+ENV VITE_PUSHER_SCHEME=${VITE_PUSHER_SCHEME}
+
 # Generate Wayfinder routes and build frontend assets
 # The wayfinder:generate runs automatically via vite plugin, but needs PHP available
 RUN npm run build

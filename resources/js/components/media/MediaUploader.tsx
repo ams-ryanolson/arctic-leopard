@@ -39,6 +39,7 @@ export default function MediaUploader({
 }: MediaUploaderProps) {
     const inputRef = useRef<HTMLInputElement | null>(null);
     const [isDragging, setIsDragging] = useState(false);
+    const [, setUploadItems] = useState<UploadItem[]>([]);
 
     const handleFileSelect = useCallback(
         async (fileList: FileList | null) => {

@@ -358,7 +358,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                         ->can('grantFreeMembership', 'user');
                     Route::post('{user}/send-beta-invitation', [AdminUserController::class, 'sendBetaInvitation'])
                         ->name('send-beta-invitation')
-                        ->can('update', 'user');
+                        ->can('sendBetaInvitation', 'user');
                 });
 
                 Route::prefix('settings')->as('settings.')->group(function () {

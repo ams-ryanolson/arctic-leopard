@@ -248,7 +248,7 @@ class AdminUserController extends Controller
      */
     public function sendBetaInvitation(Request $request, User $user): RedirectResponse
     {
-        Gate::authorize('update', $user);
+        Gate::authorize('sendBetaInvitation', $user);
 
         try {
             Mail::to($user->email)->send(new BetaInvitationEmail($user));

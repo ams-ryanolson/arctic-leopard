@@ -298,4 +298,12 @@ class ProfilePolicy
     {
         return $user->hasRole(['Admin', 'Super Admin', 'Moderator']);
     }
+
+    /**
+     * Determine if the user can send beta invitations (admin operation).
+     */
+    public function sendBetaInvitation(User $user, User $model): bool
+    {
+        return $user->hasRole(['Admin', 'Super Admin']);
+    }
 }

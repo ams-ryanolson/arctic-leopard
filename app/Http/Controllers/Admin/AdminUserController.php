@@ -12,6 +12,7 @@ use App\Mail\BetaInvitationEmail;
 use App\Models\Memberships\MembershipPlan;
 use App\Models\User;
 use App\Services\Memberships\MembershipService;
+use App\Services\Toasts\ToastBus;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -246,7 +247,7 @@ class AdminUserController extends Controller
     /**
      * Send a beta invitation email to a user.
      */
-    public function sendBetaInvitation(Request $request, User $user): RedirectResponse
+    public function sendBetaInvitation(Request $request, User $user, ToastBus $toastBus): RedirectResponse
     {
         Gate::authorize('sendBetaInvitation', $user);
 
@@ -260,20 +261,14 @@ class AdminUserController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            return redirect()
-                ->back()
-                ->with('status', [
-                    'type' => 'error',
-                    'message' => "Failed to send email: {$e->getMessage()}",
-                ]);
+            $toastBus->danger($request->user(), "Failed to send beta invitation: {$e->getMessage()}");
+
+            return redirect()->back();
         }
 
-        return redirect()
-            ->back()
-            ->with('status', [
-                'type' => 'success',
-                'message' => "Beta invitation sent to {$user->email}!",
-            ]);
+        $toastBus->success($request->user(), "Beta invitation sent to {$user->email}!");
+
+        return redirect()->back();
     }
 
     /**

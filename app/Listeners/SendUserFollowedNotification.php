@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Notifications\UserFollowedNotification;
 use App\Notifications\UserFollowRequestedNotification;
 use App\Services\Toasts\ToastBus;
+use Illuminate\Support\Facades\Cache;
 
 class SendUserFollowedNotification
 {
@@ -36,6 +37,12 @@ class SendUserFollowedNotification
         }
 
         self::$handledEventIds[$eventId] = true;
+
+        // Cache lock to prevent duplicate notifications (race condition with queued notifications)
+        $lockKey = sprintf('follow-notification:%d:%d', $followed->getKey(), $follower->getKey());
+        if (! Cache::add($lockKey, true, 60)) {
+            return; // Another notification is already being processed
+        }
 
         $existingRequests = $followed->notifications()
             ->where('type', UserFollowRequestedNotification::TYPE)

@@ -6,6 +6,7 @@ use App\Events\UserFollowAccepted;
 use App\Models\User;
 use App\Notifications\UserFollowRequestApprovedNotification;
 use App\Services\Toasts\ToastBus;
+use Illuminate\Support\Facades\Cache;
 
 class SendFollowRequestApprovedNotification
 {
@@ -35,6 +36,12 @@ class SendFollowRequestApprovedNotification
 
         if (isset(self::$handledEventIds[$eventId])) {
             return;
+        }
+
+        // Cache lock to prevent duplicate notifications (race condition with queued notifications)
+        $lockKey = sprintf('follow-approved-notification:%d:%d', $follower->getKey(), $followed->getKey());
+        if (! Cache::add($lockKey, true, 60)) {
+            return; // Another notification is already being processed
         }
 
         $alreadyNotified = $follower->notifications()
